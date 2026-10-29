@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10243a">
+  <meta name="description" content="YETI Flight Trial public document index.">
+  <title>YETI Flight Trial Library</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="YETI Flight Trial Library home">
+      <span class="brand-mark">Y</span>
+      <span><strong>YETI</strong><small>FLIGHT TRIAL LIBRARY</small></span>
+    </a>
+    <span class="public-label"><span></span> PUBLIC SITE</span>
+  </header>
+  <main>
+    <section class="hero">
+      <div class="eyebrow">FLIGHT TEST · DOCUMENTATION</div>
+      <h1>Flight Trial<br><em>Document Library</em></h1>
+      <p class="hero-copy">A searchable index of flight-trial documents, checklists and supporting references.</p>
+      <div class="hero-meta"><span class="meta-icon">⌕</span><span>Browse and search the published collection</span></div>
+    </section>
+    <section class="library" aria-labelledby="library-title">
+      <div class="section-heading">
+        <div><div class="eyebrow">DOCUMENT INDEX</div><h2 id="library-title">Library</h2></div>
+        <div class="count" id="doc-count">0 documents</div>
+      </div>
+      <label class="search-wrap"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Search title, filename or category…" autocomplete="off"></label>
+      <div class="filters" id="filters" aria-label="Filter by category"></div>
+      <div id="status" class="status" role="status">Loading document index…</div>
+      <div id="documents" class="documents"></div>
+      <div id="empty" class="empty" hidden><div class="empty-symbol">▤</div><h3>No documents found</h3><p>Try a different search or category.</p></div>
+    </section>
+    <aside class="notice"><strong>Public access notice</strong><p>This GitHub Pages version is a static public website. Documents and links listed here are accessible to anyone. It does not support private sign-in, protected files, or uploads. Do not publish restricted or sensitive flight-test material.</p></aside>
+  </main>
+  <footer><span>YETI FLIGHT TRIAL LIBRARY</span><span>Static edition · GitHub Pages</span></footer>
+</body>
+</html>
