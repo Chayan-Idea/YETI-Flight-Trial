@@ -1,3 +1,11 @@
 {
-  "documents": []
+  "documents": [
+    {
+      "title": "UAV Flight Trial Standard Operating Procedure (SOP)",
+      "filename": "UAV_Flight_Trial_SOP_500kg_600VDC_RevB.html",
+      "category": "SOP / Flight Safety",
+      "description": "500 kg-class logistics UAV; ~600 V DC high-energy battery system. Rev. B / Draft.",
+      "path": "files/UAV_Flight_Trial_SOP_500kg_600VDC_RevB.html"
+    }
+  ]
 }
