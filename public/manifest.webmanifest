@@ -1,0 +1,17 @@
+{
+  "name": "YETI Flight Trial Library",
+  "short_name": "YETI Library",
+  "description": "Private document library for authorized flight trial team members.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6f8fb",
+  "theme_color": "#102b4e",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
