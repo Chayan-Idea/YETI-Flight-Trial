@@ -11,11 +11,18 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
   try {
     const docs = await readCatalog();
     const doc = docs.find((item) => item.id === id);
-    if (!doc || !doc.path.startsWith("documents/files/") || !doc.path.toLowerCase().endsWith(".pdf")) return NextResponse.json({ error: "Document not found." }, { status: 404 });
+    if (!doc || !doc.path.startsWith("documents/files/") || !doc.path.toLowerCase().endsWith(".pdf")) {
+      return NextResponse.json({ error: "Document not found." }, { status: 404 });
+    }
     const { owner, repo, branch } = githubConfig();
-    const result = await githubClient().repos.getContent({ owner, repo, path: doc.path, ref: branch });
-    if (Array.isArray(result.data) || result.data.type !== "file" || !("content" in result.data)) return NextResponse.json({ error: "Document file is unavailable." }, { status: 404 });
-    const bytes = Buffer.from(result.data.content, "base64");
+    const octokit = githubClient();
+    const result = await octokit.repos.getContent({ owner, repo, path: doc.path, ref: branch });
+    if (Array.isArray(result.data) || result.data.type !== "file" || !("sha" in result.data)) {
+      return NextResponse.json({ error: "Document file is unavailable." }, { status: 404 });
+    }
+    // Git Blob API supports binary files beyond the Contents API's 1 MB inline-content limit.
+    const blob = await octokit.git.getBlob({ owner, repo, file_sha: result.data.sha });
+    const bytes = Buffer.from(blob.data.content, "base64");
     const inline = new URL(request.url).searchParams.get("mode") === "inline";
     const safeName = doc.fileName.replace(/[\r\n"]/g, "_");
     return new NextResponse(bytes, { headers: {
