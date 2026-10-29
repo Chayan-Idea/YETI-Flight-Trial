@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UAV Flight Trial SOP — 500 kg Class / ~600 V DC</title>
+<style>
+:root{color-scheme:light;--ink:#172033;--blue:#123f72;--line:#d8e0ea;--pale:#f3f7fb}
+body{font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);max-width:980px;margin:0 auto;padding:24px}
+h1,h2,h3{line-height:1.2;color:var(--blue)}h1{font-size:2rem}h2{border-bottom:1px solid var(--line);padding-bottom:7px;margin-top:30px}h3{font-size:1.1rem}
+.meta, .notice{background:var(--pale);border:1px solid var(--line);border-radius:10px;padding:14px;margin:16px 0}
+.notice{border-left:5px solid #b42318}table{border-collapse:collapse;width:100%;margin:12px 0 20px;font-size:.94rem}th,td{border:1px solid var(--line);padding:9px;vertical-align:top;text-align:left}th{background:var(--pale)}li{margin:5px 0}.muted{color:#536174;font-size:.9rem}
+@media print{body{max-width:none;padding:0}a{color:inherit;text-decoration:none}h2{break-after:avoid}table,tr{break-inside:avoid}}
+</style>
+</head>
+<body>
+<h1>UAV FLIGHT TRIAL</h1>
+<h2>STANDARD OPERATING PROCEDURE (SOP)</h2>
+<p><strong>500 kg-CLASS LOGISTICS UAV | ~600 V DC HIGH-ENERGY BATTERY SYSTEM</strong></p>
+<div class="meta"><table><tr><th>Document ID</th><th>Revision</th><th>Effective Date</th><th>Process Owner</th></tr><tr><td>UAV-VV-SOP-001 (proposed)</td><td>Rev. B / Draft</td><td>Upon approval</td><td>V&amp;V / Safety / Testing / Assurance</td></tr></table><strong>CONTROLLED DOCUMENT WHEN APPROVED</strong></div>
+<h2>1. PURPOSE &amp; SCOPE</h2><p>Define a controlled, traceable workflow for preparing, inspecting, operating and recovering a 500 kg-class logistics UAV, including a nominal ~600 V DC battery system. Applies to aircraft, propulsion, HV energy storage, GCS, ground equipment, personnel, flight data and incident response. Use with the approved aircraft manual, electrical safety procedures, test card, risk assessment, site emergency plan and applicable regulations.</p>
+<h2>2. ROLES &amp; RESPONSIBILITIES</h2>
+<table><tr><th>Role</th><th>Minimum responsibility</th></tr>
+<tr><td>Test Lead / Flight Test Director</td><td>Approve trial readiness, briefing, go/no-go, stop-work decisions and records completeness.</td></tr>
+<tr><td>PIC / Remote Pilot</td><td>Confirm operational readiness, remain within approved limits, command abort/recovery and report anomalies.</td></tr>
+<tr><td>HV Authorised Person (HVAP)</td><td>Control HV access, isolation, proving-dead and electrical work under the organization’s approved HV procedure; apply lockout/tagout (LOTO) where required.</td></tr>
+<tr><td>Airframe / Electrical / Propulsion Engineer</td><td>Perform assigned integrity checks; document defects; do not work on HV circuits unless authorized.</td></tr>
+<tr><td>Data / Test Engineer</td><td>Verify recording, archive raw logs and correlate files using a unique Flight ID.</td></tr>
+<tr><td>Safety / Assurance / Emergency Lead</td><td>Coordinate hazard controls, emergency response, incident notification, investigation and return-to-service review.</td></tr></table>
+<h2>3. NON-NEGOTIABLE SAFETY RULES</h2>
+<ul>
+<li>A ~600 V DC battery is potentially lethal and can sustain severe DC arc events. Treat all HV conductors as energized until isolated, locked/tagged and verified de-energized by an authorized competent person using approved equipment and procedure.</li>
+<li>Only trained and formally authorized personnel may access HV enclosures, operate HV isolation devices where designated, test HV circuits, or perform HV maintenance. Use the specified PPE, insulated tools, barriers and approach boundaries from the approved electrical risk assessment.</li>
+<li>Never disconnect HV connectors under load unless the system is specifically designed and approved for that operation. Do not bypass interlocks, pre-charge circuits, insulation monitoring, contactors or protective devices.</li>
+<li>Damaged, wet, overheated, swollen, leaking, smoking or impact-exposed battery packs must be treated as hazardous; do not touch, move, open, charge or reconnect them until assessed under the battery emergency plan by qualified personnel.</li>
+<li>For smoke, hissing, venting, unusual heat, electrolyte leakage or suspected thermal runaway: raise alarm, evacuate/upwind to the site-defined safe distance, isolate the area and call the designated emergency response. Do not approach to retrieve data or equipment.</li>
+<li>Any failed or uncertain safety-critical check = NO-GO. PIC or Test Lead may stop the trial at any time. A crash, hard landing, electrical anomaly or safety-critical exceedance grounds the aircraft pending documented engineering and safety release.</li>
+</ul>
+<h2>4. TRIAL PREPARATION</h2>
+<ul><li>Confirm approved test plan/card, objective, acceptance limits, aircraft ID, mass/CG and payload, configuration, software/firmware, battery-pack ID and propulsion setup.</li><li>Review current risk assessment, weather, site/airspace permissions, emergency access, fire response capability, communications, recovery zones, lost-link response and abort criteria.</li><li>Review aircraft maintenance status, open defects, prior anomalies, battery history/health, HV inspection status, insulation-monitoring status and calibration status.</li><li>Confirm suitable HV-rated tools/test equipment, barriers, warning signs, PPE, LOTO kit, approved voltage detector and proving unit are available when HV work is planned.</li><li>Confirm GCS, telemetry, antennas, ground equipment, charger/power source, data storage, time synchronization, recording and backup location are ready.</li></ul>
+<h2>5. PRE-FLIGHT CHECKS</h2>
+<h3>5.1 Mechanical &amp; Airframe Integrity</h3>
+<table><tr><th>Area</th><th>Checkpoints — record PASS / FAIL / N/A and remarks</th></tr>
+<tr><td>Structure</td><td>Fuselage, wings, tail, joints, hinges, fasteners, bonding, cracks, deformation, delamination, impact or transport damage.</td></tr>
+<tr><td>Controls</td><td>Linkages, actuators/servos, attachment, free travel, direction, neutral, range, binding and interference per approved procedure.</td></tr>
+<tr><td>Landing / launch / recovery</td><td>Landing gear, wheels/skids, launch/recovery fittings, restraints and recovery-system readiness.</td></tr>
+<tr><td>Propulsion</td><td>Motor/propeller condition, correct type/orientation, mounting, fasteners, clearance, wiring and signs of damage; propulsion disarmed during inspection.</td></tr>
+<tr><td>Payload / CG</td><td>Payload restraint, loading configuration, mass and centre of gravity within approved limits; doors/latches and access panels secured.</td></tr>
+<tr><td>Final walk-around</td><td>Tools/covers removed, no loose objects, all required fasteners verified and aircraft configuration matches test card.</td></tr></table>
+<h3>5.2 Electrical &amp; ~600 V DC Battery / HV Integrity</h3>
+<table><tr><th>Check area</th><th>Checkpoint / acceptance evidence</th></tr>
+<tr><td>Pack condition</td><td>Correct approved pack and ID; enclosure secure; no impact marks, swelling, leakage, odour, abnormal heat, moisture ingress or damaged vents.</td></tr>
+<tr><td>HV cabling/connectors</td><td>Visible cable insulation, routing, strain relief, connector locking, polarity keying, abrasion/chafing, contamination and enclosure integrity acceptable; no exposed conductors.</td></tr>
+<tr><td>HV isolation &amp; interlocks</td><td>Service disconnect, contactors, interlocks, pre-charge and emergency isolation devices visually/status checked per approved design procedure; no bypass or unexplained fault.</td></tr>
+<tr><td>Protection / monitoring</td><td>BMS status, cell-voltage spread, pack voltage/current, temperature sensors, insulation-monitoring and fault flags within aircraft/battery manufacturer limits.</td></tr>
+<tr><td>LV / avionics supply</td><td>LV battery/DC-DC supply, fuses/protection, harnesses, grounding/bonding as designed, flight controller, GNSS, airspeed sensor, antennas and connectors healthy.</td></tr>
+<tr><td>Battery readiness</td><td>SOC/voltage, temperature, health and allowable charge/discharge limits meet the approved flight profile; pack securely restrained and thermal management unobstructed.</td></tr>
+<tr><td>HV work control</td><td>No exposed-HV work during routine pre-flight. If maintenance/testing is required, it must be a separate authorized HV task with isolation, LOTO, proving-dead and re-energization controls.</td></tr>
+<tr><td>Electrical release</td><td>No active safety-critical faults, abnormal heating, insulation warning or unresolved defect; responsible engineer/HVAP sign-off recorded as required.</td></tr></table>
+<h3>5.3 GCS Daily Pre-Flight Checklist</h3>
+<table><tr><th>Area</th><th>Minimum verification</th></tr>
+<tr><td>GCS &amp; power</td><td>Console/computer, power/UPS, storage capacity, correct date/time and time synchronization.</td></tr>
+<tr><td>Control &amp; telemetry</td><td>Correct aircraft selected; command and telemetry links, antennas, link quality and alarms checked.</td></tr>
+<tr><td>Mission &amp; configuration</td><td>Approved mission, geofence/limits, home point, map/coordinates, failsafe and return/land/abort actions verified.</td></tr>
+<tr><td>Flight instruments</td><td>GNSS quality, compass, attitude, altitude, airspeed and other required sensors healthy and plausible.</td></tr>
+<tr><td>Control checks</td><td>Approved control-input and actuator/surface checks completed; correct direction and neutral positions confirmed.</td></tr>
+<tr><td>HV/BMS/propulsion telemetry</td><td>Pack voltage/current/SOC, cell and pack temperatures, BMS, insulation monitor, ESC/motor telemetry and relevant warnings visible/recording as configured.</td></tr>
+<tr><td>Recording</td><td>AP logs, telemetry, GCS screen recording, BMS/ESC logs and cameras enabled/tested; adequate storage and unique Flight ID assigned.</td></tr>
+<tr><td>Emergency &amp; go/no-go</td><td>Crew communications, emergency contacts, recovery equipment, weather/site limits and checklist sign-off confirmed.</td></tr></table>
+<h3>5.4 Final Go / No-Go &amp; Flight Execution</h3><p>Brief all crew on test points, roles, weather, exclusion zones, communications, abort triggers, emergency landing/recovery and battery/HV hazards. Confirm no personnel or equipment are in hazardous propulsion zones; clear the launch/recovery area and verify aircraft configuration against the approved test card. Monitor flight-control health, link quality, battery voltage/current/temperature, BMS/insulation alerts, ESC/motor behaviour and aircraft response against approved limits. Abort/recover if limits are exceeded, any safety-critical warning appears, control/telemetry degrades, environmental conditions deteriorate, or PIC/Test Lead judges the trial unsafe.</p>
+<h2>6. POST-FLIGHT SAFETY &amp; INSPECTION</h2>
+<p>Never handle a hot, venting, impact-damaged or electrically suspect battery merely to complete the checklist. Establish the battery emergency perimeter and invoke the site emergency plan. After normal flight, place battery in its approved storage/charging area and follow manufacturer-defined temperature, SOC, inspection and charging requirements.</p>
+<table><tr><th>Area</th><th>Post-flight checkpoints</th></tr>
+<tr><td>Make safe</td><td>Recover and secure aircraft; disarm propulsion; inhibit unintended restart; establish exclusion around propeller/propulsion; follow approved shutdown sequence.</td></tr>
+<tr><td>HV status</td><td>Do not open HV enclosures or disconnect loaded connectors. Isolate HV only as specified by the aircraft procedure and authorized role; observe required discharge/wait time and verify status before authorized work.</td></tr>
+<tr><td>Battery condition</td><td>Record pack ID, SOC/voltage, temperature, BMS alarms, cell data and any unusual heat, smell, noise, swelling, leakage or damage. Do not charge a pack with unresolved anomalies.</td></tr>
+<tr><td>Mechanical inspection</td><td>Check airframe, control surfaces/linkages, motor/propeller, landing/recovery system, payload restraints, fasteners, wiring and connectors for damage, looseness, heat or abrasion.</td></tr>
+<tr><td>Electrical/propulsion data</td><td>Capture AP, GCS, BMS and ESC logs before power-down where safe; record warnings, peak/abnormal values and shutdown events.</td></tr>
+<tr><td>Disposition</td><td>Mark SERVICEABLE / RESTRICTED / GROUNDED. Record defect, risk, owner and due date. Abnormal event or impact requires formal inspection and authorized return-to-service release.</td></tr></table>
+<h2>7. CRASH / ABNORMAL EVENT — SAFE RECOVERY PLAN</h2>
+<p>Trigger this plan after a crash, hard landing, flyaway, loss of control/link, suspected battery/HV damage, smoke/fire, structural failure, injury/property damage or any event where aircraft energy state is uncertain. Life safety takes priority over aircraft or data recovery.</p>
+<div class="notice"><strong>Important:</strong> This section is a framework, not a substitute for a site-specific emergency response plan, aircraft rescue manual, battery manufacturer instructions, HV switching procedure or local emergency-service direction. Define site-specific exclusion distances, emergency contacts, fire response, lifting points and responder roles before trials.</div>
+<table><tr><th>Phase</th><th>Required actions</th></tr>
+<tr><td>1 — Stop &amp; alert</td><td>PIC announces emergency and last known aircraft location; stop flight operations and launch activity. Notify Test Lead, site safety/emergency lead and emergency services as required.</td></tr>
+<tr><td>2 — Secure people &amp; site</td><td>Account for personnel; keep bystanders away; establish and guard an exclusion zone based on the site emergency plan and incident hazards. Approach from a safe direction/upwind where appropriate; consider terrain, wind, smoke, traffic and secondary hazards.</td></tr>
+<tr><td>3 — Assume energized</td><td>Treat the battery/HV bus, exposed wiring and damaged power electronics as energized. Do not touch aircraft, conductors, connectors, battery or conductive debris. Do not attempt improvised isolation or voltage checks.</td></tr>
+<tr><td>4 — Fire / thermal event</td><td>For smoke, flame, venting, hissing, unusual heat or suspected thermal runaway, withdraw/evacuate to the site-defined safe distance, raise alarm and let trained responders apply the approved battery-fire/incident plan. Do not approach to recover logs or extinguish without designated training/equipment.</td></tr>
+<tr><td>5 — Scene &amp; hazards assessment</td><td>Only the designated incident lead and competent responders assess approach safety. Consider residual propulsion movement, stored electrical energy, damaged structures, sharp edges, fuel/chemical hazards if fitted, unstable payload, high-voltage lines and unsafe terrain.</td></tr>
+<tr><td>6 — Stabilize &amp; isolate</td><td>Only authorized responders/HV personnel may execute aircraft-specific emergency isolation after judging it safe. Follow the approved emergency isolation, LOTO, wait-time and verify-de-energized procedure. If isolation cannot be confirmed, maintain the exclusion zone and treat as energized.</td></tr>
+<tr><td>7 — Recovery authorization</td><td>No personnel retrieve or move the wreckage until the incident lead confirms the area is safe and authorizes recovery. Use a documented recovery plan, suitable lifting/handling equipment and trained personnel; avoid loads on damaged battery enclosures or HV cables.</td></tr>
+<tr><td>8 — Quarantine &amp; transport</td><td>Segregate and label damaged aircraft/battery. Do not charge, reconnect, open or transport a suspect battery in an ordinary vehicle. Specialist battery responders determine packaging, monitoring, movement and disposal under applicable rules.</td></tr>
+<tr><td>9 — Evidence preservation</td><td>After scene safety is confirmed, photograph the scene and aircraft before disturbance where possible; record location, orientation, damage, time and witnesses. Preserve AP/GCS/BMS/ESC logs, screen recordings, videos, photos, configuration and maintenance records. Do not power up or reset the system.</td></tr>
+<tr><td>10 — Return to service</td><td>Ground the aircraft and affected battery/parts pending engineering inspection, incident investigation and written release by designated authorities. Review risk assessment and authorize corrective actions before any repeat trial.</td></tr></table>
+<h2>8. INCIDENT LOGBOOK &amp; ROOT-CAUSE ANALYSIS (RCA)</h2>
+<p>Log promptly: Incident ID, date/time/site, Flight ID, aircraft and battery IDs, configuration, phase of flight, factual event sequence with timestamps, alarms, weather, injuries/damage, immediate actions, notifications and witnesses.</p>
+<p>Preserve evidence only after the scene is safe: AP logs, GCS screen recording, BMS/ESC logs, telemetry, video/photos, parameter/configuration files, checklists, maintenance history and relevant communications. Record evidence source, collector and repository path.</p>
+<p>RCA report: problem statement and impact; timeline; evidence and known facts; containment; causal analysis (5-Why, fault tree or equivalent); direct/contributing/systemic causes; corrective and preventive actions; owner/due date; effectiveness check and approval. Separate verified facts from hypotheses; document unknowns. Track corrective actions to closure and formally approve return to service.</p>
+<table><tr><th>Incident log field</th><th>Entry</th></tr>
+<tr><td>Incident ID / date-time / site</td><td>______________________________________________</td></tr><tr><td>Flight ID / UAV ID / battery ID</td><td>______________________________________________</td></tr><tr><td>Event type / flight phase / conditions</td><td>______________________________________________</td></tr><tr><td>Factual timeline / warnings</td><td>______________________________________________ / ______________________________________________</td></tr><tr><td>Injury / damage / consequence</td><td>______________________________________________</td></tr><tr><td>Immediate controls / notifications</td><td>______________________________________________</td></tr><tr><td>Evidence preserved / storage path</td><td>______________________________________________</td></tr><tr><td>Incident lead / RCA owner / due date</td><td>______________________________________________</td></tr><tr><td>RCA / action references / closure approval</td><td>______________________________________________</td></tr></table>
+<h2>9. DAILY DATA UPLOAD &amp; RECORDS</h2>
+<p>Upload after every flight day to the approved repository; preserve raw originals and verify file readability, count and size. Record missing files and reasons. Suggested filename: <code>YYYYMMDD_Site_UAV-ID_Flight-##_DataType.ext</code>. Use one unique Flight ID across all records; maintain an index if filenames must remain unchanged. Apply organization-approved access controls, backups, retention and revision control. Do not delete or overwrite incident evidence.</p>
+<table><tr><th>Folder</th><th>Required content</th></tr>
+<tr><td>00_Admin_TestPlan</td><td>Approved test plan/cards, risk assessment, permissions, configuration, briefing and go/no-go record.</td></tr>
+<tr><td>01_AP_Logs</td><td>Autopilot/flight-controller logs, telemetry and event logs.</td></tr>
+<tr><td>02_GCS_ScreenRecording</td><td>Full GCS session recordings and file-to-Flight-ID index.</td></tr>
+<tr><td>03_Battery_BMS</td><td>BMS logs, pack ID, voltage/current, cell voltages, temperatures, alarms and health/cycle data.</td></tr>
+<tr><td>04_ESC_Propulsion</td><td>ESC logs, motor/propulsion telemetry and test-equipment outputs.</td></tr>
+<tr><td>05_Video_Photo</td><td>Onboard/ground videos and photographs; retain original quality and metadata.</td></tr>
+<tr><td>06_Checklists_FlightReports</td><td>Signed mechanical/electrical/GCS checklists, flight summary, post-flight observations and action tracker.</td></tr>
+<tr><td>07_Incidents_RCA</td><td>Incident logbook, evidence index, investigation, RCA, corrective actions and closure evidence.</td></tr></table>
+<h2>10. DOCUMENT CONTROL &amp; RELEASE</h2>
+<p>Any deviation must be documented, risk-assessed and approved by the designated authority. Before controlled release, tailor this SOP to the actual battery chemistry and pack design, aircraft emergency isolation architecture, manufacturer limits, HV safety rules, PPE/approach boundaries, site emergency contacts, exclusion distances, recovery/lifting points and records-retention policy. This SOP does not replace the aircraft flight manual, battery emergency instructions, approved test plan or applicable regulations.</p>
+<h2>APPENDIX A — DAILY FLIGHT RECORD</h2>
+<table><tr><th>Field</th><th>Entry</th></tr>
+<tr><td>Date / site / weather</td><td>______________________________________________</td></tr><tr><td>UAV ID / battery ID / configuration / software</td><td>______________________________________________</td></tr><tr><td>Flight ID / test card / objective</td><td>______________________________________________</td></tr><tr><td>PIC / Test Lead / HVAP (if applicable)</td><td>______________________________________________</td></tr><tr><td>Pre-flight check status / go-no-go</td><td>PASS / FAIL / N/A; deviation &amp; approval: __________________</td></tr><tr><td>Take-off / landing / duration</td><td>______________________________________________</td></tr><tr><td>Test points / outcome</td><td>______________________________________________</td></tr><tr><td>Post-flight battery / aircraft condition</td><td>______________________________________________</td></tr><tr><td>Anomalies / Incident ID / action owner</td><td>______________________________________________</td></tr><tr><td>Data upload verified by / time</td><td>______________________________________________</td></tr><tr><td>PIC / Test Lead sign-off</td><td>______________________________________________</td></tr></table>
+<h2>APPENDIX B — RELEASE / APPROVAL</h2>
+<table><tr><th>Prepared by</th><th>Reviewed by</th><th>Approved by</th></tr><tr><td>Name / Role: __________________<br>Signature: ___________________<br>Date: ______________________</td><td>Name / Role: __________________<br>Signature: ___________________<br>Date: ______________________</td><td>Name / Role: __________________<br>Signature: ___________________<br>Date: ______________________</td></tr></table>
+<p class="muted">Source: UAV_Flight_Trial_SOP_500kg_600VDC_RevB.docx. Public HTML rendition of the provided Rev. B / Draft content. Tailoring and formal document approval remain subject to the document's stated control process.</p>
+</body></html>
