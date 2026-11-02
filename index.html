@@ -70,6 +70,22 @@
 .vv-themed-checklist select{font-weight:650}
 .vv-themed-checklist .fields,.vv-themed-checklist .loading-controls{gap:9px}
 @media(max-width:620px){.vv-themed-checklist .criteria,.vv-themed-checklist .loading-expected{margin-left:0}.vv-themed-checklist .item,.vv-themed-checklist .loading-item{padding:12px}}
+
+/* TAB 1: MATCH TAB 2 BLUE-GRADIENT V&V VISUAL LANGUAGE */
+#dailyChecklistTabPanel .stats{gap:10px;margin:12px 0}
+#dailyChecklistTabPanel .stat{background:linear-gradient(135deg,#eaf3fb 0%,#f4f8fc 100%);border:1px solid #d4e4f2;border-radius:10px;padding:12px;text-align:center;box-shadow:0 2px 6px rgba(18,59,112,.04)}
+#dailyChecklistTabPanel .stat b{display:block;font-size:22px;line-height:1.25;color:#174f7d;font-weight:850}
+#dailyChecklistTabPanel .stat span{display:block;margin-top:3px;color:#536c82;font-size:11px;font-weight:700}
+#dailyChecklistTabPanel .progress{height:9px;margin:10px 0 14px;background:#e3edf6;border:1px solid #d4e4f2;border-radius:10px;overflow:hidden}
+#dailyChecklistTabPanel .progress i{background:linear-gradient(90deg,#287fbd,#1769aa);border-radius:10px;transition:width .2s ease}
+#dailyChecklistTabPanel #trialInfoCard,#dailyChecklistTabPanel .daily-signature-card,#dailyChecklistTabPanel .daily-photo-card{border:1px solid #d4e4f2;border-radius:10px;background:linear-gradient(135deg,#fff 0%,#f5f9fd 100%);box-shadow:0 2px 8px rgba(18,59,112,.045)}
+#dailyChecklistTabPanel #trialInfoCard>b,#dailyChecklistTabPanel .daily-signature-card>b,#dailyChecklistTabPanel .daily-photo-card>b{color:#174f7d}
+#dailyChecklistTabPanel .tools input{border:1px solid #c7d8e9;border-radius:8px;background:#f8fbff}
+#dailyChecklistTabPanel .tools .btn{border-color:#c6d8e9;border-radius:8px;background:linear-gradient(90deg,#eaf3fb,#f4f8fc);color:#174f7d;font-weight:800}
+#dailyChecklistTabPanel .tools .btn:hover{background:#dceafa}
+#dailyChecklistTabPanel .preview-actions .btn{border-radius:8px}
+#dailyChecklistTabPanel .card{border-color:#d4e4f2}
+@media(max-width:620px){#dailyChecklistTabPanel .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}#dailyChecklistTabPanel .stat{padding:11px 8px}#dailyChecklistTabPanel .stat b{font-size:20px}}
 </style></head><body><div id="passwordGate" class="password-gate" role="dialog" aria-modal="true" aria-labelledby="gateTitle"><form id="passwordGateForm" class="password-gate-card"><div class="password-gate-mark">YETI</div><h2 id="gateTitle">Protected Access</h2><p>Enter the password to access the V&amp;V Document Generator.</p><label for="pagePassword">Password</label><input id="pagePassword" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" minlength="6" autocomplete="current-password" placeholder="Enter 6-digit password" aria-label="Enter 6-digit password" required><button type="submit">Unlock</button><div id="passwordError" role="alert" aria-live="polite"></div></form></div><header class="top"><div class="top-inner"><div class="brand-logo-wrap"><img class="brand-logo" src="assets/ideaforge-logo.png" alt="ideaForge logo"></div><div class="brand-copy"><div class="brand-eyebrow">ideaForge · Flight Operations</div><h1>YETI Logistic UAV</h1><p>Interactive V&amp;V Document Generator</p></div></div></header><main><nav class="checklist-tabs" aria-label="Choose checklist"><button type="button" class="checklist-tab active" id="dailyTabBtn" aria-selected="true">Daily Airworthiness Checklist</button><button type="button" class="checklist-tab" id="loadingTabBtn" aria-selected="false">Loading-Unloading Checklist</button></nav><div id="dailyChecklistTabPanel" class="checklist-tab-panel vv-themed-checklist">
 
 <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><h2>Daily Airworthiness Checklist</h2><p class="muted" id="sourceMeta">Daily Airworthiness Checklist</p></div><span class="count" id="state">CONNECTING</span></div>
