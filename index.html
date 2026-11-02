@@ -180,7 +180,7 @@ $('loadingCameraPhotos').addEventListener('change',e=>addPhotoFiles(e.target.fil
     const check=value=>ans.status===value?'✓':'';
     const checkpoint=isSetup?cell(ans.values?.setupDescription||''):cell(item.title);
     const criterionText=[cell(criteria),cell(values)].filter(Boolean).join('<br>');
-    html+='<tr class="print-item-row '+(item.id==='4.9.1'?'print-page-break-before':'')+'"><td class="print-serial">'+cell(item.id)+'</td><td>'+checkpoint+'</td><td>'+criterionText+'</td><td class="print-status">'+(isSpec||isSetup?'':cell(ans.status||''))+'</td><td class="print-remarks">'+cell(ans.remarks)+'</td></tr>';
+    const resultClass=ans.status==='Pass'?'print-result-pass':ans.status==='Fail'?'print-result-fail':ans.status==='Not Available'?'print-result-na':'';const resultBadge=ans.status?'<span class="print-result-badge '+resultClass+'">'+cell(ans.status)+'</span>':'';html+='<tr class="print-item-row '+(item.id==='4.9.1'?'print-page-break-before':'')+'"><td class="print-serial">'+cell(item.id)+'</td><td>'+checkpoint+'</td><td>'+criterionText+'</td><td class="print-result">'+(isSpec||isSetup?'':resultBadge)+'</td><td class="print-remarks">'+cell(ans.remarks)+'</td></tr>';
    }
   }
  }
