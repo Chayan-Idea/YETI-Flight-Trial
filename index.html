@@ -266,7 +266,7 @@ $('loadingCameraPhotos').addEventListener('change',e=>addPhotoFiles(e.target.fil
    }
   }
  }
- html+='</tbody></table><div class="print-footer"><span>Checklist status recorded: '+statusRecorded+' / '+statusItems.length+'</span><span>Generated: '+esc(now.toLocaleString())+'</span></div>';
+ html+='</tbody></table><div class="print-footer"><span>Checklist status recorded: '+statusRecorded+' / '+statusItems.length+'</span></div>';
  const photos=evidencePhotos.filter(photo=>(photo.category||'daily')==='daily');
  if(photos.length)html+='<section class="print-photo-section"><h3>PHOTO EVIDENCE ('+photos.length+')</h3><div class="print-photo-grid">'+photos.map((photo,index)=>'<div class="print-photo"><img src="'+photo.data+'" alt="Photo evidence '+(index+1)+'"><small>'+(index+1)+'. '+cell(photo.name)+'</small></div>').join('')+'</div></section>';
  html+='</div>';
