@@ -162,15 +162,15 @@ $('loadingCameraPhotos').addEventListener('change',e=>addPhotoFiles(e.target.fil
  const cell=v=>esc(v||'');
  const meta=(label,value)=>'<div><b>'+label+':</b> '+cell(value)+'</div>';
  let html='<div class="print-document"><div class="print-doc-head"><div class="print-logo-panel"><img src="assets/ideaforge-logo.png" alt="ideaForge logo"></div><h2>Daily Airworthiness Checklist</h2><div class="print-doc-meta"><b>Doc Number: IF_YETI_TD0_FTR_CKT_005</b>'+meta('Trial Phase',trialInfo.phase)+meta('Trial Stage',trialInfo.stage)+meta('Flight Place',trialInfo.place)+meta('Flight Date',trialInfo.date)+'</div></div>';
- html+='<table class="print-checklist"><colgroup><col style="width:6%"><col style="width:24%"><col style="width:34%"><col style="width:6%"><col style="width:6%"><col style="width:9%"><col style="width:15%"></colgroup><thead><tr><th>Sl. No</th><th colspan="2">Checklist</th><th>Pass</th><th>Fail</th><th>Not Available</th><th>Remarks</th></tr></thead><tbody>';
+ html+='<table class="print-checklist"><colgroup><col style="width:6%"><col style="width:24%"><col style="width:39%"><col style="width:13%"><col style="width:18%"></colgroup><thead><tr><th>Sl. No</th><th colspan="2">Checklist</th><th>Result</th><th>Remarks</th></tr></thead><tbody>';
  for(const sec of sections){
-  html+='<tr class="print-section-row"><td colspan="7">'+cell(sec.title)+'</td></tr>';
+  html+='<tr class="print-section-row"><td colspan="5">'+cell(sec.title)+'</td></tr>';
   for(const group of groupedItems(sec,sec.items)){
-   html+='<tr class="print-subsection-row"><td colspan="7">'+cell(group.name)+'</td></tr>';
+   html+='<tr class="print-subsection-row"><td colspan="5">'+cell(group.name)+'</td></tr>';
    for(const item of group.items){
     const ans=answers[item.id]||{};
     if(item.id==='9.0'){
-     html+='<tr class="print-item-row"><td class="print-serial">9</td><td colspan="6"><b>Overall Remarks</b><div class="print-remarks">'+cell(ans.remarks)+'</div>'+(ans.signature?'<div class="print-other-label">Checker / Reviewer Signature</div><img class="print-signature" src="'+ans.signature+'" alt="Checker / Reviewer signature">':'<div class="print-empty-note">Signature not entered</div>')+'</td></tr>';
+     html+='<tr class="print-item-row"><td class="print-serial">9</td><td colspan="4"><b>Overall Remarks</b><div class="print-remarks">'+cell(ans.remarks)+'</div>'+(ans.signature?'<div class="print-other-label">Checker / Reviewer Signature</div><img class="print-signature" src="'+ans.signature+'" alt="Checker / Reviewer signature">':'<div class="print-empty-note">Signature not entered</div>')+'</td></tr>';
      continue;
     }
     const isSpec=sec.title.startsWith('1. UAV Specification');
@@ -180,7 +180,7 @@ $('loadingCameraPhotos').addEventListener('change',e=>addPhotoFiles(e.target.fil
     const check=value=>ans.status===value?'✓':'';
     const checkpoint=isSetup?cell(ans.values?.setupDescription||''):cell(item.title);
     const criterionText=[cell(criteria),cell(values)].filter(Boolean).join('<br>');
-    html+='<tr class="print-item-row '+(item.id==='4.9.1'?'print-page-break-before':'')+'"><td class="print-serial">'+cell(item.id)+'</td><td>'+checkpoint+'</td><td>'+criterionText+'</td><td class="print-status">'+(isSpec||isSetup?'':check('Pass'))+'</td><td class="print-status">'+(isSpec||isSetup?'':check('Fail'))+'</td><td class="print-status">'+(isSpec||isSetup?'':check('Not Available'))+'</td><td class="print-remarks">'+cell(ans.remarks)+'</td></tr>';
+    html+='<tr class="print-item-row '+(item.id==='4.9.1'?'print-page-break-before':'')+'"><td class="print-serial">'+cell(item.id)+'</td><td>'+checkpoint+'</td><td>'+criterionText+'</td><td class="print-status">'+(isSpec||isSetup?'':cell(ans.status||''))+'</td><td class="print-remarks">'+cell(ans.remarks)+'</td></tr>';
    }
   }
  }
