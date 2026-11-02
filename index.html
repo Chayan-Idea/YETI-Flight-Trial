@@ -86,6 +86,19 @@
 #dailyChecklistTabPanel .preview-actions .btn{border-radius:8px}
 #dailyChecklistTabPanel .card{border-color:#d4e4f2}
 @media(max-width:620px){#dailyChecklistTabPanel .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}#dailyChecklistTabPanel .stat{padding:11px 8px}#dailyChecklistTabPanel .stat b{font-size:20px}}
+
+/* TAB 1: align every summary/control card with Tab 2's blue V&V palette */
+#dailyChecklistTabPanel .stats .stat{background:#eaf3fb;border:1px solid #d4e4f2;border-radius:9px;padding:10px;text-align:center;box-shadow:none}
+#dailyChecklistTabPanel .stats .stat b{display:block;font-size:20px;color:#174f7d;font-weight:800}
+#dailyChecklistTabPanel .stats .stat span{display:block;margin-top:3px;color:#536c82;font-size:11px;font-weight:700}
+#dailyChecklistTabPanel .progress{height:9px;background:#e2edf7;border:1px solid #d4e4f2;border-radius:9px;overflow:hidden}
+#dailyChecklistTabPanel .progress i{background:linear-gradient(90deg,#287fbd,#1769aa);border-radius:9px}
+#dailyChecklistTabPanel #trialInfoCard{background:linear-gradient(135deg,#fff 0%,#f5f9fd 100%);border:1px solid #d4e4f2;border-top:4px solid #287fbd;border-radius:10px}
+#dailyChecklistTabPanel #trialInfoCard>b{display:block;color:#174f7d;font-size:14px}
+#dailyChecklistTabPanel .tools input{border:1px solid #c7d8e9;background:#f8fbff;border-radius:8px}
+#dailyChecklistTabPanel .tools .btn.alt{border-color:#c6d8e9;background:#eaf3fb;color:#174f7d}
+#dailyChecklistTabPanel .daily-signature-card,#dailyChecklistTabPanel #photoEvidenceCard{border:1px solid #d4e4f2;border-top:3px solid #287fbd;border-radius:10px;background:#fff}
+@media(max-width:620px){#dailyChecklistTabPanel .stats{gap:8px}#dailyChecklistTabPanel .stats .stat{padding:10px 6px}}
 </style></head><body><div id="passwordGate" class="password-gate" role="dialog" aria-modal="true" aria-labelledby="gateTitle"><form id="passwordGateForm" class="password-gate-card"><div class="password-gate-mark">YETI</div><h2 id="gateTitle">Protected Access</h2><p>Enter the password to access the V&amp;V Document Generator.</p><label for="pagePassword">Password</label><input id="pagePassword" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" minlength="6" autocomplete="current-password" placeholder="Enter 6-digit password" aria-label="Enter 6-digit password" required><button type="submit">Unlock</button><div id="passwordError" role="alert" aria-live="polite"></div></form></div><header class="top"><div class="top-inner"><div class="brand-logo-wrap"><img class="brand-logo" src="assets/ideaforge-logo.png" alt="ideaForge logo"></div><div class="brand-copy"><div class="brand-eyebrow">ideaForge · Flight Operations</div><h1>YETI Logistic UAV</h1><p>Interactive V&amp;V Document Generator</p></div></div></header><main><nav class="checklist-tabs" aria-label="Choose checklist"><button type="button" class="checklist-tab active" id="dailyTabBtn" aria-selected="true">Daily Airworthiness Checklist</button><button type="button" class="checklist-tab" id="loadingTabBtn" aria-selected="false">Loading-Unloading Checklist</button></nav><div id="dailyChecklistTabPanel" class="checklist-tab-panel vv-themed-checklist">
 
 <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><h2>Daily Airworthiness Checklist</h2><p class="muted" id="sourceMeta">Daily Airworthiness Checklist</p></div><span class="count" id="state">CONNECTING</span></div>
