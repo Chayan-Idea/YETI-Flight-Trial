@@ -23,7 +23,7 @@
 .print-checklist .print-status{font-size:15px;font-weight:800;text-align:center}
 .print-page-break-before{break-before:page;page-break-before:always}
 @media print{@page{size:A4 landscape;margin:8mm}.print-document{font-size:9px}.print-checklist{font-size:8px}.print-checklist th,.print-checklist td{padding:3px 4px}.print-doc-head{min-height:72px;grid-template-columns:130px 1fr 220px}.print-logo-panel{min-height:55px}.print-logo-panel img{width:110px}.print-doc-head h2{font-size:18px}.print-doc-meta{font-size:8px}.print-subsection-row td{font-size:8px}.daily-signature-card{display:none!important}.print-page-break-before{break-before:page;page-break-before:always}}
-</style></head><body><header class="top"><div class="top-inner"><div class="brand-logo-wrap"><img class="brand-logo" src="assets/ideaforge-logo.png" alt="ideaForge logo"></div><div class="brand-copy"><div class="brand-eyebrow">ideaForge · Flight Operations</div><h1>YETI Flight Trial</h1><p>Live, interactive daily airworthiness checklist</p></div></div></header><main><nav class="checklist-tabs" aria-label="Choose checklist"><button type="button" class="checklist-tab active" id="dailyTabBtn" aria-selected="true">Daily Airworthiness Checklist</button><button type="button" class="checklist-tab" id="loadingTabBtn" aria-selected="false">YETI Loading-Unloading Checklist</button></nav><div id="dailyChecklistTabPanel" class="checklist-tab-panel">
+.source-checklist-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:9px}.source-checklist-table th,.source-checklist-table td{border:1px solid #555;padding:4px 5px;vertical-align:middle;overflow-wrap:anywhere}.source-checklist-table thead th{background:#e1effa;text-align:center}.source-checklist-table .section-row td{background:#e8e8e8;font-weight:700;text-align:center}.source-checklist-table .subsection-row td{background:#eaf3fb;color:#174f7d;font-weight:700}.source-checklist-table .source-check{text-align:center;font-size:14px}@media(max-width:700px){.pdf-page{overflow-x:auto}.source-checklist-table{min-width:760px}}</style></head><body><header class="top"><div class="top-inner"><div class="brand-logo-wrap"><img class="brand-logo" src="assets/ideaforge-logo.png" alt="ideaForge logo"></div><div class="brand-copy"><div class="brand-eyebrow">ideaForge · Flight Operations</div><h1>YETI Flight Trial</h1><p>Live, interactive daily airworthiness checklist</p></div></div></header><main><nav class="checklist-tabs" aria-label="Choose checklist"><button type="button" class="checklist-tab active" id="dailyTabBtn" aria-selected="true">Daily Airworthiness Checklist</button><button type="button" class="checklist-tab" id="loadingTabBtn" aria-selected="false">YETI Loading-Unloading Checklist</button></nav><div id="dailyChecklistTabPanel" class="checklist-tab-panel">
 
 <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><h2>Daily Airworthiness Checklist</h2><p class="muted" id="sourceMeta">Daily Airworthiness Checklist · Fixed PDF reference</p></div><span class="count" id="state">CONNECTING</span></div>
 <section class="card"><b>Checklist reference document</b><p class="muted">Reference: YETI Daily Airworthiness Checklist (uploaded revision). Complete the matching checkpoints below; do not substitute other criteria. The document preview opens here without navigating away.</p><button class="btn" id="openSourcePdf">View attached PDF</button><span class="muted" style="margin-left:10px">YETI Daily Airworthiness Checklist · 2 pages</span><p class="muted" id="message">Reference checklist loaded.</p></section>
@@ -194,7 +194,25 @@ $('previewBtn').onclick=async()=>{$('previewPanel').classList.add('show');await 
 $('closePreview').onclick=()=>{$('previewPanel').classList.remove('show')};
 $('pdfBtn').onclick=async()=>{await buildPreview();window.print()};
 
-function renderSourcePdf(){const pages=[BASE.slice(0,4),BASE.slice(4)];$('sourcePdfPages').innerHTML=pages.map((groups,pi)=>'<article class="pdf-page"><div class="pdf-head"><img class="pdf-logo" src="assets/ideaforge-logo.png" alt="ideaForge logo"><h2>Daily Airworthiness Checklist</h2><div class="docmeta">Doc Number: IF_YETI_TD0_FTR_CKT_005<br>Trial Phase: __________<br>Trial Stage: __________<br>Flight Place: __________<br>Flight Date: __________</div></div><table><thead><tr><th>Sl. No</th><th>Checklist</th><th>Inspection criteria / recorded measurement</th><th>Pass</th><th>Fail</th><th>Not Available</th><th>Remarks</th></tr></thead><tbody>'+groups.map(sec=>'<tr><td colspan="7" class="section-row">'+esc(sec.title)+'</td></tr>'+groupedItems(sec,sec.items).map(g=>'<tr><td colspan="7" class="subsection-row">'+esc(g.name)+'</td></tr>'+g.items.map(i=>'<tr><td>'+esc(i.id)+'</td><td>'+esc(i.title)+'</td><td>'+esc((i.criteria||[]).join('; '))+(i.valueFields||[]).length?'<br>'+((i.valueFields||[]).map(v=>esc(v.label)+': __________').join('<br>')):''+'</td><td>□</td><td>□</td><td>□</td><td>________________</td></tr>').join('')).join('')).join('')+'</tbody></table><div class="page-no">Page '+(pi+1)+' of 2 · Current reference revision · IF_YETI_TD0_FTR_CKT_005</div></article>').join('')}
+function renderSourcePdf(){
+ const pages=[BASE.slice(0,4),BASE.slice(4)];
+ const pageHtml=pages.map((groups,pi)=>{
+  let rows='';
+  for(const sec of groups){
+   rows+='<tr><td colspan="7" class="section-row">'+esc(sec.title)+'</td></tr>';
+   for(const group of groupedItems(sec,sec.items)){
+    rows+='<tr><td colspan="7" class="subsection-row">'+esc(group.name)+'</td></tr>';
+    for(const item of group.items){
+     const valueLines=(item.valueFields||[]).map(field=>esc(field.label)+': __________________').join('<br>');
+     const criteria=esc((item.criteria||[]).join('; '));
+     rows+='<tr><td>'+esc(item.id)+'</td><td>'+esc(item.title)+'</td><td>'+criteria+(valueLines?'<br>'+valueLines:'')+'</td><td class="source-check">□</td><td class="source-check">□</td><td class="source-check">□</td><td>________________</td></tr>';
+    }
+   }
+  }
+  return '<article class="pdf-page"><div class="pdf-head"><img class="pdf-logo" src="assets/ideaforge-logo.png" alt="ideaForge logo"><h2>Daily Airworthiness Checklist</h2><div class="docmeta"><b>Doc Number: IF_YETI_TD0_FTR_CKT_005</b><br>Trial Phase: __________<br>Trial Stage: __________<br>Flight Place: __________<br>Flight Date: __________</div></div><table class="source-checklist-table"><thead><tr><th>Sl. No</th><th>Checklist</th><th>Inspection criteria / recorded measurement</th><th>Pass</th><th>Fail</th><th>Not Available</th><th>Remarks</th></tr></thead><tbody>'+rows+'</tbody></table><div class="page-no">Page '+(pi+1)+' of 2 · IF_YETI_TD0_FTR_CKT_005</div></article>';
+ }).join('');
+ $('sourcePdfPages').innerHTML=pageHtml;
+}
 $('openSourcePdf').onclick=()=>{$('sourcePdfOverlay').classList.add('show');$('sourcePdfOverlay').setAttribute('aria-hidden','false');renderSourcePdf()};
 $('closeSourcePdf').onclick=()=>{$('sourcePdfOverlay').classList.remove('show');$('sourcePdfOverlay').setAttribute('aria-hidden','true')};
 $('sourcePdfOverlay').addEventListener('click',e=>{if(e.target.id==='sourcePdfOverlay')$('closeSourcePdf').click()});
