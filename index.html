@@ -259,6 +259,13 @@ window.addEventListener('pageshow',e=>{if(e.persisted)resetTrialSession()});
 const PAGE_PASSWORD='000000';
 const PASSWORD_SESSION_KEY='yetiVvPageUnlocked';
 const passwordGate=$('passwordGate');
+const passwordInput=$('pagePassword');
+passwordInput.maxLength=PAGE_PASSWORD.length;
+passwordInput.minLength=PAGE_PASSWORD.length;
+passwordInput.pattern='[0-9]{'+PAGE_PASSWORD.length+'}';
+passwordInput.placeholder='Enter '+PAGE_PASSWORD.length+'-digit password';
+passwordInput.setAttribute('aria-label','Enter '+PAGE_PASSWORD.length+'-digit password');
+passwordInput.addEventListener('input',()=>{passwordInput.value=passwordInput.value.replace(/[^0-9]/g,'').slice(0,PAGE_PASSWORD.length)});
 function applyPasswordGate(){if(sessionStorage.getItem(PASSWORD_SESSION_KEY)==='1'){passwordGate.remove();return}document.body.style.overflow='hidden';$('pagePassword').focus()}
 $('passwordGateForm').addEventListener('submit',e=>{e.preventDefault();if($('pagePassword').value===PAGE_PASSWORD){sessionStorage.setItem(PASSWORD_SESSION_KEY,'1');passwordGate.remove();document.body.style.overflow='';}else{$('passwordError').textContent='Incorrect password. Please try again.';$('pagePassword').value='';$('pagePassword').focus()}});
 applyPasswordGate();
