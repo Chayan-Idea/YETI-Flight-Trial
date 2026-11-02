@@ -144,15 +144,15 @@ function subsectionFor(section,item){const id=item.id;const map={"1.1":"UAV Weig
 function render(){
  const query=String($('search').value||'').trim().toLowerCase();
  const root=$('list');
+ const previousOpen=new Set([...root.querySelectorAll('details.entry-accordion[open]')].map(el=>el.dataset.sectionIndex));
+ const firstRender=!root.dataset.initialized;
  root.innerHTML=sections.map((section,sectionIndex)=>{
   const visibleItems=section.items.filter(item=>(item.id+' '+item.title+' '+(item.criteria||[]).join(' ')).toLowerCase().includes(query));
   if(!visibleItems.length)return '';
   const recorded=section.items.filter(item=>answers[item.id]?.status).length;
-  const groups=groupedItems(section,visibleItems);
-  const groupHtml=groups.map(group=>{
+  const groupHtml=groupedItems(section,visibleItems).map(group=>{
    const itemHtml=group.items.map(item=>{
     const answer=answers[item.id]||{};
-    const isSpec=sectionIndex===0 && (item.id==='1.1'||item.id==='1.2');
     const valueFields=(item.valueFields||[]).map(field=>'<label class="entry-field"><span>'+esc(field.label)+'</span><input type="text" data-id="'+esc(item.id)+'" data-k="value" data-field="'+esc(field.key)+'" value="'+esc(answer.values?.[field.key]||'')+'" placeholder="'+esc(field.placeholder||'Enter value')+'"></label>').join('');
     let controls='';
     if(item.id==='9.0'){
@@ -167,12 +167,13 @@ function render(){
    }).join('');
    return '<div class="entry-subsection"><div class="entry-subsection-title">'+esc(group.name)+'</div>'+itemHtml+'</div>';
   }).join('');
-  return '<div class="entry-main-section" id="entry-section-'+(sectionIndex+1)+'"><div class="entry-main-heading"><span>'+esc(section.title)+'</span><span class="entry-count">'+recorded+'/'+section.items.length+' recorded</span></div>'+groupHtml+'</div>';
+  const shouldOpen=firstRender||previousOpen.has(String(sectionIndex));
+  return '<details class="section entry-accordion" data-section-index="'+sectionIndex+'" '+(shouldOpen?'open':'')+'><summary><span>'+esc(section.title)+'</span><span class="entry-count">'+recorded+'/'+section.items.length+' recorded</span></summary>'+groupHtml+'</details>';
  }).join('')||'<p class="muted">No checklist items match.</p>';
+ root.dataset.initialized='true';
  stats();
  initSignaturePad();
 }
-$('list').addEventListener('change',e=>{let t=e.target;if(!t.dataset.id)return;answers[t.dataset.id]??={};if(t.dataset.k==='value'){answers[t.dataset.id].values??={};answers[t.dataset.id].values[t.dataset.field]=t.value}else answers[t.dataset.id][t.dataset.k]=t.value;if(t.dataset.k==='status')render()});$('list').addEventListener('input',e=>{let t=e.target;if(!t.dataset.id||!['remarks','value'].includes(t.dataset.k))return;answers[t.dataset.id]??={};if(t.dataset.k==='value'){answers[t.dataset.id].values??={};answers[t.dataset.id].values[t.dataset.field]=t.value}else answers[t.dataset.id].remarks=t.value;});$('search').oninput=render;$('expand').onclick=()=>document.querySelectorAll('details.section').forEach(x=>x.open=true);$('collapse').onclick=()=>document.querySelectorAll('details.section').forEach(x=>x.open=false);
 function initSignaturePad(){let canvas=$('signaturePad');if(!canvas)return;let ctx=canvas.getContext('2d'),drawing=false;ctx.lineWidth=4;ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#10243b';let saved=answers['9.0']?.signature;if(saved){let img=new Image();img.onload=()=>ctx.drawImage(img,0,0,canvas.width,canvas.height);img.src=saved}function point(e){let r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*canvas.width/r.width,y:(e.clientY-r.top)*canvas.height/r.height}}canvas.onpointerdown=e=>{drawing=true;canvas.setPointerCapture(e.pointerId);let p=point(e);ctx.beginPath();ctx.moveTo(p.x,p.y);e.preventDefault()};canvas.onpointermove=e=>{if(!drawing)return;let p=point(e);ctx.lineTo(p.x,p.y);ctx.stroke();e.preventDefault()};function finish(){if(!drawing)return;drawing=false;answers['9.0']??={};answers['9.0'].signature=canvas.toDataURL('image/png');}canvas.onpointerup=finish;canvas.onpointercancel=finish;let clear=$('clearSignature');if(clear)clear.onclick=()=>{ctx.clearRect(0,0,canvas.width,canvas.height);answers['9.0']??={};delete answers['9.0'].signature;}}
 function normalizeRows(rows){let out=[],cur=null,last=null;rows.forEach((r,i)=>{let b=String(r[1]??'').trim(),c=String(r[2]??'').trim(),d=String(r[3]??'').trim();if(/^\d+\.\s+\S/.test(b)&&!c&&!d){cur={title:b,items:[]};out.push(cur);last=null;return}if(!cur)return;if(!b&&!c&&d&&last){last.criteria.push(d);return}if(!b&&!c&&!d)return;if(/^\d+(?:\.\d+)+$/.test(b)||(b&&(c||d))){last={id:b||'row-'+(i+1),title:c||d||'Checklist item',criteria:c&&d?[d]:[]};cur.items.push(last)}});return out.filter(s=>s.items.length)}
 function fromGviz(payload){if(payload.status==='error')throw Error(payload.errors?.[0]?.detailed_message||'Google Sheets returned an error.');let rows=(payload.table?.rows||[]).map(r=>(r.c||[]).map(c=>c?.f??c?.v??''));return normalizeRows(rows)}
