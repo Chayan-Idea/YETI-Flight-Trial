@@ -265,6 +265,7 @@ passwordInput.minLength=PAGE_PASSWORD.length;
 passwordInput.pattern='[0-9]{'+PAGE_PASSWORD.length+'}';
 passwordInput.placeholder='Enter '+PAGE_PASSWORD.length+'-digit password';
 passwordInput.setAttribute('aria-label','Enter '+PAGE_PASSWORD.length+'-digit password');
+passwordInput.addEventListener('beforeinput',e=>{if(!e.inputType?.startsWith('insert')||e.data==null)return;const start=passwordInput.selectionStart??passwordInput.value.length,end=passwordInput.selectionEnd??start;const nextLength=passwordInput.value.length-(end-start)+e.data.length;if(/[^0-9]/.test(e.data)||nextLength>PAGE_PASSWORD.length)e.preventDefault()});
 passwordInput.addEventListener('input',()=>{passwordInput.value=passwordInput.value.replace(/[^0-9]/g,'').slice(0,PAGE_PASSWORD.length)});
 function applyPasswordGate(){if(sessionStorage.getItem(PASSWORD_SESSION_KEY)==='1'){passwordGate.remove();return}document.body.style.overflow='hidden';$('pagePassword').focus()}
 $('passwordGateForm').addEventListener('submit',e=>{e.preventDefault();if($('pagePassword').value===PAGE_PASSWORD){sessionStorage.setItem(PASSWORD_SESSION_KEY,'1');passwordGate.remove();document.body.style.overflow='';}else{$('passwordError').textContent='Incorrect password. Please try again.';$('pagePassword').value='';$('pagePassword').focus()}});
