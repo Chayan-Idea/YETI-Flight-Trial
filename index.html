@@ -1,100 +1,20 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="YETI Flight Trial tasks and daily airworthiness checklist.">
-  <meta name="theme-color" content="#10243b">
-  <title>YETI Flight Trial</title>
-  <style>
-    :root { color-scheme: light; --navy:#10243b; --blue:#245b91; --ink:#1b2b40; --muted:#68788c; --line:#dce4ed; --surface:#fff; --canvas:#f3f6fa; }
-    * { box-sizing:border-box; }
-    body { margin:0; min-height:100vh; background:var(--canvas); color:var(--ink); font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
-    .topbar { background:var(--navy); color:white; padding:25px max(22px,calc((100vw - 1120px)/2)); }
-    .eyebrow { margin:0 0 7px; color:#b8cce2; font-size:11px; font-weight:750; letter-spacing:.16em; text-transform:uppercase; }
-    h1 { margin:0; font-size:clamp(27px,4vw,38px); letter-spacing:-.035em; }
-    .subtitle { margin:8px 0 0; color:#d0dbea; font-size:14px; }
-    .tabs-wrap { position:sticky; top:0; z-index:5; background:white; border-bottom:1px solid var(--line); box-shadow:0 3px 12px #10243b0a; }
-    .tabs { display:flex; gap:5px; max-width:1120px; margin:auto; padding:0 22px; overflow-x:auto; }
-    .tab { flex:0 0 auto; border:0; border-bottom:3px solid var(--blue); padding:17px 16px 14px; background:transparent; color:var(--blue); font:inherit; font-size:13px; font-weight:700; white-space:nowrap; }
-    main { width:min(1120px,100%); margin:34px auto; padding:0 22px 50px; }
-    .section-heading { display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:18px; }
-    h2 { margin:0; font-size:clamp(21px,3vw,27px); letter-spacing:-.025em; }
-    .section-kicker { margin:7px 0 0; color:var(--muted); font-size:13px; }
-    .status { display:inline-flex; align-items:center; gap:7px; border:1px solid #d6e3f0; border-radius:999px; padding:7px 11px; background:#edf4fb; color:#315b82; font-size:11px; font-weight:750; letter-spacing:.04em; }
-    .status:before { width:7px; height:7px; border-radius:50%; background:#6b91b8; content:""; }
-    .panel { border:1px solid var(--line); border-radius:14px; padding:clamp(20px,4vw,30px); background:var(--surface); box-shadow:0 8px 24px #172c4410; }
-    .panel h3 { margin:0 0 8px; font-size:17px; }
-    .panel p { max-width:760px; margin:0; color:var(--muted); font-size:14px; line-height:1.65; }
-    .source-actions { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:18px; }
-    .button { display:inline-flex; align-items:center; justify-content:center; min-height:42px; border:1px solid var(--blue); border-radius:8px; padding:10px 15px; background:var(--blue); color:white; font:inherit; font-size:13px; font-weight:700; text-decoration:none; cursor:pointer; }
-    .button.secondary { background:white; color:var(--blue); }
-    .button:focus-visible { outline:3px solid #80b6e8; outline-offset:3px; }
-    .hint { margin-top:12px !important; font-size:12px !important; }
-    .preview { margin-top:22px; }
-    .preview h3 { margin-bottom:10px; }
-    .pdf-frame { display:block; width:100%; height:min(78vh,900px); min-height:520px; border:1px solid var(--line); border-radius:10px; background:#f8fafc; }
-    .notice { margin-top:18px; border:1px solid #e7d9b5; border-radius:10px; padding:14px 16px; background:#fffaf0; color:#705a2c; font-size:13px; line-height:1.6; }
-    footer { max-width:1120px; margin:0 auto; padding:18px 22px 28px; color:#7b899a; font-size:12px; }
-    [hidden] { display:none !important; }
-    @media(max-width:600px) { .topbar { padding-top:22px; padding-bottom:22px; } main { margin-top:25px; } .pdf-frame { min-height:430px; height:70vh; } }
-  </style>
-</head>
-<body>
-  <header class="topbar">
-    <p class="eyebrow">Flight operations workspace</p>
-    <h1>YETI Flight Trial</h1>
-    <p class="subtitle">A central workspace for flight-trial sections and their tasks.</p>
-  </header>
-
-  <nav class="tabs-wrap" aria-label="Flight trial sections">
-    <div class="tabs" role="tablist" aria-label="YETI Flight Trial sections">
-      <button class="tab" id="tab-airworthiness" type="button" role="tab" aria-selected="true" aria-controls="panel-airworthiness">YETI Daily Airworthiness Checklist</button>
-    </div>
-  </nav>
-
-  <main>
-    <section id="panel-airworthiness" role="tabpanel" aria-labelledby="tab-airworthiness">
-      <div class="section-heading">
-        <div>
-          <h2>YETI Daily Airworthiness Checklist</h2>
-          <p class="section-kicker">Daily readiness and airworthiness task section</p>
-        </div>
-        <span class="status">Checklist preview</span>
-      </div>
-
-      <div class="panel">
-        <h3>1. Checklist document</h3>
-        <p>View the checklist PDF directly in the preview area below.</p>
-        <div class="source-actions">
-          <button class="button secondary" id="toggle-preview" type="button" aria-expanded="false" aria-controls="source-preview">Preview checklist PDF</button>
-        </div>
-        <p class="hint">The checklist preview is displayed within this page.</p>
-
-        <div class="preview" id="source-preview" hidden>
-          <h3>Checklist PDF preview</h3>
-          <div class="notice">The PDF preview will appear here once the checklist PDF is added to the website repository.</div>
-        </div>
-      </div>
-
-      <div class="notice">
-        <strong>Checklist conversion pending:</strong> The source spreadsheet must be available for its rows and section headings to be read before the interactive Pass/Fail checklist and completed-checklist PDF can be generated. This workspace does not constitute an airworthiness approval or flight-release authorization.
-      </div>
-    </section>
-  </main>
-
-  <footer>YETI Flight Trial · Checklist content and approvals remain subject to the applicable controlled procedures.</footer>
-
-  <script>
-    const previewButton = document.getElementById("toggle-preview");
-    const preview = document.getElementById("source-preview");
-    previewButton.addEventListener("click", () => {
-      const willShow = preview.hidden;
-      preview.hidden = !willShow;
-      previewButton.setAttribute("aria-expanded", String(willShow));
-      previewButton.textContent = willShow ? "Hide PDF preview" : "Preview checklist PDF";
-      if (willShow) preview.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-  </script>
-</body>
-</html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>YETI Flight Trial</title><style>
+:root{--n:#10243b;--b:#245b91;--ink:#1b2b40;--muted:#68788c;--line:#dce4ed;--bg:#f3f6fa}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,Segoe UI,sans-serif}.top{background:var(--n);color:white;padding:25px max(22px,calc((100vw - 1120px)/2))}h1{margin:0;font-size:clamp(27px,4vw,38px)}.top p{color:#cbd8e7}main{max-width:1120px;margin:30px auto;padding:0 20px 48px}.card,.section,.stat{background:white;border:1px solid var(--line);border-radius:12px}.card{padding:20px;margin:16px 0}.muted{color:var(--muted);font-size:13px;line-height:1.55}.row,.tools{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}.row input,.tools input{flex:1;min-width:220px;border:1px solid #cbd6e2;border-radius:8px;padding:11px;font:inherit}.btn{border:1px solid var(--b);border-radius:8px;background:var(--b);color:white;padding:10px 15px;font-weight:700;cursor:pointer}.alt{background:white;color:var(--b)}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}.stat{padding:13px}.stat b{display:block;font-size:22px}.stat span,.count{font-size:11px;color:var(--muted)}.progress{height:8px;background:#e8edf3;border-radius:9px;overflow:hidden}.progress i{display:block;height:100%;background:#23865c;width:0}.section{margin:11px 0;overflow:hidden}.section summary{cursor:pointer;list-style:none;padding:16px 18px;display:flex;justify-content:space-between;font-weight:750}.section summary:after{content:'＋';color:var(--b)}.section[open] summary:after{content:'−'}.item{padding:14px 18px;border-top:1px solid #edf1f5}.head{display:flex;gap:12px}.serial{color:#5c7590;font-size:11px;font-weight:800;min-width:48px}.title{font-size:14px;font-weight:700}.criteria{margin:7px 0 0 60px;color:var(--muted);font-size:12px}.fields{display:grid;grid-template-columns:minmax(150px,210px) 1fr;gap:9px;margin:12px 0 0 60px}.fields input,.fields select{width:100%;min-width:0;border:1px solid #d4dde7;border-radius:7px;padding:9px;font:inherit;font-size:12px}.notice{margin-top:20px;border:1px solid #eadcb9;background:#fff9ed;color:#705a2c;border-radius:9px;padding:13px;font-size:12px;line-height:1.55}footer{max-width:1120px;margin:auto;padding:16px 22px 28px;color:#7b899a;font-size:12px}@media(max-width:620px){.stats{grid-template-columns:repeat(2,1fr)}.fields{grid-template-columns:1fr;margin-left:0}.criteria{margin-left:0}}
+</style></head><body><header class="top"><h1>YETI Flight Trial</h1><p>Live, interactive daily airworthiness checklist</p></header><main>
+<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><h2>Daily Airworthiness Checklist</h2><p class="muted" id="sourceMeta">Connect a Google Sheet to load its checklist.</p></div><span class="count" id="state">CONNECTING</span></div>
+<section class="card"><b>Checklist source</b><p class="muted">Paste a Google Sheets link. The sheet must be shared as “Anyone with the link – Viewer” or published to the web. Updates are checked every 60 seconds.</p><div class="row"><input id="sheetUrl" type="url" placeholder="Google Sheets URL or published CSV URL"><button class="btn" id="connect">Connect sheet</button></div><p class="muted" id="message">Loading the supplied Google Sheet…</p></section>
+<div class="stats"><div class="stat"><b id="total">0</b><span>Total checks</span></div><div class="stat"><b id="done">0</b><span>Answered</span></div><div class="stat"><b id="pass">0</b><span>Pass</span></div><div class="stat"><b id="fail">0</b><span>Fail</span></div></div><div class="progress"><i id="bar"></i></div><div class="tools"><input id="search" placeholder="Search checklist items…"><button class="btn alt" id="expand">Expand all</button><button class="btn alt" id="collapse">Collapse all</button></div><div id="list"></div>
+<div class="notice"><b>Operational note:</b> This checklist is a recording aid only. Entries do not constitute airworthiness approval or flight-release authorization. Follow applicable controlled procedures and authorized sign-off processes.</div></main><footer>YETI Flight Trial · Controlled procedures remain authoritative.</footer>
+<script>
+let sections=[],sourceKey='',sheet='',timer=null,answers={};const $=x=>document.getElementById(x),answerKey=()=> 'yeti-answers:'+sourceKey;
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function stats(){let a=sections.flatMap(s=>s.items),d=a.filter(i=>answers[i.id]?.status),p=a.filter(i=>answers[i.id]?.status==='Pass'),f=a.filter(i=>answers[i.id]?.status==='Fail');$('total').textContent=a.length;$('done').textContent=d.length;$('pass').textContent=p.length;$('fail').textContent=f.length;$('bar').style.width=(a.length?100*d.length/a.length:0)+'%'}
+function render(){let q=$('search').value.toLowerCase();$('list').innerHTML=sections.map(s=>{let items=s.items.filter(i=>(i.id+' '+i.title+' '+i.criteria.join(' ')).toLowerCase().includes(q));if(!items.length)return '';let n=s.items.filter(i=>answers[i.id]?.status).length;return '<details class="section" '+(q?'open':'')+'><summary>'+esc(s.title)+' <span class="count">'+n+'/'+s.items.length+' answered</span></summary>'+items.map(i=>{let a=answers[i.id]||{};return '<article class="item"><div class="head"><span class="serial">'+esc(i.id)+'</span><div class="title">'+esc(i.title)+'</div></div>'+(i.criteria.length?'<div class="criteria">'+i.criteria.map(esc).join('<br>')+'</div>':'')+'<div class="fields"><select data-id="'+esc(i.id)+'" data-k="status"><option value="">Select status…</option>'+['Pass','Fail','Not Available'].map(v=>'<option '+(a.status===v?'selected':'')+'>'+v+'</option>').join('')+'</select><input data-id="'+esc(i.id)+'" data-k="remarks" value="'+esc(a.remarks||'')+'" placeholder="Remarks / measured value"></div></article>'}).join('')+'</details>'}).join('')||'<p class="muted">No checklist items match the search, or the source is not connected.</p>';stats()}
+$('list').addEventListener('change',e=>{let t=e.target;if(!t.dataset.id)return;answers[t.dataset.id]??={};answers[t.dataset.id][t.dataset.k]=t.value;localStorage.setItem(answerKey(),JSON.stringify(answers));render()});$('list').addEventListener('input',e=>{let t=e.target;if(t.dataset.k!=='remarks')return;answers[t.dataset.id]??={};answers[t.dataset.id].remarks=t.value;localStorage.setItem(answerKey(),JSON.stringify(answers))});$('search').oninput=render;$('expand').onclick=()=>document.querySelectorAll('details.section').forEach(x=>x.open=true);$('collapse').onclick=()=>document.querySelectorAll('details.section').forEach(x=>x.open=false);
+function parseCSV(t){let out=[],r=[],v='',q=false;for(let i=0;i<t.length;i++){let c=t[i];if(q){if(c==='"'&&t[i+1]==='"'){v+='"';i++}else if(c==='"')q=false;else v+=c}else if(c==='"')q=true;else if(c===','){r.push(v);v=''}else if(c==='\n'){r.push(v);out.push(r);r=[];v=''}else if(c!=='\r')v+=c}r.push(v);if(r.some(x=>x))out.push(r);return out}
+function toSections(rows){let out=[],cur=null,last=null;rows.forEach((r,i)=>{let b=(r[1]||'').trim(),c=(r[2]||'').trim(),d=(r[3]||'').trim();if(/^\d+\.\s+\S/.test(b)&&!c&&!d){cur={title:b,items:[]};out.push(cur);last=null;return}if(!cur)return;if(!b&&!c&&d&&last){last.criteria.push(d);return}if(!b&&!c&&!d)return;if(/^\d+(?:\.\d+)+$/.test(b)||(b&&(c||d))){last={id:b||'row-'+(i+1),title:c||d||'Checklist item',criteria:c&&d?[d]:[]};cur.items.push(last)}});return out.filter(s=>s.items.length)}
+function resolve(raw){let u=new URL(raw);if(u.hostname==='docs.google.com'&&u.pathname.includes('/spreadsheets/d/')){let id=u.pathname.split('/')[3],gid=u.searchParams.get('gid')||'0';return {url:'https://docs.google.com/spreadsheets/d/'+id+'/gviz/tq?tqx=out:csv&gid='+gid,key:id+':'+gid}}return {url:raw,key:raw}}
+async function sync(raw,silent=false){$('state').textContent='SYNCING';try{let s=resolve(raw),r=await fetch(s.url,{cache:'no-store'});if(!r.ok)throw Error('Google returned HTTP '+r.status+'. Check link sharing or publish as CSV.');let t=await r.text();if(/<html|accounts\.google\.com/i.test(t.slice(0,500)))throw Error('Google requires sign-in. Set Anyone with the link – Viewer, or publish the tab as CSV.');let next=toSections(parseCSV(t));if(!next.length)throw Error('No checklist sections found. Expected section headings in column B and task text in columns C–D.');sourceKey=s.key;answers=JSON.parse(localStorage.getItem(answerKey())||'{}');sections=next;sheet=raw;localStorage.setItem('yeti-sheet-url',raw);$('sourceMeta').textContent='Live sheet · refreshed '+new Date().toLocaleTimeString();$('state').textContent='LIVE SHEET';$('message').textContent=next.length+' sections · '+next.reduce((n,x)=>n+x.items.length,0)+' checks · auto-refresh every 60 seconds';render();if(!silent){clearInterval(timer);timer=setInterval(()=>sync(sheet,true),60000)}}catch(e){$('state').textContent='NOT SYNCED';$('message').textContent=e.message;if(!silent)alert(e.message)}}
+$('connect').onclick=()=>{let v=$('sheetUrl').value.trim();if(v)sync(v)};$('sheetUrl').value=localStorage.getItem('yeti-sheet-url')||'https://docs.google.com/spreadsheets/d/1QzS-TS47KG8iYIGTpXTge9ssege0oFSpKvSnTzOiNzU/edit?gid=104149449#gid=104149449';render();sync($('sheetUrl').value);
+</script></body></html>
