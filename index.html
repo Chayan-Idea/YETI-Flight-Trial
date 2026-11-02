@@ -195,7 +195,7 @@ $('closePreview').onclick=()=>{$('previewPanel').classList.remove('show')};
 $('pdfBtn').onclick=async()=>{await buildPreview();window.print()};
 
 function renderSourcePdf(){
- const pages=[BASE.slice(0,4),BASE.slice(4)];
+ const airframe=BASE[3];const pages=[[...BASE.slice(0,3),{...airframe,items:airframe.items.filter(item=>!item.id.startsWith('4.9.'))}],[{...airframe,items:airframe.items.filter(item=>item.id.startsWith('4.9.'))},...BASE.slice(4)]];
  const pageHtml=pages.map((groups,pi)=>{
   let rows='';
   for(const sec of groups){
