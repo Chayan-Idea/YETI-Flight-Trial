@@ -1,0 +1,15 @@
+{
+  "id": "./",
+  "name": "YETI Flight Trial",
+  "short_name": "YETI Trial",
+  "description": "YETI Logistic UAV Flight Trial V&V Checklist",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f3f7fb",
+  "theme_color": "#123b70",
+  "icons": [
+    {"src":"assets/yeti-app-icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}
