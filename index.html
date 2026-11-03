@@ -328,15 +328,7 @@ async function exportChecklistPdf(previewId,title){
    html,body{margin:0;padding:0;width:100%;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif}
    body{padding:0}
    .print-document,.loading-print-document{width:100%;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif}.print-document{min-width:0}
-   .print-doc-head{display:flex!important;flex-flow:row nowrap!important;align-items:center!important;gap:12px;width:100%;min-width:0;break-inside:avoid;page-break-inside:avoid}
-   .print-doc-head>.print-logo-panel{display:flex;align-items:center;justify-content:center;flex:0 0 180px;min-width:0}
-   .print-doc-head>.print-logo-panel img{width:150px;max-height:66px;height:auto;object-fit:contain}
-   .print-doc-head>h2{flex:1 1 auto;min-width:0;text-align:center;font-size:22px;margin:0}
-   .print-doc-head>.print-doc-meta{flex:0 0 265px;min-width:0;font-size:10px;line-height:1.5;overflow-wrap:anywhere}
-   .loading-print-head{display:flex!important;flex-flow:row nowrap!important;align-items:center!important;gap:12px;width:100%;min-width:0;border:1px solid #9ca9b6;padding:10px}
-   .loading-print-head>img{flex:0 0 100px;width:100px;max-height:60px;object-fit:contain}
-   .loading-print-head>h2{flex:1 1 auto;min-width:0;text-align:center;font-size:20px;margin:0}
-   .loading-print-head>.loading-print-meta{flex:0 0 220px;min-width:0;font-size:10px;line-height:1.5;overflow-wrap:anywhere}
+   .print-doc-head{break-inside:avoid;page-break-inside:avoid}
    .print-checklist,.loading-print-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:8.5px}
    .print-checklist th,.print-checklist td,.loading-print-table th,.loading-print-table td{border:1px solid #555;padding:4px;vertical-align:middle;overflow-wrap:anywhere}
    .print-checklist thead,.loading-print-table thead{display:table-header-group}
@@ -362,26 +354,7 @@ async function exportChecklistPdf(previewId,title){
   `;
   printWindow.document.open();
   printWindow.document.write('<!doctype html><html><head><meta charset="utf-8"><title>'+String(title).replace(/[&<>"]/g,'')+'</title>');
-  printWindow.document.write(base.outerHTML+'<style>'+styles+'
-/* Keep logo, document title and metadata aligned in one horizontal header row. */
-.print-doc-head,.loading-print-head{display:flex!important;flex-flow:row nowrap!important;align-items:center!important;width:100%;min-width:0;gap:12px}
-.print-doc-head>.print-logo-panel{flex:0 0 180px;min-width:0}
-.print-doc-head>h2{flex:1 1 auto;min-width:0;text-align:center}
-.print-doc-head>.print-doc-meta{flex:0 0 265px;min-width:0;overflow-wrap:anywhere}
-.loading-print-head>img{flex:0 0 100px;width:100px;min-width:0}
-.loading-print-head>h2{flex:1 1 auto;min-width:0;text-align:center}
-.loading-print-head>.loading-print-meta{flex:0 0 220px;min-width:0;overflow-wrap:anywhere}
-@media(max-width:620px){
- .print-doc-head,.loading-print-head{gap:5px}
- .print-doc-head>.print-logo-panel{flex-basis:70px;padding:3px;min-height:45px}
- .print-doc-head>.print-logo-panel img{width:100%;max-height:40px}
- .print-doc-head>h2{font-size:clamp(9px,2.5vw,15px)}
- .print-doc-head>.print-doc-meta{flex-basis:125px;font-size:7px}
- .loading-print-head>img{flex-basis:60px;width:60px}
- .loading-print-head>h2{font-size:14px}
- .loading-print-head>.loading-print-meta{flex-basis:155px;font-size:7px}
-}
-</style></head><body></body></html>');
+  printWindow.document.write(base.outerHTML+'<style>'+styles+'</style></head><body></body></html>');
   printWindow.document.close();
   printWindow.document.body.appendChild(content);
   const images=[...printWindow.document.images];
