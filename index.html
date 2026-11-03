@@ -184,7 +184,27 @@
 .submodule-content{min-width:0}
 @media(max-width:760px){.submodule-layout{grid-template-columns:1fr;gap:12px}.checklist-tabs{position:static;flex-direction:row;overflow-x:auto;gap:7px;padding:7px}.checklist-tab{flex:1 0 155px;min-height:60px;padding:9px}.checklist-tab .subtab-copy strong{font-size:12px}.checklist-tab .subtab-copy small{font-size:10px}}
 @media print{.submodule-layout{display:block}.checklist-tabs{display:none!important}}
+.password-gate{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#102f57,#1769aa)}
+.password-gate-card{width:min(100%,390px);padding:30px;background:#fff;border:1px solid #d8e4ef;border-radius:16px;box-shadow:0 18px 55px #061b35aa;text-align:left}
+.password-gate-mark{display:inline-flex;padding:7px 12px;border-radius:7px;background:#eaf3fb;color:#174f7d;font-size:12px;font-weight:900;letter-spacing:.16em}
+.password-gate-card h2{margin:18px 0 6px;color:#123b70}.password-gate-card p{margin:0 0 22px;color:#6b7c8e;font-size:13px;line-height:1.5}
+.password-gate-card label{display:block;margin-bottom:6px;color:#36536f;font-size:12px;font-weight:800}
+.password-gate-card input{width:100%;padding:12px;border:1px solid #c7d8e9;border-radius:8px;font:inherit;outline-color:#287fbd}
+.password-gate-card button{width:100%;margin-top:14px;padding:12px;border:0;border-radius:8px;background:#1769aa;color:#fff;font:inherit;font-weight:800;cursor:pointer}
+#passwordError{min-height:18px;margin-top:10px;color:#b42332;font-size:12px}
+
 </style></head><body>
+<div class="password-gate" id="passwordGate" role="dialog" aria-modal="true" aria-labelledby="passwordGateTitle">
+ <form class="password-gate-card" id="passwordGateForm">
+  <span class="password-gate-mark">YETI FLIGHT TRIAL</span>
+  <h2 id="passwordGateTitle">Access Protected</h2>
+  <p>Enter the access password to continue.</p>
+  <label for="pagePassword">Password</label>
+  <input id="pagePassword" type="password" inputmode="numeric" autocomplete="current-password" maxlength="6" placeholder="Enter 6-digit password" required autofocus>
+  <button type="submit">Unlock Page</button>
+  <div id="passwordError" role="alert" aria-live="polite"></div>
+ </form>
+</div>
 <header class="top"><div class="top-inner"><div class="brand-logo-wrap"><img class="brand-logo" src="assets/ideaforge-logo.png" alt="ideaForge logo"></div><div class="brand-copy"><div class="brand-eyebrow">ideaForge · Flight Operations</div><h1>YETI Logistic UAV</h1><p>Interactive V&amp;V Document Generator</p></div><button type="button" id="refreshPageBtn" class="btn alt" aria-label="Refresh page" title="Refresh page">↻ Refresh</button></div></header><main><div class="module-nav-heading"><span class="nav-kicker">YETI WORKSPACE</span><h2>Operational Modules</h2><p>Select a module to access its interactive tools.</p></div><nav class="module-tabs" aria-label="Main sections"><button type="button" class="module-tab active" id="flightPreparationTab" aria-selected="true"><span class="module-index">01</span><span class="module-tab-copy"><strong>Flight Preparation</strong><small>Pre-flight readiness &amp; ground handling</small></span><span class="module-arrow">›</span></button><button type="button" class="module-tab" id="flightLogAnalyserTab" aria-selected="false"><span class="module-index">02</span><span class="module-tab-copy"><strong>Flight Log Analyser</strong><small>Flight data review &amp; analysis</small></span><span class="module-arrow">›</span></button><button type="button" class="module-tab" id="thrustRigLogAnalyserTab" aria-selected="false"><span class="module-index">03</span><span class="module-tab-copy"><strong>Thrust Rig Log Analyser</strong><small>Propulsion test data analysis</small></span><span class="module-arrow">›</span></button></nav><section id="flightPreparationPanel" class="module-panel"><div class="flight-preparation-content"><div class="subnav-heading"><div><span class="nav-kicker">FLIGHT PREPARATION</span><h2>Preparation Checklists</h2><p>Choose the checklist you want to complete or review.</p></div><button type="button" class="btn alt" id="refreshChecklistBtn">Refresh the Checklist</button></div><div class="submodule-layout"><nav class="checklist-tabs" aria-label="Flight preparation checklists"><button type="button" class="checklist-tab active" id="flightTrialPreparationSopTab" aria-selected="true"><span class="subtab-number">01A</span><span class="subtab-copy"><strong>Flight Trial Preparation SOP</strong><small>Flight trial operating procedure — reading view</small></span></button><button type="button" class="checklist-tab" id="dailyTabBtn" aria-selected="false"><span class="subtab-number">01B</span><span class="subtab-copy"><strong>Daily Airworthiness</strong><small>Aircraft condition &amp; flight readiness</small></span></button><button type="button" class="checklist-tab" id="loadingTabBtn" aria-selected="false"><span class="subtab-number">01C</span><span class="subtab-copy"><strong>Loading-Unloading</strong><small>Transport, loading &amp; unloading checks</small></span></button></nav><div class="submodule-content"><div id="dailyChecklistTabPanel" class="checklist-tab-panel vv-themed-checklist">
 
 <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><h2>Daily Airworthiness Checklist</h2><p class="muted" id="sourceMeta">Daily Airworthiness Checklist</p></div></div>
@@ -470,6 +490,26 @@ window.addEventListener('afterprint',()=>document.body.classList.remove('print-l
 function initLoadingSignature(){let canvas=$('loadingSignaturePad');if(!canvas)return;let ctx=canvas.getContext('2d'),drawing=false;ctx.lineWidth=4;ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#10243b';if(loadingAnswers._signature){let img=new Image();img.onload=()=>ctx.drawImage(img,0,0,canvas.width,canvas.height);img.src=loadingAnswers._signature}function point(e){let r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*canvas.width/r.width,y:(e.clientY-r.top)*canvas.height/r.height}}canvas.onpointerdown=e=>{drawing=true;canvas.setPointerCapture(e.pointerId);let p=point(e);ctx.beginPath();ctx.moveTo(p.x,p.y);e.preventDefault()};canvas.onpointermove=e=>{if(!drawing)return;let p=point(e);ctx.lineTo(p.x,p.y);ctx.stroke();e.preventDefault()};function finish(){if(!drawing)return;drawing=false;loadingAnswers._signature=canvas.toDataURL('image/png');saveChecklistState();buildLoadingPreview(true)}canvas.onpointerup=finish;canvas.onpointercancel=finish;$('clearLoadingSignature').onclick=()=>{ctx.clearRect(0,0,canvas.width,canvas.height);delete loadingAnswers._signature;saveChecklistState();buildLoadingPreview(true)}}renderLoadingChecklist();initLoadingSignature();renderPhotoThumbs();
 restoreChecklistState();renderLoadingChecklist();initLoadingSignature();[['uavNameId','uavNameId'],['trialPhase','phase'],['trialStage','stage'],['flightPlace','place'],['flightDate','date']].forEach(([id,key])=>{let el=$(id);el.value=trialInfo[key]||'';el.addEventListener('input',()=>{trialInfo[key]=el.value;saveChecklistState();buildPreview(true)})});render();initSignaturePad();renderPhotoThumbs();buildPreview(true);buildLoadingPreview(true);
 async function resetTrialSession(){if(!confirm('Refresh the checklist? This clears all saved answers, remarks, signatures, trial details and uploaded photo evidence on this browser.'))return;answers={};trialInfo={};loadingAnswers={};try{localStorage.removeItem(CHECKLIST_STATE_KEY)}catch(e){}['uavNameId','trialPhase','trialStage','flightPlace','flightDate','loadingUavNameId','loadingFrom','unloadingAt','loadingDate','loadingTime'].forEach(id=>{if($(id))$(id).value=''});for(const p of evidencePhotos){try{await photoDB('delete',p.id)}catch(e){}}evidencePhotos=[];for(const id of ['signaturePad','loadingSignaturePad']){const c=$(id);if(c)c.getContext('2d').clearRect(0,0,c.width,c.height)}render();renderLoadingChecklist();renderPhotoThumbs();buildPreview(true);buildLoadingPreview(true)}$('refreshChecklistBtn').addEventListener('click',resetTrialSession);window.addEventListener('pageshow',e=>{if(e.persisted){restoreChecklistState();render();renderLoadingChecklist();buildPreview(true);buildLoadingPreview(true)}});
+
+// Password gate: client-side access prompt for this browser tab.
+(function(){
+ const gate=document.getElementById('passwordGate'),form=document.getElementById('passwordGateForm'),field=document.getElementById('pagePassword'),error=document.getElementById('passwordError');
+ if(!gate||!form)return;
+ if(sessionStorage.getItem('yetiPageUnlocked')==='yes'){gate.remove();return}
+ document.body.style.overflow='hidden';
+ form.addEventListener('submit',function(event){
+  event.preventDefault();
+  if(field.value==='000000'){
+   sessionStorage.setItem('yetiPageUnlocked','yes');
+   document.body.style.overflow='';
+   gate.remove();
+  }else{
+   error.textContent='Incorrect password. Please try again.';
+   field.value='';
+   field.focus();
+  }
+ });
+})();
 
 $('refreshPageBtn').addEventListener('click',()=>window.location.reload());
 // Home-screen shortcut is added from the device browser menu; no in-page button is needed.
