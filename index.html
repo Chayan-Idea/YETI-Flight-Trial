@@ -500,5 +500,5 @@ async function resetTrialSession(){if(!confirm('Refresh the checklist? This clea
 })();
 $('refreshPageBtn').addEventListener('click',()=>window.location.reload());
 // Home-screen shortcut is added from the device browser menu; no in-page button is needed.
-if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(err=>console.error('Service worker registration failed',err)));
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js?v=3',{updateViaCache:'none'}).catch(err=>console.error('Service worker registration failed',err)));
 </script></body></html>
