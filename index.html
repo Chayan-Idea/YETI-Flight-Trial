@@ -362,7 +362,8 @@ async function exportChecklistPdf(previewId,title){
   setTimeout(()=>{try{printWindow.print()}catch(err){alert('Unable to open the PDF print dialog. Please use your browser Print option.')}},350);
  }catch(err){printWindow.close();console.error('PDF export failed:',err);alert('PDF export could not be prepared. Please refresh the page and try again.')}
 }
-\n$('pdfBtn').onclick=async()=>{await buildPreview();exportChecklistPdf('previewContent','YETI Daily Airworthiness Checklist')};
+
+$('pdfBtn').onclick=async()=>{await buildPreview();exportChecklistPdf('previewContent','YETI Daily Airworthiness Checklist')};
 
 function setModuleTab(which){const ids={preparation:'flightPreparationPanel',flight:'flightLogAnalyserPanel',thrust:'thrustRigLogAnalyserPanel'};Object.entries(ids).forEach(([key,id])=>{$(id).hidden=key!==which});const tabs={preparation:'flightPreparationTab',flight:'flightLogAnalyserTab',thrust:'thrustRigLogAnalyserTab'};Object.entries(tabs).forEach(([key,id])=>{$(id).classList.toggle('active',key===which);$(id).setAttribute('aria-selected',String(key===which))});try{localStorage.setItem('yetiActiveModuleTab',which)}catch(e){}}
 $('flightPreparationTab').addEventListener('click',()=>setModuleTab('preparation'));$('flightLogAnalyserTab').addEventListener('click',()=>setModuleTab('flight'));$('thrustRigLogAnalyserTab').addEventListener('click',()=>setModuleTab('thrust'));let savedModuleTab='preparation';try{savedModuleTab=localStorage.getItem('yetiActiveModuleTab')||'preparation'}catch(e){}if(!['preparation','flight','thrust'].includes(savedModuleTab))savedModuleTab='preparation';setModuleTab(savedModuleTab);
