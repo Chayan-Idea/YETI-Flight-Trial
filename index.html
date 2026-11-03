@@ -410,23 +410,26 @@ async function exportChecklistPdf(previewId,title){
   content.querySelectorAll('button').forEach(el=>el.remove());
   const base=document.createElement('base');base.href=location.href;
   const styles=`
-   @page{size:A4 landscape!important;margin:9mm}
+   @page{size:A4 landscape;margin:9mm}
    *{box-sizing:border-box;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
    html,body{margin:0;padding:0;width:100%;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif}
-   body{padding:0}
-   .print-document,.loading-print-document{width:100%;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif}.print-document{min-width:0}
-   .print-doc-head{break-inside:avoid;page-break-inside:avoid}
-   .print-checklist,.loading-print-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:8.5px}
-   .print-checklist th,.print-checklist td,.loading-print-table th,.loading-print-table td{border:1px solid #555;padding:4px;vertical-align:middle;overflow-wrap:anywhere}
+   body{padding:0;orphans:3;widows:3}
+   .print-document,.loading-print-document{display:block;width:100%;max-width:100%;min-width:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif;overflow:visible}
+   .print-doc-head,.loading-print-head{break-inside:avoid;page-break-inside:avoid}
+   .print-checklist,.loading-print-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:8.5px;break-inside:auto;page-break-inside:auto}
+   .print-checklist th,.print-checklist td,.loading-print-table th,.loading-print-table td{border:1px solid #555;padding:4px;vertical-align:top;overflow-wrap:anywhere;word-break:normal}
    .print-checklist thead,.loading-print-table thead{display:table-header-group}
+   .print-checklist tfoot,.loading-print-table tfoot{display:table-footer-group}
    .print-checklist tr,.loading-print-table tr{break-inside:avoid;page-break-inside:avoid}
+   .print-section-row,.print-subsection-row,.loading-print-section{break-after:avoid;page-break-after:avoid}
    .print-section-row td,.loading-print-section td{background:#e8e8e8!important;font-weight:700;text-align:center}
    .print-subsection-row td{background:#eaf3fb!important;color:#174f7d!important;font-weight:700}
    .print-photo-section{break-inside:auto;page-break-inside:auto;margin-top:14px}
-   .print-photo{display:inline-block;vertical-align:top;width:32%;margin:0 .5% 10px;border:1px solid #777;padding:6px;break-inside:avoid;page-break-inside:avoid}
+   .print-photo-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:start}
+   .print-photo{display:block;min-width:0;width:100%;margin:0;border:1px solid #777;padding:6px;break-inside:avoid;page-break-inside:avoid}
    .print-photo img{width:100%;height:130px;object-fit:contain;display:block}
    .print-photo small{display:block;font-size:9px;margin-top:4px;overflow-wrap:anywhere}
-   .print-signature{max-width:280px;max-height:90px;object-fit:contain}
+   .print-signature{max-width:280px;max-height:90px;object-fit:contain;break-inside:avoid;page-break-inside:avoid}
    .print-result-badge,.loading-print-status{font-weight:900}
    .print-result-pass{background:#d9f0df!important;color:#146c36!important}
    .print-result-fail{background:#fde2e2!important;color:#a51f2b!important}
