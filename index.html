@@ -109,6 +109,12 @@
 
 .module-tabs{display:flex;gap:8px;padding:10px;margin:0 0 16px;background:#f3f7fb;border:1px solid #d8e4ef;border-radius:12px;box-shadow:0 4px 14px rgba(18,59,112,.08)}.module-tab{flex:1;min-width:0;border:1px solid #c6d8e9;border-radius:9px;padding:13px 12px;background:#fff;color:#174f7d;font:inherit;font-size:13px;font-weight:850;cursor:pointer}.module-tab.active{background:linear-gradient(115deg,#123b70,#1769aa);color:#fff;border-color:#1769aa;box-shadow:0 3px 9px rgba(23,105,170,.22)}.module-panel[hidden]{display:none!important}.module-placeholder{min-height:300px;padding:30px;border:1px solid #d4e4f2;border-radius:12px;background:linear-gradient(135deg,#fff,#f5f9fd);color:#174f7d}.module-placeholder p{color:#6b7c8e}@media(max-width:620px){.module-tabs{gap:5px;padding:6px}.module-tab{padding:10px 5px;font-size:11px;line-height:1.3}}
 
+/* PRINT ONLY THE ACTIVE CHECKLIST PREVIEW — OMIT ALL MODULE / SUB-TAB NAVIGATION */
+@media print{
+ .module-nav-heading,.module-tabs,.subnav-heading,.hierarchy-tag,.checklist-tabs{display:none!important}
+ .flight-preparation-content{border:0!important;padding:0!important;margin:0!important;background:#fff!important;box-shadow:none!important}
+ #flightPreparationPanel{display:block!important}
+}
 /* CLEAR MODULE / SUBMODULE NAVIGATION HIERARCHY */
 .module-nav-heading{margin:8px 2px 12px}.nav-kicker{display:block;color:#287fbd;font-size:10px;font-weight:900;letter-spacing:.16em}.module-nav-heading h2,.subnav-heading h2{margin:4px 0;color:#123b70;font-size:19px}.module-nav-heading p,.subnav-heading p{margin:0;color:#6b7c8e;font-size:12px}
 .module-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:0;margin:0 0 22px;background:transparent;border:0;box-shadow:none}
