@@ -310,7 +310,59 @@ $('loadingCameraPhotos').addEventListener('change',e=>addPhotoFiles(e.target.fil
 }
 $('previewBtn').onclick=async()=>{$('previewPanel').classList.add('show');await buildPreview();$('previewPanel').scrollIntoView({behavior:'smooth',block:'start'})};
 $('closePreview').onclick=()=>{$('previewPanel').classList.remove('show')};
-$('pdfBtn').onclick=async()=>{await buildPreview();window.print()};
+
+async function exportChecklistPdf(previewId,title){
+ const printWindow=window.open('','_blank');
+ if(!printWindow){alert('Please allow pop-ups for this site, then select Export as PDF again.');return}
+ try{
+  const source=$(previewId);
+  if(!source)throw new Error('Checklist preview is not available.');
+  const content=source.cloneNode(true);
+  content.querySelectorAll('button').forEach(el=>el.remove());
+  const base=document.createElement('base');base.href=location.href;
+  const styles=`
+   @page{size:A4 landscape;margin:9mm}
+   *{box-sizing:border-box;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+   html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif}
+   body{padding:0}
+   .print-document,.loading-print-document{width:100%;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif}
+   .print-doc-head{break-inside:avoid;page-break-inside:avoid}
+   .print-checklist,.loading-print-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:8.5px}
+   .print-checklist th,.print-checklist td,.loading-print-table th,.loading-print-table td{border:1px solid #555;padding:4px;vertical-align:middle;overflow-wrap:anywhere}
+   .print-checklist thead,.loading-print-table thead{display:table-header-group}
+   .print-checklist tr,.loading-print-table tr{break-inside:avoid;page-break-inside:avoid}
+   .print-section-row td,.loading-print-section td{background:#e8e8e8!important;font-weight:700;text-align:center}
+   .print-subsection-row td{background:#eaf3fb!important;color:#174f7d!important;font-weight:700}
+   .print-photo-section{break-inside:auto;page-break-inside:auto;margin-top:14px}
+   .print-photo{display:inline-block;vertical-align:top;width:32%;margin:0 .5% 10px;border:1px solid #777;padding:6px;break-inside:avoid;page-break-inside:avoid}
+   .print-photo img{width:100%;height:130px;object-fit:contain;display:block}
+   .print-photo small{display:block;font-size:9px;margin-top:4px;overflow-wrap:anywhere}
+   .print-signature{max-width:280px;max-height:90px;object-fit:contain}
+   .print-result-badge,.loading-print-status{font-weight:900}
+   .print-result-pass{background:#d9f0df!important;color:#146c36!important}
+   .print-result-fail{background:#fde2e2!important;color:#a51f2b!important}
+   .print-result-na{background:#343a40!important;color:#fff!important}
+   .loading-print-head{display:grid;grid-template-columns:110px 1fr 220px;gap:12px;align-items:center;border:1px solid #9ca9b6;padding:10px}
+   .loading-print-head img{width:100px;max-height:60px;object-fit:contain}
+   .loading-print-head h2{text-align:center;font-size:20px;margin:0}
+   .loading-print-meta{font-size:10px;line-height:1.5}
+   .loading-print-footer,.print-footer{font-size:9px;text-align:right;margin-top:8px}
+   .preview-panel>div:first-child,.loading-preview-actions{display:none!important}
+   img{max-width:100%}
+  `;
+  printWindow.document.open();
+  printWindow.document.write('<!doctype html><html><head><meta charset="utf-8"><title>'+String(title).replace(/[&<>"]/g,'')+'</title>');
+  printWindow.document.write(base.outerHTML+'<style>'+styles+'</style></head><body></body></html>');
+  printWindow.document.close();
+  printWindow.document.body.appendChild(content);
+  const images=[...printWindow.document.images];
+  await Promise.all(images.map(img=>img.complete?Promise.resolve():new Promise(resolve=>{img.onload=resolve;img.onerror=resolve;setTimeout(resolve,5000)})));
+  if(printWindow.document.fonts?.ready)await printWindow.document.fonts.ready;
+  printWindow.focus();
+  setTimeout(()=>{try{printWindow.print()}catch(err){alert('Unable to open the PDF print dialog. Please use your browser Print option.')}},350);
+ }catch(err){printWindow.close();console.error('PDF export failed:',err);alert('PDF export could not be prepared. Please refresh the page and try again.')}
+}
+\n$('pdfBtn').onclick=async()=>{await buildPreview();exportChecklistPdf('previewContent','YETI Daily Airworthiness Checklist')};
 
 function setModuleTab(which){const ids={preparation:'flightPreparationPanel',flight:'flightLogAnalyserPanel',thrust:'thrustRigLogAnalyserPanel'};Object.entries(ids).forEach(([key,id])=>{$(id).hidden=key!==which});const tabs={preparation:'flightPreparationTab',flight:'flightLogAnalyserTab',thrust:'thrustRigLogAnalyserTab'};Object.entries(tabs).forEach(([key,id])=>{$(id).classList.toggle('active',key===which);$(id).setAttribute('aria-selected',String(key===which))});try{localStorage.setItem('yetiActiveModuleTab',which)}catch(e){}}
 $('flightPreparationTab').addEventListener('click',()=>setModuleTab('preparation'));$('flightLogAnalyserTab').addEventListener('click',()=>setModuleTab('flight'));$('thrustRigLogAnalyserTab').addEventListener('click',()=>setModuleTab('thrust'));let savedModuleTab='preparation';try{savedModuleTab=localStorage.getItem('yetiActiveModuleTab')||'preparation'}catch(e){}if(!['preparation','flight','thrust'].includes(savedModuleTab))savedModuleTab='preparation';setModuleTab(savedModuleTab);
@@ -323,7 +375,7 @@ $('loadingList').addEventListener('input',e=>{let t=e.target;if(!t.dataset.loadI
 ['loadingUavNameId','loadingFrom','unloadingAt','loadingDate','loadingTime'] .forEach(id=>$(id).addEventListener('input',()=>{saveChecklistState();buildLoadingPreview(true)}));
 $('loadingSearch').oninput=renderLoadingChecklist;$('loadingExpand').onclick=()=>{document.querySelectorAll('#loadingList details.loading-accordion').forEach(x=>{expandedLoadingSections.add(x.dataset.section);x.open=true})};$('loadingCollapse').onclick=()=>{expandedLoadingSections.clear();document.querySelectorAll('#loadingList details.loading-accordion').forEach(x=>x.open=false)};
 async function buildLoadingPreview(skipPhotoRefresh=false){if(!skipPhotoRefresh)await renderPhotoThumbs();let loadingPhotos=evidencePhotos.filter(p=>p.category==='loading'),total=LOADING_BASE.reduce((n,s)=>n+s.items.length,0),done=Object.values(loadingAnswers).filter(a=>a.status).length,html='<div class="loading-print-document"><div class="loading-print-head"><img src="assets/ideaforge-logo.png" alt="ideaForge logo"><h2>Loading &amp; Unloading Checklist</h2><div class="loading-print-meta"><b>Doc No: IF_YETI_TD0_FTR_CKT_003</b><br><b>UAV Name / ID:</b> '+esc($('loadingUavNameId').value||'')+'<br><b>Loading / Unloading Location</b><br>Loading from: '+esc($('loadingFrom').value||'')+'<br>Unloading at: '+esc($('unloadingAt').value||'')+'<br>Date: '+esc(loadingDateEl.value||'')+'<br>Time: '+esc(loadingTimeEl.value||'')+'</div></div><table class="loading-print-table"><colgroup><col style="width:7%"><col style="width:37%"><col style="width:31%"><col style="width:10%"><col style="width:15%"></colgroup><thead><tr><th>Step No</th><th>Task Description</th><th>Expected Condition</th><th>Result</th><th>Remark</th></tr></thead><tbody>';for(let sec of LOADING_BASE){html+='<tr class="loading-print-section"><td colspan="5">'+esc(sec.title)+'</td></tr>';for(let i of sec.items){let a=loadingAnswers[i.id]||{},resultStyle=a.status==='Pass'?'background-color:#d9f0df!important;color:#146c36!important;border:2px solid #8bc99c!important;box-shadow:inset 0 0 0 100px #d9f0df!important;':a.status==='Fail'?'background-color:#fde2e2!important;color:#a51f2b!important;border:2px solid #e5a0a5!important;box-shadow:inset 0 0 0 100px #fde2e2!important;':'',res=a.status?'<span class="loading-print-status" style="display:inline-block;min-width:76px;padding:5px 7px;border-radius:5px;text-align:center;font-size:9px;font-weight:900;letter-spacing:.03em;text-transform:uppercase;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;forced-color-adjust:none!important;'+resultStyle+'">'+esc(a.status)+'</span>':'';html+='<tr><td>'+esc(i.id)+'</td><td>'+esc(i.title)+'</td><td>'+esc(i.expected)+'</td><td style="text-align:center">'+res+'</td><td>'+esc(a.remark||'')+'</td></tr>'}}html+='</tbody></table><div class="loading-print-footer">Checklist status recorded: '+done+' / '+total+'</div>'+(loadingAnswers._signature?'<div style="margin-top:18px"><b>Checker / Reviewer Signature</b><br><img src="'+loadingAnswers._signature+'" style="max-width:280px;max-height:90px;object-fit:contain"></div>':'');if(loadingPhotos.length){html+='<section class="print-photo-section"><h3>PHOTO EVIDENCE ('+loadingPhotos.length+')</h3><div class="print-photo-grid">'+loadingPhotos.map((p,i)=>'<div class="print-photo"><img src="'+p.data+'" alt="Loading photo '+(i+1)+'"><small>'+(i+1)+'. '+esc(p.name)+'</small></div>').join('')+'</div></section>'}html+='</div>';$('loadingPreviewContent').innerHTML=html}
-$('loadingPreviewBtn').onclick=async()=>{$('loadingPreviewPanel').classList.add('show');await buildLoadingPreview();$('loadingPreviewPanel').scrollIntoView({behavior:'smooth',block:'start'})};$('loadingClosePreview').onclick=()=>{$('loadingPreviewPanel').classList.remove('show')};$('loadingPdfBtn').onclick=async()=>{await buildLoadingPreview();document.body.classList.add('print-loading-checklist');window.print();setTimeout(()=>document.body.classList.remove('print-loading-checklist'),1000)};
+$('loadingPreviewBtn').onclick=async()=>{$('loadingPreviewPanel').classList.add('show');await buildLoadingPreview();$('loadingPreviewPanel').scrollIntoView({behavior:'smooth',block:'start'})};$('loadingClosePreview').onclick=()=>{$('loadingPreviewPanel').classList.remove('show')};$('loadingPdfBtn').onclick=async()=>{await buildLoadingPreview();exportChecklistPdf('loadingPreviewContent','YETI Loading-Unloading Checklist')};
 window.addEventListener('afterprint',()=>document.body.classList.remove('print-loading-checklist'));
 function initLoadingSignature(){let canvas=$('loadingSignaturePad');if(!canvas)return;let ctx=canvas.getContext('2d'),drawing=false;ctx.lineWidth=4;ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#10243b';if(loadingAnswers._signature){let img=new Image();img.onload=()=>ctx.drawImage(img,0,0,canvas.width,canvas.height);img.src=loadingAnswers._signature}function point(e){let r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*canvas.width/r.width,y:(e.clientY-r.top)*canvas.height/r.height}}canvas.onpointerdown=e=>{drawing=true;canvas.setPointerCapture(e.pointerId);let p=point(e);ctx.beginPath();ctx.moveTo(p.x,p.y);e.preventDefault()};canvas.onpointermove=e=>{if(!drawing)return;let p=point(e);ctx.lineTo(p.x,p.y);ctx.stroke();e.preventDefault()};function finish(){if(!drawing)return;drawing=false;loadingAnswers._signature=canvas.toDataURL('image/png');saveChecklistState();buildLoadingPreview(true)}canvas.onpointerup=finish;canvas.onpointercancel=finish;$('clearLoadingSignature').onclick=()=>{ctx.clearRect(0,0,canvas.width,canvas.height);delete loadingAnswers._signature;saveChecklistState();buildLoadingPreview(true)}}renderLoadingChecklist();initLoadingSignature();renderPhotoThumbs();
 restoreChecklistState();renderLoadingChecklist();initLoadingSignature();[['uavNameId','uavNameId'],['trialPhase','phase'],['trialStage','stage'],['flightPlace','place'],['flightDate','date']].forEach(([id,key])=>{let el=$(id);el.value=trialInfo[key]||'';el.addEventListener('input',()=>{trialInfo[key]=el.value;saveChecklistState();buildPreview(true)})});render();initSignaturePad();renderPhotoThumbs();buildPreview(true);buildLoadingPreview(true);
