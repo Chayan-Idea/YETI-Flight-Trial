@@ -344,17 +344,69 @@ async function exportChecklistPdf(previewId,title){
    .print-result-pass{background:#d9f0df!important;color:#146c36!important}
    .print-result-fail{background:#fde2e2!important;color:#a51f2b!important}
    .print-result-na{background:#343a40!important;color:#fff!important}
-   .loading-print-head{display:grid;grid-template-columns:110px 1fr 220px;gap:12px;align-items:center;border:1px solid #9ca9b6;padding:10px}
-   .loading-print-head img{width:100px;max-height:60px;object-fit:contain}
-   .loading-print-head h2{text-align:center;font-size:20px;margin:0}
-   .loading-print-meta{font-size:10px;line-height:1.5}
+   .loading-print-head{display:grid;grid-template-columns:90px minmax(0,1fr) 260px;gap:9px;align-items:center;border:1px solid #9ca9b6;padding:8px}
+   .loading-print-head img{width:82px;max-height:56px;object-fit:contain}
+   .loading-print-head h2{text-align:center;font-size:18px;margin:0}
+   .loading-print-meta{min-width:0;font-size:9px;line-height:1.35}
+   .loading-print-meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px 9px;min-width:0}
+   .loading-print-meta-grid>div{min-width:0;overflow-wrap:anywhere}
+   .loading-print-meta-grid .doc-no{grid-column:1/-1;white-space:nowrap;font-size:9px;font-weight:800}
+   .loading-print-meta-grid .uav-id{grid-column:1/-1;display:grid;grid-template-columns:auto minmax(0,1fr);gap:5px}
+   .loading-print-meta-grid .uav-id span{min-width:0;overflow-wrap:anywhere}
    .loading-print-footer,.print-footer{font-size:9px;text-align:right;margin-top:8px}
    .preview-panel>div:first-child,.loading-preview-actions{display:none!important}
    img{max-width:100%}
   `;
   printWindow.document.open();
   printWindow.document.write('<!doctype html><html><head><meta charset="utf-8"><title>'+String(title).replace(/[&<>"]/g,'')+'</title>');
-  printWindow.document.write(base.outerHTML+'<style>'+styles+'</style></head><body></body></html>');
+  printWindow.document.write(base.outerHTML+'<style>'+styles+'.module-tabs{grid-column:1;display:flex;flex-direction:column;align-items:stretch;width:190px;max-width:190px;gap:8px;padding:0;margin:0;align-self:start;background:transparent;border:0;box-shadow:none}
+.module-tab{width:100%;min-height:76px;flex:0 0 auto;display:grid;grid-template-columns:30px minmax(0,1fr);align-items:center;gap:9px;padding:11px 10px;text-align:left}
+.module-tab .module-index{grid-row:1;grid-column:1;width:30px;height:30px;flex-basis:30px}
+.module-tab .module-tab-copy{grid-column:2;min-width:0}
+.module-tab .module-tab-copy strong{display:block;white-space:normal;overflow-wrap:anywhere;line-height:1.25}
+.module-tab .module-tab-copy small{display:block;white-space:normal;overflow-wrap:anywhere;line-height:1.3}
+.module-tab .module-arrow{display:none}
+main{display:grid;grid-template-columns:190px minmax(0,1fr);column-gap:18px;align-items:start}
+main>.module-nav-heading{grid-column:1/-1}
+main>.module-tabs{grid-column:1}
+main>.module-panel{grid-column:2;grid-row:2}
+#flightPreparationPanel,#flightLogAnalyserPanel,#thrustRigLogAnalyserPanel{min-width:0;width:100%}
+.flight-preparation-content{min-width:0}
+.loading-print-head{grid-template-columns:90px minmax(0,1fr) 260px;gap:9px;padding:8px}
+.loading-print-head img{width:82px;max-height:56px}
+.loading-print-meta{min-width:0;font-size:9px;line-height:1.35}
+.loading-print-meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px 9px;min-width:0}
+.loading-print-meta-grid>div{min-width:0;overflow-wrap:anywhere}
+.loading-print-meta-grid .doc-no{grid-column:1/-1;white-space:nowrap;font-size:9px;font-weight:800}
+.loading-print-meta-grid .uav-id{grid-column:1/-1;display:grid;grid-template-columns:auto minmax(0,1fr);gap:5px}
+.loading-print-meta-grid .uav-id span{min-width:0;overflow-wrap:anywhere}
+.loading-print-meta-grid b{font-weight:800}
+@media(max-width:760px){
+ main{display:block}
+ .module-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;max-width:none;gap:6px;margin:0 0 14px}
+ .module-tab{min-height:70px;padding:8px 6px;grid-template-columns:1fr;gap:4px}
+ .module-tab .module-index{grid-column:1;grid-row:1}
+ .module-tab .module-tab-copy{grid-column:1}
+ .module-tab .module-tab-copy strong{font-size:11px}
+ .module-tab .module-tab-copy small{font-size:9px}
+ .loading-print-head{grid-template-columns:60px minmax(0,1fr) 205px;gap:5px;padding:5px}
+ .loading-print-head img{width:56px;max-height:42px}
+ .loading-print-head h2{font-size:14px}
+ .loading-print-meta,.loading-print-meta-grid .doc-no{font-size:7px}
+}
+@media(max-width:480px){
+ .module-tabs{grid-template-columns:1fr}
+ .module-tab{grid-template-columns:26px minmax(0,1fr);min-height:0;text-align:left}
+ .module-tab .module-index{grid-column:1;grid-row:1}
+ .module-tab .module-tab-copy{grid-column:2}
+ .module-tab .module-tab-copy strong{font-size:11px}
+ .module-tab .module-tab-copy small{font-size:9px}
+ .loading-print-head{grid-template-columns:48px minmax(0,1fr) 165px}
+ .loading-print-head img{width:44px}
+ .loading-print-head h2{font-size:11px}
+ .loading-print-meta,.loading-print-meta-grid .doc-no{font-size:6px}
+}
+</style></head><body></body></html>');
   printWindow.document.close();
   printWindow.document.body.appendChild(content);
   const images=[...printWindow.document.images];
@@ -392,7 +444,7 @@ function refreshLoadingCounters(){let q=$('loadingSearch').value.toLowerCase(),d
 $('loadingList').addEventListener('input',e=>{let t=e.target;if(!t.dataset.loadId||t.dataset.loadK!=='remark')return;loadingAnswers[t.dataset.loadId]??={};loadingAnswers[t.dataset.loadId].remark=t.value;saveChecklistState();buildLoadingPreview(true)});
 ['loadingUavNameId','loadingFrom','unloadingAt','loadingDate','loadingTime'] .forEach(id=>$(id).addEventListener('input',()=>{saveChecklistState();buildLoadingPreview(true)}));
 $('loadingSearch').oninput=renderLoadingChecklist;$('loadingExpand').onclick=()=>{document.querySelectorAll('#loadingList details.loading-accordion').forEach(x=>{expandedLoadingSections.add(x.dataset.section);x.open=true})};$('loadingCollapse').onclick=()=>{expandedLoadingSections.clear();document.querySelectorAll('#loadingList details.loading-accordion').forEach(x=>x.open=false)};
-async function buildLoadingPreview(skipPhotoRefresh=false){if(!skipPhotoRefresh)await renderPhotoThumbs();let loadingPhotos=evidencePhotos.filter(p=>p.category==='loading'),total=LOADING_BASE.reduce((n,s)=>n+s.items.length,0),done=Object.values(loadingAnswers).filter(a=>a.status).length,html='<div class="loading-print-document"><div class="loading-print-head"><img src="assets/ideaforge-logo.png" alt="ideaForge logo"><h2>Loading &amp; Unloading Checklist</h2><div class="loading-print-meta"><b>Doc No: IF_YETI_TD0_FTR_CKT_003</b><br><b>UAV Name / ID:</b> '+esc($('loadingUavNameId').value||'')+'<br><b>Loading / Unloading Location</b><br>Loading from: '+esc($('loadingFrom').value||'')+'<br>Unloading at: '+esc($('unloadingAt').value||'')+'<br>Date: '+esc(loadingDateEl.value||'')+'<br>Time: '+esc(loadingTimeEl.value||'')+'</div></div><table class="loading-print-table"><colgroup><col style="width:7%"><col style="width:37%"><col style="width:31%"><col style="width:10%"><col style="width:15%"></colgroup><thead><tr><th>Step No</th><th>Task Description</th><th>Expected Condition</th><th>Result</th><th>Remark</th></tr></thead><tbody>';for(let sec of LOADING_BASE){html+='<tr class="loading-print-section"><td colspan="5">'+esc(sec.title)+'</td></tr>';for(let i of sec.items){let a=loadingAnswers[i.id]||{},resultStyle=a.status==='Pass'?'background-color:#d9f0df!important;color:#146c36!important;border:2px solid #8bc99c!important;box-shadow:inset 0 0 0 100px #d9f0df!important;':a.status==='Fail'?'background-color:#fde2e2!important;color:#a51f2b!important;border:2px solid #e5a0a5!important;box-shadow:inset 0 0 0 100px #fde2e2!important;':'',res=a.status?'<span class="loading-print-status" style="display:inline-block;min-width:76px;padding:5px 7px;border-radius:5px;text-align:center;font-size:9px;font-weight:900;letter-spacing:.03em;text-transform:uppercase;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;forced-color-adjust:none!important;'+resultStyle+'">'+esc(a.status)+'</span>':'';html+='<tr><td>'+esc(i.id)+'</td><td>'+esc(i.title)+'</td><td>'+esc(i.expected)+'</td><td style="text-align:center">'+res+'</td><td>'+esc(a.remark||'')+'</td></tr>'}}html+='</tbody></table><div class="loading-print-footer">Checklist status recorded: '+done+' / '+total+'</div>'+(loadingAnswers._signature?'<div style="margin-top:18px"><b>Checker / Reviewer Signature</b><br><img src="'+loadingAnswers._signature+'" style="max-width:280px;max-height:90px;object-fit:contain"></div>':'');if(loadingPhotos.length){html+='<section class="print-photo-section"><h3>PHOTO EVIDENCE ('+loadingPhotos.length+')</h3><div class="print-photo-grid">'+loadingPhotos.map((p,i)=>'<div class="print-photo"><img src="'+p.data+'" alt="Loading photo '+(i+1)+'"><small>'+(i+1)+'. '+esc(p.name)+'</small></div>').join('')+'</div></section>'}html+='</div>';$('loadingPreviewContent').innerHTML=html}
+async function buildLoadingPreview(skipPhotoRefresh=false){if(!skipPhotoRefresh)await renderPhotoThumbs();let loadingPhotos=evidencePhotos.filter(p=>p.category==='loading'),total=LOADING_BASE.reduce((n,s)=>n+s.items.length,0),done=Object.values(loadingAnswers).filter(a=>a.status).length,html='<div class="loading-print-document"><div class="loading-print-head"><img src="assets/ideaforge-logo.png" alt="ideaForge logo"><h2>Loading &amp; Unloading Checklist</h2><div class="loading-print-meta"><div class="loading-print-meta-grid"><div class="doc-no">Doc No: IF_YETI_TD0_FTR_CKT_003</div><div class="uav-id"><b>UAV Name / ID:</b><span>'+esc($('loadingUavNameId').value||'')+'</span></div><div><b>Loading from:</b> '+esc($('loadingFrom').value||'')+'</div><div><b>Unloading at:</b> '+esc($('unloadingAt').value||'')+'</div><div><b>Date:</b> '+esc(loadingDateEl.value||'')+'</div><div><b>Time:</b> '+esc(loadingTimeEl.value||'')+'</div></div></div></div><table class="loading-print-table"><colgroup><col style="width:7%"><col style="width:37%"><col style="width:31%"><col style="width:10%"><col style="width:15%"></colgroup><thead><tr><th>Step No</th><th>Task Description</th><th>Expected Condition</th><th>Result</th><th>Remark</th></tr></thead><tbody>';for(let sec of LOADING_BASE){html+='<tr class="loading-print-section"><td colspan="5">'+esc(sec.title)+'</td></tr>';for(let i of sec.items){let a=loadingAnswers[i.id]||{},resultStyle=a.status==='Pass'?'background-color:#d9f0df!important;color:#146c36!important;border:2px solid #8bc99c!important;box-shadow:inset 0 0 0 100px #d9f0df!important;':a.status==='Fail'?'background-color:#fde2e2!important;color:#a51f2b!important;border:2px solid #e5a0a5!important;box-shadow:inset 0 0 0 100px #fde2e2!important;':'',res=a.status?'<span class="loading-print-status" style="display:inline-block;min-width:76px;padding:5px 7px;border-radius:5px;text-align:center;font-size:9px;font-weight:900;letter-spacing:.03em;text-transform:uppercase;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;forced-color-adjust:none!important;'+resultStyle+'">'+esc(a.status)+'</span>':'';html+='<tr><td>'+esc(i.id)+'</td><td>'+esc(i.title)+'</td><td>'+esc(i.expected)+'</td><td style="text-align:center">'+res+'</td><td>'+esc(a.remark||'')+'</td></tr>'}}html+='</tbody></table><div class="loading-print-footer">Checklist status recorded: '+done+' / '+total+'</div>'+(loadingAnswers._signature?'<div style="margin-top:18px"><b>Checker / Reviewer Signature</b><br><img src="'+loadingAnswers._signature+'" style="max-width:280px;max-height:90px;object-fit:contain"></div>':'');if(loadingPhotos.length){html+='<section class="print-photo-section"><h3>PHOTO EVIDENCE ('+loadingPhotos.length+')</h3><div class="print-photo-grid">'+loadingPhotos.map((p,i)=>'<div class="print-photo"><img src="'+p.data+'" alt="Loading photo '+(i+1)+'"><small>'+(i+1)+'. '+esc(p.name)+'</small></div>').join('')+'</div></section>'}html+='</div>';$('loadingPreviewContent').innerHTML=html}
 $('loadingPreviewBtn').onclick=async()=>{await buildLoadingPreview();$('loadingPreviewPanel').classList.add('show');$('loadingPreviewPanel').scrollIntoView({behavior:'smooth',block:'start'})};$('loadingClosePreview').onclick=()=>{$('loadingPreviewPanel').classList.remove('show')};$('loadingPdfBtn').onclick=async()=>{
  const fileName=promptPdfFileName('LUC');
  if(!fileName)return;
