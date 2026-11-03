@@ -365,14 +365,19 @@ async function exportChecklistPdf(previewId,title){
  }catch(err){printWindow.close();console.error('PDF export failed:',err);alert('PDF export could not be prepared. Please refresh the page and try again.')}
 }
 
-$('pdfBtn').onclick=async()=>{
+function promptPdfFileName(){
  const now=new Date(),pad=n=>String(n).padStart(2,'0');
- const suggestedName=now.getFullYear()+'_'+pad(now.getMonth()+1)+'_'+pad(now.getDate())+'_DAC.pdf';
+ const suggestedName=now.getFullYear()+'_'+pad(now.getMonth()+1)+'_'+pad(now.getDate())+'_DAC';
  const enteredName=window.prompt('Enter the PDF document name:',suggestedName);
- if(enteredName===null)return;
+ if(enteredName===null)return null;
  let fileName=enteredName.trim().replace(/[\\\\/:*?"<>|]/g,'_');
  if(!fileName)fileName=suggestedName;
- if(!fileName.toLowerCase().endsWith('.pdf'))fileName+='.pdf';
+ fileName=fileName.replace(/\.pdf$/i,'');
+ return fileName+'.pdf';
+}
+$('pdfBtn').onclick=async()=>{
+ const fileName=promptPdfFileName();
+ if(!fileName)return;
  await buildPreview();
  exportChecklistPdf('previewContent',fileName);
 };
@@ -388,7 +393,12 @@ $('loadingList').addEventListener('input',e=>{let t=e.target;if(!t.dataset.loadI
 ['loadingUavNameId','loadingFrom','unloadingAt','loadingDate','loadingTime'] .forEach(id=>$(id).addEventListener('input',()=>{saveChecklistState();buildLoadingPreview(true)}));
 $('loadingSearch').oninput=renderLoadingChecklist;$('loadingExpand').onclick=()=>{document.querySelectorAll('#loadingList details.loading-accordion').forEach(x=>{expandedLoadingSections.add(x.dataset.section);x.open=true})};$('loadingCollapse').onclick=()=>{expandedLoadingSections.clear();document.querySelectorAll('#loadingList details.loading-accordion').forEach(x=>x.open=false)};
 async function buildLoadingPreview(skipPhotoRefresh=false){if(!skipPhotoRefresh)await renderPhotoThumbs();let loadingPhotos=evidencePhotos.filter(p=>p.category==='loading'),total=LOADING_BASE.reduce((n,s)=>n+s.items.length,0),done=Object.values(loadingAnswers).filter(a=>a.status).length,html='<div class="loading-print-document"><div class="loading-print-head"><img src="assets/ideaforge-logo.png" alt="ideaForge logo"><h2>Loading &amp; Unloading Checklist</h2><div class="loading-print-meta"><b>Doc No: IF_YETI_TD0_FTR_CKT_003</b><br><b>UAV Name / ID:</b> '+esc($('loadingUavNameId').value||'')+'<br><b>Loading / Unloading Location</b><br>Loading from: '+esc($('loadingFrom').value||'')+'<br>Unloading at: '+esc($('unloadingAt').value||'')+'<br>Date: '+esc(loadingDateEl.value||'')+'<br>Time: '+esc(loadingTimeEl.value||'')+'</div></div><table class="loading-print-table"><colgroup><col style="width:7%"><col style="width:37%"><col style="width:31%"><col style="width:10%"><col style="width:15%"></colgroup><thead><tr><th>Step No</th><th>Task Description</th><th>Expected Condition</th><th>Result</th><th>Remark</th></tr></thead><tbody>';for(let sec of LOADING_BASE){html+='<tr class="loading-print-section"><td colspan="5">'+esc(sec.title)+'</td></tr>';for(let i of sec.items){let a=loadingAnswers[i.id]||{},resultStyle=a.status==='Pass'?'background-color:#d9f0df!important;color:#146c36!important;border:2px solid #8bc99c!important;box-shadow:inset 0 0 0 100px #d9f0df!important;':a.status==='Fail'?'background-color:#fde2e2!important;color:#a51f2b!important;border:2px solid #e5a0a5!important;box-shadow:inset 0 0 0 100px #fde2e2!important;':'',res=a.status?'<span class="loading-print-status" style="display:inline-block;min-width:76px;padding:5px 7px;border-radius:5px;text-align:center;font-size:9px;font-weight:900;letter-spacing:.03em;text-transform:uppercase;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;forced-color-adjust:none!important;'+resultStyle+'">'+esc(a.status)+'</span>':'';html+='<tr><td>'+esc(i.id)+'</td><td>'+esc(i.title)+'</td><td>'+esc(i.expected)+'</td><td style="text-align:center">'+res+'</td><td>'+esc(a.remark||'')+'</td></tr>'}}html+='</tbody></table><div class="loading-print-footer">Checklist status recorded: '+done+' / '+total+'</div>'+(loadingAnswers._signature?'<div style="margin-top:18px"><b>Checker / Reviewer Signature</b><br><img src="'+loadingAnswers._signature+'" style="max-width:280px;max-height:90px;object-fit:contain"></div>':'');if(loadingPhotos.length){html+='<section class="print-photo-section"><h3>PHOTO EVIDENCE ('+loadingPhotos.length+')</h3><div class="print-photo-grid">'+loadingPhotos.map((p,i)=>'<div class="print-photo"><img src="'+p.data+'" alt="Loading photo '+(i+1)+'"><small>'+(i+1)+'. '+esc(p.name)+'</small></div>').join('')+'</div></section>'}html+='</div>';$('loadingPreviewContent').innerHTML=html}
-$('loadingPreviewBtn').onclick=async()=>{$('loadingPreviewPanel').classList.add('show');await buildLoadingPreview();$('loadingPreviewPanel').scrollIntoView({behavior:'smooth',block:'start'})};$('loadingClosePreview').onclick=()=>{$('loadingPreviewPanel').classList.remove('show')};$('loadingPdfBtn').onclick=async()=>{await buildLoadingPreview();exportChecklistPdf('loadingPreviewContent','YETI Loading-Unloading Checklist')};
+$('loadingPreviewBtn').onclick=async()=>{$('loadingPreviewPanel').classList.add('show');await buildLoadingPreview();$('loadingPreviewPanel').scrollIntoView({behavior:'smooth',block:'start'})};$('loadingClosePreview').onclick=()=>{$('loadingPreviewPanel').classList.remove('show')};$('loadingPdfBtn').onclick=async()=>{
+ const fileName=promptPdfFileName();
+ if(!fileName)return;
+ await buildLoadingPreview();
+ exportChecklistPdf('loadingPreviewContent',fileName);
+};
 window.addEventListener('afterprint',()=>document.body.classList.remove('print-loading-checklist'));
 function initLoadingSignature(){let canvas=$('loadingSignaturePad');if(!canvas)return;let ctx=canvas.getContext('2d'),drawing=false;ctx.lineWidth=4;ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#10243b';if(loadingAnswers._signature){let img=new Image();img.onload=()=>ctx.drawImage(img,0,0,canvas.width,canvas.height);img.src=loadingAnswers._signature}function point(e){let r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*canvas.width/r.width,y:(e.clientY-r.top)*canvas.height/r.height}}canvas.onpointerdown=e=>{drawing=true;canvas.setPointerCapture(e.pointerId);let p=point(e);ctx.beginPath();ctx.moveTo(p.x,p.y);e.preventDefault()};canvas.onpointermove=e=>{if(!drawing)return;let p=point(e);ctx.lineTo(p.x,p.y);ctx.stroke();e.preventDefault()};function finish(){if(!drawing)return;drawing=false;loadingAnswers._signature=canvas.toDataURL('image/png');saveChecklistState();buildLoadingPreview(true)}canvas.onpointerup=finish;canvas.onpointercancel=finish;$('clearLoadingSignature').onclick=()=>{ctx.clearRect(0,0,canvas.width,canvas.height);delete loadingAnswers._signature;saveChecklistState();buildLoadingPreview(true)}}renderLoadingChecklist();initLoadingSignature();renderPhotoThumbs();
 restoreChecklistState();renderLoadingChecklist();initLoadingSignature();[['uavNameId','uavNameId'],['trialPhase','phase'],['trialStage','stage'],['flightPlace','place'],['flightDate','date']].forEach(([id,key])=>{let el=$(id);el.value=trialInfo[key]||'';el.addEventListener('input',()=>{trialInfo[key]=el.value;saveChecklistState();buildPreview(true)})});render();initSignaturePad();renderPhotoThumbs();buildPreview(true);buildLoadingPreview(true);
