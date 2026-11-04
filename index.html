@@ -212,6 +212,33 @@
  .submodule-layout.sidebar-expanded .checklist-tabs .sidebar-toggle span:first-child{transform:rotate(180deg)}
 }
 @media print{.checklist-sidebar-toggle,.sidebar-toggle{display:none!important}}
+
+/* Propulsion Test Bench Log Analyzer — CSV intake and analysis progress */
+.propulsion-analyser-workspace{display:grid;gap:16px;max-width:850px}
+.propulsion-upload-card,.propulsion-progress-card{background:#fff;border:1px solid #d7e5f1;border-radius:13px;padding:20px;box-shadow:0 4px 14px rgba(18,59,112,.045)}
+.propulsion-step-label{display:block;color:#287fbd;font-size:10px;font-weight:900;letter-spacing:.14em;margin-bottom:7px}
+.propulsion-upload-card h3,.propulsion-progress-card h3{margin:0 0 7px;color:#123b70;font-size:17px}
+.propulsion-upload-card>p{margin:0 0 16px}
+.propulsion-file-picker{display:grid;justify-items:center;gap:6px;padding:26px 16px;border:2px dashed #b9cfe2;border-radius:11px;background:#f7fbff;color:#174f7d;cursor:pointer;text-align:center;transition:border-color .15s,background .15s}
+.propulsion-file-picker:hover{border-color:#287fbd;background:#eff7ff}
+.propulsion-file-picker input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.propulsion-upload-icon{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:#e2effa;color:#1769aa;font-size:24px;font-weight:800}
+.propulsion-file-picker strong{font-size:14px}.propulsion-file-picker>span:last-of-type{font-size:11px;color:#6b7c8e}
+.propulsion-upload-status{display:flex;align-items:center;gap:9px;margin-top:14px;padding:11px 12px;border:1px solid #d8e4ef;border-radius:8px;background:#f8fafc;color:#53697e;font-size:13px;font-weight:700}
+.propulsion-upload-status.is-complete{border-color:#a8d8b7;background:#effaf2;color:#176b36}
+.propulsion-status-symbol{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;font-size:16px;font-weight:900}
+.propulsion-upload-status.is-complete .propulsion-status-symbol{background:#d7f2df;color:#16803b}
+.propulsion-file-meta{margin-top:8px;color:#53697e;font-size:12px;overflow-wrap:anywhere}
+.propulsion-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}
+.propulsion-actions .btn:disabled{opacity:.45;cursor:not-allowed}
+.propulsion-progress-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:13px}
+.propulsion-progress-heading>strong{font-size:22px;color:#176b36;font-variant-numeric:tabular-nums}
+.propulsion-progress-track{height:14px;overflow:hidden;border-radius:20px;background:#e8edf1;border:1px solid #dce5eb}
+.propulsion-progress-track span{display:block;width:0;height:100%;border-radius:20px;background:linear-gradient(90deg,#23964d,#42c76b);transition:width .08s linear}
+.propulsion-progress-message{margin:10px 0 0;color:#53697e;font-size:13px;font-weight:650}
+.propulsion-progress-message.is-complete{color:#176b36}
+.propulsion-local-note{margin:0;color:#718194;font-size:11px;line-height:1.5}
+@media(max-width:620px){.propulsion-upload-card,.propulsion-progress-card{padding:15px}.propulsion-file-picker{padding:22px 12px}}
 </style></head><body>
 <header class="top"><div class="top-inner"><div class="brand-logo-wrap"><img class="brand-logo" src="assets/ideaforge-logo.png" alt="ideaForge logo"></div><div class="brand-copy"><div class="brand-eyebrow">ideaForge · Flight Operations</div><h1>YETI Logistic UAV</h1><p>Interactive V&amp;V Document Generator</p></div><button type="button" id="refreshPageBtn" class="btn alt" aria-label="Refresh page" title="Refresh page">↻ Refresh</button></div></header><main><div class="module-nav-heading"><span class="nav-kicker">YETI WORKSPACE</span><h2>Operational Modules</h2><p>Select a module to access its interactive tools.</p></div><nav class="module-tabs" aria-label="Main sections"><button type="button" class="module-tab active" id="flightPreparationTab" aria-selected="true"><span class="module-index">01</span><span class="module-tab-copy"><strong>Flight Preparation</strong><small>Pre-flight readiness &amp; ground handling</small></span><span class="module-arrow">›</span></button><button type="button" class="module-tab" id="propulsionAnalyzerTab" aria-selected="false"><span class="module-index">02</span><span class="module-tab-copy"><strong>Propulsion Test Bench Log Analyzer</strong><small>Propulsion test data &amp; log analysis</small></span><span class="module-arrow">›</span></button></nav><section id="flightPreparationPanel" class="module-panel"><div class="flight-preparation-content"><div class="subnav-heading"><div><span class="nav-kicker">FLIGHT PREPARATION</span><h2>Preparation Checklists</h2><p>Choose the checklist you want to complete or review.</p></div><button type="button" class="btn alt" id="refreshChecklistBtn">Refresh the Checklist</button></div><div class="submodule-layout"><nav class="checklist-tabs" id="checklistSidebar" aria-label="Flight preparation checklists"><button type="button" class="sidebar-toggle" id="checklistSidebarToggle" aria-expanded="false" aria-label="Expand checklist navigation" title="Expand checklist navigation"><span aria-hidden="true">»</span><span class="sidebar-toggle-label">Expand</span></button><button type="button" class="checklist-tab active" id="flightTrialPreparationSopTab" aria-selected="true"><span class="subtab-number">01A</span><span class="subtab-copy"><strong>Flight Trial Preparation SOP</strong><small>Flight trial operating procedure — reading view</small></span></button><button type="button" class="checklist-tab" id="dailyTabBtn" aria-selected="false"><span class="subtab-number">01B</span><span class="subtab-copy"><strong>Daily Airworthiness</strong><small>Aircraft condition &amp; flight readiness</small></span></button><button type="button" class="checklist-tab" id="loadingTabBtn" aria-selected="false"><span class="subtab-number">01C</span><span class="subtab-copy"><strong>Loading-Unloading</strong><small>Transport, loading &amp; unloading checks</small></span></button></nav><div class="submodule-content"><div id="dailyChecklistTabPanel" class="checklist-tab-panel vv-themed-checklist">
 
@@ -245,7 +272,34 @@
  </article>
 </section>
 </div></div></div></section>
-<section id="propulsionAnalyzerPanel" class="module-panel" hidden><div class="flight-preparation-content"><div class="subnav-heading"><div><span class="nav-kicker">PROPULSION TESTING</span><h2>Propulsion Test Bench Log Analyzer</h2><p>Dedicated workspace for propulsion test bench log analysis.</p></div></div><div class="card" style="margin:0"><h2 style="margin:0 0 8px;color:#123b70">Welcome User</h2></div></div></section>
+<section id="propulsionAnalyzerPanel" class="module-panel" hidden><div class="flight-preparation-content"><div class="subnav-heading"><div><span class="nav-kicker">PROPULSION TESTING</span><h2>Propulsion Test Bench Log Analyzer</h2><p>Dedicated workspace for propulsion test bench log analysis.</p></div></div><section class="propulsion-analyser-workspace" aria-labelledby="propulsionUploadHeading">
+  <div class="propulsion-upload-card">
+    <div class="propulsion-step-label">STEP 01 · INPUT LOG</div>
+    <h3 id="propulsionUploadHeading">Upload Propulsion Test Bench Log</h3>
+    <p class="muted">Select the propulsion test bench log in CSV format to begin.</p>
+    <label class="propulsion-file-picker" for="propulsionCsvInput">
+      <span class="propulsion-upload-icon" aria-hidden="true">↑</span>
+      <strong>Choose CSV log file</strong>
+      <span>CSV format only</span>
+      <input id="propulsionCsvInput" type="file" accept=".csv,text/csv">
+    </label>
+    <div id="propulsionUploadStatus" class="propulsion-upload-status" role="status" aria-live="polite">
+      <span class="propulsion-status-symbol" aria-hidden="true">○</span>
+      <span>No file selected</span>
+    </div>
+    <div class="propulsion-file-meta" id="propulsionFileMeta" hidden></div>
+    <div class="propulsion-actions">
+      <button type="button" class="btn" id="startPropulsionAnalysisBtn" disabled>Start Analysing</button>
+      <button type="button" class="btn alt" id="resetPropulsionUploadBtn" hidden>Choose another file</button>
+    </div>
+  </div>
+  <div class="propulsion-progress-card" id="propulsionProgressCard" hidden>
+    <div class="propulsion-progress-heading"><div><span class="propulsion-step-label">STEP 02 · ANALYSIS</span><h3>Log Analysis Progress</h3></div><strong id="propulsionProgressPercent">0%</strong></div>
+    <div class="propulsion-progress-track" role="progressbar" aria-label="Log analysis progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="propulsionProgressTrack"><span id="propulsionProgressFill"></span></div>
+    <p class="propulsion-progress-message" id="propulsionProgressMessage" role="status" aria-live="polite">Ready to analyse the selected log.</p>
+  </div>
+  <p class="propulsion-local-note">The selected CSV remains in this browser session. Detailed log processing and engineering analysis will be added in the next development step.</p>
+</section></div></section>
 </main><footer>YETI Flight Trial · Controlled procedures remain authoritative.</footer>
 <script>
 const LOADING_BASE=[
@@ -510,4 +564,30 @@ async function resetTrialSession(){if(!confirm('Refresh the checklist? This clea
 $('refreshPageBtn').addEventListener('click',()=>window.location.reload());
 // Home-screen shortcut is added from the device browser menu; no in-page button is needed.
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js?v=3',{updateViaCache:'none'}).catch(err=>console.error('Service worker registration failed',err)));
+
+/* CSV intake and staged progress UI. Actual CSV analysis will be implemented in the next step. */
+(()=>{
+ const input=$('propulsionCsvInput'),status=$('propulsionUploadStatus'),meta=$('propulsionFileMeta'),start=$('startPropulsionAnalysisBtn'),reset=$('resetPropulsionUploadBtn'),progressCard=$('propulsionProgressCard'),percent=$('propulsionProgressPercent'),track=$('propulsionProgressTrack'),fill=$('propulsionProgressFill'),message=$('propulsionProgressMessage');
+ if(!input||!status||!start)return;
+ let selectedFile=null,progressTimer=null;
+ function setUploadState(ok,text){status.classList.toggle('is-complete',ok);status.querySelector('.propulsion-status-symbol').textContent=ok?'✓':'○';status.lastElementChild.textContent=text}
+ function resetAnalysis(){if(progressTimer){clearInterval(progressTimer);progressTimer=null}progressCard.hidden=true;fill.style.width='0%';percent.textContent='0%';track.setAttribute('aria-valuenow','0');message.textContent='Ready to analyse the selected log.';message.classList.remove('is-complete');start.disabled=!selectedFile;start.textContent='Start Analysing'}
+ input.addEventListener('change',()=>{
+  resetAnalysis();selectedFile=null;meta.hidden=true;meta.textContent='';reset.hidden=true;
+  const file=input.files&&input.files[0];
+  if(!file){setUploadState(false,'No file selected');start.disabled=true;return}
+  if(!/\.csv$/i.test(file.name)){input.value='';setUploadState(false,'Invalid file — please select a .csv file');start.disabled=true;return}
+  if(file.size===0){input.value='';setUploadState(false,'The selected CSV file is empty');start.disabled=true;return}
+  selectedFile=file;setUploadState(true,'Upload completed — CSV file ready');meta.hidden=false;meta.textContent=file.name+' · '+(file.size/1024).toFixed(1)+' KB';start.disabled=false;reset.hidden=false;
+ });
+ reset.addEventListener('click',()=>{input.value='';selectedFile=null;meta.hidden=true;meta.textContent='';reset.hidden=true;setUploadState(false,'No file selected');start.disabled=true;resetAnalysis()});
+ start.addEventListener('click',()=>{
+  if(!selectedFile||progressTimer)return;
+  progressCard.hidden=false;start.disabled=true;reset.disabled=true;message.classList.remove('is-complete');message.textContent='Analysing log…';let value=0;
+  progressTimer=setInterval(()=>{
+   value=Math.min(100,value+2);fill.style.width=value+'%';percent.textContent=value+'%';track.setAttribute('aria-valuenow',String(value));
+   if(value>=100){clearInterval(progressTimer);progressTimer=null;message.textContent='Log analysis completed';message.classList.add('is-complete');start.textContent='Analysis Completed';reset.disabled=false}
+  },35);
+ });
+})();
 </script></body></html>
