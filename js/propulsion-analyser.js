@@ -16,9 +16,9 @@
  let selectedFile=null,headerRow=[],dataRows=[],mapping={},confirmed=false,step3Visible=false,step4Visible=false,analysisPanel=null;
  const DB_NAME='yeti-flight-trial-state',DB_STORE='propulsion-analyser',DB_KEY='active-session';
  function openStateDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(DB_STORE))req.result.createObjectStore(DB_STORE)};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
- let graphXIndex='',graphYIndex='';
- async function saveState(){try{const db=await openStateDB();await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).put({csvText:parseCSVText,fileName:selectedFile?.name||'Restored CSV log.csv',stage:step4Visible?'graphical':step3Visible?'summary':confirmed?'confirmed':analysisPanel?'identified':selectedFile?'uploaded':'empty',mapping:Object.fromEntries(specs.map(s=>[s.key,mapping[s.key]?.selected??''])),graphXIndex,graphYIndex},DB_KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}catch(error){console.warn('Could not save propulsion session locally:',error)}}
- async function loadState(){try{const db=await openStateDB();const saved=await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readonly');const req=tx.objectStore(DB_STORE).get(DB_KEY);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});db.close();if(!saved?.csvText)return;parseCSVText=saved.csvText;selectedFile={name:saved.fileName||'Restored CSV log.csv',size:new Blob([parseCSVText]).size,text:async()=>parseCSVText};if(filePicker)filePicker.hidden=true;meta.hidden=false;meta.textContent=selectedFile.name+' · '+(selectedFile.size/1024).toFixed(1)+' KB · Restored locally';reset.hidden=false;setUploadState(true,'Previous CSV session restored from this browser');const rows=parseCSV(parseCSVText,chooseDelimiter(parseCSVText));detect(rows);if(saved.mapping){specs.forEach(spec=>{const value=saved.mapping[spec.key];if(value!==''&&value!==undefined)mapping[spec.key].selected=Number(value)});analysisPanel.querySelectorAll('.propulsion-column-select').forEach(select=>{select.value=mapping[select.dataset.key].selected===''?'':String(mapping[select.dataset.key].selected)});validateMapping()}if((saved.stage==='confirmed'||saved.stage==='summary')&&validateMapping())$id('confirmPropulsionMappingBtn').click();if((saved.stage==='summary'||saved.stage==='graphical')&&confirmed)$id('proceedToParameterSummaryBtn')?.click();if(saved.stage==='graphical'&&step3Visible){$id('proceedToGraphicalAnalysisBtn')?.click();if(saved.graphXIndex!==undefined){graphXIndex=String(saved.graphXIndex);graphYIndex=String(saved.graphYIndex??'');const xs=$id('propulsionXAxisSelect'),ys=$id('propulsionYAxisSelect');if(xs)xs.value=graphXIndex;if(ys)ys.value=graphYIndex;if($id('plotPropulsionGraphBtn')&&graphXIndex!==''&&graphYIndex!=='')$id('plotPropulsionGraphBtn').click();}}start.textContent='Parameters Identified';start.disabled=true}catch(error){console.warn('Could not restore propulsion session:',error)}}
+ let graphXIndex='',graphYIndex='',graphY2Index='';
+ async function saveState(){try{const db=await openStateDB();await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).put({csvText:parseCSVText,fileName:selectedFile?.name||'Restored CSV log.csv',stage:step4Visible?'graphical':step3Visible?'summary':confirmed?'confirmed':analysisPanel?'identified':selectedFile?'uploaded':'empty',mapping:Object.fromEntries(specs.map(s=>[s.key,mapping[s.key]?.selected??''])),graphXIndex,graphYIndex,graphY2Index},DB_KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}catch(error){console.warn('Could not save propulsion session locally:',error)}}
+ async function loadState(){try{const db=await openStateDB();const saved=await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readonly');const req=tx.objectStore(DB_STORE).get(DB_KEY);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});db.close();if(!saved?.csvText)return;parseCSVText=saved.csvText;selectedFile={name:saved.fileName||'Restored CSV log.csv',size:new Blob([parseCSVText]).size,text:async()=>parseCSVText};if(filePicker)filePicker.hidden=true;meta.hidden=false;meta.textContent=selectedFile.name+' · '+(selectedFile.size/1024).toFixed(1)+' KB · Restored locally';reset.hidden=false;setUploadState(true,'Previous CSV session restored from this browser');const rows=parseCSV(parseCSVText,chooseDelimiter(parseCSVText));detect(rows);if(saved.mapping){specs.forEach(spec=>{const value=saved.mapping[spec.key];if(value!==''&&value!==undefined)mapping[spec.key].selected=Number(value)});analysisPanel.querySelectorAll('.propulsion-column-select').forEach(select=>{select.value=mapping[select.dataset.key].selected===''?'':String(mapping[select.dataset.key].selected)});validateMapping()}if((saved.stage==='confirmed'||saved.stage==='summary')&&validateMapping())$id('confirmPropulsionMappingBtn').click();if((saved.stage==='summary'||saved.stage==='graphical')&&confirmed)$id('proceedToParameterSummaryBtn')?.click();if(saved.stage==='graphical'&&step3Visible){$id('proceedToGraphicalAnalysisBtn')?.click();if(saved.graphXIndex!==undefined){graphXIndex=String(saved.graphXIndex);graphYIndex=String(saved.graphYIndex??'');graphY2Index=String(saved.graphY2Index??'');const xs=$id('propulsionXAxisSelect'),ys=$id('propulsionYAxisSelect'),y2s=$id('propulsionSecondaryYAxisSelect');if(xs)xs.value=graphXIndex;if(ys)ys.value=graphYIndex;if(y2s)y2s.value=graphY2Index;if($id('plotPropulsionGraphBtn')&&graphXIndex!==''&&graphYIndex!=='')$id('plotPropulsionGraphBtn').click();}}start.textContent='Parameters Identified';start.disabled=true}catch(error){console.warn('Could not restore propulsion session:',error)}}
  function setUploadState(ok,text){status.classList.toggle('is-complete',ok);status.querySelector('.propulsion-status-symbol').textContent=ok?'✓':'○';status.lastElementChild.textContent=text}
  function parseCSV(text,delimiter){
   const rows=[];let row=[],field='',quoted=false;
@@ -99,65 +99,75 @@
   step4.append(el('span','propulsion-step-label','STEP 04 · GRAPHICAL ANALYSIS'));step4.append(el('h3','','Graphical Analysis'));
   step4.append(el('p','propulsion-statistics-description','Select any two numeric CSV columns to plot their relationship.'));
   const graphControls=el('div','propulsion-graph-controls');
-  const xLabel=el('label','propulsion-graph-field','Choose X Axis Parameter');const xSelect=el('select','propulsion-column-select');xSelect.id='propulsionXAxisSelect';xLabel.append(xSelect);
-  const yLabel=el('label','propulsion-graph-field','Choose Y Axis Parameter');const ySelect=el('select','propulsion-column-select');ySelect.id='propulsionYAxisSelect';yLabel.append(ySelect);
-  headerRow.forEach((name,index)=>{const ox=document.createElement('option');ox.value=String(index);ox.textContent=name;xSelect.append(ox);const oy=document.createElement('option');oy.value=String(index);oy.textContent=name;ySelect.append(oy)});
+  const makeAxisField=(labelText,id)=>{const label=el('label','propulsion-graph-field',labelText);const select=el('select','propulsion-column-select');select.id=id;const empty=document.createElement('option');empty.value='';empty.textContent='Select a CSV column';select.append(empty);headerRow.forEach((name,index)=>{const option=document.createElement('option');option.value=String(index);option.textContent=name;select.append(option)});label.append(select);return {label,select}};
+  const xField=makeAxisField('Choose X Axis','propulsionXAxisSelect');
+  const yField=makeAxisField('Choose Primary Y Axis','propulsionYAxisSelect');
+  const y2Field=makeAxisField('Choose Secondary Y Axis','propulsionSecondaryYAxisSelect');
   const numericColumns=headerRow.map((_,index)=>({index,count:dataRows.filter(row=>{const v=String(row[index]??'').trim();return v!==''&&Number.isFinite(Number(v))}).length})).filter(item=>item.count>0);
-  if(numericColumns.length>0){xSelect.value=String(numericColumns[0].index);graphXIndex=xSelect.value}
-  if(numericColumns.length>1){ySelect.value=String(numericColumns[1].index);graphYIndex=ySelect.value}
-  xSelect.addEventListener('change',()=>{graphXIndex=xSelect.value;saveState()});ySelect.addEventListener('change',()=>{graphYIndex=ySelect.value;saveState()});
-  graphControls.append(xLabel,yLabel);step4.append(graphControls);
-  const plotActions=el('div','propulsion-actions');const plotButton=el('button','btn','Plot Graph');plotButton.type='button';plotButton.id='plotPropulsionGraphBtn';plotButton.disabled=numericColumns.length<2;plotActions.append(plotButton);step4.append(plotActions);
-  const graphStatus=el('p','propulsion-graph-status','Choose X and Y axis parameters, then select Plot Graph.');graphStatus.id='propulsionGraphStatus';step4.append(graphStatus);
+  const [xSelect,ySelect,y2Select]=[xField.select,yField.select,y2Field.select];
+  const savedGraphSelection=()=>{graphXIndex=xSelect.value;graphYIndex=ySelect.value;graphY2Index=y2Select.value;saveState()};
+  const updatePlotAvailability=()=>{plotButton.disabled=xSelect.value===''||ySelect.value==='';};
+  const plotActions=el('div','propulsion-actions');const plotButton=el('button','btn','Plot Graph');plotButton.type='button';plotButton.id='plotPropulsionGraphBtn';plotButton.disabled=true;plotActions.append(plotButton);
+  [xSelect,ySelect,y2Select].forEach(select=>select.addEventListener('change',()=>{savedGraphSelection();updatePlotAvailability()}));
+  graphControls.append(xField.label,yField.label,y2Field.label);step4.append(graphControls);
+  step4.append(plotActions);
+  const graphStatus=el('p','propulsion-graph-status','Choose an X axis and at least one Y axis parameter to enable Plot Graph.');graphStatus.id='propulsionGraphStatus';step4.append(graphStatus);
   const chartHost=el('div','propulsion-chart-host');chartHost.id='propulsionChartHost';step4.append(chartHost);
   const pointExplorer=el('div','propulsion-point-explorer');pointExplorer.hidden=true;
   const pointReadout=el('div','propulsion-point-readout');
-  const xValueCard=el('div','propulsion-point-value');const xValueLabel=el('span','propulsion-point-value-label','X AXIS');const xValue=el('strong','propulsion-point-value-number','—');xValueCard.append(xValueLabel,xValue);
-  const yValueCard=el('div','propulsion-point-value');const yValueLabel=el('span','propulsion-point-value-label','Y AXIS');const yValue=el('strong','propulsion-point-value-number','—');yValueCard.append(yValueLabel,yValue);
-  pointReadout.append(xValueCard,yValueCard);pointReadout.setAttribute('aria-live','polite');
+  const makeValueCard=(label)=>{const card=el('div','propulsion-point-value');const heading=el('span','propulsion-point-value-label',label);const value=el('strong','propulsion-point-value-number','—');card.append(heading,value);pointReadout.append(card);return {heading,value}};
+  const xReadout=makeValueCard('X AXIS'),yReadout=makeValueCard('PRIMARY Y AXIS'),y2Readout=makeValueCard('SECONDARY Y AXIS');
+  pointReadout.setAttribute('aria-live','polite');
   const pointSliderLabel=el('label','propulsion-point-slider-label','Explore data point');
   const pointSlider=document.createElement('input');pointSlider.type='range';pointSlider.min='0';pointSlider.max='0';pointSlider.value='0';pointSlider.step='1';pointSlider.id='propulsionPointSlider';pointSlider.disabled=true;pointSlider.setAttribute('aria-label','Select data point on graph');pointSliderLabel.append(pointSlider);
   const pointCounter=el('span','propulsion-point-counter','Point 0 of 0');pointCounter.id='propulsionPointCounter';
   pointExplorer.append(pointReadout,pointSliderLabel,pointCounter);step4.append(pointExplorer);
-  let plottedPoints=[],pointMarker=null,pointGuide=null;
-  const formatPointValue=value=>new Intl.NumberFormat(undefined,{maximumFractionDigits:6}).format(value);
+  let plottedPoints=[],pointMarker=null,secondaryPointMarker=null,pointGuide=null,xiForReadout=0,yiForReadout=0,y2iForReadout=null;
+  const formatPointValue=value=>Number.isFinite(value)?new Intl.NumberFormat(undefined,{maximumFractionDigits:6}).format(value):'—';
   const selectGraphPoint=index=>{
    if(!plottedPoints.length||!pointMarker||!pointGuide)return;
    const safeIndex=Math.max(0,Math.min(plottedPoints.length-1,Number(index)||0)),point=plottedPoints[safeIndex];
    pointSlider.value=String(safeIndex);pointCounter.textContent='Point '+(safeIndex+1).toLocaleString()+' of '+plottedPoints.length.toLocaleString();
-   xValueLabel.textContent='X · '+headerRow[xiForReadout];xValue.textContent=formatPointValue(point.x);
-   yValueLabel.textContent='Y · '+headerRow[yiForReadout];yValue.textContent=formatPointValue(point.y);
-   pointReadout.setAttribute('aria-label',headerRow[xiForReadout]+' '+formatPointValue(point.x)+', '+headerRow[yiForReadout]+' '+formatPointValue(point.y));
-   pointMarker.setAttribute('cx',point.sx);pointMarker.setAttribute('cy',point.sy);pointGuide.setAttribute('x1',point.sx);pointGuide.setAttribute('x2',point.sx);
+   xReadout.heading.textContent='X · '+headerRow[xiForReadout];xReadout.value.textContent=formatPointValue(point.x);
+   yReadout.heading.textContent='PRIMARY Y · '+headerRow[yiForReadout];yReadout.value.textContent=formatPointValue(point.y);
+   y2Readout.heading.textContent=y2iForReadout===null?'SECONDARY Y · NOT SELECTED':'SECONDARY Y · '+headerRow[y2iForReadout];y2Readout.value.textContent=formatPointValue(point.y2);
+   pointReadout.setAttribute('aria-label','X '+formatPointValue(point.x)+', primary Y '+formatPointValue(point.y)+', secondary Y '+formatPointValue(point.y2));
+   pointMarker.setAttribute('cx',point.sx);pointMarker.setAttribute('cy',point.sy);
+   if(secondaryPointMarker){if(Number.isFinite(point.y2)){secondaryPointMarker.setAttribute('cx',point.sx);secondaryPointMarker.setAttribute('cy',point.sy2);secondaryPointMarker.setAttribute('visibility','visible')}else secondaryPointMarker.setAttribute('visibility','hidden')}
+   pointGuide.setAttribute('x1',point.sx);pointGuide.setAttribute('x2',point.sx);
   };
-  let xiForReadout=0,yiForReadout=0;
   const handlePointSlider=()=>selectGraphPoint(pointSlider.value);
-  pointSlider.addEventListener('input',handlePointSlider);
-  pointSlider.addEventListener('change',handlePointSlider);
-  pointSlider.addEventListener('keyup',handlePointSlider);
+  pointSlider.addEventListener('input',handlePointSlider);pointSlider.addEventListener('change',handlePointSlider);pointSlider.addEventListener('keyup',handlePointSlider);
   plotButton.addEventListener('click',()=>{
-   const xi=Number(xSelect.value),yi=Number(ySelect.value);if(xSelect.value===''||ySelect.value===''||!Number.isInteger(xi)||!Number.isInteger(yi)){graphStatus.textContent='Select both X and Y axis parameters.';return}
-   const pts=dataRows.map((row,index)=>({x:Number(String(row[xi]??'').trim()),y:Number(String(row[yi]??'').trim()),index})).filter(p=>Number.isFinite(p.x)&&Number.isFinite(p.y));
-   if(pts.length<2){chartHost.replaceChildren();graphStatus.textContent='Not enough numeric row pairs to plot this graph.';return}
-   const W=960,H=500,L=92,R=28,T=28,B=86,pw=W-L-R,ph=H-T-B;
-   let xmin=Math.min(...pts.map(p=>p.x)),xmax=Math.max(...pts.map(p=>p.x)),ymin=Math.min(...pts.map(p=>p.y)),ymax=Math.max(...pts.map(p=>p.y));
-   if(xmin===xmax){xmin-=1;xmax+=1}if(ymin===ymax){ymin-=1;ymax+=1}
-   const sx=v=>L+(v-xmin)/(xmax-xmin)*pw,sy=v=>T+ph-(v-ymin)/(ymax-ymin)*ph;
-   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('role','img');svg.setAttribute('aria-label',headerRow[xi]+' versus '+headerRow[yi]);svg.classList.add('propulsion-chart-svg');
+   const xi=Number(xSelect.value),yi=Number(ySelect.value),y2i=y2Select.value===''?null:Number(y2Select.value);
+   if(xSelect.value===''||ySelect.value===''||!Number.isInteger(xi)||!Number.isInteger(yi)){graphStatus.textContent='Select an X axis and at least one Y axis parameter.';return}
+   const pts=dataRows.map((row,index)=>({x:Number(String(row[xi]??'').trim()),y:Number(String(row[yi]??'').trim()),y2:y2i===null?NaN:Number(String(row[y2i]??'').trim()),index})).filter(p=>Number.isFinite(p.x)&&(Number.isFinite(p.y)||(y2i!==null&&Number.isFinite(p.y2))));
+   const primaryPts=pts.filter(p=>Number.isFinite(p.y)),secondaryPts=pts.filter(p=>Number.isFinite(p.y2));
+   if(primaryPts.length<2){chartHost.replaceChildren();graphStatus.textContent='Not enough numeric X and Primary Y row pairs to plot the primary axis.';return}
+   if(y2i!==null&&secondaryPts.length<2){chartHost.replaceChildren();graphStatus.textContent='Not enough numeric X and Secondary Y row pairs to plot the secondary axis.';return}
+   const W=1040,H=520,L=96,R=y2i===null?34:100,T=30,B=88,pw=W-L-R,ph=H-T-B;
+   const range=values=>{let min=Math.min(...values),max=Math.max(...values);if(min===max){min-=1;max+=1}return {min,max}};
+   const xr=range(pts.map(p=>p.x)),yr=range(primaryPts.map(p=>p.y)),y2r=y2i===null?null:range(secondaryPts.map(p=>p.y2));
+   const sx=v=>L+(v-xr.min)/(xr.max-xr.min)*pw,sy=v=>T+ph-(v-yr.min)/(yr.max-yr.min)*ph,sy2=v=>y2r?T+ph-(v-y2r.min)/(y2r.max-y2r.min)*ph:0;
+   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('role','img');svg.setAttribute('aria-label',headerRow[xi]+' versus '+headerRow[yi]+(y2i===null?'':' and '+headerRow[y2i]));svg.classList.add('propulsion-chart-svg');
    const add=(tag,attrs,textValue)=>{const n=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs||{}).forEach(([k,v])=>n.setAttribute(k,String(v)));if(textValue!==undefined)n.textContent=textValue;svg.append(n);return n};
-   for(let i=0;i<=5;i++){const xv=xmin+(xmax-xmin)*i/5,yv=ymin+(ymax-ymin)*i/5,x=L+pw*i/5,y=T+ph-ph*i/5;add('line',{x1:x,y1:T,x2:x,y2:T+ph,stroke:'#e3eaf1','stroke-width':1});add('line',{x1:L,y1:y,x2:L+pw,y2:y,stroke:'#e3eaf1','stroke-width':1});add('text',{x,y:T+ph+24,'text-anchor':'middle',fill:'#64748b','font-size':12},new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(xv));add('text',{x:L-12,y:y+4,'text-anchor':'end',fill:'#64748b','font-size':12},new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(yv))}
-   add('line',{x1:L,y1:T+ph,x2:L+pw,y2:T+ph,stroke:'#52677d','stroke-width':2});add('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#52677d','stroke-width':2});
-   const d=pts.map((p,i)=>(i?'L':'M')+sx(p.x).toFixed(2)+','+sy(p.y).toFixed(2)).join(' ');add('path',{d,fill:'none',stroke:'#287fbd','stroke-width':2.5,'stroke-linejoin':'round','stroke-linecap':'round'});
-   const pointNodes=pts.map(p=>{add('circle',{cx:sx(p.x),cy:sy(p.y),r:3.2,fill:'#1769aa',opacity:.82});return add('circle',{cx:sx(p.x),cy:sy(p.y),r:10,fill:'transparent',stroke:'transparent'})});
-   add('text',{x:L+pw/2,y:H-20,'text-anchor':'middle',fill:'#123b70','font-size':16,'font-weight':700},headerRow[xi]);const yl=add('text',{x:24,y:T+ph/2,'text-anchor':'middle',fill:'#123b70','font-size':16,'font-weight':700},headerRow[yi]);yl.setAttribute('transform',`rotate(-90 24 ${T+ph/2})`);
+   const fmt=value=>new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(value);
+   for(let i=0;i<=5;i++){const xv=xr.min+(xr.max-xr.min)*i/5,yv=yr.min+(yr.max-yr.min)*i/5,x=L+pw*i/5,y=T+ph-ph*i/5;add('line',{x1:x,y1:T,x2:x,y2:T+ph,stroke:'#e3eaf1','stroke-width':1});add('line',{x1:L,y1:y,x2:L+pw,y2:y,stroke:'#e3eaf1','stroke-width':1});add('text',{x,y:T+ph+24,'text-anchor':'middle',fill:'#64748b','font-size':12},fmt(xv));add('text',{x:L-12,y:y+4,'text-anchor':'end',fill:'#287fbd','font-size':12},fmt(yv));if(y2r){const yv2=y2r.min+(y2r.max-y2r.min)*i/5;add('text',{x:L+pw+12,y:y+4,'text-anchor':'start',fill:'#dc8123','font-size':12},fmt(yv2))}}
+   add('line',{x1:L,y1:T+ph,x2:L+pw,y2:T+ph,stroke:'#52677d','stroke-width':2});add('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#287fbd','stroke-width':2});if(y2r)add('line',{x1:L+pw,y1:T,x2:L+pw,y2:T+ph,stroke:'#dc8123','stroke-width':2});
+   const drawSeries=(series,yFn,color)=>{const d=series.map((p,i)=>(i?'L':'M')+sx(p.x).toFixed(2)+','+yFn(p).toFixed(2)).join(' ');add('path',{d,fill:'none',stroke:color,'stroke-width':2.5,'stroke-linejoin':'round','stroke-linecap':'round'});series.forEach(p=>add('circle',{cx:sx(p.x),cy:yFn(p),r:3.2,fill:color,opacity:.85}))};
+   drawSeries(primaryPts,p=>sy(p.y),'#287fbd');if(y2r)drawSeries(secondaryPts,p=>sy2(p.y2),'#dc8123');
+   add('text',{x:L+pw/2,y:H-20,'text-anchor':'middle',fill:'#123b70','font-size':16,'font-weight':700},headerRow[xi]);
+   const yl=add('text',{x:24,y:T+ph/2,'text-anchor':'middle',fill:'#287fbd','font-size':15,'font-weight':700},headerRow[yi]);yl.setAttribute('transform',`rotate(-90 24 ${T+ph/2})`);
+   if(y2r){const yrLabel=add('text',{x:W-20,y:T+ph/2,'text-anchor':'middle',fill:'#dc8123','font-size':15,'font-weight':700},headerRow[y2i]);yrLabel.setAttribute('transform',`rotate(90 ${W-20} ${T+ph/2})`)}
    pointGuide=add('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#e28b24','stroke-width':1.5,'stroke-dasharray':'5 4',opacity:.9});
-   pointMarker=add('circle',{cx:sx(pts[0].x),cy:sy(pts[0].y),r:7,fill:'#fff',stroke:'#e07818','stroke-width':3});
-   plottedPoints=pts.map(p=>({...p,sx:sx(p.x),sy:sy(p.y)}));xiForReadout=xi;yiForReadout=yi;
-   pointNodes.forEach((node,index)=>{node.style.cursor='crosshair';node.addEventListener('pointerenter',()=>selectGraphPoint(index));node.addEventListener('focus',()=>selectGraphPoint(index));node.setAttribute('tabindex','0');node.setAttribute('aria-label','X '+formatPointValue(pts[index].x)+', Y '+formatPointValue(pts[index].y))});
+   pointMarker=add('circle',{cx:sx(primaryPts[0].x),cy:sy(primaryPts[0].y),r:7,fill:'#fff',stroke:'#287fbd','stroke-width':3});
+   secondaryPointMarker=y2r?add('circle',{cx:sx(secondaryPts[0].x),cy:sy2(secondaryPts[0].y2),r:7,fill:'#fff',stroke:'#dc8123','stroke-width':3}):null;
+   plottedPoints=pts.map(p=>({...p,sx:sx(p.x),sy:Number.isFinite(p.y)?sy(p.y):T+ph,sy2:Number.isFinite(p.y2)?sy2(p.y2):T+ph}));xiForReadout=xi;yiForReadout=yi;y2iForReadout=y2i;
+   const pointNodes=pts.map((p,index)=>{const node=add('circle',{cx:sx(p.x),cy:T+ph,r:11,fill:'transparent',stroke:'transparent'});node.style.cursor='crosshair';node.addEventListener('pointerenter',()=>selectGraphPoint(index));node.addEventListener('focus',()=>selectGraphPoint(index));node.setAttribute('tabindex','0');node.setAttribute('aria-label','X '+formatPointValue(p.x)+', primary Y '+formatPointValue(p.y)+', secondary Y '+formatPointValue(p.y2));return node});
    chartHost.replaceChildren(svg);pointExplorer.hidden=false;pointSlider.disabled=false;pointSlider.max=String(pts.length-1);pointSlider.value='0';selectGraphPoint(0);
-   graphStatus.textContent='Plotted '+pts.length.toLocaleString()+' numeric data pairs · X: '+headerRow[xi]+' · Y: '+headerRow[yi]+'. Hover over a point or move the slider to inspect values.';graphXIndex=String(xi);graphYIndex=String(yi);saveState();
+   graphStatus.textContent='Plotted '+primaryPts.length.toLocaleString()+' primary Y pairs'+(y2r?' and '+secondaryPts.length.toLocaleString()+' secondary Y pairs':'')+' · X: '+headerRow[xi]+' · Primary Y: '+headerRow[yi]+(y2i===null?'':' · Secondary Y: '+headerRow[y2i])+'. Both Y series share the same X axis and use independent left/right scales.';graphXIndex=String(xi);graphYIndex=String(yi);graphY2Index=y2i===null?'':String(y2i);saveState();
   });
-  workspace.insertBefore(step4,workspace.querySelector('.propulsion-local-note'));
+    workspace.insertBefore(step4,workspace.querySelector('.propulsion-local-note'));
   confirm.addEventListener('click',()=>{
    if(!validateMapping())return;
    confirmed=true;confirm.disabled=true;confirm.textContent='Mapping Confirmed';
