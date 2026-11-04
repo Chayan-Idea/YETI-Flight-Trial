@@ -110,7 +110,8 @@
     tr.append(el('th','propulsion-stat-parameter',s.label+' ('+units[s.key]+')'));
     tr.append(el('td','propulsion-stat-column',headerRow[idx]));
     if(values.length){
-     const min=Math.min(...values),max=Math.max(...values),avg=values.reduce((sum,value)=>sum+value,0)/values.length;
+     const stats=values.reduce((acc,value)=>({min:Math.min(acc.min,value),max:Math.max(acc.max,value),sum:acc.sum+value}),{min:Infinity,max:-Infinity,sum:0});
+     const min=stats.min,max=stats.max,avg=stats.sum/values.length;
      const fmt=value=>new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(value);
      tr.append(el('td','',fmt(min)+' '+units[s.key]));
      tr.append(el('td','',fmt(max)+' '+units[s.key]));
