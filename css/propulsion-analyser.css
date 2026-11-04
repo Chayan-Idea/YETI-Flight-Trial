@@ -184,45 +184,7 @@
 .propulsion-report-preview h4{margin:0;color:#123b70;letter-spacing:.06em}
 @media print{body *{visibility:hidden!important}.propulsion-report-preview,.propulsion-report-preview *{visibility:visible!important}.propulsion-report-preview{position:absolute;inset:0;width:100%;border:0}}
 
-
-/* Freeze CSV preview rows 1–2 and columns 1–2; all remaining cells scroll. */
-.propulsion-csv-preview-table thead th:first-child,
-.propulsion-csv-preview-table thead th:nth-child(2){
-  position:sticky;
-  top:0;
-  z-index:9;
-}
-.propulsion-csv-preview-table thead th:first-child{left:0;z-index:12}
-.propulsion-csv-preview-table thead th:nth-child(2){
-  left:var(--csv-first-col-width,58px);
-  z-index:11;
-}
-.propulsion-csv-preview-table tbody tr:nth-child(-n+2)>th,
-.propulsion-csv-preview-table tbody tr:nth-child(-n+2)>td{
-  position:sticky;
-  background:#f1f7fc;
-}
-.propulsion-csv-preview-table tbody tr:nth-child(1)>th,
-.propulsion-csv-preview-table tbody tr:nth-child(1)>td{
-  top:var(--csv-header-height,36px);
-  z-index:7;
-}
-.propulsion-csv-preview-table tbody tr:nth-child(2)>th,
-.propulsion-csv-preview-table tbody tr:nth-child(2)>td{
-  top:calc(var(--csv-header-height,36px) + var(--csv-row1-height,36px));
-  z-index:7;
-}
-.propulsion-csv-preview-table tbody tr:nth-child(-n+2)>th:first-child,
-.propulsion-csv-preview-table tbody tr:nth-child(-n+2)>td:nth-child(2){
-  left:0;
-  z-index:10;
-}
-.propulsion-csv-preview-table tbody tr:nth-child(-n+2)>td:nth-child(2){
-  left:var(--csv-first-col-width,58px);
-}
-.propulsion-csv-preview-table tbody tr:nth-child(-n+2)>th:first-child{
-  background:#e6f0f8;
-}
-.propulsion-csv-preview-table tbody tr:nth-child(-n+2)>td:nth-child(2){
-  background:#edf5fb;
-}
+/* Freeze only the preview header row and first column. */
+.propulsion-csv-preview-table thead th{top:0;z-index:5}
+.propulsion-csv-preview-table thead th:first-child{left:0;z-index:8}
+.propulsion-csv-preview-table tbody th{left:0;z-index:4}
