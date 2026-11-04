@@ -90,3 +90,27 @@
 .propulsion-statistics-card{gap:13px}
 .propulsion-upload-card:focus-within,.propulsion-mapping-card:focus-within,.propulsion-statistics-card:focus-within{box-shadow:0 7px 22px rgba(18,59,112,.1)}
 @media(max-width:620px){.propulsion-upload-card,.propulsion-mapping-card,.propulsion-statistics-card{padding:17px 15px 15px;border-radius:12px}.propulsion-page-content>.subnav-heading{margin-bottom:16px}}
+
+
+/* Reusable independent outline for every current and future analyzer workflow step. */
+.propulsion-step-card{
+  position:relative;
+  display:grid;
+  gap:13px;
+  min-width:0;
+  padding:22px 22px 20px;
+  overflow:hidden;
+  border:1px solid var(--step-border,#b9d7ef);
+  border-top:4px solid var(--step-accent,#287fbd);
+  border-radius:15px;
+  background:linear-gradient(135deg,#fff 0%,var(--step-tint,#f8fbff) 100%);
+  box-shadow:0 5px 18px rgba(18,59,112,.065);
+}
+.propulsion-step-card--blue{--step-border:#b9d7ef;--step-accent:#287fbd;--step-tint:#f8fbff}
+.propulsion-step-card--purple{--step-border:#d3c8f0;--step-accent:#8062c6;--step-tint:#fbf9ff}
+.propulsion-step-card--green{--step-border:#b9dfcf;--step-accent:#29966b;--step-tint:#f7fcf9}
+.propulsion-step-card>.propulsion-step-label{margin:0;color:var(--step-accent)}
+.propulsion-step-card h3{margin:0;color:#123b70;font-size:18px;letter-spacing:-.01em}
+.propulsion-step-card:focus-within{box-shadow:0 7px 22px rgba(18,59,112,.1)}
+.propulsion-step-card[hidden]{display:none!important}
+@media(max-width:620px){.propulsion-step-card{padding:17px 15px 15px;border-radius:12px}}
