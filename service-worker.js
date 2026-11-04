@@ -1,5 +1,5 @@
-const CACHE='yeti-flight-trial-shell-v3';
-const SHELL=['./','./index.html','./manifest.webmanifest','./assets/yeti-app-icon.svg','./assets/ideaforge-logo.png'];
+const CACHE='yeti-flight-trial-shell-v4';
+const SHELL=['./','./index.html','./manifest.webmanifest','./css/app.css','./css/propulsion-analyser.css','./js/flight-preparation.js','./js/main-navigation.js','./js/propulsion-analyser.js','./assets/yeti-app-icon.svg','./assets/ideaforge-logo.png'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',event=>{
