@@ -30,6 +30,7 @@
   csvPreviewPanel.append(heading,title,info,viewport);
   if(uploadCard)uploadCard.insertAdjacentElement('afterend',csvPreviewPanel);
   else workspace.insertBefore(csvPreviewPanel,workspace.firstChild);
+  const identifyActions=el('div','propulsion-actions propulsion-csv-preview-actions');identifyActions.append(start);csvPreviewPanel.insertAdjacentElement('afterend',identifyActions);
  }
  const specs=[
   {key:'thrust',label:'Thrust',aliases:['net_thrust_n','net thrust n','thrust n','thrust newton','thrust']},
