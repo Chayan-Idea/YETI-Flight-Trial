@@ -80,7 +80,7 @@
   analysisPanel.append(grid);
   const summary=el('div','propulsion-mapping-summary');summary.id='propulsionMappingSummary';analysisPanel.append(summary);
   const actions=el('div','propulsion-actions');const confirm=el('button','btn','Confirm and Proceed');confirm.type='button';confirm.id='confirmPropulsionMappingBtn';confirm.disabled=true;actions.append(confirm);
-  const rescan=el('button','btn alt','Re-identify columns');rescan.type='button';rescan.addEventListener('click',()=>{try{detect(parseCSVText)}catch(e){showError(e.message)}});actions.append(rescan);analysisPanel.append(actions);
+  const rescan=el('button','btn alt','Re-identify columns');rescan.type='button';rescan.addEventListener('click',()=>{try{detect(parseCSV(parseCSVText,chooseDelimiter(parseCSVText)))}catch(e){showError(e.message)}});actions.append(rescan);analysisPanel.append(actions);
   const next=el('div','propulsion-next-step');next.id='propulsionNextStep';next.hidden=true;analysisPanel.append(next);
   workspace.insertBefore(analysisPanel,workspace.querySelector('.propulsion-local-note'));
   confirm.addEventListener('click',()=>{
