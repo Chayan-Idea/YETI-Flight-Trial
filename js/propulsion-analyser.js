@@ -170,7 +170,10 @@
     workspace.insertBefore(step4,workspace.querySelector('.propulsion-local-note'));
   confirm.addEventListener('click',()=>{
    if(!validateMapping())return;
-   confirmed=true;confirm.disabled=true;confirm.textContent='Mapping Confirmed';
+   const rpmIndex=mapping.commandRpm.selected;
+    analysisRows=dataRows.filter(row=>{const raw=String(row[rpmIndex]??'').trim();if(raw==='')return false;const rpm=Number(raw);return Number.isFinite(rpm)&&rpm!==0});
+    if(!analysisRows.length){const summary=$id('propulsionMappingSummary');summary.className='propulsion-mapping-summary is-warning';summary.textContent='No rows have a valid non-zero Command RPM value. Check the Command RPM column mapping or the CSV data.';return;}
+    confirmed=true;confirm.disabled=true;confirm.textContent='Mapping Confirmed';
    next.hidden=false;next.replaceChildren(el('strong','', 'Parameter mapping confirmed'));
    next.append(el('p','', 'RPM filter applied: '+analysisRows.length.toLocaleString()+' of '+dataRows.length.toLocaleString()+' data rows retained where Command RPM ≠ 0. Rows with zero, blank or non-numeric Command RPM are excluded from all subsequent analysis.'));
    const mappingList=el('ul','propulsion-confirmed-mapping');specs.forEach(s=>mappingList.append(el('li','',s.label+' → '+headerRow[mapping[s.key].selected])));next.append(mappingList,proceed);proceed.hidden=false;
@@ -195,7 +198,7 @@
    specs.forEach(s=>{
     const idx=mapping[s.key].selected;
     let max=-Infinity,maxRow=-1;
-    dataRows.forEach((row,rowIndex)=>{
+    analysisRows.forEach((row,rowIndex)=>{
      const raw=String(row[idx]??'').trim();
      if(raw==='')return;
      const value=Number(raw);
