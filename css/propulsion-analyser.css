@@ -262,3 +262,13 @@
   background:#dceaf5;
   box-shadow:1px 0 0 #c8d9e7;
 }
+
+
+/* Timestamp search for raw and filtered CSV preview tables. */
+.propulsion-csv-search{display:grid;grid-template-columns:minmax(180px,1fr) auto;gap:8px;align-items:center;margin:4px 0 10px}
+.propulsion-csv-search-input{width:100%;min-width:0;padding:10px 12px;border:1px solid #cbd8e3;border-radius:8px;background:#fff;color:#24384b;font:inherit;font-size:12px}
+.propulsion-csv-search-status{grid-column:1/-1;min-height:16px;color:#53697e;font-size:11px;font-weight:650}
+.propulsion-csv-preview-table tbody tr.csv-timestamp-match th,
+.propulsion-csv-preview-table tbody tr.csv-timestamp-match td{background:#fff0a8!important;box-shadow:inset 0 1px 0 #e3b52d,inset 0 -1px 0 #e3b52d}
+.propulsion-csv-preview-table tbody tr.csv-timestamp-match td:first-of-type{background:#ffe27a!important;box-shadow:inset 0 1px 0 #d6a31a,inset 0 -1px 0 #d6a31a,1px 0 0 #d6a31a}
+@media(max-width:520px){.propulsion-csv-search{grid-template-columns:1fr}.propulsion-csv-search .btn{width:100%}}
