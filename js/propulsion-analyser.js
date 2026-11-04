@@ -5,6 +5,32 @@
  const input=$id('propulsionCsvInput'),filePicker=input?.closest('.propulsion-file-picker'),status=$id('propulsionUploadStatus'),meta=$id('propulsionFileMeta'),start=$id('startPropulsionAnalysisBtn'),reset=$id('resetPropulsionUploadBtn'),workspace=document.querySelector('.propulsion-analyser-workspace');
  if(reset)reset.textContent='Choose another log file';
  if(!input||!status||!start||!workspace)return;
+ const uploadCard=input.closest('.propulsion-upload-card');
+ let csvPreviewPanel=null;
+ function renderCsvPreview(text){
+  if(csvPreviewPanel)csvPreviewPanel.remove();
+  const rows=parseCSV(text,chooseDelimiter(text));
+  if(!rows.length)return;
+  const maxColumns=Math.max(0,...rows.map(row=>row.length));
+  csvPreviewPanel=el('section','propulsion-csv-preview-card propulsion-step-card propulsion-step-card--green');
+  csvPreviewPanel.id='propulsionCsvPreview';
+  csvPreviewPanel.setAttribute('aria-labelledby','propulsionCsvPreviewHeading');
+  const heading=el('div','propulsion-step-label','CSV FILE PREVIEW');
+  const title=el('h3','','Complete CSV Preview');title.id='propulsionCsvPreviewHeading';
+  const info=el('p','propulsion-csv-preview-meta',rows.length.toLocaleString()+' rows · '+maxColumns.toLocaleString()+' columns · Entire uploaded file');
+  const viewport=el('div','propulsion-csv-preview-viewport');viewport.setAttribute('role','region');viewport.setAttribute('aria-label','Complete CSV data preview');viewport.tabIndex=0;
+  const table=document.createElement('table');table.className='propulsion-csv-preview-table';
+  const thead=document.createElement('thead'),headRow=document.createElement('tr');
+  const rowHead=el('th','','ROW');rowHead.scope='col';headRow.append(rowHead);
+  for(let col=0;col<maxColumns;col++){const th=el('th','','COLUMN '+(col+1));th.scope='col';headRow.append(th)}
+  thead.append(headRow);table.append(thead);
+  const tbody=document.createElement('tbody');
+  rows.forEach((row,rowIndex)=>{const tr=document.createElement('tr');const indexCell=el('th','',String(rowIndex+1));indexCell.scope='row';tr.append(indexCell);for(let col=0;col<maxColumns;col++)tr.append(el('td','',String(row[col]??'')));tbody.append(tr)});
+  table.append(tbody);viewport.append(table);
+  csvPreviewPanel.append(heading,title,info,viewport);
+  if(uploadCard)uploadCard.insertAdjacentElement('afterend',csvPreviewPanel);
+  else workspace.insertBefore(csvPreviewPanel,workspace.firstChild);
+ }
  const specs=[
   {key:'thrust',label:'Thrust',aliases:['net_thrust_n','net thrust n','thrust n','thrust newton','thrust']},
   {key:'torque',label:'Torque',aliases:['esc_torque_nm','torque_nm','torque nm','torque']},
@@ -18,7 +44,7 @@
  function openStateDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(DB_STORE))req.result.createObjectStore(DB_STORE)};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
  let graphXIndex='',graphYIndex='',graphY2Index='';
  async function saveState(){try{const db=await openStateDB();await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).put({csvText:parseCSVText,fileName:selectedFile?.name||'Restored CSV log.csv',stage:step4Visible?'graphical':step3Visible?'summary':confirmed?'confirmed':analysisPanel?'identified':selectedFile?'uploaded':'empty',mapping:Object.fromEntries(specs.map(s=>[s.key,mapping[s.key]?.selected??''])),graphXIndex,graphYIndex,graphY2Index},DB_KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}catch(error){console.warn('Could not save propulsion session locally:',error)}}
- async function loadState(){try{const db=await openStateDB();const saved=await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readonly');const req=tx.objectStore(DB_STORE).get(DB_KEY);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});db.close();if(!saved?.csvText)return;parseCSVText=saved.csvText;selectedFile={name:saved.fileName||'Restored CSV log.csv',size:new Blob([parseCSVText]).size,text:async()=>parseCSVText};if(filePicker)filePicker.hidden=true;meta.hidden=false;meta.textContent=selectedFile.name+' · '+(selectedFile.size/1024).toFixed(1)+' KB · Restored locally';reset.hidden=false;setUploadState(true,'Previous CSV session restored from this browser');const rows=parseCSV(parseCSVText,chooseDelimiter(parseCSVText));detect(rows);if(saved.mapping){specs.forEach(spec=>{const value=saved.mapping[spec.key];if(value!==''&&value!==undefined)mapping[spec.key].selected=Number(value)});analysisPanel.querySelectorAll('.propulsion-column-select').forEach(select=>{select.value=mapping[select.dataset.key].selected===''?'':String(mapping[select.dataset.key].selected)});validateMapping()}if((saved.stage==='confirmed'||saved.stage==='summary')&&validateMapping())$id('confirmPropulsionMappingBtn').click();if((saved.stage==='summary'||saved.stage==='graphical')&&confirmed)$id('proceedToParameterSummaryBtn')?.click();if(saved.stage==='graphical'&&step3Visible){$id('proceedToGraphicalAnalysisBtn')?.click();if(saved.graphXIndex!==undefined){graphXIndex=String(saved.graphXIndex);graphYIndex=String(saved.graphYIndex??'');graphY2Index=String(saved.graphY2Index??'');const xs=$id('propulsionXAxisSelect'),ys=$id('propulsionYAxisSelect'),y2s=$id('propulsionSecondaryYAxisSelect');if(xs)xs.value=graphXIndex;if(ys)ys.value=graphYIndex;if(y2s)y2s.value=graphY2Index;if($id('plotPropulsionGraphBtn')&&graphXIndex!==''&&graphYIndex!=='')$id('plotPropulsionGraphBtn').click();}}start.textContent='Parameters Identified';start.disabled=true}catch(error){console.warn('Could not restore propulsion session:',error)}}
+ async function loadState(){try{const db=await openStateDB();const saved=await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readonly');const req=tx.objectStore(DB_STORE).get(DB_KEY);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});db.close();if(!saved?.csvText)return;parseCSVText=saved.csvText;selectedFile={name:saved.fileName||'Restored CSV log.csv',size:new Blob([parseCSVText]).size,text:async()=>parseCSVText};if(filePicker)filePicker.hidden=true;meta.hidden=false;meta.textContent=selectedFile.name+' · '+(selectedFile.size/1024).toFixed(1)+' KB · Restored locally';reset.hidden=false;setUploadState(true,'Previous CSV session restored from this browser');renderCsvPreview(parseCSVText);const rows=parseCSV(parseCSVText,chooseDelimiter(parseCSVText));detect(rows);if(saved.mapping){specs.forEach(spec=>{const value=saved.mapping[spec.key];if(value!==''&&value!==undefined)mapping[spec.key].selected=Number(value)});analysisPanel.querySelectorAll('.propulsion-column-select').forEach(select=>{select.value=mapping[select.dataset.key].selected===''?'':String(mapping[select.dataset.key].selected)});validateMapping()}if((saved.stage==='confirmed'||saved.stage==='summary')&&validateMapping())$id('confirmPropulsionMappingBtn').click();if((saved.stage==='summary'||saved.stage==='graphical')&&confirmed)$id('proceedToParameterSummaryBtn')?.click();if(saved.stage==='graphical'&&step3Visible){$id('proceedToGraphicalAnalysisBtn')?.click();if(saved.graphXIndex!==undefined){graphXIndex=String(saved.graphXIndex);graphYIndex=String(saved.graphYIndex??'');graphY2Index=String(saved.graphY2Index??'');const xs=$id('propulsionXAxisSelect'),ys=$id('propulsionYAxisSelect'),y2s=$id('propulsionSecondaryYAxisSelect');if(xs)xs.value=graphXIndex;if(ys)ys.value=graphYIndex;if(y2s)y2s.value=graphY2Index;if($id('plotPropulsionGraphBtn')&&graphXIndex!==''&&graphYIndex!=='')$id('plotPropulsionGraphBtn').click();}}start.textContent='Parameters Identified';start.disabled=true}catch(error){console.warn('Could not restore propulsion session:',error)}}
  function setUploadState(ok,text){status.classList.toggle('is-complete',ok);status.querySelector('.propulsion-status-symbol').textContent=ok?'✓':'○';status.lastElementChild.textContent=text}
  function parseCSV(text,delimiter){
   const rows=[];let row=[],field='',quoted=false;
@@ -247,7 +273,7 @@
  function resetAnalysis(){
   if(analysisPanel){analysisPanel.remove();analysisPanel=null}
   workspace.querySelector('.propulsion-statistics-card')?.remove();workspace.querySelector('.propulsion-graphical-card')?.remove();
-  selectedFile=null;mapping={};headerRow=[];dataRows=[];analysisRows=[];confirmed=false;step3Visible=false;step4Visible=false;parseCSVText='';
+  selectedFile=null;mapping={};headerRow=[];dataRows=[];analysisRows=[];confirmed=false;step3Visible=false;step4Visible=false;parseCSVText='';if(csvPreviewPanel){csvPreviewPanel.remove();csvPreviewPanel=null;}
   meta.hidden=true;meta.textContent='';reset.hidden=true;start.disabled=true;start.textContent='Identify Parameters';
  }
  input.addEventListener('change',()=>{
@@ -257,7 +283,7 @@
   if(!/\.csv$/i.test(file.name)){input.value='';setUploadState(false,'Invalid file — please select a .csv file');return}
   if(file.size===0){input.value='';setUploadState(false,'The selected CSV file is empty');return}
   selectedFile=file;if(filePicker)filePicker.hidden=true;setUploadState(true,'CSV selected — ready for parameter identification');
-  meta.hidden=false;meta.textContent=file.name+' · '+(file.size/1024).toFixed(1)+' KB';reset.hidden=false;start.disabled=false;file.text().then(text=>{parseCSVText=text;saveState()}).catch(()=>{});
+  meta.hidden=false;meta.textContent=file.name+' · '+(file.size/1024).toFixed(1)+' KB';reset.hidden=false;start.disabled=false;start.textContent='Identify Parameters';file.text().then(text=>{parseCSVText=text;renderCsvPreview(text);saveState()}).catch(()=>{setUploadState(false,'Unable to read the selected CSV file')});
  });
  reset.addEventListener('click',async()=>{input.value='';resetAnalysis();if(filePicker)filePicker.hidden=false;reset.textContent='Choose another log file';setUploadState(false,'No file selected');try{const db=await openStateDB();await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).delete(DB_KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}catch(error){console.warn('Could not clear saved propulsion session:',error)}});
  start.addEventListener('click',async()=>{
