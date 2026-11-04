@@ -388,3 +388,74 @@
 .propulsion-report-preview-graph h3{margin:0 0 2mm;color:#174f7d;font-size:8.5pt}
 .propulsion-report-preview-graph svg{display:block;width:100%;height:auto;max-height:102mm!important;object-fit:contain}
 @media print{#propulsionReportLivePreview .propulsion-report-page{height:297mm!important;min-height:297mm!important;max-height:297mm!important;padding:12mm 13mm!important}#propulsionReportLivePreview .propulsion-report-preview-graph svg{max-height:102mm!important}}
+
+/* Final report refinement: compact top-left brand, page frame and disciplined alignment */
+#propulsionReportLivePreview .propulsion-report-page{
+ box-sizing:border-box!important;
+ width:210mm!important;height:297mm!important;min-height:297mm!important;max-height:297mm!important;
+ padding:10mm 12mm!important;margin:0!important;
+ border:1.2px solid #9aaebe!important;
+ outline:2px solid #dce5ed!important;outline-offset:-3mm;
+ overflow:hidden!important;background:#fff!important;
+ color:#1b2b3a!important;
+}
+#propulsionReportLivePreview .propulsion-report-brand-lockup{
+ align-self:flex-start!important;justify-content:flex-start!important;
+ gap:2mm!important;margin:0 0 8mm!important;
+}
+#propulsionReportLivePreview .propulsion-report-brand-lockup svg{
+ width:18mm!important;height:13mm!important;flex:0 0 18mm!important;
+}
+#propulsionReportLivePreview .propulsion-report-ideaforge{font-size:14pt!important;letter-spacing:-.4px!important}
+#propulsionReportLivePreview .propulsion-report-tagline{font-size:7pt!important}
+#propulsionReportLivePreview .propulsion-report-page h1{
+ width:100%!important;max-width:none!important;margin:0 0 6mm!important;
+ padding:0 0 4mm!important;border-bottom:2px solid #8cc63e!important;
+ font-size:23pt!important;line-height:1.16!important;font-weight:800!important;
+ text-decoration:none!important;
+}
+#propulsionReportLivePreview .propulsion-report-page h2{
+ width:100%!important;margin:0 0 4mm!important;padding:0 0 2mm!important;
+ font-weight:800!important;text-decoration:none!important;
+}
+#propulsionReportLivePreview .propulsion-report-page h3,
+#propulsionReportLivePreview .propulsion-report-kicker,
+#propulsionReportLivePreview .propulsion-report-page-kicker{
+ font-weight:800!important;
+}
+#propulsionReportLivePreview .propulsion-report-detail-table,
+#propulsionReportLivePreview .propulsion-report-stats-table{
+ width:100%!important;max-width:100%!important;table-layout:fixed!important;
+ border-collapse:collapse!important;
+}
+#propulsionReportLivePreview .propulsion-report-detail-table th,
+#propulsionReportLivePreview .propulsion-report-detail-table td,
+#propulsionReportLivePreview .propulsion-report-stats-table th,
+#propulsionReportLivePreview .propulsion-report-stats-table td{
+ box-sizing:border-box!important;overflow-wrap:anywhere!important;word-break:normal!important;
+ text-align:left!important;vertical-align:middle!important;
+}
+#propulsionReportLivePreview .propulsion-report-detail-table th,
+#propulsionReportLivePreview .propulsion-report-stats-table th{font-weight:800!important}
+#propulsionReportLivePreview .propulsion-report-detail-table td,
+#propulsionReportLivePreview .propulsion-report-stats-table td{font-weight:600!important}
+#propulsionReportLivePreview .propulsion-report-kpi strong{font-weight:800!important}
+#propulsionReportLivePreview .propulsion-report-kpi span{font-weight:800!important}
+#propulsionReportLivePreview .propulsion-report-cover-meta{margin-top:5mm!important}
+#propulsionReportLivePreview .propulsion-report-footer{width:100%!important;text-align:left!important}
+#propulsionReportLivePreview .propulsion-report-graph-page{gap:3mm!important}
+#propulsionReportLivePreview .propulsion-report-preview-graph{width:100%!important;max-width:100%!important}
+#propulsionReportLivePreview .propulsion-report-preview-graph h3{font-weight:800!important;text-decoration:underline;text-decoration-color:#8cc63e;text-underline-offset:2px}
+#propulsionReportLivePreview .propulsion-report-preview-graph svg{max-width:100%!important}
+@media print{
+ @page{size:A4 portrait;margin:0}
+ #propulsionReportLivePreview .propulsion-report-page{
+  width:210mm!important;height:297mm!important;min-height:297mm!important;max-height:297mm!important;
+  margin:0!important;padding:10mm 12mm!important;
+  border:1.2px solid #9aaebe!important;outline:2px solid #dce5ed!important;outline-offset:-3mm;
+  box-sizing:border-box!important;overflow:hidden!important;
+  print-color-adjust:exact!important;-webkit-print-color-adjust:exact!important;
+ }
+ #propulsionReportLivePreview .propulsion-report-brand-lockup svg{width:18mm!important;height:13mm!important}
+ #propulsionReportLivePreview .propulsion-report-preview-graph svg{max-height:102mm!important}
+}
