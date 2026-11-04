@@ -157,3 +157,17 @@
 .propulsion-point-value-label{font-size:9px;line-height:1.2;letter-spacing:.04em}
 .propulsion-point-value-number{font-size:14px;line-height:1.25;min-width:0;overflow-wrap:anywhere}
 @media(max-width:760px){.propulsion-point-readout{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.propulsion-point-value{padding:7px 6px}.propulsion-point-value-label{font-size:8px}.propulsion-point-value-number{font-size:12px}}
+
+/* Section 01 — complete CSV preview with independent vertical and horizontal scrolling */
+.propulsion-csv-preview-card{margin-top:14px;padding:18px;border:1px solid #b9d6e8;border-radius:13px;background:#fff;box-shadow:0 5px 18px rgba(20,55,85,.06)}
+.propulsion-csv-preview-card h3{margin:5px 0 4px;color:#123b70}
+.propulsion-csv-preview-meta{margin:0 0 12px;color:#60758a;font-size:12px;font-weight:650}
+.propulsion-csv-preview-viewport{max-height:560px;max-width:100%;overflow:auto;border:1px solid #d5e1eb;border-radius:9px;background:#fff;overscroll-behavior:contain}
+.propulsion-csv-preview-viewport:focus-visible{outline:2px solid #287fbd;outline-offset:2px}
+.propulsion-csv-preview-table{width:max-content;min-width:100%;border-collapse:separate;border-spacing:0;font-size:12px;font-variant-numeric:tabular-nums}
+.propulsion-csv-preview-table th,.propulsion-csv-preview-table td{padding:8px 11px;border-right:1px solid #e5edf3;border-bottom:1px solid #e5edf3;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere;max-width:360px}
+.propulsion-csv-preview-table thead th{position:sticky;top:0;z-index:2;background:#eaf3fa;color:#123b70;font-weight:800;white-space:nowrap}
+.propulsion-csv-preview-table tbody th{position:sticky;left:0;z-index:1;background:#f4f8fb;color:#52697e;font-weight:750}
+.propulsion-csv-preview-table thead th:first-child{left:0;z-index:3}
+.propulsion-csv-preview-table tbody tr:nth-child(even) td{background:#fafcfe}
+@media(max-width:620px){.propulsion-csv-preview-card{padding:13px}.propulsion-csv-preview-viewport{max-height:460px}.propulsion-csv-preview-table th,.propulsion-csv-preview-table td{padding:7px 9px;max-width:240px}}
