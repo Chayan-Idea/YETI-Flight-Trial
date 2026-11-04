@@ -508,3 +508,44 @@
   grid-template-columns:repeat(4,minmax(0,1fr))!important;
  }
 }
+
+/* Executive summary is part of page one; graphical analysis begins on page two. */
+#propulsionReportLivePreview .propulsion-report-cover .propulsion-report-summary-page{
+ display:block!important;width:100%!important;max-width:100%!important;
+ margin:8mm 0 0!important;padding:0!important;
+ border:0!important;outline:0!important;box-shadow:none!important;
+}
+#propulsionReportLivePreview .propulsion-report-cover .propulsion-report-summary-page .propulsion-report-page-kicker{
+ margin:0 0 2mm!important;font-size:7.5pt!important;
+}
+#propulsionReportLivePreview .propulsion-report-cover .propulsion-report-summary-page h2{
+ margin:0 0 3mm!important;padding:0 0 2mm!important;
+ font-size:14pt!important;line-height:1.15!important;
+ border-bottom:1.5px solid #287fbd!important;
+}
+#propulsionReportLivePreview .propulsion-report-cover .propulsion-report-kpi-grid{
+ display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ gap:3mm!important;width:100%!important;margin:0!important;
+}
+#propulsionReportLivePreview .propulsion-report-cover .propulsion-report-kpi{
+ min-height:19mm!important;padding:2.5mm!important;
+ border:1px solid #d5e1eb!important;border-top:2px solid #8cc63e!important;
+ border-radius:2mm!important;background:#f7fafc!important;
+}
+#propulsionReportLivePreview .propulsion-report-cover .propulsion-report-kpi span{
+ font-size:6.5pt!important;font-weight:800!important;
+}
+#propulsionReportLivePreview .propulsion-report-cover .propulsion-report-kpi strong{
+ font-size:11pt!important;font-weight:800!important;
+}
+#propulsionReportLivePreview .propulsion-report-cover .propulsion-report-small-note{
+ margin:2.5mm 0 0!important;font-size:6.5pt!important;line-height:1.2!important;
+}
+@media print{
+ #propulsionReportLivePreview .propulsion-report-cover .propulsion-report-summary-page{
+  display:block!important;margin-top:8mm!important;
+ }
+ #propulsionReportLivePreview .propulsion-report-cover .propulsion-report-kpi-grid{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ }
+}
