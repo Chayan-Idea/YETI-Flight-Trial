@@ -32,7 +32,15 @@
  </article>
 </section>
 </div></div></div></section>
-<section id="propulsionAnalyzerPanel" class="module-panel" hidden><div class="propulsion-page-content"><div class="subnav-heading"><div><span class="nav-kicker">PROPULSION TESTING</span><h2>Propulsion Test Bench Log Analyzer</h2><p>Dedicated workspace for propulsion test bench log analysis.</p></div></div><section class="propulsion-analyser-workspace" aria-labelledby="propulsionUploadHeading">
+<section id="propulsionAnalyzerPanel" class="module-panel" hidden><div class="propulsion-page-content"><div class="subnav-heading"><div><span class="nav-kicker">PROPULSION TESTING</span><h2>Propulsion Test Bench Log Analyzer</h2><p>Dedicated workspace for propulsion test bench log analysis.</p></div></div><div class="propulsion-submodule-layout propulsion-sidebar-expanded" id="propulsionLogLayout">
+<nav class="propulsion-submodule-sidebar" id="propulsionLogSidebar" aria-label="Propulsion log analysis navigation">
+<button type="button" class="propulsion-sidebar-toggle" id="propulsionSidebarToggle" aria-expanded="true" aria-label="Collapse propulsion navigation"><span aria-hidden="true">»</span><span class="propulsion-sidebar-toggle-label">Collapse</span></button>
+<button type="button" class="propulsion-subtab active" id="singleLogAnalysisTab" aria-selected="true"><span class="propulsion-subtab-number">01A</span><span class="propulsion-subtab-copy"><strong>Single Log Analysis</strong><small>Propulsion test bench log analysis</small></span></button>
+<button type="button" class="propulsion-subtab" id="multipleLogAnalysisTab" aria-selected="false"><span class="propulsion-subtab-number">01B</span><span class="propulsion-subtab-copy"><strong>Multiple Log Analysis</strong><small>Compare multiple propulsion logs</small></span></button>
+</nav>
+<div class="propulsion-submodule-content">
+<div id="singleLogAnalysisPanel">
+<section class="propulsion-analyser-workspace" aria-labelledby="propulsionUploadHeading">
   <div class="propulsion-upload-card propulsion-step-card propulsion-step-card--blue">
     <div class="propulsion-step-label">STEP 01 · INPUT LOG</div>
     <h3 id="propulsionUploadHeading">Upload Propulsion Test Bench Log</h3>
@@ -59,8 +67,22 @@
     <p class="propulsion-progress-message" id="propulsionProgressMessage" role="status" aria-live="polite">Ready to analyse the selected log.</p>
   </div>
   <p class="propulsion-local-note">The selected CSV remains in this browser session. Detailed log processing and engineering analysis will be added in the next development step.</p>
-</section></div></section>
+</section>
+</div>
+<section id="multipleLogAnalysisPanel" class="propulsion-multiple-placeholder" hidden>
+<div class="propulsion-multiple-placeholder-card"><span class="propulsion-step-label">01B · MULTIPLE LOG ANALYSIS</span><h3>Multiple Log Analysis</h3><p>This workspace is reserved for future multi-log comparison and consolidated propulsion performance analysis.</p><span class="propulsion-coming-soon">Workspace reserved</span></div>
+</section>
+</div></div></div></section>
 </main><footer>YETI Flight Trial · Controlled procedures remain authoritative.</footer>
+<script>
+(()=>{const layout=document.getElementById('propulsionLogLayout'),toggle=document.getElementById('propulsionSidebarToggle'),single=document.getElementById('singleLogAnalysisTab'),multiple=document.getElementById('multipleLogAnalysisTab'),singlePanel=document.getElementById('singleLogAnalysisPanel'),multiplePanel=document.getElementById('multipleLogAnalysisPanel');if(!layout||!toggle||!single||!multiple)return;
+const setTab=which=>{const isSingle=which==='single';singlePanel.hidden=!isSingle;multiplePanel.hidden=isSingle;single.classList.toggle('active',isSingle);multiple.classList.toggle('active',!isSingle);single.setAttribute('aria-selected',String(isSingle));multiple.setAttribute('aria-selected',String(!isSingle));try{localStorage.setItem('yetiPropulsionLogTab',which)}catch(e){}};
+const setCollapsed=collapsed=>{layout.classList.toggle('propulsion-sidebar-expanded',!collapsed);toggle.setAttribute('aria-expanded',String(!collapsed));toggle.setAttribute('aria-label',collapsed?'Expand propulsion navigation':'Collapse propulsion navigation');toggle.title=collapsed?'Expand propulsion navigation':'Collapse propulsion navigation';toggle.querySelector('.propulsion-sidebar-toggle-label').textContent=collapsed?'Expand':'Collapse';try{localStorage.setItem('yetiPropulsionSidebarCollapsed',String(collapsed))}catch(e){}};
+toggle.addEventListener('click',()=>setCollapsed(layout.classList.contains('propulsion-sidebar-expanded')));
+single.addEventListener('click',()=>setTab('single'));multiple.addEventListener('click',()=>setTab('multiple'));
+let tab='single',collapsed=false;try{tab=localStorage.getItem('yetiPropulsionLogTab')||'single';collapsed=localStorage.getItem('yetiPropulsionSidebarCollapsed')==='true'}catch(e){}setTab(tab==='multiple'?'multiple':'single');setCollapsed(collapsed);
+})();
+</script>
 <script src="./js/flight-preparation.js?v=1"></script>
 <script src="./js/main-navigation.js?v=1"></script>
 <script src="./js/propulsion-analyser.js?v=54"></script></body></html>
