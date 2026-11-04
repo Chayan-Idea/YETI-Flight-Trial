@@ -549,3 +549,13 @@
   grid-template-columns:repeat(4,minmax(0,1fr))!important;
  }
 }
+
+/* Tighten the executive summary spacing on the cover page. */
+#propulsionReportLivePreview .propulsion-report-cover .propulsion-report-summary-page{
+ margin-top:3mm!important;
+}
+@media print{
+ #propulsionReportLivePreview .propulsion-report-cover .propulsion-report-summary-page{
+  margin-top:3mm!important;
+ }
+}
