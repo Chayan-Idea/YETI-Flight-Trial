@@ -13,7 +13,7 @@
   {key:'voltage',label:'DC Voltage',aliases:['dc_voltage_v','dc voltage','bus_voltage_v','battery_voltage_v','voltage_v']},
   {key:'current',label:'DC Current',aliases:['current_a','dc_current_a','dc current','battery_current_a','bus_current_a']}
  ];
- let selectedFile=null,headerRow=[],dataRows=[],mapping={},confirmed=false,step3Visible=false,step4Visible=false,analysisPanel=null;
+ let selectedFile=null,headerRow=[],dataRows=[],analysisRows=[],mapping={},confirmed=false,step3Visible=false,step4Visible=false,analysisPanel=null;
  const DB_NAME='yeti-flight-trial-state',DB_STORE='propulsion-analyser',DB_KEY='active-session';
  function openStateDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(DB_STORE))req.result.createObjectStore(DB_STORE)};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
  let graphXIndex='',graphYIndex='',graphY2Index='';
@@ -57,7 +57,7 @@
   confirmed=false;step3Visible=false;step4Visible=false;
   const hi=findHeader(rows);if(hi<0)throw new Error('Could not locate a recognizable header row in the first 10 rows.');
   headerRow=rows[hi].map((v,i)=>String(v??'').trim()||('Column '+(i+1)));
-  dataRows=rows.slice(hi+1).filter(r=>r.some(v=>String(v??'').trim()!==''));
+  dataRows=rows.slice(hi+1).filter(r=>r.some(v=>String(v??'').trim()!==''));analysisRows=[];
   mapping={};
   specs.forEach(s=>{
    const candidates=headerRow.map((name,index)=>({name,index,score:scoreHeader(name,s.aliases)})).filter(x=>x.score>=30).sort((a,b)=>b.score-a.score);
@@ -103,7 +103,7 @@
   const xField=makeAxisField('Choose X Axis','propulsionXAxisSelect');
   const yField=makeAxisField('Choose Primary Y Axis','propulsionYAxisSelect');
   const y2Field=makeAxisField('Choose Secondary Y Axis','propulsionSecondaryYAxisSelect');
-  const numericColumns=headerRow.map((_,index)=>({index,count:dataRows.filter(row=>{const v=String(row[index]??'').trim();return v!==''&&Number.isFinite(Number(v))}).length})).filter(item=>item.count>0);
+  const numericColumns=headerRow.map((_,index)=>({index,count:analysisRows.filter(row=>{const v=String(row[index]??'').trim();return v!==''&&Number.isFinite(Number(v))}).length})).filter(item=>item.count>0);
   const [xSelect,ySelect,y2Select]=[xField.select,yField.select,y2Field.select];
   const savedGraphSelection=()=>{graphXIndex=xSelect.value;graphYIndex=ySelect.value;graphY2Index=y2Select.value;saveState()};
   const updatePlotAvailability=()=>{plotButton.disabled=xSelect.value===''||ySelect.value==='';};
@@ -141,7 +141,7 @@
   plotButton.addEventListener('click',()=>{
    const xi=Number(xSelect.value),yi=Number(ySelect.value),y2i=y2Select.value===''?null:Number(y2Select.value);
    if(xSelect.value===''||ySelect.value===''||!Number.isInteger(xi)||!Number.isInteger(yi)){graphStatus.textContent='Select an X axis and at least one Y axis parameter.';return}
-   const pts=dataRows.map((row,index)=>({x:Number(String(row[xi]??'').trim()),y:Number(String(row[yi]??'').trim()),y2:y2i===null?NaN:Number(String(row[y2i]??'').trim()),index})).filter(p=>Number.isFinite(p.x)&&(Number.isFinite(p.y)||(y2i!==null&&Number.isFinite(p.y2))));
+   const pts=analysisRows.map((row,index)=>({x:Number(String(row[xi]??'').trim()),y:Number(String(row[yi]??'').trim()),y2:y2i===null?NaN:Number(String(row[y2i]??'').trim()),index})).filter(p=>Number.isFinite(p.x)&&(Number.isFinite(p.y)||(y2i!==null&&Number.isFinite(p.y2))));
    const primaryPts=pts.filter(p=>Number.isFinite(p.y)),secondaryPts=pts.filter(p=>Number.isFinite(p.y2));
    if(primaryPts.length<2){chartHost.replaceChildren();graphStatus.textContent='Not enough numeric X and Primary Y row pairs to plot the primary axis.';return}
    if(y2i!==null&&secondaryPts.length<2){chartHost.replaceChildren();graphStatus.textContent='Not enough numeric X and Secondary Y row pairs to plot the secondary axis.';return}
@@ -172,7 +172,7 @@
    if(!validateMapping())return;
    confirmed=true;confirm.disabled=true;confirm.textContent='Mapping Confirmed';
    next.hidden=false;next.replaceChildren(el('strong','', 'Parameter mapping confirmed'));
-   next.append(el('p','', 'All six required signals are mapped to unique CSV columns. Statistical summary is calculated from all numeric samples in the selected columns.'));
+   next.append(el('p','', 'RPM filter applied: '+analysisRows.length.toLocaleString()+' of '+dataRows.length.toLocaleString()+' data rows retained where Command RPM ≠ 0. Rows with zero, blank or non-numeric Command RPM are excluded from all subsequent analysis.'));
    const mappingList=el('ul','propulsion-confirmed-mapping');specs.forEach(s=>mappingList.append(el('li','',s.label+' → '+headerRow[mapping[s.key].selected])));next.append(mappingList,proceed);proceed.hidden=false;
    saveState();
   });
@@ -181,7 +181,7 @@
    step3Visible=true;analysisPanel.hidden=false;step3.hidden=false;step3.replaceChildren();
    step3.append(el('span','propulsion-step-label','STEP 03 · PARAMETER SUMMARY'));
    step3.append(el('h3','','Mapped Parameter Statistics'));
-   step3.append(el('p','propulsion-statistics-description','Maximum value and the corresponding timestamp across the complete CSV data set.'));
+   step3.append(el('p','propulsion-statistics-description','Maximum values and timestamps are calculated only from rows where Command RPM is non-zero. '+analysisRows.length.toLocaleString()+' of '+dataRows.length.toLocaleString()+' CSV data rows included.'));
    const tableWrap=el('div','propulsion-statistics-table-wrap');
    const table=document.createElement('table');table.className='propulsion-statistics-table';
    const thead=document.createElement('thead'),headRow=document.createElement('tr');
@@ -206,7 +206,7 @@
     tr.append(el('td','propulsion-stat-column',headerRow[idx]));
     if(maxRow>=0){
      tr.append(el('td','',fmt(max)+' '+units[s.key]));
-     const timestamp=timestampIndex===undefined?'Timestamp column not found':String(dataRows[maxRow][timestampIndex]??'').trim()||'Timestamp unavailable';
+     const timestamp=timestampIndex===undefined?'Timestamp column not found':String(analysisRows[maxRow][timestampIndex]??'').trim()||'Timestamp unavailable';
      tr.append(el('td','propulsion-stat-timestamp',timestamp));
     }else{
      tr.append(el('td','propulsion-stat-empty','No numeric data'));
