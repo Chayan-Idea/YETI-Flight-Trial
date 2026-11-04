@@ -68,7 +68,7 @@
  function renderMapping(headerIndex){
   if(analysisPanel)analysisPanel.remove();
   workspace.querySelector('.propulsion-statistics-card')?.remove();
-  analysisPanel=el('section','propulsion-mapping-card');analysisPanel.setAttribute('aria-labelledby','propulsionMappingHeading');
+  analysisPanel=el('section','propulsion-mapping-card propulsion-step-card propulsion-step-card--purple');analysisPanel.setAttribute('aria-labelledby','propulsionMappingHeading');
   const top=el('div','propulsion-mapping-top');top.append(el('span','propulsion-step-label','STEP 02 · COLUMN IDENTIFICATION'));
   const h=el('h3','', 'Review detected parameters');h.id='propulsionMappingHeading';top.append(h);
   top.append(el('p','propulsion-mapping-description', 'Header row detected at CSV row '+(headerIndex+1)+'. Review the proposed column mapping before proceeding.'));
@@ -97,7 +97,7 @@
    next.hidden=false;next.replaceChildren(el('strong','', 'Parameter mapping confirmed'));
    next.append(el('p','', 'All six required signals are mapped to unique CSV columns. Statistical summary is calculated from all numeric samples in the selected columns.'));
    const mappingList=el('ul','propulsion-confirmed-mapping');specs.forEach(s=>mappingList.append(el('li','',s.label+' → '+headerRow[mapping[s.key].selected])));next.append(mappingList);
-   const step3=el('section','propulsion-statistics-card');step3.hidden=true;
+   const step3=el('section','propulsion-statistics-card propulsion-step-card propulsion-step-card--green');step3.hidden=true;
    step3.append(el('span','propulsion-step-label','STEP 03 · PARAMETER SUMMARY'));
    step3.append(el('h3','','Mapped Parameter Statistics'));
    step3.append(el('p','propulsion-statistics-description','Maximum value and the corresponding timestamp across the complete CSV data set.'));
