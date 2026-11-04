@@ -262,6 +262,8 @@
    graphStatus.textContent='Plotted '+primaryPts.length.toLocaleString()+' primary Y pairs'+(y2r?' and '+secondaryPts.length.toLocaleString()+' secondary Y pairs':'')+' · X: '+headerRow[xi]+' · Primary Y: '+headerRow[yi]+(y2i===null?'':' · Secondary Y: '+headerRow[y2i])+'. '+removedReturnPoints.toLocaleString()+' points below the previous highest X value removed. Only record-high or equal-high X values are retained in CSV row order. Both Y series share the same X axis and use independent left/right scales.';graphXIndex=String(xi);graphYIndex=String(yi);graphY2Index=y2i===null?'':String(y2i);saveState();
   });
     const step5=el('section','propulsion-report-card propulsion-step-card propulsion-step-card--purple');step5.id='propulsionReportGenerationCard';step5.hidden=true;
+  const returnToMapping=()=>{reportDirectVisible=false;step3Visible=false;step4Visible=false;step5Visible=false;analysisPanel.hidden=false;step3.hidden=true;step4.hidden=true;step5.hidden=true;saveState();analysisPanel.scrollIntoView({behavior:'smooth',block:'start'});};
+  const addReturnButton=(parent)=>{const actions=el('div','propulsion-actions');const button=el('button','btn alt','Return to Parameter Mapping');button.type='button';button.addEventListener('click',returnToMapping);actions.append(button);parent.append(actions);return button;};
   step5.append(el('span','propulsion-step-label','STEP 05 · REPORT GENERATION'));
   const reportBuilder=el('div','propulsion-report-builder');
   const reportForm=el('div','propulsion-report-form');
@@ -323,8 +325,6 @@
   addReturnButton(step5);
   workspace.insertBefore(step4,workspace.querySelector('.propulsion-local-note'));
   workspace.insertBefore(step5,workspace.querySelector('.propulsion-local-note'));
-  const returnToMapping=()=>{reportDirectVisible=false;step3Visible=false;step4Visible=false;step5Visible=false;analysisPanel.hidden=false;step3.hidden=true;step4.hidden=true;step5.hidden=true;saveState();analysisPanel.scrollIntoView({behavior:'smooth',block:'start'});};
-  const addReturnButton=(parent)=>{const actions=el('div','propulsion-actions');const button=el('button','btn alt','Return to Parameter Mapping');button.type='button';button.addEventListener('click',returnToMapping);actions.append(button);parent.append(actions);return button;};
   confirm.addEventListener('click',()=>{
    if(!validateMapping())return;
    // Exclude rows with an exactly zero Actual RPM from every analysis stage after mapping.
