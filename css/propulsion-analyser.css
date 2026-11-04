@@ -114,3 +114,7 @@
 .propulsion-step-card:focus-within{box-shadow:0 7px 22px rgba(18,59,112,.1)}
 .propulsion-step-card[hidden]{display:none!important}
 @media(max-width:620px){.propulsion-step-card{padding:17px 15px 15px;border-radius:12px}}
+
+/* Step 02 hides after proceeding; Step 03 is the only visible workflow card. */
+#propulsionMappingHeading{scroll-margin-top:20px}
+.propulsion-mapping-card[hidden]{display:none!important}
