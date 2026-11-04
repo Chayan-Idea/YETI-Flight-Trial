@@ -111,7 +111,10 @@
   const graphStatus=el('p','propulsion-graph-status','Choose X and Y axis parameters, then select Plot Graph.');graphStatus.id='propulsionGraphStatus';step4.append(graphStatus);
   const chartHost=el('div','propulsion-chart-host');chartHost.id='propulsionChartHost';step4.append(chartHost);
   const pointExplorer=el('div','propulsion-point-explorer');pointExplorer.hidden=true;
-  const pointReadout=el('p','propulsion-point-readout','Move over a plotted point or use the slider to inspect its values.');pointReadout.setAttribute('aria-live','polite');
+  const pointReadout=el('div','propulsion-point-readout');
+  const xValueCard=el('div','propulsion-point-value');const xValueLabel=el('span','propulsion-point-value-label','X AXIS');const xValue=el('strong','propulsion-point-value-number','—');xValueCard.append(xValueLabel,xValue);
+  const yValueCard=el('div','propulsion-point-value');const yValueLabel=el('span','propulsion-point-value-label','Y AXIS');const yValue=el('strong','propulsion-point-value-number','—');yValueCard.append(yValueLabel,yValue);
+  pointReadout.append(xValueCard,yValueCard);pointReadout.setAttribute('aria-live','polite');
   const pointSliderLabel=el('label','propulsion-point-slider-label','Explore data point');
   const pointSlider=document.createElement('input');pointSlider.type='range';pointSlider.min='0';pointSlider.max='0';pointSlider.value='0';pointSlider.step='1';pointSlider.id='propulsionPointSlider';pointSlider.disabled=true;pointSlider.setAttribute('aria-label','Select data point on graph');pointSliderLabel.append(pointSlider);
   const pointCounter=el('span','propulsion-point-counter','Point 0 of 0');pointCounter.id='propulsionPointCounter';
@@ -122,11 +125,16 @@
    if(!plottedPoints.length||!pointMarker||!pointGuide)return;
    const safeIndex=Math.max(0,Math.min(plottedPoints.length-1,Number(index)||0)),point=plottedPoints[safeIndex];
    pointSlider.value=String(safeIndex);pointCounter.textContent='Point '+(safeIndex+1).toLocaleString()+' of '+plottedPoints.length.toLocaleString();
-   pointReadout.textContent=headerRow[xiForReadout]+' = '+formatPointValue(point.x)+'   |   '+headerRow[yiForReadout]+' = '+formatPointValue(point.y)+'   |   CSV row '+(point.index+1);
+   xValueLabel.textContent='X · '+headerRow[xiForReadout];xValue.textContent=formatPointValue(point.x);
+   yValueLabel.textContent='Y · '+headerRow[yiForReadout];yValue.textContent=formatPointValue(point.y);
+   pointReadout.setAttribute('aria-label',headerRow[xiForReadout]+' '+formatPointValue(point.x)+', '+headerRow[yiForReadout]+' '+formatPointValue(point.y));
    pointMarker.setAttribute('cx',point.sx);pointMarker.setAttribute('cy',point.sy);pointGuide.setAttribute('x1',point.sx);pointGuide.setAttribute('x2',point.sx);
   };
   let xiForReadout=0,yiForReadout=0;
-  pointSlider.addEventListener('input',()=>selectGraphPoint(pointSlider.value));
+  const handlePointSlider=()=>selectGraphPoint(pointSlider.value);
+  pointSlider.addEventListener('input',handlePointSlider);
+  pointSlider.addEventListener('change',handlePointSlider);
+  pointSlider.addEventListener('keyup',handlePointSlider);
   plotButton.addEventListener('click',()=>{
    const xi=Number(xSelect.value),yi=Number(ySelect.value);if(xSelect.value===''||ySelect.value===''||!Number.isInteger(xi)||!Number.isInteger(yi)){graphStatus.textContent='Select both X and Y axis parameters.';return}
    const pts=dataRows.map((row,index)=>({x:Number(String(row[xi]??'').trim()),y:Number(String(row[yi]??'').trim()),index})).filter(p=>Number.isFinite(p.x)&&Number.isFinite(p.y));
