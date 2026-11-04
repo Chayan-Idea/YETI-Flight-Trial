@@ -221,10 +221,14 @@
   workspace.insertBefore(step5,workspace.querySelector('.propulsion-local-note'));
   confirm.addEventListener('click',()=>{
    if(!validateMapping())return;
-   analysisRows=dataRows.slice();
-    confirmed=true;confirm.disabled=true;confirm.textContent='Mapping Confirmed';
+   // Exclude rows with an exactly zero Actual RPM from every analysis stage after mapping.
+   const actualRpmColumn=mapping.actualRpm.selected;
+   const isZeroActualRpm=row=>{const raw=String(row[actualRpmColumn]??'').trim();if(raw==='')return false;const value=Number(raw);return Number.isFinite(value)&&value===0};
+   const zeroActualRpmRows=dataRows.filter(isZeroActualRpm).length;
+   analysisRows=dataRows.filter(row=>!isZeroActualRpm(row));
+   confirmed=true;confirm.disabled=true;confirm.textContent='Mapping Confirmed';
    next.hidden=false;next.replaceChildren(el('strong','', 'Parameter mapping confirmed'));
-   next.append(el('p','', 'All CSV rows retained: '+analysisRows.length.toLocaleString()+' of '+dataRows.length.toLocaleString()+' data rows are included. No Command RPM-based row filter is applied; graph points are filtered using the selected X-axis running maximum.'));
+   next.append(el('p','', 'Analysis dataset: '+analysisRows.length.toLocaleString()+' of '+dataRows.length.toLocaleString()+' CSV data rows. '+zeroActualRpmRows.toLocaleString()+' rows with Actual RPM = 0 excluded from Section 03 onwards. Original CSV and preview remain unchanged. Graph points are additionally filtered using the selected X-axis running maximum.'));
    const mappingList=el('ul','propulsion-confirmed-mapping');specs.forEach(s=>mappingList.append(el('li','',s.label+' → '+headerRow[mapping[s.key].selected])));next.append(mappingList,proceed);proceed.hidden=false;
    saveState();
   });
@@ -233,7 +237,7 @@
    step3Visible=true;step5Visible=false;analysisPanel.hidden=false;step3.hidden=false;step3.replaceChildren();
    step3.append(el('span','propulsion-step-label','STEP 03 · PARAMETER SUMMARY'));
    step3.append(el('h3','','Mapped Parameter Statistics'));
-   step3.append(el('p','propulsion-statistics-description','Maximum values and timestamps are calculated from all CSV rows. No Command RPM-based row filter is applied. '+analysisRows.length.toLocaleString()+' of '+dataRows.length.toLocaleString()+' CSV data rows included.'));
+   step3.append(el('p','propulsion-statistics-description','Maximum values and timestamps use rows with non-zero Actual RPM. '+analysisRows.length.toLocaleString()+' of '+dataRows.length.toLocaleString()+' CSV data rows included after the Actual RPM = 0 exclusion.'));
    const tableWrap=el('div','propulsion-statistics-table-wrap');
    const table=document.createElement('table');table.className='propulsion-statistics-table';
    const thead=document.createElement('thead'),headRow=document.createElement('tr');
