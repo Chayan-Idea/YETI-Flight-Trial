@@ -104,7 +104,7 @@
   });
   proceed.addEventListener('click',()=>{
    if(!confirmed)return;
-   step3Visible=true;analysisPanel.hidden=true;step3.hidden=false;step3.replaceChildren();
+   step3Visible=true;analysisPanel.hidden=false;step3.hidden=false;step3.replaceChildren();
    step3.append(el('span','propulsion-step-label','STEP 03 · PARAMETER SUMMARY'));
    step3.append(el('h3','','Mapped Parameter Statistics'));
    step3.append(el('p','propulsion-statistics-description','Maximum value and the corresponding timestamp across the complete CSV data set.'));
