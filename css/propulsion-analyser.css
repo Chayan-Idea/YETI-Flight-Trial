@@ -70,3 +70,23 @@
 .propulsion-statistics-card h3{margin:0;color:#123b70;font-size:17px}
 .propulsion-statistics-card .propulsion-statistics-description{margin:0;color:#53697e;font-size:12px}
 @media(max-width:620px){.propulsion-statistics-card{padding:15px}}
+
+
+/* Propulsion analyzer: independent page heading with three distinct workflow cards. */
+.propulsion-page-content{width:100%;min-width:0;margin:0;padding:0;background:transparent;border:0;border-radius:0;box-shadow:none}
+.propulsion-page-content>.subnav-heading{max-width:1100px;margin:8px 0 22px;padding:0 2px 14px;border-bottom:1px solid #dce6ef}
+.propulsion-page-content>.subnav-heading h2{font-size:clamp(21px,2.5vw,27px);letter-spacing:-.02em}
+.propulsion-page-content>.subnav-heading p{font-size:13px}
+.propulsion-analyser-workspace{width:100%;max-width:1100px;gap:18px}
+.propulsion-upload-card,.propulsion-mapping-card,.propulsion-statistics-card{position:relative;overflow:hidden;border-radius:15px;padding:22px 22px 20px;box-shadow:0 5px 18px rgba(18,59,112,.065);transition:box-shadow .18s ease,transform .18s ease}
+.propulsion-upload-card{border:1px solid #b9d7ef;border-top:4px solid #287fbd;background:linear-gradient(135deg,#fff 0%,#f8fbff 100%)}
+.propulsion-mapping-card{border:1px solid #d3c8f0;border-top:4px solid #8062c6;background:linear-gradient(135deg,#fff 0%,#fbf9ff 100%)}
+.propulsion-statistics-card{border:1px solid #b9dfcf;border-top:4px solid #29966b;background:linear-gradient(135deg,#fff 0%,#f7fcf9 100%)}
+.propulsion-upload-card .propulsion-step-label{color:#1769aa}
+.propulsion-mapping-card .propulsion-step-label{color:#7050b3}
+.propulsion-statistics-card .propulsion-step-label{color:#21815d}
+.propulsion-upload-card h3,.propulsion-mapping-card h3,.propulsion-statistics-card h3{font-size:18px;letter-spacing:-.01em}
+.propulsion-mapping-card{gap:16px}
+.propulsion-statistics-card{gap:13px}
+.propulsion-upload-card:focus-within,.propulsion-mapping-card:focus-within,.propulsion-statistics-card:focus-within{box-shadow:0 7px 22px rgba(18,59,112,.1)}
+@media(max-width:620px){.propulsion-upload-card,.propulsion-mapping-card,.propulsion-statistics-card{padding:17px 15px 15px;border-radius:12px}.propulsion-page-content>.subnav-heading{margin-bottom:16px}}
