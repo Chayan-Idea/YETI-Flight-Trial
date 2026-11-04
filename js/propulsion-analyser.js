@@ -140,7 +140,7 @@
    for(let i=0;i<=5;i++){const xv=xmin+(xmax-xmin)*i/5,yv=ymin+(ymax-ymin)*i/5,x=L+pw*i/5,y=T+ph-ph*i/5;add('line',{x1:x,y1:T,x2:x,y2:T+ph,stroke:'#e3eaf1','stroke-width':1});add('line',{x1:L,y1:y,x2:L+pw,y2:y,stroke:'#e3eaf1','stroke-width':1});add('text',{x,y:T+ph+24,'text-anchor':'middle',fill:'#64748b','font-size':12},new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(xv));add('text',{x:L-12,y:y+4,'text-anchor':'end',fill:'#64748b','font-size':12},new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(yv))}
    add('line',{x1:L,y1:T+ph,x2:L+pw,y2:T+ph,stroke:'#52677d','stroke-width':2});add('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#52677d','stroke-width':2});
    const d=pts.map((p,i)=>(i?'L':'M')+sx(p.x).toFixed(2)+','+sy(p.y).toFixed(2)).join(' ');add('path',{d,fill:'none',stroke:'#287fbd','stroke-width':2.5,'stroke-linejoin':'round','stroke-linecap':'round'});
-   const pointNodes=pts.map(p=>add('circle',{cx:sx(p.x),cy:sy(p.y),r:3.2,fill:'#1769aa',opacity:.82}));
+   const pointNodes=pts.map(p=>{add('circle',{cx:sx(p.x),cy:sy(p.y),r:3.2,fill:'#1769aa',opacity:.82});return add('circle',{cx:sx(p.x),cy:sy(p.y),r:10,fill:'transparent',stroke:'transparent'})});
    add('text',{x:L+pw/2,y:H-20,'text-anchor':'middle',fill:'#123b70','font-size':16,'font-weight':700},headerRow[xi]);const yl=add('text',{x:24,y:T+ph/2,'text-anchor':'middle',fill:'#123b70','font-size':16,'font-weight':700},headerRow[yi]);yl.setAttribute('transform',`rotate(-90 24 ${T+ph/2})`);
    pointGuide=add('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#e28b24','stroke-width':1.5,'stroke-dasharray':'5 4',opacity:.9});
    pointMarker=add('circle',{cx:sx(pts[0].x),cy:sy(pts[0].y),r:7,fill:'#fff',stroke:'#e07818','stroke-width':3});
