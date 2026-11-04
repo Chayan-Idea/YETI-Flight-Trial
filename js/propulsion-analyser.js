@@ -309,7 +309,6 @@
    const mark=document.createElementNS('http://www.w3.org/2000/svg','svg');mark.setAttribute('viewBox','0 0 300 210');mark.setAttribute('role','img');mark.setAttribute('aria-label','ideaForge logo');
    const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d','M8 150h58c8 0 13-5 13-13V92c0-8 5-13 13-13h58c8 0 13-5 13-13V13c0-8 5-13 13-13h58c8 0 13 5 13 13v72c0 8-5 13-13 13h-58c-8 0-13 5-13 13v45c0 8-5 13-13 13H92c-8 0-13 5-13 13v21c0 8-5 13-13 13H8c-8 0-8-5-8-13v-40c0-8 0-13 8-13z');path.setAttribute('fill','#8cc63e');mark.append(path);
    const word=el('div','propulsion-report-wordmark');const idea=el('div','propulsion-report-ideaforge');idea.append(el('span','propulsion-report-idea','idea'),el('span','propulsion-report-forge','Forge'),el('sup','','™'));word.append(idea,el('div','propulsion-report-tagline','Create. Inspire.'));brand.append(mark,word);cover.append(brand);
-   cover.append(el('div','propulsion-report-kicker','PROPULSION TEST & VALIDATION · ENGINEERING REVIEW'));
    cover.append(el('h1','','YETI Propulsion Bench Data Validation Report'));
    const coverRule=el('div','propulsion-report-accent-rule');cover.append(coverRule);
    const coverTable=document.createElement('table');coverTable.className='propulsion-report-detail-table';
@@ -317,7 +316,7 @@
    details.forEach(([label,key])=>{const tr=document.createElement('tr');tr.append(el('th','',label),el('td','',reportFields[key].value.trim()||'—'));coverTable.append(tr)});
    cover.append(coverTable);
    if(reportFields.objective.value.trim()){cover.append(el('h2','propulsion-report-section-heading','TEST OBJECTIVE'),el('p','propulsion-report-objective',reportFields.objective.value.trim()))}
-   const coverMeta=el('div','propulsion-report-cover-meta');coverMeta.append(el('span','','SOURCE · Propulsion Test Bench CSV Log'),el('span','','DATASET · '+analysisRows.length.toLocaleString()+' valid analysis rows'));cover.append(coverMeta);
+   const coverMeta=el('div','propulsion-report-cover-meta');coverMeta.append(el('span','','VALIDATED DATASET · '+analysisRows.length.toLocaleString()+' records'));cover.append(coverMeta);
    cover.append(el('p','propulsion-report-footer','YETI FLIGHT TRIAL  /  PROPULSION VALIDATION  /  ENGINEERING MANAGEMENT REVIEW'));reportPreview.append(cover);
 
    const statsPage=el('article','propulsion-report-page propulsion-report-summary-page');
@@ -337,9 +336,6 @@
    const timeAliases=['timestamp','time_stamp','datetime','date_time','date time','time','utc_time','local_time','sample_time','logged_at','date'];const timeIndex=headerRow.map((name,index)=>({index,score:scoreHeader(name,timeAliases)})).filter(x=>x.score>=65).sort((a,b)=>b.score-a.score)[0]?.index;
    specs.forEach(spec=>{const idx=mapping[spec.key]?.selected;if(idx===undefined||idx==='')return;const m=peak(spec.key);const tr=document.createElement('tr');tr.append(el('td','',spec.label),el('td','',headerRow[idx]),el('td','',m.at>=0?fmt(m.value)+' '+units[spec.key]:'No numeric data'),el('td','',m.at>=0&&timeIndex!==undefined?String(analysisRows[m.at][timeIndex]??''):'—'));statsTable.append(tr)});
    statsPage.append(statsTable);
-   const insights=el('div','propulsion-report-insights');insights.append(el('h3','propulsion-report-subheading','Engineering Review Indicators'));
-   const indicators=[['RPM tracking','Mean absolute error: '+(rpmErrorCount?fmt(sumAbsRpmError/rpmErrorCount)+'%':'Not available')+' · Maximum: '+(rpmErrorCount?fmt(maxRpmError)+'%':'—')],['Peak torque',fmt(pTorque.value)+' Nm'],['Peak DC bus',fmt(pVolt.value)+' V / '+fmt(pCurrent.value)+' A'],['Peak temperature', 'Motor '+fmt(pMotor.value)+' °C · ESC '+fmt(pEsc.value)+' °C']];
-   const indicatorList=el('ul','propulsion-report-indicator-list');indicators.forEach(([a,b])=>{const li=document.createElement('li');li.append(el('strong','',a),el('span','',b));indicatorList.append(li)});insights.append(indicatorList);statsPage.append(insights);
    statsPage.append(el('p','propulsion-report-small-note','Dataset: '+analysisRows.length.toLocaleString()+' rows included; records with Actual RPM = 0 excluded. Derived electrical power and thrust-to-power values are calculated from synchronized CSV rows. Thrust-to-power is a bench comparison metric, not propulsive efficiency.'));
    reportPreview.append(statsPage);
 
