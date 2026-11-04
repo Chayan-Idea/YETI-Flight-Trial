@@ -57,7 +57,7 @@
   confirmed=false;step3Visible=false;step4Visible=false;
   const hi=findHeader(rows);if(hi<0)throw new Error('Could not locate a recognizable header row in the first 10 rows.');
   headerRow=rows[hi].map((v,i)=>String(v??'').trim()||('Column '+(i+1)));
-  dataRows=rows.slice(hi+1).filter(r=>r.some(v=>String(v??'').trim()!==''));analysisRows=[];
+  dataRows=rows.slice(hi+1).filter(r=>r.some(v=>String(v??'').trim()!==''));analysisRows=dataRows.slice();
   mapping={};
   specs.forEach(s=>{
    const candidates=headerRow.map((name,index)=>({name,index,score:scoreHeader(name,s.aliases)})).filter(x=>x.score>=30).sort((a,b)=>b.score-a.score);
@@ -141,31 +141,11 @@
   plotButton.addEventListener('click',()=>{
    const xi=Number(xSelect.value),yi=Number(ySelect.value),y2i=y2Select.value===''?null:Number(y2Select.value);
    if(xSelect.value===''||ySelect.value===''||!Number.isInteger(xi)||!Number.isInteger(yi)){graphStatus.textContent='Select an X axis and at least one Y axis parameter.';return}
-   const pts=analysisRows.map((row,index)=>({x:Number(String(row[xi]??'').trim()),y:Number(String(row[yi]??'').trim()),y2:y2i===null?NaN:Number(String(row[y2i]??'').trim()),index})).filter(p=>Number.isFinite(p.x)&&(Number.isFinite(p.y)||(y2i!==null&&Number.isFinite(p.y2))));
-   // Follow CSV row order and detect the first sustained reversal from the running X peak.
-   // Do not wait for the global maximum: it may occur after the return sweep has already begun.
-   const rawPointCount=pts.length;
-   if(pts.length>1){
-    const xValues=pts.map(p=>p.x),xSpan=Math.max(...xValues)-Math.min(...xValues);
-    const xTolerance=Math.max(xSpan*0.001,Number.EPSILON*Math.max(1,...xValues.map(Math.abs))*16);
-    let runningPeakX=pts[0].x,fallingSteps=0,returnStart=-1;
-    for(let i=1;i<pts.length;i++){
-     const stepDown=pts[i].x<pts[i-1].x-xTolerance;
-     if(pts[i].x>runningPeakX+xTolerance){
-      runningPeakX=pts[i].x;
-      fallingSteps=0;
-      returnStart=-1;
-     }else if(stepDown){
-      if(fallingSteps===0)returnStart=i;
-      fallingSteps++;
-      if(fallingSteps>=3){pts.splice(returnStart);break;}
-     }else{
-      fallingSteps=0;
-      returnStart=-1;
-     }
-    }
-   }
-   const removedReturnPoints=rawPointCount-pts.length;
+   const rawPts=analysisRows.map((row,index)=>({x:Number(String(row[xi]??'').trim()),y:Number(String(row[yi]??'').trim()),y2:y2i===null?NaN:Number(String(row[y2i]??'').trim()),index})).filter(p=>Number.isFinite(p.x));
+   // Keep record-high X values only, preserving original CSV row order.
+   let highestX=-Infinity;
+   const pts=rawPts.filter(p=>{if(p.x<highestX)return false;highestX=p.x;return true;});
+   const removedReturnPoints=rawPts.length-pts.length;
    const primaryPts=pts.filter(p=>Number.isFinite(p.y)),secondaryPts=pts.filter(p=>Number.isFinite(p.y2));
    if(primaryPts.length<2){chartHost.replaceChildren();graphStatus.textContent='Not enough numeric X and Primary Y row pairs to plot the primary axis.';return}
    if(y2i!==null&&secondaryPts.length<2){chartHost.replaceChildren();graphStatus.textContent='Not enough numeric X and Secondary Y row pairs to plot the secondary axis.';return}
@@ -189,17 +169,15 @@
    plottedPoints=pts.map(p=>({...p,sx:sx(p.x),sy:Number.isFinite(p.y)?sy(p.y):T+ph,sy2:Number.isFinite(p.y2)?sy2(p.y2):T+ph}));xiForReadout=xi;yiForReadout=yi;y2iForReadout=y2i;
    const pointNodes=[];pts.forEach((p,index)=>{const addHitTarget=y=>{const node=add('circle',{cx:sx(p.x),cy:y,r:11,fill:'transparent',stroke:'transparent'});node.style.cursor='crosshair';node.addEventListener('pointerenter',()=>selectGraphPoint(index));node.addEventListener('focus',()=>selectGraphPoint(index));node.setAttribute('tabindex','0');node.setAttribute('aria-label','X '+formatPointValue(p.x)+', primary Y '+formatPointValue(p.y)+', secondary Y '+formatPointValue(p.y2));pointNodes.push(node)};if(Number.isFinite(p.y))addHitTarget(sy(p.y));if(Number.isFinite(p.y2))addHitTarget(sy2(p.y2))});
    chartHost.replaceChildren(svg);pointExplorer.hidden=false;pointSlider.disabled=false;pointSlider.max=String(pts.length-1);pointSlider.value='0';selectGraphPoint(0);
-   graphStatus.textContent='Plotted '+primaryPts.length.toLocaleString()+' primary Y pairs'+(y2r?' and '+secondaryPts.length.toLocaleString()+' secondary Y pairs':'')+' · X: '+headerRow[xi]+' · Primary Y: '+headerRow[yi]+(y2i===null?'':' · Secondary Y: '+headerRow[y2i])+'. '+(removedReturnPoints?removedReturnPoints.toLocaleString()+' return-path points removed after sustained X-axis decrease. ':'No sustained X-axis return detected. ')+'Small X fluctuations are tolerated; return detection requires three consecutive meaningful decreases. Both Y series share the same X axis and use independent left/right scales.';graphXIndex=String(xi);graphYIndex=String(yi);graphY2Index=y2i===null?'':String(y2i);saveState();
+   graphStatus.textContent='Plotted '+primaryPts.length.toLocaleString()+' primary Y pairs'+(y2r?' and '+secondaryPts.length.toLocaleString()+' secondary Y pairs':'')+' · X: '+headerRow[xi]+' · Primary Y: '+headerRow[yi]+(y2i===null?'':' · Secondary Y: '+headerRow[y2i])+'. '+removedReturnPoints.toLocaleString()+' points below the previous highest X value removed. Only record-high or equal-high X values are retained in CSV row order. Both Y series share the same X axis and use independent left/right scales.';graphXIndex=String(xi);graphYIndex=String(yi);graphY2Index=y2i===null?'':String(y2i);saveState();
   });
     workspace.insertBefore(step4,workspace.querySelector('.propulsion-local-note'));
   confirm.addEventListener('click',()=>{
    if(!validateMapping())return;
-   const rpmIndex=mapping.commandRpm.selected;
-    analysisRows=dataRows.filter(row=>{const raw=String(row[rpmIndex]??'').trim();if(raw==='')return false;const rpm=Number(raw);return Number.isFinite(rpm)&&rpm!==0});
-    if(!analysisRows.length){const summary=$id('propulsionMappingSummary');summary.className='propulsion-mapping-summary is-warning';summary.textContent='No rows have a valid non-zero Command RPM value. Check the Command RPM column mapping or the CSV data.';return;}
+   analysisRows=dataRows.slice();
     confirmed=true;confirm.disabled=true;confirm.textContent='Mapping Confirmed';
    next.hidden=false;next.replaceChildren(el('strong','', 'Parameter mapping confirmed'));
-   next.append(el('p','', 'RPM filter applied: '+analysisRows.length.toLocaleString()+' of '+dataRows.length.toLocaleString()+' data rows retained where Command RPM ≠ 0. Rows with zero, blank or non-numeric Command RPM are excluded from all subsequent analysis.'));
+   next.append(el('p','', 'All CSV rows retained: '+analysisRows.length.toLocaleString()+' of '+dataRows.length.toLocaleString()+' data rows are included. No Command RPM-based row filter is applied; graph points are filtered using the selected X-axis running maximum.'));
    const mappingList=el('ul','propulsion-confirmed-mapping');specs.forEach(s=>mappingList.append(el('li','',s.label+' → '+headerRow[mapping[s.key].selected])));next.append(mappingList,proceed);proceed.hidden=false;
    saveState();
   });
@@ -208,7 +186,7 @@
    step3Visible=true;analysisPanel.hidden=false;step3.hidden=false;step3.replaceChildren();
    step3.append(el('span','propulsion-step-label','STEP 03 · PARAMETER SUMMARY'));
    step3.append(el('h3','','Mapped Parameter Statistics'));
-   step3.append(el('p','propulsion-statistics-description','Maximum values and timestamps are calculated only from rows where Command RPM is non-zero. '+analysisRows.length.toLocaleString()+' of '+dataRows.length.toLocaleString()+' CSV data rows included.'));
+   step3.append(el('p','propulsion-statistics-description','Maximum values and timestamps are calculated from all CSV rows. No Command RPM-based row filter is applied. '+analysisRows.length.toLocaleString()+' of '+dataRows.length.toLocaleString()+' CSV data rows included.'));
    const tableWrap=el('div','propulsion-statistics-table-wrap');
    const table=document.createElement('table');table.className='propulsion-statistics-table';
    const thead=document.createElement('thead'),headRow=document.createElement('tr');
