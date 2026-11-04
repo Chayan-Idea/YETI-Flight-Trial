@@ -110,6 +110,23 @@
   const plotActions=el('div','propulsion-actions');const plotButton=el('button','btn','Plot Graph');plotButton.type='button';plotButton.id='plotPropulsionGraphBtn';plotButton.disabled=numericColumns.length<2;plotActions.append(plotButton);step4.append(plotActions);
   const graphStatus=el('p','propulsion-graph-status','Choose X and Y axis parameters, then select Plot Graph.');graphStatus.id='propulsionGraphStatus';step4.append(graphStatus);
   const chartHost=el('div','propulsion-chart-host');chartHost.id='propulsionChartHost';step4.append(chartHost);
+  const pointExplorer=el('div','propulsion-point-explorer');pointExplorer.hidden=true;
+  const pointReadout=el('p','propulsion-point-readout','Move over a plotted point or use the slider to inspect its values.');pointReadout.setAttribute('aria-live','polite');
+  const pointSliderLabel=el('label','propulsion-point-slider-label','Explore data point');
+  const pointSlider=document.createElement('input');pointSlider.type='range';pointSlider.min='0';pointSlider.max='0';pointSlider.value='0';pointSlider.step='1';pointSlider.id='propulsionPointSlider';pointSlider.disabled=true;pointSlider.setAttribute('aria-label','Select data point on graph');pointSliderLabel.append(pointSlider);
+  const pointCounter=el('span','propulsion-point-counter','Point 0 of 0');pointCounter.id='propulsionPointCounter';
+  pointExplorer.append(pointReadout,pointSliderLabel,pointCounter);step4.append(pointExplorer);
+  let plottedPoints=[],pointMarker=null,pointGuide=null;
+  const formatPointValue=value=>new Intl.NumberFormat(undefined,{maximumFractionDigits:6}).format(value);
+  const selectGraphPoint=index=>{
+   if(!plottedPoints.length||!pointMarker||!pointGuide)return;
+   const safeIndex=Math.max(0,Math.min(plottedPoints.length-1,Number(index)||0)),point=plottedPoints[safeIndex];
+   pointSlider.value=String(safeIndex);pointCounter.textContent='Point '+(safeIndex+1).toLocaleString()+' of '+plottedPoints.length.toLocaleString();
+   pointReadout.textContent=headerRow[xiForReadout]+' = '+formatPointValue(point.x)+'   |   '+headerRow[yiForReadout]+' = '+formatPointValue(point.y)+'   |   CSV row '+(point.index+1);
+   pointMarker.setAttribute('cx',point.sx);pointMarker.setAttribute('cy',point.sy);pointGuide.setAttribute('x1',point.sx);pointGuide.setAttribute('x2',point.sx);
+  };
+  let xiForReadout=0,yiForReadout=0;
+  pointSlider.addEventListener('input',()=>selectGraphPoint(pointSlider.value));
   plotButton.addEventListener('click',()=>{
    const xi=Number(xSelect.value),yi=Number(ySelect.value);if(xSelect.value===''||ySelect.value===''||!Number.isInteger(xi)||!Number.isInteger(yi)){graphStatus.textContent='Select both X and Y axis parameters.';return}
    const pts=dataRows.map((row,index)=>({x:Number(String(row[xi]??'').trim()),y:Number(String(row[yi]??'').trim()),index})).filter(p=>Number.isFinite(p.x)&&Number.isFinite(p.y));
@@ -123,9 +140,14 @@
    for(let i=0;i<=5;i++){const xv=xmin+(xmax-xmin)*i/5,yv=ymin+(ymax-ymin)*i/5,x=L+pw*i/5,y=T+ph-ph*i/5;add('line',{x1:x,y1:T,x2:x,y2:T+ph,stroke:'#e3eaf1','stroke-width':1});add('line',{x1:L,y1:y,x2:L+pw,y2:y,stroke:'#e3eaf1','stroke-width':1});add('text',{x,y:T+ph+24,'text-anchor':'middle',fill:'#64748b','font-size':12},new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(xv));add('text',{x:L-12,y:y+4,'text-anchor':'end',fill:'#64748b','font-size':12},new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(yv))}
    add('line',{x1:L,y1:T+ph,x2:L+pw,y2:T+ph,stroke:'#52677d','stroke-width':2});add('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#52677d','stroke-width':2});
    const d=pts.map((p,i)=>(i?'L':'M')+sx(p.x).toFixed(2)+','+sy(p.y).toFixed(2)).join(' ');add('path',{d,fill:'none',stroke:'#287fbd','stroke-width':2.5,'stroke-linejoin':'round','stroke-linecap':'round'});
-   pts.forEach(p=>add('circle',{cx:sx(p.x),cy:sy(p.y),r:2.4,fill:'#1769aa',opacity:.68}));
+   const pointNodes=pts.map(p=>add('circle',{cx:sx(p.x),cy:sy(p.y),r:3.2,fill:'#1769aa',opacity:.82}));
    add('text',{x:L+pw/2,y:H-20,'text-anchor':'middle',fill:'#123b70','font-size':16,'font-weight':700},headerRow[xi]);const yl=add('text',{x:24,y:T+ph/2,'text-anchor':'middle',fill:'#123b70','font-size':16,'font-weight':700},headerRow[yi]);yl.setAttribute('transform',`rotate(-90 24 ${T+ph/2})`);
-   chartHost.replaceChildren(svg);graphStatus.textContent='Plotted '+pts.length.toLocaleString()+' numeric data pairs · X: '+headerRow[xi]+' · Y: '+headerRow[yi];graphXIndex=String(xi);graphYIndex=String(yi);saveState();
+   pointGuide=add('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#e28b24','stroke-width':1.5,'stroke-dasharray':'5 4',opacity:.9});
+   pointMarker=add('circle',{cx:sx(pts[0].x),cy:sy(pts[0].y),r:7,fill:'#fff',stroke:'#e07818','stroke-width':3});
+   plottedPoints=pts.map(p=>({...p,sx:sx(p.x),sy:sy(p.y)}));xiForReadout=xi;yiForReadout=yi;
+   pointNodes.forEach((node,index)=>{node.style.cursor='crosshair';node.addEventListener('pointerenter',()=>selectGraphPoint(index));node.addEventListener('focus',()=>selectGraphPoint(index));node.setAttribute('tabindex','0');node.setAttribute('aria-label','X '+formatPointValue(pts[index].x)+', Y '+formatPointValue(pts[index].y))});
+   chartHost.replaceChildren(svg);pointExplorer.hidden=false;pointSlider.disabled=false;pointSlider.max=String(pts.length-1);pointSlider.value='0';selectGraphPoint(0);
+   graphStatus.textContent='Plotted '+pts.length.toLocaleString()+' numeric data pairs · X: '+headerRow[xi]+' · Y: '+headerRow[yi]+'. Hover over a point or move the slider to inspect values.';graphXIndex=String(xi);graphYIndex=String(yi);saveState();
   });
   workspace.insertBefore(step4,workspace.querySelector('.propulsion-local-note'));
   confirm.addEventListener('click',()=>{
