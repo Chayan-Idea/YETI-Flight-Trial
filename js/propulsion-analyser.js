@@ -48,6 +48,8 @@
   return best.score>=4?best.index:-1;
  }
  function detect(rows){
+  // Re-identification starts a fresh review cycle; a previous confirmation must not lock the new mapping.
+  confirmed=false;
   const hi=findHeader(rows);if(hi<0)throw new Error('Could not locate a recognizable header row in the first 10 rows.');
   headerRow=rows[hi].map((v,i)=>String(v??'').trim()||('Column '+(i+1)));
   dataRows=rows.slice(hi+1).filter(r=>r.some(v=>String(v??'').trim()!==''));
