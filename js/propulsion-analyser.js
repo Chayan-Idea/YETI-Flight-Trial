@@ -181,7 +181,10 @@
   plotButton.addEventListener('click',()=>{
    const xi=Number(xSelect.value),yi=Number(ySelect.value),y2i=y2Select.value===''?null:Number(y2Select.value);
    if(xSelect.value===''||ySelect.value===''||!Number.isInteger(xi)||!Number.isInteger(yi)){graphStatus.textContent='Select an X axis and at least one Y axis parameter.';return}
-   const timestampAliases=['timestamp','time_stamp','datetime','date_time','date time','time','utc_time','local_time','sample_time','logged_at','date'];const timestampIndex=headerRow.map((name,index)=>({index,score:scoreHeader(name,timestampAliases)})).filter(item=>item.score>=65).sort((a,b)=>b.score-a.score)[0]?.index;const rawPts=analysisRows.map((row,index)=>({x:Number(String(row[xi]??'').trim()),y:Number(String(row[yi]??'').trim()),y2:y2i===null?NaN:Number(String(row[y2i]??'').trim()),timestamp:timestampIndex===undefined?'Timestamp column not found':String(row[timestampIndex]??'').trim()||'Timestamp unavailable',index})).filter(p=>Number.isFinite(p.x));
+   const timestampAliases=['timestamp','time_stamp','datetime','date_time','date time','time','utc_time','local_time','sample_time','logged_at','date'];const timestampIndex=headerRow.map((name,index)=>({index,score:scoreHeader(name,timestampAliases)})).filter(item=>item.score>=65).sort((a,b)=>b.score-a.score)[0]?.index;
+   // Empty CSV cells are missing values, not numeric zero; this prevents false zero-origin graph segments.
+   const parseCsvNumber=value=>{const text=String(value??'').trim();if(text==='')return NaN;const number=Number(text);return Number.isFinite(number)?number:NaN};
+   const rawPts=analysisRows.map((row,index)=>({x:parseCsvNumber(row[xi]),y:parseCsvNumber(row[yi]),y2:y2i===null?NaN:parseCsvNumber(row[y2i]),timestamp:timestampIndex===undefined?'Timestamp column not found':String(row[timestampIndex]??'').trim()||'Timestamp unavailable',index})).filter(p=>Number.isFinite(p.x));
    // Keep record-high X values only, preserving original CSV row order.
    let highestX=-Infinity;
    const pts=rawPts.filter(p=>{if(p.x<highestX)return false;highestX=p.x;return true;});
