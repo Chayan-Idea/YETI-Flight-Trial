@@ -24,3 +24,19 @@
 .propulsion-progress-message.is-complete{color:#176b36}
 .propulsion-local-note{margin:0;color:#718194;font-size:11px;line-height:1.5}
 @media(max-width:620px){.propulsion-upload-card,.propulsion-progress-card{padding:15px}.propulsion-file-picker{padding:22px 12px}}
+
+
+/* Parameter identification and confirmation */
+.propulsion-mapping-card{background:#fff;border:1px solid #d7e5f1;border-radius:13px;padding:20px;box-shadow:0 4px 14px rgba(18,59,112,.045);display:grid;gap:15px}
+.propulsion-mapping-top h3{margin:0 0 6px;color:#123b70;font-size:17px}
+.propulsion-mapping-description{margin:0;color:#53697e;font-size:13px}
+.propulsion-mapping-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.propulsion-mapping-row{display:grid;gap:6px;padding:12px;border:1px solid #e0e8ef;border-radius:9px;background:#fbfdff;min-width:0}
+.propulsion-mapping-label{font-size:12px;font-weight:800;color:#174f7d}
+.propulsion-column-select{width:100%;min-width:0;padding:10px;border:1px solid #cbd8e3;border-radius:7px;background:#fff;color:#24384b;font:inherit;font-size:12px}
+.propulsion-match-note{font-size:10px;color:#8a6418}.propulsion-match-note.warning{color:#a04c27}
+.propulsion-mapping-summary{padding:11px 12px;border-radius:8px;background:#fff7e8;border:1px solid #f0d6a6;color:#805718;font-size:12px;font-weight:650}
+.propulsion-mapping-summary.is-valid{background:#effaf2;border-color:#a8d8b7;color:#176b36}
+.propulsion-next-step{padding:14px;border:1px solid #a8d8b7;border-radius:9px;background:#f2fbf4;color:#176b36;font-size:13px}
+.propulsion-next-step p{margin:6px 0}.propulsion-next-step ul{margin:8px 0 0;padding-left:20px;display:grid;gap:4px}
+@media(max-width:620px){.propulsion-mapping-card{padding:15px}.propulsion-mapping-list{grid-template-columns:1fr}}
