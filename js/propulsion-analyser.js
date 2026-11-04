@@ -171,12 +171,13 @@
    yReadout.heading.textContent='PRIMARY Y · '+headerRow[yiForReadout];yReadout.value.textContent=formatPointValue(point.y);
    y2Readout.heading.textContent=y2iForReadout===null?'SECONDARY Y · NOT SELECTED':'SECONDARY Y · '+headerRow[y2iForReadout];y2Readout.value.textContent=formatPointValue(point.y2);
    pointReadout.setAttribute('aria-label','Timestamp '+point.timestamp+', X '+formatPointValue(point.x)+', primary Y '+formatPointValue(point.y)+', secondary Y '+formatPointValue(point.y2));
-   pointMarker.setAttribute('cx',point.sx);pointMarker.setAttribute('cy',point.sy);
+   if(Number.isFinite(point.y)){pointMarker.setAttribute('cx',point.sx);pointMarker.setAttribute('cy',point.sy);pointMarker.setAttribute('visibility','visible')}else pointMarker.setAttribute('visibility','hidden');
    if(secondaryPointMarker){if(Number.isFinite(point.y2)){secondaryPointMarker.setAttribute('cx',point.sx);secondaryPointMarker.setAttribute('cy',point.sy2);secondaryPointMarker.setAttribute('visibility','visible')}else secondaryPointMarker.setAttribute('visibility','hidden')}
    pointGuide.setAttribute('x1',point.sx);pointGuide.setAttribute('x2',point.sx);
+   pointSlider.setAttribute('aria-valuetext','Point '+(safeIndex+1)+' of '+plottedPoints.length+', X '+formatPointValue(point.x)+', primary Y '+formatPointValue(point.y)+', secondary Y '+formatPointValue(point.y2));
   };
-  const handlePointSlider=()=>selectGraphPoint(pointSlider.value);
-  pointSlider.addEventListener('input',handlePointSlider);pointSlider.addEventListener('change',handlePointSlider);pointSlider.addEventListener('keyup',handlePointSlider);
+  // Use the live input event as the sole slider update source while dragging.
+  pointSlider.addEventListener('input',()=>selectGraphPoint(pointSlider.value));
   plotButton.addEventListener('click',()=>{
    const xi=Number(xSelect.value),yi=Number(ySelect.value),y2i=y2Select.value===''?null:Number(y2Select.value);
    if(xSelect.value===''||ySelect.value===''||!Number.isInteger(xi)||!Number.isInteger(yi)){graphStatus.textContent='Select an X axis and at least one Y axis parameter.';return}
