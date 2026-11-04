@@ -171,3 +171,12 @@
 .propulsion-csv-preview-table thead th:first-child{left:0;z-index:3}
 .propulsion-csv-preview-table tbody tr:nth-child(even) td{background:#fafcfe}
 @media(max-width:620px){.propulsion-csv-preview-card{padding:13px}.propulsion-csv-preview-viewport{max-height:460px}.propulsion-csv-preview-table th,.propulsion-csv-preview-table td{padding:7px 9px;max-width:240px}}
+
+/* Step 05 — report generation gate and review preview */
+.propulsion-report-card{border-color:#d3c8f0;border-top-color:#8062c6;background:linear-gradient(135deg,#fff 0%,#fbf9ff 100%)}
+.propulsion-report-card .propulsion-step-label{color:#7050b3}
+.propulsion-report-status,.propulsion-report-meta{margin:0;color:#53697e;font-size:12px;line-height:1.5}
+.propulsion-report-preview{display:grid;gap:12px;padding:16px;border:1px solid #dce6ef;border-radius:10px;background:#fff}
+.propulsion-report-preview[hidden]{display:none!important}
+.propulsion-report-preview h4{margin:0;color:#123b70;letter-spacing:.06em}
+@media print{body *{visibility:hidden!important}.propulsion-report-preview,.propulsion-report-preview *{visibility:visible!important}.propulsion-report-preview{position:absolute;inset:0;width:100%;border:0}}
