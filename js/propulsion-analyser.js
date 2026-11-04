@@ -99,7 +99,7 @@
    confirmed=true;confirm.disabled=true;confirm.textContent='Mapping Confirmed';
    next.hidden=false;next.replaceChildren(el('strong','', 'Parameter mapping confirmed'));
    next.append(el('p','', 'All six required signals are mapped to unique CSV columns. Statistical summary is calculated from all numeric samples in the selected columns.'));
-   const mappingList=el('ul','propulsion-confirmed-mapping');specs.forEach(s=>mappingList.append(el('li','',s.label+' → '+headerRow[mapping[s.key].selected])));next.insertBefore(mappingList,proceed);proceed.hidden=false;
+   const mappingList=el('ul','propulsion-confirmed-mapping');specs.forEach(s=>mappingList.append(el('li','',s.label+' → '+headerRow[mapping[s.key].selected])));next.append(mappingList,proceed);proceed.hidden=false;
    saveState();
   });
   proceed.addEventListener('click',()=>{
