@@ -116,7 +116,7 @@
   const pointExplorer=el('div','propulsion-point-explorer');pointExplorer.hidden=true;
   const pointReadout=el('div','propulsion-point-readout');
   const makeValueCard=(label)=>{const card=el('div','propulsion-point-value');const heading=el('span','propulsion-point-value-label',label);const value=el('strong','propulsion-point-value-number','—');card.append(heading,value);pointReadout.append(card);return {heading,value}};
-  const xReadout=makeValueCard('X AXIS'),yReadout=makeValueCard('PRIMARY Y AXIS'),y2Readout=makeValueCard('SECONDARY Y AXIS');
+  const timestampReadout=makeValueCard('TIMESTAMP'),xReadout=makeValueCard('X AXIS'),yReadout=makeValueCard('PRIMARY Y AXIS'),y2Readout=makeValueCard('SECONDARY Y AXIS');
   pointReadout.setAttribute('aria-live','polite');
   const pointSliderLabel=el('label','propulsion-point-slider-label','Explore data point');
   const pointSlider=document.createElement('input');pointSlider.type='range';pointSlider.min='0';pointSlider.max='0';pointSlider.value='0';pointSlider.step='1';pointSlider.id='propulsionPointSlider';pointSlider.disabled=true;pointSlider.setAttribute('aria-label','Select data point on graph');pointSliderLabel.append(pointSlider);
@@ -128,10 +128,11 @@
    if(!plottedPoints.length||!pointMarker||!pointGuide)return;
    const safeIndex=Math.max(0,Math.min(plottedPoints.length-1,Number(index)||0)),point=plottedPoints[safeIndex];
    pointSlider.value=String(safeIndex);pointCounter.textContent='Point '+(safeIndex+1).toLocaleString()+' of '+plottedPoints.length.toLocaleString();
+   timestampReadout.heading.textContent='TIMESTAMP';timestampReadout.value.textContent=point.timestamp;
    xReadout.heading.textContent='X · '+headerRow[xiForReadout];xReadout.value.textContent=formatPointValue(point.x);
    yReadout.heading.textContent='PRIMARY Y · '+headerRow[yiForReadout];yReadout.value.textContent=formatPointValue(point.y);
    y2Readout.heading.textContent=y2iForReadout===null?'SECONDARY Y · NOT SELECTED':'SECONDARY Y · '+headerRow[y2iForReadout];y2Readout.value.textContent=formatPointValue(point.y2);
-   pointReadout.setAttribute('aria-label','X '+formatPointValue(point.x)+', primary Y '+formatPointValue(point.y)+', secondary Y '+formatPointValue(point.y2));
+   pointReadout.setAttribute('aria-label','Timestamp '+point.timestamp+', X '+formatPointValue(point.x)+', primary Y '+formatPointValue(point.y)+', secondary Y '+formatPointValue(point.y2));
    pointMarker.setAttribute('cx',point.sx);pointMarker.setAttribute('cy',point.sy);
    if(secondaryPointMarker){if(Number.isFinite(point.y2)){secondaryPointMarker.setAttribute('cx',point.sx);secondaryPointMarker.setAttribute('cy',point.sy2);secondaryPointMarker.setAttribute('visibility','visible')}else secondaryPointMarker.setAttribute('visibility','hidden')}
    pointGuide.setAttribute('x1',point.sx);pointGuide.setAttribute('x2',point.sx);
@@ -141,7 +142,7 @@
   plotButton.addEventListener('click',()=>{
    const xi=Number(xSelect.value),yi=Number(ySelect.value),y2i=y2Select.value===''?null:Number(y2Select.value);
    if(xSelect.value===''||ySelect.value===''||!Number.isInteger(xi)||!Number.isInteger(yi)){graphStatus.textContent='Select an X axis and at least one Y axis parameter.';return}
-   const rawPts=analysisRows.map((row,index)=>({x:Number(String(row[xi]??'').trim()),y:Number(String(row[yi]??'').trim()),y2:y2i===null?NaN:Number(String(row[y2i]??'').trim()),index})).filter(p=>Number.isFinite(p.x));
+   const timestampAliases=['timestamp','time_stamp','datetime','date_time','date time','time','utc_time','local_time','sample_time','logged_at','date'];const timestampIndex=headerRow.map((name,index)=>({index,score:scoreHeader(name,timestampAliases)})).filter(item=>item.score>=65).sort((a,b)=>b.score-a.score)[0]?.index;const rawPts=analysisRows.map((row,index)=>({x:Number(String(row[xi]??'').trim()),y:Number(String(row[yi]??'').trim()),y2:y2i===null?NaN:Number(String(row[y2i]??'').trim()),timestamp:timestampIndex===undefined?'Timestamp column not found':String(row[timestampIndex]??'').trim()||'Timestamp unavailable',index})).filter(p=>Number.isFinite(p.x));
    // Keep record-high X values only, preserving original CSV row order.
    let highestX=-Infinity;
    const pts=rawPts.filter(p=>{if(p.x<highestX)return false;highestX=p.x;return true;});
