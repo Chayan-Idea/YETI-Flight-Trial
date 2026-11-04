@@ -27,6 +27,11 @@
   const heading=el('div','propulsion-step-label','CSV FILE PREVIEW');
   const title=el('h3','','Complete CSV Preview');title.id='propulsionCsvPreviewHeading';
   const info=el('p','propulsion-csv-preview-meta','');
+  const searchBar=el('div','propulsion-csv-search');
+  const timestampSearch=document.createElement('input');timestampSearch.type='text';timestampSearch.className='propulsion-csv-search-input';timestampSearch.placeholder='Paste timestamp to find matching row';timestampSearch.setAttribute('aria-label','Search CSV by timestamp');
+  const searchButton=el('button','btn alt','Search Timestamp');searchButton.type='button';
+  const searchStatus=el('span','propulsion-csv-search-status','');
+  searchBar.append(timestampSearch,searchButton,searchStatus);
   const viewport=el('div','propulsion-csv-preview-viewport');viewport.setAttribute('role','region');viewport.setAttribute('aria-label','CSV data preview');viewport.tabIndex=0;
   const table=document.createElement('table');table.className='propulsion-csv-preview-table';
   const thead=document.createElement('thead'),headRow=document.createElement('tr');
@@ -39,9 +44,25 @@
   const previewActions=el('div','propulsion-actions propulsion-csv-preview-toggle-actions');
   previewActions.append(rawToggle,filteredToggle);
   const identifyActions=el('div','propulsion-actions propulsion-csv-preview-actions');identifyActions.append(start);identifyActions.hidden=true;
-  let activeView='';
+  let activeView='',visibleRows=[];
+  const timestampAliases=['timestamp','time_stamp','datetime','date_time','date time','time','utc_time','local_time','sample_time','logged_at','date'];
+  const timestampColumn=headerIndex>=0?(rows[headerIndex].map((name,index)=>({index,score:scoreHeader(name,timestampAliases)})).filter(item=>item.score>=65).sort((a,b)=>b.score-a.score)[0]?.index??0):0;
+  const searchTimestamp=()=>{
+   const query=timestampSearch.value.trim();
+   tbody.querySelectorAll('tr.csv-timestamp-match').forEach(row=>row.classList.remove('csv-timestamp-match'));
+   if(!query){searchStatus.textContent='Enter a timestamp to search.';return}
+   const matches=[];
+   visibleRows.forEach((row,index)=>{if(index>headerIndex&&String(row[timestampColumn]??'').trim()===query)matches.push(index)});
+   if(!matches.length){searchStatus.textContent='No exact timestamp match found.';return}
+   matches.forEach(index=>{const tr=tbody.rows[index];if(tr)tr.classList.add('csv-timestamp-match')});
+   const first=tbody.rows[matches[0]];
+   if(first){const top=first.offsetTop-viewport.offsetTop;viewport.scrollTop=Math.max(0,top-viewport.clientHeight/2+first.offsetHeight/2);}
+   searchStatus.textContent=matches.length.toLocaleString()+' matching row(s) highlighted.';
+  };
+  searchButton.addEventListener('click',searchTimestamp);
+  timestampSearch.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();searchTimestamp()}});
   const renderRows=(viewRows,viewName)=>{
-   tbody.replaceChildren();
+   visibleRows=viewRows;tbody.replaceChildren();searchStatus.textContent='';timestampSearch.value='';
    viewRows.forEach((row,rowIndex)=>{const tr=document.createElement('tr');const indexCell=el('th','',String(rowIndex+1));indexCell.scope='row';tr.append(indexCell);for(let col=0;col<maxColumns;col++)tr.append(el('td','',String(row[col]??'')));tbody.append(tr)});
    title.textContent=viewName==='raw'?'Uploaded Raw CSV File':'Data Filtered CSV File';
    info.textContent=viewRows.length.toLocaleString()+' rows · '+maxColumns.toLocaleString()+' columns · '+(viewName==='raw'?'Original uploaded file, unchanged':'Rows with Actual RPM equal to zero or below removed');
@@ -60,7 +81,7 @@
   function graphStatusSafeMessage(){info.textContent='Filtered preview unavailable: Actual RPM column could not be identified in this CSV. Please verify the column header.';title.textContent='Data Filtered CSV File';csvPreviewPanel.hidden=false;identifyActions.hidden=true;activeView='filtered';}
   if(uploadCard){uploadCard.insertAdjacentElement('afterend',previewActions);previewActions.insertAdjacentElement('afterend',csvPreviewPanel);}
   else{workspace.insertBefore(previewActions,workspace.firstChild);previewActions.insertAdjacentElement('afterend',csvPreviewPanel);}
-  csvPreviewPanel.append(heading,title,info,viewport);
+  csvPreviewPanel.append(heading,title,info,searchBar,viewport);
   csvPreviewPanel.hidden=true;
   csvPreviewPanel.insertAdjacentElement('afterend',identifyActions);
   const setFreezeOffsets=()=>{const header=headRow.getBoundingClientRect(),first=tbody.rows[0]?.getBoundingClientRect(),rowIndexWidth=headRow.cells[0]?.getBoundingClientRect().width;if(header.height)viewport.style.setProperty('--csv-header-height',header.height+'px');if(first?.height)viewport.style.setProperty('--csv-row1-height',first.height+'px');if(rowIndexWidth)viewport.style.setProperty('--csv-first-col-width',rowIndexWidth+'px');};
