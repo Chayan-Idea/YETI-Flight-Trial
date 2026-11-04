@@ -304,19 +304,46 @@
   reportBuilder.append(reportForm,reportGraphControls,reportPreviewPanel);step5.append(reportBuilder);
   function updateReportPreview(){
    reportPreview.replaceChildren();
-   const cover=el('article','propulsion-report-page propulsion-report-cover');cover.append(el('div','propulsion-report-brand','PROPULSION TEST REPORT'),el('h1','','PROPULSION VALIDATION REPORT'));
+   const cover=el('article','propulsion-report-page propulsion-report-cover');
+   const brand=el('div','propulsion-report-brand-lockup');
+   const mark=document.createElementNS('http://www.w3.org/2000/svg','svg');mark.setAttribute('viewBox','0 0 300 210');mark.setAttribute('role','img');mark.setAttribute('aria-label','ideaForge logo');
+   const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d','M8 150h58c8 0 13-5 13-13V92c0-8 5-13 13-13h58c8 0 13-5 13-13V13c0-8 5-13 13-13h58c8 0 13 5 13 13v72c0 8-5 13-13 13h-58c-8 0-13 5-13 13v45c0 8-5 13-13 13H92c-8 0-13 5-13 13v21c0 8-5 13-13 13H8c-8 0-8-5-8-13v-40c0-8 0-13 8-13z');path.setAttribute('fill','#8cc63e');mark.append(path);
+   const word=el('div','propulsion-report-wordmark');const idea=el('div','propulsion-report-ideaforge');idea.append(el('span','propulsion-report-idea','idea'),el('span','propulsion-report-forge','Forge'),el('sup','','™'));word.append(idea,el('div','propulsion-report-tagline','Create. Inspire.'));brand.append(mark,word);cover.append(brand);
+   cover.append(el('div','propulsion-report-kicker','PROPULSION TEST & VALIDATION · ENGINEERING REVIEW'));
+   cover.append(el('h1','','YETI Propulsion Bench Data Validation Report'));
+   const coverRule=el('div','propulsion-report-accent-rule');cover.append(coverRule);
    const coverTable=document.createElement('table');coverTable.className='propulsion-report-detail-table';
    const details=[['Motor Name','motorName'],['ESC Name','escName'],['Propeller Name','propellerName'],['Test Date','testDate'],['Motor ID','motorId'],['ESC ID','escId'],['Propeller ID','propellerId']];
    details.forEach(([label,key])=>{const tr=document.createElement('tr');tr.append(el('th','',label),el('td','',reportFields[key].value.trim()||'—'));coverTable.append(tr)});
-   cover.append(coverTable);if(reportFields.objective.value.trim()){cover.append(el('h2','','OBJECTIVE OF THE TEST'),el('p','propulsion-report-objective',reportFields.objective.value.trim()))}
-   cover.append(el('p','propulsion-report-footer','Generated from YETI Flight Trial · Propulsion Test Bench Log Analyzer'));reportPreview.append(cover);
-   const statsPage=el('article','propulsion-report-page');statsPage.append(el('h2','','PROPULSION PARAMETER STATISTICS'));
-   const statsTable=document.createElement('table');statsTable.className='propulsion-report-stats-table';const header=document.createElement('tr');['Parameter','Mapped Column','Maximum','Timestamp'].forEach(v=>header.append(el('th','',v)));statsTable.append(header);
+   cover.append(coverTable);
+   if(reportFields.objective.value.trim()){cover.append(el('h2','propulsion-report-section-heading','TEST OBJECTIVE'),el('p','propulsion-report-objective',reportFields.objective.value.trim()))}
+   const coverMeta=el('div','propulsion-report-cover-meta');coverMeta.append(el('span','','SOURCE · Propulsion Test Bench CSV Log'),el('span','','DATASET · '+analysisRows.length.toLocaleString()+' valid analysis rows'));cover.append(coverMeta);
+   cover.append(el('p','propulsion-report-footer','YETI FLIGHT TRIAL  /  PROPULSION VALIDATION  /  ENGINEERING MANAGEMENT REVIEW'));reportPreview.append(cover);
+
+   const statsPage=el('article','propulsion-report-page propulsion-report-summary-page');
+   statsPage.append(el('div','propulsion-report-page-kicker','01  /  TEST RESULTS'),el('h2','','EXECUTIVE PERFORMANCE SUMMARY'));
    const units={thrust:'N',torque:'Nm',commandRpm:'RPM',actualRpm:'RPM',voltage:'V',current:'A',motorTemperature:'°C',escTemperature:'°C'};
+   const getNum=(row,key)=>{const idx=mapping[key]?.selected;if(idx===undefined||idx==='')return NaN;const raw=String(row[idx]??'').trim();return raw===''?NaN:Number(raw)};
+   const fmt=(v,d=2)=>Number.isFinite(v)?new Intl.NumberFormat(undefined,{maximumFractionDigits:d}).format(v):'—';
+   const peak=(key)=>{let value=-Infinity,at=-1;analysisRows.forEach((row,i)=>{const v=getNum(row,key);if(Number.isFinite(v)&&v>value){value=v;at=i}});return {value,at}};
+   const pThrust=peak('thrust'),pTorque=peak('torque'),pRpm=peak('actualRpm'),pVolt=peak('voltage'),pCurrent=peak('current'),pMotor=peak('motorTemperature'),pEsc=peak('escTemperature');
+   let peakInputPower=0,peakThrustPerKw=0,sumAbsRpmError=0,rpmErrorCount=0,maxRpmError=0;
+   analysisRows.forEach(row=>{const v=getNum(row,'voltage'),a=getNum(row,'current'),t=getNum(row,'thrust'),cmd=getNum(row,'commandRpm'),rpm=getNum(row,'actualRpm');if(Number.isFinite(v)&&Number.isFinite(a)){const kw=v*a/1000;if(kw>peakInputPower)peakInputPower=kw;if(Number.isFinite(t)&&kw>0)peakThrustPerKw=Math.max(peakThrustPerKw,t/kw)}if(Number.isFinite(cmd)&&cmd!==0&&Number.isFinite(rpm)){const e=Math.abs((rpm-cmd)/cmd)*100;sumAbsRpmError+=e;rpmErrorCount++;maxRpmError=Math.max(maxRpmError,e)}});
+   const kpiGrid=el('div','propulsion-report-kpi-grid');
+   [['PEAK THRUST',fmt(pThrust.value)+' N'],['PEAK INPUT POWER',fmt(peakInputPower)+' kW'],['PEAK ACTUAL RPM',fmt(pRpm.value,0)+' RPM'],['THRUST / INPUT POWER',peakThrustPerKw?fmt(peakThrustPerKw)+' N/kW':'—']].forEach(([label,value])=>{const card=el('div','propulsion-report-kpi');card.append(el('span','',label),el('strong','',value));kpiGrid.append(card)});
+   statsPage.append(kpiGrid);
+   statsPage.append(el('h3','propulsion-report-subheading','Mapped Parameter Results'));
+   const statsTable=document.createElement('table');statsTable.className='propulsion-report-stats-table';const header=document.createElement('tr');['Parameter','Mapped Column','Peak / Maximum','Timestamp'].forEach(v=>header.append(el('th','',v)));statsTable.append(header);
    const timeAliases=['timestamp','time_stamp','datetime','date_time','date time','time','utc_time','local_time','sample_time','logged_at','date'];const timeIndex=headerRow.map((name,index)=>({index,score:scoreHeader(name,timeAliases)})).filter(x=>x.score>=65).sort((a,b)=>b.score-a.score)[0]?.index;
-   specs.forEach(spec=>{const idx=mapping[spec.key]?.selected;if(idx===undefined||idx==='')return;let max=-Infinity,maxRow=-1;analysisRows.forEach((row,i)=>{const raw=String(row[idx]??'').trim();if(raw==='')return;const v=Number(raw);if(Number.isFinite(v)&&v>max){max=v;maxRow=i}});const tr=document.createElement('tr');tr.append(el('td','',spec.label),el('td','',headerRow[idx]),el('td','',maxRow>=0?new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(max)+' '+units[spec.key]:'No numeric data'),el('td','',maxRow>=0&&timeIndex!==undefined?String(analysisRows[maxRow][timeIndex]??''):'—'));statsTable.append(tr)});
-   statsPage.append(statsTable,el('p','propulsion-report-small-note','Statistics use the Section 3 analysis dataset after excluding rows where Actual RPM = 0. '+analysisRows.length.toLocaleString()+' rows included.'));reportPreview.append(statsPage);
-   if(reportGraphs.length){const graphPage=el('article','propulsion-report-page');graphPage.append(el('h2','','GRAPHICAL ANALYSIS'));reportGraphs.forEach(item=>{const wrap=el('div','propulsion-report-preview-graph');wrap.append(el('h3','',item.title),item.svg.cloneNode(true));graphPage.append(wrap)});reportPreview.append(graphPage)}
+   specs.forEach(spec=>{const idx=mapping[spec.key]?.selected;if(idx===undefined||idx==='')return;const m=peak(spec.key);const tr=document.createElement('tr');tr.append(el('td','',spec.label),el('td','',headerRow[idx]),el('td','',m.at>=0?fmt(m.value)+' '+units[spec.key]:'No numeric data'),el('td','',m.at>=0&&timeIndex!==undefined?String(analysisRows[m.at][timeIndex]??''):'—'));statsTable.append(tr)});
+   statsPage.append(statsTable);
+   const insights=el('div','propulsion-report-insights');insights.append(el('h3','propulsion-report-subheading','Engineering Review Indicators'));
+   const indicators=[['RPM tracking','Mean absolute error: '+(rpmErrorCount?fmt(sumAbsRpmError/rpmErrorCount)+'%':'Not available')+' · Maximum: '+(rpmErrorCount?fmt(maxRpmError)+'%':'—')],['Peak torque',fmt(pTorque.value)+' Nm'],['Peak DC bus',fmt(pVolt.value)+' V / '+fmt(pCurrent.value)+' A'],['Peak temperature', 'Motor '+fmt(pMotor.value)+' °C · ESC '+fmt(pEsc.value)+' °C']];
+   const indicatorList=el('ul','propulsion-report-indicator-list');indicators.forEach(([a,b])=>{const li=document.createElement('li');li.append(el('strong','',a),el('span','',b));indicatorList.append(li)});insights.append(indicatorList);statsPage.append(insights);
+   statsPage.append(el('p','propulsion-report-small-note','Dataset: '+analysisRows.length.toLocaleString()+' rows included; records with Actual RPM = 0 excluded. Derived electrical power and thrust-to-power values are calculated from synchronized CSV rows. Thrust-to-power is a bench comparison metric, not propulsive efficiency.'));
+   reportPreview.append(statsPage);
+
+   if(reportGraphs.length){for(let offset=0,pageNo=1;offset<reportGraphs.length;offset+=2,pageNo++){const graphPage=el('article','propulsion-report-page propulsion-report-graph-page');graphPage.append(el('div','propulsion-report-page-kicker','02  /  GRAPHICAL ANALYSIS'),el('h2','','PROPULSION PERFORMANCE PLOTS'));reportGraphs.slice(offset,offset+2).forEach((item,index)=>{const wrap=el('div','propulsion-report-preview-graph');wrap.append(el('h3','',String(offset+index+1).padStart(2,'0')+'  '+item.title),item.svg.cloneNode(true));graphPage.append(wrap)});reportPreview.append(graphPage)}}
    const valid=['motorName','escName','propellerName','testDate'].every(key=>reportFields[key].value.trim());validation.textContent=valid?'Mandatory identification fields complete. PDF export is ready.':'Complete Motor Name, ESC Name, Propeller Name and Test Date before exporting.';
   }
   updateReportPreview();
