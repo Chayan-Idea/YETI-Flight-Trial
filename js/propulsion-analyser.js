@@ -95,29 +95,36 @@
    const step3=el('div','propulsion-statistics-step');
    step3.append(el('span','propulsion-step-label','STEP 03 · PARAMETER SUMMARY'));
    step3.append(el('h4','','Mapped Parameter Statistics'));
-   step3.append(el('p','propulsion-statistics-description','Minimum, maximum and arithmetic average across the complete CSV data set.'));
+   step3.append(el('p','propulsion-statistics-description','Maximum value and the corresponding timestamp across the complete CSV data set.'));
    const tableWrap=el('div','propulsion-statistics-table-wrap');
    const table=document.createElement('table');table.className='propulsion-statistics-table';
    const thead=document.createElement('thead'),headRow=document.createElement('tr');
-   ['Parameter','Mapped CSV Column','Minimum','Maximum','Average'].forEach(label=>headRow.append(el('th','',label)));
+   ['Parameter','Mapped CSV Column','Maximum','Timestamp'].forEach(label=>headRow.append(el('th','',label)));
    thead.append(headRow);table.append(thead);
    const tbody=document.createElement('tbody');
    const units={thrust:'N',torque:'Nm',commandRpm:'RPM',actualRpm:'RPM',voltage:'V',current:'A'};
+   const timestampAliases=['timestamp','time_stamp','datetime','date_time','date time','time','utc_time','local_time','sample_time','logged_at','date'];
+   const timestampIndex=headerRow.map((name,index)=>({index,score:scoreHeader(name,timestampAliases)})).filter(item=>item.score>=65).sort((a,b)=>b.score-a.score)[0]?.index;
+   const fmt=value=>new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(value);
    specs.forEach(s=>{
     const idx=mapping[s.key].selected;
-    const values=dataRows.map(row=>String(row[idx]??'').trim()).filter(value=>value!=='').map(value=>Number(value)).filter(Number.isFinite);
+    let max=-Infinity,maxRow=-1;
+    dataRows.forEach((row,rowIndex)=>{
+     const raw=String(row[idx]??'').trim();
+     if(raw==='')return;
+     const value=Number(raw);
+     if(Number.isFinite(value)&&value>max){max=value;maxRow=rowIndex}
+    });
     const tr=document.createElement('tr');
     tr.append(el('th','propulsion-stat-parameter',s.label+' ('+units[s.key]+')'));
     tr.append(el('td','propulsion-stat-column',headerRow[idx]));
-    if(values.length){
-     const stats=values.reduce((acc,value)=>({min:Math.min(acc.min,value),max:Math.max(acc.max,value),sum:acc.sum+value}),{min:Infinity,max:-Infinity,sum:0});
-     const min=stats.min,max=stats.max,avg=stats.sum/values.length;
-     const fmt=value=>new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(value);
-     tr.append(el('td','',fmt(min)+' '+units[s.key]));
+    if(maxRow>=0){
      tr.append(el('td','',fmt(max)+' '+units[s.key]));
-     tr.append(el('td','',fmt(avg)+' '+units[s.key]));
+     const timestamp=timestampIndex===undefined?'Timestamp column not found':String(dataRows[maxRow][timestampIndex]??'').trim()||'Timestamp unavailable';
+     tr.append(el('td','propulsion-stat-timestamp',timestamp));
     }else{
-     tr.append(el('td','propulsion-stat-empty','No numeric data'),el('td','propulsion-stat-empty','No numeric data'),el('td','propulsion-stat-empty','No numeric data'));
+     tr.append(el('td','propulsion-stat-empty','No numeric data'));
+     tr.append(el('td','propulsion-stat-empty',timestampIndex===undefined?'Timestamp column not found':'Timestamp unavailable'));
     }
     tbody.append(tr);
    });
