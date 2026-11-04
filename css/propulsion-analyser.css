@@ -208,3 +208,37 @@
   left:auto;
   z-index:auto;
 }
+
+
+/* Dual-axis CSV preview freeze: header row stays at the top; first CSV data column stays at the left. */
+.propulsion-csv-preview-table thead th{
+  position:sticky;
+  top:0;
+  z-index:6;
+}
+.propulsion-csv-preview-table thead th:first-child{
+  position:static;
+  z-index:auto;
+}
+.propulsion-csv-preview-table thead th:nth-child(2){
+  position:sticky;
+  top:0;
+  left:0;
+  z-index:9;
+  background:#dceaf5;
+}
+.propulsion-csv-preview-table tbody th{
+  position:static;
+  left:auto;
+  z-index:auto;
+}
+.propulsion-csv-preview-table tbody td:first-of-type{
+  position:sticky;
+  left:0;
+  z-index:4;
+  background:#f4f8fb;
+  box-shadow:1px 0 0 #d5e1eb;
+}
+.propulsion-csv-preview-table tbody tr:nth-child(even) td:first-of-type{
+  background:#f0f5f9;
+}
