@@ -137,3 +137,11 @@
 .propulsion-point-slider-label{display:grid;gap:7px;color:#174f7d;font-size:12px;font-weight:800}
 .propulsion-point-slider-label input{width:100%;accent-color:#287fbd;cursor:pointer}
 .propulsion-point-counter{color:#64788b;font-size:11px;font-variant-numeric:tabular-nums}
+
+
+/* Always-visible live X/Y readouts for the graph point scrubber */
+.propulsion-point-readout{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0;padding:0;border:0;background:transparent}
+.propulsion-point-value{display:grid;gap:5px;min-width:0;padding:11px 13px;border:1px solid #cbddea;border-radius:9px;background:#fff}
+.propulsion-point-value-label{color:#61778b;font-size:10px;font-weight:850;letter-spacing:.08em;overflow-wrap:anywhere}
+.propulsion-point-value-number{color:#123b70;font-size:16px;font-weight:850;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+@media(max-width:480px){.propulsion-point-readout{grid-template-columns:1fr 1fr}.propulsion-point-value{padding:9px}}
