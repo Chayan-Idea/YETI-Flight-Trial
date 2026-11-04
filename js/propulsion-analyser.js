@@ -37,6 +37,9 @@
   if(uploadCard){uploadCard.insertAdjacentElement('afterend',previewActions);previewActions.insertAdjacentElement('afterend',csvPreviewPanel);}
   else{workspace.insertBefore(previewActions,workspace.firstChild);previewActions.insertAdjacentElement('afterend',csvPreviewPanel);}
   csvPreviewPanel.insertAdjacentElement('afterend',identifyActions);
+  const setFreezeOffsets=()=>{const header=headRow.getBoundingClientRect(),first=tbody.rows[0]?.getBoundingClientRect(),rowIndexWidth=headRow.cells[0]?.getBoundingClientRect().width;if(header.height)viewport.style.setProperty('--csv-header-height',header.height+'px');if(first?.height)viewport.style.setProperty('--csv-row1-height',first.height+'px');if(rowIndexWidth)viewport.style.setProperty('--csv-first-col-width',rowIndexWidth+'px');};
+  requestAnimationFrame(setFreezeOffsets);
+  if(typeof ResizeObserver!=='undefined'){const freezeObserver=new ResizeObserver(setFreezeOffsets);freezeObserver.observe(viewport);freezeObserver.observe(table);}
  }
  const specs=[
   {key:'thrust',label:'Thrust',aliases:['net_thrust_n','net thrust n','thrust n','thrust newton','thrust']},
