@@ -241,7 +241,7 @@
  function resetAnalysis(){
   if(analysisPanel){analysisPanel.remove();analysisPanel=null}
   workspace.querySelector('.propulsion-statistics-card')?.remove();workspace.querySelector('.propulsion-graphical-card')?.remove();
-  selectedFile=null;mapping={};headerRow=[];dataRows=[];confirmed=false;step3Visible=false;step4Visible=false;parseCSVText='';
+  selectedFile=null;mapping={};headerRow=[];dataRows=[];analysisRows=[];confirmed=false;step3Visible=false;step4Visible=false;parseCSVText='';
   meta.hidden=true;meta.textContent='';reset.hidden=true;start.disabled=true;start.textContent='Identify Parameters';
  }
  input.addEventListener('change',()=>{
