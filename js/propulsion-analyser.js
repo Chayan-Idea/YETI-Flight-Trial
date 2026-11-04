@@ -153,7 +153,7 @@
     let fallingSteps=0,returnStart=-1;
     for(let i=peakIndex+1;i<pts.length;i++){
      if(pts[i].x<pts[i-1].x-xTolerance){
-      if(fallingSteps===0)returnStart=i-1;
+      if(fallingSteps===0)returnStart=i;
       fallingSteps++;
       if(fallingSteps>=3){pts.splice(returnStart);break;}
      }else fallingSteps=0;
