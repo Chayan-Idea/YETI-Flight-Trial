@@ -318,7 +318,7 @@
    cover.append(coverTable);
    if(reportFields.objective.value.trim()){cover.append(el('h2','propulsion-report-section-heading','TEST OBJECTIVE'),el('p','propulsion-report-objective',reportFields.objective.value.trim()))}
    const coverMeta=el('div','propulsion-report-cover-meta');coverMeta.append(el('span','','VALIDATED DATASET · '+analysisRows.length.toLocaleString()+' records'));cover.append(coverMeta);
-   cover.append(el('p','propulsion-report-footer','YETI FLIGHT TRIAL  /  PROPULSION VALIDATION  /  ENGINEERING MANAGEMENT REVIEW'));const statsPage=el('section','propulsion-report-summary-page');
+const statsPage=el('section','propulsion-report-summary-page');
    statsPage.append(el('div','propulsion-report-page-kicker','01  /  TEST RESULTS'),el('h2','','EXECUTIVE PERFORMANCE SUMMARY'));
    const units={thrust:'N',torque:'Nm',commandRpm:'RPM',actualRpm:'RPM',voltage:'V',current:'A',motorTemperature:'°C',escTemperature:'°C'};
    const getNum=(row,key)=>{const idx=mapping[key]?.selected;if(idx===undefined||idx==='')return NaN;const raw=String(row[idx]??'').trim();return raw===''?NaN:Number(raw)};
@@ -328,10 +328,11 @@
    let peakInputPower=0,peakThrustPerKw=0,sumAbsRpmError=0,rpmErrorCount=0,maxRpmError=0;
    analysisRows.forEach(row=>{const v=getNum(row,'voltage'),a=getNum(row,'current'),t=getNum(row,'thrust'),cmd=getNum(row,'commandRpm'),rpm=getNum(row,'actualRpm');if(Number.isFinite(v)&&Number.isFinite(a)){const kw=v*a/1000;if(kw>peakInputPower)peakInputPower=kw;if(Number.isFinite(t)&&kw>0)peakThrustPerKw=Math.max(peakThrustPerKw,t/kw)}if(Number.isFinite(cmd)&&cmd!==0&&Number.isFinite(rpm)){const e=Math.abs((rpm-cmd)/cmd)*100;sumAbsRpmError+=e;rpmErrorCount++;maxRpmError=Math.max(maxRpmError,e)}});
    const kpiGrid=el('div','propulsion-report-kpi-grid propulsion-report-all-parameters');
-   specs.forEach(spec=>{const m=peak(spec.key);const card=el('div','propulsion-report-kpi');card.append(el('span','',spec.label.toUpperCase()),el('strong','',m.at>=0?fmt(m.value)+' '+units[spec.key]:'—'));kpiGrid.append(card)});
+   specs.forEach(spec=>{const m=peak(spec.key);const card=el('div','propulsion-report-kpi');card.append(el('span','',('MAXIMUM '+spec.label).toUpperCase()),el('strong','',m.at>=0?fmt(m.value)+' '+units[spec.key]:'—'));kpiGrid.append(card)});
    statsPage.append(kpiGrid);
    statsPage.append(el('p','propulsion-report-small-note','Dataset: '+analysisRows.length.toLocaleString()+' rows included; records with Actual RPM = 0 excluded. Values shown are maximum recorded values for each mapped parameter.'));
    cover.append(statsPage);
+   cover.append(el('p','propulsion-report-footer','YETI FLIGHT TRIAL  /  PROPULSION VALIDATION  /  ENGINEERING MANAGEMENT REVIEW'));
    reportPreview.append(cover);
 
    if(reportGraphs.length){for(let offset=0,pageNo=1;offset<reportGraphs.length;offset+=2,pageNo++){const graphPage=el('article','propulsion-report-page propulsion-report-graph-page');graphPage.append(el('div','propulsion-report-page-kicker','02  /  GRAPHICAL ANALYSIS'),el('h2','','PROPULSION PERFORMANCE PLOTS'));reportGraphs.slice(offset,offset+2).forEach((item,index)=>{const wrap=el('div','propulsion-report-preview-graph');wrap.append(el('h3','',String(offset+index+1).padStart(2,'0')+'  '+item.title),item.svg.cloneNode(true));graphPage.append(wrap)});reportPreview.append(graphPage)}}
