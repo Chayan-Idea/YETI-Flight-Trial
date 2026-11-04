@@ -61,3 +61,12 @@
 /* Compact maximum-value and timestamp summary table */
 .propulsion-statistics-table{min-width:600px}
 .propulsion-statistics-table .propulsion-stat-timestamp{white-space:normal;min-width:180px;overflow-wrap:anywhere;color:#174f7d}
+
+
+/* Step 03 is a standalone sibling card, visually aligned with Steps 01 and 02. */
+.propulsion-statistics-card{background:#fff;border:1px solid #d7e5f1;border-radius:13px;padding:20px;box-shadow:0 4px 14px rgba(18,59,112,.045);display:grid;gap:12px;min-width:0}
+.propulsion-statistics-card[hidden]{display:none!important}
+.propulsion-statistics-card>.propulsion-step-label{margin-bottom:0}
+.propulsion-statistics-card h3{margin:0;color:#123b70;font-size:17px}
+.propulsion-statistics-card .propulsion-statistics-description{margin:0;color:#53697e;font-size:12px}
+@media(max-width:620px){.propulsion-statistics-card{padding:15px}}
