@@ -28,9 +28,15 @@
   rows.forEach((row,rowIndex)=>{const tr=document.createElement('tr');const indexCell=el('th','',String(rowIndex+1));indexCell.scope='row';tr.append(indexCell);for(let col=0;col<maxColumns;col++)tr.append(el('td','',String(row[col]??'')));tbody.append(tr)});
   table.append(tbody);viewport.append(table);
   csvPreviewPanel.append(heading,title,info,viewport);
-  if(uploadCard)uploadCard.insertAdjacentElement('afterend',csvPreviewPanel);
-  else workspace.insertBefore(csvPreviewPanel,workspace.firstChild);
-  const identifyActions=el('div','propulsion-actions propulsion-csv-preview-actions');identifyActions.append(start);csvPreviewPanel.insertAdjacentElement('afterend',identifyActions);
+  csvPreviewPanel.hidden=true;
+  const previewActions=el('div','propulsion-actions propulsion-csv-preview-toggle-actions');
+  const previewToggle=el('button','btn alt','Show the Uploaded CSV Preview');previewToggle.type='button';previewToggle.id='showUploadedCsvPreviewBtn';
+  const identifyActions=el('div','propulsion-actions propulsion-csv-preview-actions');identifyActions.append(start);identifyActions.hidden=true;
+  previewToggle.addEventListener('click',()=>{const show=csvPreviewPanel.hidden;csvPreviewPanel.hidden=!show;identifyActions.hidden=!show;previewToggle.textContent=show?'Hide the Uploaded CSV Preview':'Show the Uploaded CSV Preview';previewToggle.setAttribute('aria-expanded',String(show));});
+  previewActions.append(previewToggle);
+  if(uploadCard){uploadCard.insertAdjacentElement('afterend',previewActions);previewActions.insertAdjacentElement('afterend',csvPreviewPanel);}
+  else{workspace.insertBefore(previewActions,workspace.firstChild);previewActions.insertAdjacentElement('afterend',csvPreviewPanel);}
+  csvPreviewPanel.insertAdjacentElement('afterend',identifyActions);
  }
  const specs=[
   {key:'thrust',label:'Thrust',aliases:['net_thrust_n','net thrust n','thrust n','thrust newton','thrust']},
@@ -274,7 +280,7 @@
  function resetAnalysis(){
   if(analysisPanel){analysisPanel.remove();analysisPanel=null}
   workspace.querySelector('.propulsion-statistics-card')?.remove();workspace.querySelector('.propulsion-graphical-card')?.remove();
-  selectedFile=null;mapping={};headerRow=[];dataRows=[];analysisRows=[];confirmed=false;step3Visible=false;step4Visible=false;parseCSVText='';if(csvPreviewPanel){csvPreviewPanel.remove();csvPreviewPanel=null;}
+  selectedFile=null;mapping={};headerRow=[];dataRows=[];analysisRows=[];confirmed=false;step3Visible=false;step4Visible=false;parseCSVText='';if(csvPreviewPanel){csvPreviewPanel.remove();csvPreviewPanel=null;}workspace.querySelector('.propulsion-csv-preview-toggle-actions')?.remove();workspace.querySelector('.propulsion-csv-preview-actions')?.remove();
   meta.hidden=true;meta.textContent='';reset.hidden=true;start.disabled=true;start.textContent='Identify Parameters';
  }
  input.addEventListener('change',()=>{
