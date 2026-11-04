@@ -142,21 +142,27 @@
    const xi=Number(xSelect.value),yi=Number(ySelect.value),y2i=y2Select.value===''?null:Number(y2Select.value);
    if(xSelect.value===''||ySelect.value===''||!Number.isInteger(xi)||!Number.isInteger(yi)){graphStatus.textContent='Select an X axis and at least one Y axis parameter.';return}
    const pts=analysisRows.map((row,index)=>({x:Number(String(row[xi]??'').trim()),y:Number(String(row[yi]??'').trim()),y2:y2i===null?NaN:Number(String(row[y2i]??'').trim()),index})).filter(p=>Number.isFinite(p.x)&&(Number.isFinite(p.y)||(y2i!==null&&Number.isFinite(p.y2))));
-   // Keep the forward X-axis sweep. Ignore tiny X jitter and trim only after three
-   // consecutive meaningful decreases following the first occurrence of the global maximum.
+   // Follow CSV row order and detect the first sustained reversal from the running X peak.
+   // Do not wait for the global maximum: it may occur after the return sweep has already begun.
    const rawPointCount=pts.length;
    if(pts.length>1){
-    let peakIndex=0;
-    for(let i=1;i<pts.length;i++)if(pts[i].x>pts[peakIndex].x)peakIndex=i;
     const xValues=pts.map(p=>p.x),xSpan=Math.max(...xValues)-Math.min(...xValues);
-    const xTolerance=Math.max(xSpan*0.001,Number.EPSILON*Math.max(1,Math.abs(pts[peakIndex].x))*16);
-    let fallingSteps=0,returnStart=-1;
-    for(let i=peakIndex+1;i<pts.length;i++){
-     if(pts[i].x<pts[i-1].x-xTolerance){
+    const xTolerance=Math.max(xSpan*0.001,Number.EPSILON*Math.max(1,...xValues.map(Math.abs))*16);
+    let runningPeakX=pts[0].x,fallingSteps=0,returnStart=-1;
+    for(let i=1;i<pts.length;i++){
+     const stepDown=pts[i].x<pts[i-1].x-xTolerance;
+     if(pts[i].x>runningPeakX+xTolerance){
+      runningPeakX=pts[i].x;
+      fallingSteps=0;
+      returnStart=-1;
+     }else if(stepDown){
       if(fallingSteps===0)returnStart=i;
       fallingSteps++;
       if(fallingSteps>=3){pts.splice(returnStart);break;}
-     }else fallingSteps=0;
+     }else{
+      fallingSteps=0;
+      returnStart=-1;
+     }
     }
    }
    const removedReturnPoints=rawPointCount-pts.length;
