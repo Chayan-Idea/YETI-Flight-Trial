@@ -1,0 +1,26 @@
+/* Propulsion Test Bench Log Analyzer — CSV intake and analysis progress */
+.propulsion-analyser-workspace{display:grid;gap:16px;max-width:850px}
+.propulsion-upload-card,.propulsion-progress-card{background:#fff;border:1px solid #d7e5f1;border-radius:13px;padding:20px;box-shadow:0 4px 14px rgba(18,59,112,.045)}
+.propulsion-step-label{display:block;color:#287fbd;font-size:10px;font-weight:900;letter-spacing:.14em;margin-bottom:7px}
+.propulsion-upload-card h3,.propulsion-progress-card h3{margin:0 0 7px;color:#123b70;font-size:17px}
+.propulsion-upload-card>p{margin:0 0 16px}
+.propulsion-file-picker{display:grid;justify-items:center;gap:6px;padding:26px 16px;border:2px dashed #b9cfe2;border-radius:11px;background:#f7fbff;color:#174f7d;cursor:pointer;text-align:center;transition:border-color .15s,background .15s}
+.propulsion-file-picker:hover{border-color:#287fbd;background:#eff7ff}
+.propulsion-file-picker input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.propulsion-upload-icon{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:#e2effa;color:#1769aa;font-size:24px;font-weight:800}
+.propulsion-file-picker strong{font-size:14px}.propulsion-file-picker>span:last-of-type{font-size:11px;color:#6b7c8e}
+.propulsion-upload-status{display:flex;align-items:center;gap:9px;margin-top:14px;padding:11px 12px;border:1px solid #d8e4ef;border-radius:8px;background:#f8fafc;color:#53697e;font-size:13px;font-weight:700}
+.propulsion-upload-status.is-complete{border-color:#a8d8b7;background:#effaf2;color:#176b36}
+.propulsion-status-symbol{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;font-size:16px;font-weight:900}
+.propulsion-upload-status.is-complete .propulsion-status-symbol{background:#d7f2df;color:#16803b}
+.propulsion-file-meta{margin-top:8px;color:#53697e;font-size:12px;overflow-wrap:anywhere}
+.propulsion-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}
+.propulsion-actions .btn:disabled{opacity:.45;cursor:not-allowed}
+.propulsion-progress-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:13px}
+.propulsion-progress-heading>strong{font-size:22px;color:#176b36;font-variant-numeric:tabular-nums}
+.propulsion-progress-track{height:14px;overflow:hidden;border-radius:20px;background:#e8edf1;border:1px solid #dce5eb}
+.propulsion-progress-track span{display:block;width:0;height:100%;border-radius:20px;background:linear-gradient(90deg,#23964d,#42c76b);transition:width .08s linear}
+.propulsion-progress-message{margin:10px 0 0;color:#53697e;font-size:13px;font-weight:650}
+.propulsion-progress-message.is-complete{color:#176b36}
+.propulsion-local-note{margin:0;color:#718194;font-size:11px;line-height:1.5}
+@media(max-width:620px){.propulsion-upload-card,.propulsion-progress-card{padding:15px}.propulsion-file-picker{padding:22px 12px}}
