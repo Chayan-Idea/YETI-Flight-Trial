@@ -2,7 +2,8 @@
 (()=>{
  'use strict';
  const $id=id=>document.getElementById(id);
- const input=$id('propulsionCsvInput'),status=$id('propulsionUploadStatus'),meta=$id('propulsionFileMeta'),start=$id('startPropulsionAnalysisBtn'),reset=$id('resetPropulsionUploadBtn'),workspace=document.querySelector('.propulsion-analyser-workspace');
+ const input=$id('propulsionCsvInput'),filePicker=input?.closest('.propulsion-file-picker'),status=$id('propulsionUploadStatus'),meta=$id('propulsionFileMeta'),start=$id('startPropulsionAnalysisBtn'),reset=$id('resetPropulsionUploadBtn'),workspace=document.querySelector('.propulsion-analyser-workspace');
+ if(reset)reset.textContent='Choose another log file';
  if(!input||!status||!start||!workspace)return;
  const specs=[
   {key:'thrust',label:'Thrust',aliases:['net_thrust_n','net thrust n','thrust n','thrust newton','thrust']},
@@ -120,10 +121,10 @@
   if(!file){setUploadState(false,'No file selected');return}
   if(!/\.csv$/i.test(file.name)){input.value='';setUploadState(false,'Invalid file — please select a .csv file');return}
   if(file.size===0){input.value='';setUploadState(false,'The selected CSV file is empty');return}
-  selectedFile=file;setUploadState(true,'CSV selected — ready for parameter identification');
+  selectedFile=file;if(filePicker)filePicker.hidden=true;setUploadState(true,'CSV selected — ready for parameter identification');
   meta.hidden=false;meta.textContent=file.name+' · '+(file.size/1024).toFixed(1)+' KB';reset.hidden=false;start.disabled=false;
  });
- reset.addEventListener('click',()=>{input.value='';resetAnalysis();setUploadState(false,'No file selected')});
+ reset.addEventListener('click',()=>{input.value='';resetAnalysis();if(filePicker)filePicker.hidden=false;reset.textContent='Choose another log file';setUploadState(false,'No file selected')});
  start.addEventListener('click',async()=>{
   if(!selectedFile)return;
   start.disabled=true;start.textContent='Reading CSV…';
