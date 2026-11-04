@@ -90,8 +90,37 @@
    if(!validateMapping())return;
    confirmed=true;confirm.disabled=true;confirm.textContent='Mapping Confirmed';
    next.hidden=false;next.replaceChildren(el('strong','', 'Parameter mapping confirmed'));
-   next.append(el('p','', 'All six required signals are mapped to unique CSV columns. The file is ready for the next analysis stage.'));
-   const list=el('ul','');specs.forEach(s=>list.append(el('li','',s.label+' → '+headerRow[mapping[s.key].selected])));next.append(list);
+   next.append(el('p','', 'All six required signals are mapped to unique CSV columns. Statistical summary is calculated from all numeric samples in the selected columns.'));
+   const mappingList=el('ul','propulsion-confirmed-mapping');specs.forEach(s=>mappingList.append(el('li','',s.label+' → '+headerRow[mapping[s.key].selected])));next.append(mappingList);
+   const step3=el('div','propulsion-statistics-step');
+   step3.append(el('span','propulsion-step-label','STEP 03 · PARAMETER SUMMARY'));
+   step3.append(el('h4','','Mapped Parameter Statistics'));
+   step3.append(el('p','propulsion-statistics-description','Minimum, maximum and arithmetic average across the complete CSV data set.'));
+   const tableWrap=el('div','propulsion-statistics-table-wrap');
+   const table=document.createElement('table');table.className='propulsion-statistics-table';
+   const thead=document.createElement('thead'),headRow=document.createElement('tr');
+   ['Parameter','Mapped CSV Column','Minimum','Maximum','Average'].forEach(label=>headRow.append(el('th','',label)));
+   thead.append(headRow);table.append(thead);
+   const tbody=document.createElement('tbody');
+   const units={thrust:'N',torque:'Nm',commandRpm:'RPM',actualRpm:'RPM',voltage:'V',current:'A'};
+   specs.forEach(s=>{
+    const idx=mapping[s.key].selected;
+    const values=dataRows.map(row=>String(row[idx]??'').trim()).filter(value=>value!=='').map(value=>Number(value)).filter(Number.isFinite);
+    const tr=document.createElement('tr');
+    tr.append(el('th','propulsion-stat-parameter',s.label+' ('+units[s.key]+')'));
+    tr.append(el('td','propulsion-stat-column',headerRow[idx]));
+    if(values.length){
+     const min=Math.min(...values),max=Math.max(...values),avg=values.reduce((sum,value)=>sum+value,0)/values.length;
+     const fmt=value=>new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(value);
+     tr.append(el('td','',fmt(min)+' '+units[s.key]));
+     tr.append(el('td','',fmt(max)+' '+units[s.key]));
+     tr.append(el('td','',fmt(avg)+' '+units[s.key]));
+    }else{
+     tr.append(el('td','propulsion-stat-empty','No numeric data'),el('td','propulsion-stat-empty','No numeric data'),el('td','propulsion-stat-empty','No numeric data'));
+    }
+    tbody.append(tr);
+   });
+   table.append(tbody);tableWrap.append(table);step3.append(tableWrap);next.append(step3);
    start.disabled=true;
   });
   validateMapping();
