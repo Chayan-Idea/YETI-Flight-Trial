@@ -263,6 +263,48 @@
   });
     const step5=el('section','propulsion-report-card propulsion-step-card propulsion-step-card--purple');step5.id='propulsionReportGenerationCard';step5.hidden=true;
   step5.append(el('span','propulsion-step-label','STEP 05 · REPORT GENERATION'));
+  const reportBuilder=el('div','propulsion-report-builder');
+  const reportForm=el('div','propulsion-report-form');
+  reportForm.append(el('h3','','Test Identification'));
+  const reportFields={};
+  const makeReportField=(key,label,required,type='text')=>{const wrap=el('label','propulsion-report-field');const caption=el('span','',label+(required?' *':''));const input=document.createElement('input');input.type=type;input.id='report_'+key;input.required=required;input.placeholder=label;input.addEventListener('input',updateReportPreview);wrap.append(caption,input);reportForm.append(wrap);reportFields[key]=input;};
+  makeReportField('motorName','Enter Motor Name',true);
+  makeReportField('escName','Enter ESC Name',true);
+  makeReportField('propellerName','Enter Propeller Name',true);
+  makeReportField('testDate','Test Date',true,'date');
+  makeReportField('motorId','Enter Motor ID',false);
+  makeReportField('escId','Enter ESC ID',false);
+  makeReportField('propellerId','Enter Propeller ID',false);
+  const objectiveWrap=el('label','propulsion-report-field propulsion-report-field--wide');objectiveWrap.append(el('span','','Objective of the Test'));const objectiveInput=document.createElement('textarea');objectiveInput.id='report_objective';objectiveInput.rows=3;objectiveInput.placeholder='Describe the objective of this propulsion test';objectiveInput.addEventListener('input',updateReportPreview);objectiveWrap.append(objectiveInput);reportForm.append(objectiveWrap);reportFields.objective=objectiveInput;
+  const reportGraphControls=el('div','propulsion-report-graph-controls');reportGraphControls.append(el('h3','','Graphical Report Selection'));
+  const reportGraphSelect=(label,source)=>{const wrap=el('label','propulsion-report-field');wrap.append(el('span','',label));const select=document.createElement('select');select.className='propulsion-column-select';const blank=document.createElement('option');blank.value='';blank.textContent='Select CSV column';select.append(blank);headerRow.forEach((name,index)=>{const op=document.createElement('option');op.value=String(index);op.textContent=name;select.append(op)});wrap.append(select);reportGraphControls.append(wrap);return select;};
+  const reportX=reportGraphSelect('Choose X Axis',xSelect),reportY=reportGraphSelect('Choose Primary Y Axis',ySelect),reportY2=reportGraphSelect('Choose Secondary Y Axis (Optional)',y2Select);
+  const addReportGraph=el('button','btn alt','Add Graph to Report');addReportGraph.type='button';const reportGraphCount=el('span','propulsion-report-graph-count','0 of 5 graphs added');const reportGraphList=el('div','propulsion-report-graph-list');let reportGraphs=[];
+  addReportGraph.addEventListener('click',()=>{if(reportGraphs.length>=5){reportGraphCount.textContent='Maximum of 5 graphs reached';return}if(reportX.value===''||reportY.value===''){reportGraphCount.textContent='Select X and Primary Y axes first';return}xSelect.value=reportX.value;ySelect.value=reportY.value;y2Select.value=reportY2.value;plotButton.click();const svg=chartHost.querySelector('svg');if(!svg||!plottedPoints.length){reportGraphCount.textContent='Unable to add graph. Check selected columns.';return}const card=el('div','propulsion-report-graph-item');const heading=el('strong','',headerRow[Number(reportY.value)]+' vs '+headerRow[Number(reportX.value)]+(reportY2.value===''?'':' · '+headerRow[Number(reportY2.value)]));const remove=el('button','btn alt','Remove');remove.type='button';remove.addEventListener('click',()=>{reportGraphs=reportGraphs.filter(item=>item.card!==card);card.remove();refreshReportGraphCount();updateReportPreview()});const cloned=svg.cloneNode(true);cloned.classList.add('propulsion-report-graph-svg');card.append(heading,remove,cloned);reportGraphList.append(card);reportGraphs.push({card,svg:cloned,title:heading.textContent});refreshReportGraphCount();updateReportPreview();});
+  const refreshReportGraphCount=()=>{reportGraphCount.textContent=reportGraphs.length+' of 5 graphs added';addReportGraph.disabled=reportGraphs.length>=5;};
+  reportGraphControls.append(addReportGraph,reportGraphCount,reportGraphList);
+  const reportPreviewPanel=el('div','propulsion-report-preview-panel');reportPreviewPanel.append(el('h3','','Live A4 PDF Preview'));
+  const reportPreview=el('div','propulsion-report-preview-pages');reportPreview.id='propulsionReportLivePreview';
+  const exportActions=el('div','propulsion-actions');const exportPdf=el('button','btn','Export Report as PDF');exportPdf.type='button';exportPdf.addEventListener('click',()=>{const required=['motorName','escName','propellerName','testDate'];const missing=required.filter(key=>!reportFields[key].value.trim());if(missing.length){reportForm.querySelector('#report_'+missing[0]).focus();reportPreviewPanel.querySelector('.propulsion-report-validation').textContent='Complete all mandatory fields before exporting.';return}window.print()});const validation=el('p','propulsion-report-validation','Complete the mandatory fields to enable a valid report export.');exportActions.append(exportPdf);reportPreviewPanel.append(reportPreview,validation,exportActions);
+  reportBuilder.append(reportForm,reportGraphControls,reportPreviewPanel);step5.append(reportBuilder);
+  function updateReportPreview(){
+   reportPreview.replaceChildren();
+   const cover=el('article','propulsion-report-page propulsion-report-cover');cover.append(el('div','propulsion-report-brand','PROPULSION TEST REPORT'),el('h1','','PROPULSION VALIDATION REPORT'));
+   const coverTable=document.createElement('table');coverTable.className='propulsion-report-detail-table';
+   const details=[['Motor Name','motorName'],['ESC Name','escName'],['Propeller Name','propellerName'],['Test Date','testDate'],['Motor ID','motorId'],['ESC ID','escId'],['Propeller ID','propellerId']];
+   details.forEach(([label,key])=>{const tr=document.createElement('tr');tr.append(el('th','',label),el('td','',reportFields[key].value.trim()||'—'));coverTable.append(tr)});
+   cover.append(coverTable);if(reportFields.objective.value.trim()){cover.append(el('h2','','OBJECTIVE OF THE TEST'),el('p','propulsion-report-objective',reportFields.objective.value.trim()))}
+   cover.append(el('p','propulsion-report-footer','Generated from YETI Flight Trial · Propulsion Test Bench Log Analyzer'));reportPreview.append(cover);
+   const statsPage=el('article','propulsion-report-page');statsPage.append(el('h2','','PROPULSION PARAMETER STATISTICS'));
+   const statsTable=document.createElement('table');statsTable.className='propulsion-report-stats-table';const header=document.createElement('tr');['Parameter','Mapped Column','Maximum','Timestamp'].forEach(v=>header.append(el('th','',v)));statsTable.append(header);
+   const units={thrust:'N',torque:'Nm',commandRpm:'RPM',actualRpm:'RPM',voltage:'V',current:'A',motorTemperature:'°C',escTemperature:'°C'};
+   const timeAliases=['timestamp','time_stamp','datetime','date_time','date time','time','utc_time','local_time','sample_time','logged_at','date'];const timeIndex=headerRow.map((name,index)=>({index,score:scoreHeader(name,timeAliases)})).filter(x=>x.score>=65).sort((a,b)=>b.score-a.score)[0]?.index;
+   specs.forEach(spec=>{const idx=mapping[spec.key]?.selected;if(idx===undefined||idx==='')return;let max=-Infinity,maxRow=-1;analysisRows.forEach((row,i)=>{const raw=String(row[idx]??'').trim();if(raw==='')return;const v=Number(raw);if(Number.isFinite(v)&&v>max){max=v;maxRow=i}});const tr=document.createElement('tr');tr.append(el('td','',spec.label),el('td','',headerRow[idx]),el('td','',maxRow>=0?new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(max)+' '+units[spec.key]:'No numeric data'),el('td','',maxRow>=0&&timeIndex!==undefined?String(analysisRows[maxRow][timeIndex]??''):'—'));statsTable.append(tr)});
+   statsPage.append(statsTable,el('p','propulsion-report-small-note','Statistics use the Section 3 analysis dataset after excluding rows where Actual RPM = 0. '+analysisRows.length.toLocaleString()+' rows included.'));reportPreview.append(statsPage);
+   if(reportGraphs.length){const graphPage=el('article','propulsion-report-page');graphPage.append(el('h2','','GRAPHICAL ANALYSIS'));reportGraphs.forEach(item=>{const wrap=el('div','propulsion-report-preview-graph');wrap.append(el('h3','',item.title),item.svg.cloneNode(true));graphPage.append(wrap)});reportPreview.append(graphPage)}
+   const valid=['motorName','escName','propellerName','testDate'].every(key=>reportFields[key].value.trim());validation.textContent=valid?'Mandatory identification fields complete. PDF export is ready.':'Complete Motor Name, ESC Name, Propeller Name and Test Date before exporting.';
+  }
+  updateReportPreview();
   const reportProceedActions=el('div','propulsion-actions');const reportProceed=el('button','btn','Proceed to Generate Report');reportProceed.type='button';reportProceed.id='proceedToGenerateReportBtn';reportProceed.addEventListener('click',()=>{step5Visible=true;step5.hidden=false;reportProceed.disabled=true;reportProceed.textContent='Report Section Opened';saveState();step5.scrollIntoView({behavior:'smooth',block:'start'});});step4.append(reportProceedActions);reportProceedActions.append(reportProceed);
   workspace.insertBefore(step4,workspace.querySelector('.propulsion-local-note'));
   workspace.insertBefore(step5,workspace.querySelector('.propulsion-local-note'));
