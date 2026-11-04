@@ -13,11 +13,11 @@
   {key:'voltage',label:'DC Voltage',aliases:['dc_voltage_v','dc voltage','bus_voltage_v','battery_voltage_v','voltage_v']},
   {key:'current',label:'DC Current',aliases:['current_a','dc_current_a','dc current','battery_current_a','bus_current_a']}
  ];
- let selectedFile=null,headerRow=[],dataRows=[],mapping={},confirmed=false,step3Visible=false,analysisPanel=null;
+ let selectedFile=null,headerRow=[],dataRows=[],mapping={},confirmed=false,step3Visible=false,step4Visible=false,analysisPanel=null;
  const DB_NAME='yeti-flight-trial-state',DB_STORE='propulsion-analyser',DB_KEY='active-session';
  function openStateDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(DB_STORE))req.result.createObjectStore(DB_STORE)};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
- async function saveState(){try{const db=await openStateDB();await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).put({csvText:parseCSVText,fileName:selectedFile?.name||'Restored CSV log.csv',stage:step3Visible?'summary':confirmed?'confirmed':analysisPanel?'identified':selectedFile?'uploaded':'empty',mapping:Object.fromEntries(specs.map(s=>[s.key,mapping[s.key]?.selected??'']))},DB_KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}catch(error){console.warn('Could not save propulsion session locally:',error)}}
- async function loadState(){try{const db=await openStateDB();const saved=await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readonly');const req=tx.objectStore(DB_STORE).get(DB_KEY);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});db.close();if(!saved?.csvText)return;parseCSVText=saved.csvText;selectedFile={name:saved.fileName||'Restored CSV log.csv',size:new Blob([parseCSVText]).size,text:async()=>parseCSVText};if(filePicker)filePicker.hidden=true;meta.hidden=false;meta.textContent=selectedFile.name+' · '+(selectedFile.size/1024).toFixed(1)+' KB · Restored locally';reset.hidden=false;setUploadState(true,'Previous CSV session restored from this browser');const rows=parseCSV(parseCSVText,chooseDelimiter(parseCSVText));detect(rows);if(saved.mapping){specs.forEach(spec=>{const value=saved.mapping[spec.key];if(value!==''&&value!==undefined)mapping[spec.key].selected=Number(value)});analysisPanel.querySelectorAll('.propulsion-column-select').forEach(select=>{select.value=mapping[select.dataset.key].selected===''?'':String(mapping[select.dataset.key].selected)});validateMapping()}if((saved.stage==='confirmed'||saved.stage==='summary')&&validateMapping())$id('confirmPropulsionMappingBtn').click();if(saved.stage==='summary'&&confirmed)$id('proceedToParameterSummaryBtn')?.click();start.textContent='Parameters Identified';start.disabled=true}catch(error){console.warn('Could not restore propulsion session:',error)}}
+ async function saveState(){try{const db=await openStateDB();await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).put({csvText:parseCSVText,fileName:selectedFile?.name||'Restored CSV log.csv',stage:step4Visible?'graphical':step3Visible?'summary':confirmed?'confirmed':analysisPanel?'identified':selectedFile?'uploaded':'empty',mapping:Object.fromEntries(specs.map(s=>[s.key,mapping[s.key]?.selected??'']))},DB_KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}catch(error){console.warn('Could not save propulsion session locally:',error)}}
+ async function loadState(){try{const db=await openStateDB();const saved=await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readonly');const req=tx.objectStore(DB_STORE).get(DB_KEY);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});db.close();if(!saved?.csvText)return;parseCSVText=saved.csvText;selectedFile={name:saved.fileName||'Restored CSV log.csv',size:new Blob([parseCSVText]).size,text:async()=>parseCSVText};if(filePicker)filePicker.hidden=true;meta.hidden=false;meta.textContent=selectedFile.name+' · '+(selectedFile.size/1024).toFixed(1)+' KB · Restored locally';reset.hidden=false;setUploadState(true,'Previous CSV session restored from this browser');const rows=parseCSV(parseCSVText,chooseDelimiter(parseCSVText));detect(rows);if(saved.mapping){specs.forEach(spec=>{const value=saved.mapping[spec.key];if(value!==''&&value!==undefined)mapping[spec.key].selected=Number(value)});analysisPanel.querySelectorAll('.propulsion-column-select').forEach(select=>{select.value=mapping[select.dataset.key].selected===''?'':String(mapping[select.dataset.key].selected)});validateMapping()}if((saved.stage==='confirmed'||saved.stage==='summary')&&validateMapping())$id('confirmPropulsionMappingBtn').click();if((saved.stage==='summary'||saved.stage==='graphical')&&confirmed)$id('proceedToParameterSummaryBtn')?.click();if(saved.stage==='graphical'&&step3Visible)$id('proceedToGraphicalAnalysisBtn')?.click();start.textContent='Parameters Identified';start.disabled=true}catch(error){console.warn('Could not restore propulsion session:',error)}}
  function setUploadState(ok,text){status.classList.toggle('is-complete',ok);status.querySelector('.propulsion-status-symbol').textContent=ok?'✓':'○';status.lastElementChild.textContent=text}
  function parseCSV(text,delimiter){
   const rows=[];let row=[],field='',quoted=false;
@@ -53,7 +53,7 @@
  }
  function detect(rows){
   // Re-identification starts a fresh review cycle; a previous confirmation must not lock the new mapping.
-  confirmed=false;step3Visible=false;
+  confirmed=false;step3Visible=false;step4Visible=false;
   const hi=findHeader(rows);if(hi<0)throw new Error('Could not locate a recognizable header row in the first 10 rows.');
   headerRow=rows[hi].map((v,i)=>String(v??'').trim()||('Column '+(i+1)));
   dataRows=rows.slice(hi+1).filter(r=>r.some(v=>String(v??'').trim()!==''));
@@ -67,7 +67,7 @@
  function el(tag,cls,txt){const node=document.createElement(tag);if(cls)node.className=cls;if(txt!==undefined)node.textContent=txt;return node}
  function renderMapping(headerIndex){
   if(analysisPanel)analysisPanel.remove();
-  workspace.querySelector('.propulsion-statistics-card')?.remove();
+  workspace.querySelector('.propulsion-statistics-card')?.remove();workspace.querySelector('.propulsion-graphical-card')?.remove();
   analysisPanel=el('section','propulsion-mapping-card propulsion-step-card propulsion-step-card--purple');analysisPanel.setAttribute('aria-labelledby','propulsionMappingHeading');
   const top=el('div','propulsion-mapping-top');top.append(el('span','propulsion-step-label','STEP 02 · COLUMN IDENTIFICATION'));
   const h=el('h3','', 'Review detected parameters');h.id='propulsionMappingHeading';top.append(h);
@@ -94,6 +94,7 @@
   const step3=el('section','propulsion-statistics-card propulsion-step-card propulsion-step-card--green');step3.id='propulsionParameterSummaryCard';step3.hidden=true;
   workspace.insertBefore(analysisPanel,workspace.querySelector('.propulsion-local-note'));
   workspace.insertBefore(step3,workspace.querySelector('.propulsion-local-note'));
+  const step4=el('section','propulsion-graphical-card propulsion-step-card propulsion-step-card--green');step4.id='propulsionGraphicalAnalysisCard';step4.hidden=true;step4.append(el('span','propulsion-step-label','STEP 04 · GRAPHICAL ANALYSIS'));step4.append(el('h3','','Graphical Analysis'));step4.append(el('p','propulsion-statistics-description','Graphical analysis will be configured in the next development step. Your CSV and confirmed mappings remain available.'));workspace.insertBefore(step4,workspace.querySelector('.propulsion-local-note'));
   confirm.addEventListener('click',()=>{
    if(!validateMapping())return;
    confirmed=true;confirm.disabled=true;confirm.textContent='Mapping Confirmed';
@@ -141,6 +142,9 @@
     tbody.append(tr);
    });
    table.append(tbody);tableWrap.append(table);step3.append(tableWrap);
+   const graphActions=el('div','propulsion-actions');const graphProceed=el('button','btn','Proceed to Graphical Analysis');graphProceed.type='button';graphProceed.id='proceedToGraphicalAnalysisBtn';graphActions.append(graphProceed);step3.append(graphActions);
+   graphProceed.addEventListener('click',()=>{step4Visible=true;step4.hidden=false;graphProceed.disabled=true;graphProceed.textContent='Graphical Analysis Selected';saveState();});
+   if(step4Visible){step4.hidden=false;graphProceed.disabled=true;graphProceed.textContent='Graphical Analysis Selected';}
    start.disabled=true;saveState();
   });
   validateMapping();
@@ -163,8 +167,8 @@
  }
  function resetAnalysis(){
   if(analysisPanel){analysisPanel.remove();analysisPanel=null}
-  workspace.querySelector('.propulsion-statistics-card')?.remove();
-  selectedFile=null;mapping={};headerRow=[];dataRows=[];confirmed=false;step3Visible=false;parseCSVText='';
+  workspace.querySelector('.propulsion-statistics-card')?.remove();workspace.querySelector('.propulsion-graphical-card')?.remove();
+  selectedFile=null;mapping={};headerRow=[];dataRows=[];confirmed=false;step3Visible=false;step4Visible=false;parseCSVText='';
   meta.hidden=true;meta.textContent='';reset.hidden=true;start.disabled=true;start.textContent='Identify Parameters';
  }
  input.addEventListener('change',()=>{
