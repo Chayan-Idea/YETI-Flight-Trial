@@ -242,3 +242,23 @@
 .propulsion-csv-preview-table tbody tr:nth-child(even) td:first-of-type{
   background:#f0f5f9;
 }
+
+
+/* Also freeze CSV data row 1 (the row containing Timestamp and the first record's field values). */
+.propulsion-csv-preview-table tbody tr:first-child th,
+.propulsion-csv-preview-table tbody tr:first-child td{
+  position:sticky;
+  top:var(--csv-header-height, 38px);
+  z-index:5;
+  background:#edf5fb;
+}
+.propulsion-csv-preview-table tbody tr:first-child th{
+  left:auto;
+  z-index:7;
+}
+.propulsion-csv-preview-table tbody tr:first-child td:first-of-type{
+  left:0;
+  z-index:8;
+  background:#dceaf5;
+  box-shadow:1px 0 0 #c8d9e7;
+}
