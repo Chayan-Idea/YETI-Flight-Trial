@@ -348,3 +348,43 @@
   #propulsionReportLivePreview .propulsion-report-page:last-child{break-after:auto;page-break-after:auto}
   #propulsionReportLivePreview .propulsion-report-preview-graph svg{max-height:165mm!important}
 }
+
+/* YETI engineering-management report */
+.propulsion-report-page{height:297mm;min-height:297mm;max-height:297mm;padding:12mm 13mm;display:flex;flex-direction:column;gap:0}
+.propulsion-report-cover{justify-content:flex-start}
+.propulsion-report-brand-lockup{display:flex;align-items:center;gap:8mm;margin:0 0 12mm}
+.propulsion-report-brand-lockup svg{width:40mm;height:28mm;flex:0 0 auto}
+.propulsion-report-wordmark{display:flex;flex-direction:column}
+.propulsion-report-ideaforge{display:flex;align-items:flex-start;color:#202124;font-size:29pt;line-height:1;font-weight:400;letter-spacing:-1.4px}
+.propulsion-report-idea{font-weight:800}.propulsion-report-forge{font-weight:300}.propulsion-report-ideaforge sup{font-size:7pt;margin:1mm 0 0 1mm}
+.propulsion-report-tagline{color:#5e6268;font-size:13pt;line-height:1.15}
+.propulsion-report-kicker,.propulsion-report-page-kicker{color:#287fbd;font-size:8pt;font-weight:800;letter-spacing:1.4px;margin:0 0 3mm}
+.propulsion-report-page h1{margin:0 0 8mm;color:#123b70;font-size:25pt;line-height:1.16;max-width:175mm}
+.propulsion-report-accent-rule{height:2mm;background:linear-gradient(90deg,#8cc63e 0 22%,#1769aa 22%);margin:0 0 8mm}
+.propulsion-report-page h2{margin:0 0 5mm;padding-bottom:2.5mm;border-bottom:1.5px solid #287fbd;font-size:15pt;line-height:1.15}
+.propulsion-report-detail-table,.propulsion-report-stats-table{font-size:8.5pt}
+.propulsion-report-detail-table th,.propulsion-report-detail-table td,.propulsion-report-stats-table th,.propulsion-report-stats-table td{padding:2mm 2.5mm}
+.propulsion-report-detail-table th{width:34%}.propulsion-report-detail-table td{font-weight:600;color:#24394c}
+.propulsion-report-section-heading{margin:7mm 0 2mm!important;padding:0!important;border:0!important;font-size:10pt!important}
+.propulsion-report-objective{margin:0!important;font-size:9pt;line-height:1.35}
+.propulsion-report-cover-meta{display:flex;justify-content:space-between;gap:4mm;margin-top:8mm;padding:3mm 0;border-block:1px solid #d8e2eb;color:#52677b;font-size:7.5pt;font-weight:700}
+.propulsion-report-footer{margin-top:auto!important;padding-top:5mm!important;border-top:1px solid #d8e2eb;font-size:7pt!important;letter-spacing:.5px}
+.propulsion-report-summary-page{display:block}
+.propulsion-report-kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3mm;margin:0 0 5mm}
+.propulsion-report-kpi{border:1px solid #d5e1eb;border-top:2px solid #8cc63e;border-radius:2mm;padding:3mm;background:#f7fafc;display:flex;flex-direction:column;gap:2mm;min-width:0}
+.propulsion-report-kpi span{font-size:6.8pt;font-weight:800;color:#52677b;letter-spacing:.35px}
+.propulsion-report-kpi strong{font-size:12pt;color:#123b70;overflow-wrap:anywhere}
+.propulsion-report-subheading{margin:3mm 0 2mm;color:#174f7d;font-size:9.5pt}
+.propulsion-report-stats-table th,.propulsion-report-stats-table td{font-size:7.5pt;line-height:1.2}
+.propulsion-report-insights{margin-top:3mm}
+.propulsion-report-indicator-list{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:1.5mm 5mm}
+.propulsion-report-indicator-list li{display:flex;justify-content:space-between;gap:3mm;padding:1.5mm 0;border-bottom:1px solid #e3eaf0;font-size:7.2pt}
+.propulsion-report-indicator-list strong{color:#174f7d;white-space:nowrap}.propulsion-report-indicator-list span{text-align:right;color:#354b60}
+.propulsion-report-small-note{margin:3mm 0 0!important;font-size:6.7pt;line-height:1.25}
+.propulsion-report-graph-page{display:flex;flex-direction:column;gap:4mm}
+.propulsion-report-graph-page h2{margin-bottom:2mm}
+.propulsion-report-preview-graph{flex:1;min-height:0;margin:0!important;padding:2mm 0 3mm;border-bottom:1px solid #dce5ed;break-inside:avoid;display:flex;flex-direction:column}
+.propulsion-report-preview-graph:last-child{border-bottom:0}
+.propulsion-report-preview-graph h3{margin:0 0 2mm;color:#174f7d;font-size:8.5pt}
+.propulsion-report-preview-graph svg{display:block;width:100%;height:auto;max-height:102mm!important;object-fit:contain}
+@media print{#propulsionReportLivePreview .propulsion-report-page{height:297mm!important;min-height:297mm!important;max-height:297mm!important;padding:12mm 13mm!important}#propulsionReportLivePreview .propulsion-report-preview-graph svg{max-height:102mm!important}}
