@@ -188,3 +188,23 @@
 .propulsion-csv-preview-table thead th{top:0;z-index:5}
 .propulsion-csv-preview-table thead th:first-child{left:0;z-index:8}
 .propulsion-csv-preview-table tbody th{left:0;z-index:4}
+
+
+/* Final CSV preview freeze mode: freeze only the header row; every column scrolls horizontally. */
+.propulsion-csv-preview-table thead th{
+  position:sticky;
+  top:0;
+  left:auto;
+  z-index:5;
+}
+.propulsion-csv-preview-table thead th:first-child{
+  top:0;
+  left:auto;
+  z-index:5;
+}
+.propulsion-csv-preview-table tbody th{
+  position:static;
+  top:auto;
+  left:auto;
+  z-index:auto;
+}
