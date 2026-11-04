@@ -14,6 +14,10 @@
   {key:'current',label:'DC Current',aliases:['current_a','dc_current_a','dc current','battery_current_a','bus_current_a']}
  ];
  let selectedFile=null,headerRow=[],dataRows=[],mapping={},confirmed=false,analysisPanel=null;
+ const DB_NAME='yeti-flight-trial-state',DB_STORE='propulsion-analyser',DB_KEY='active-session';
+ function openStateDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(DB_STORE))req.result.createObjectStore(DB_STORE)};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
+ async function saveState(){try{const db=await openStateDB();await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).put({csvText:parseCSVText,fileName:selectedFile?.name||'Restored CSV log.csv',stage:confirmed?'confirmed':analysisPanel?'identified':selectedFile?'uploaded':'empty',mapping:Object.fromEntries(specs.map(s=>[s.key,mapping[s.key]?.selected??'']))},DB_KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}catch(error){console.warn('Could not save propulsion session locally:',error)}}
+ async function loadState(){try{const db=await openStateDB();const saved=await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readonly');const req=tx.objectStore(DB_STORE).get(DB_KEY);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});db.close();if(!saved?.csvText)return;parseCSVText=saved.csvText;selectedFile={name:saved.fileName||'Restored CSV log.csv',size:new Blob([parseCSVText]).size,text:async()=>parseCSVText};if(filePicker)filePicker.hidden=true;meta.hidden=false;meta.textContent=selectedFile.name+' · '+(selectedFile.size/1024).toFixed(1)+' KB · Restored locally';reset.hidden=false;setUploadState(true,'Previous CSV session restored from this browser');const rows=parseCSV(parseCSVText,chooseDelimiter(parseCSVText));detect(rows);if(saved.mapping){specs.forEach(spec=>{const value=saved.mapping[spec.key];if(value!==''&&value!==undefined)mapping[spec.key].selected=Number(value)});analysisPanel.querySelectorAll('.propulsion-column-select').forEach(select=>{select.value=mapping[select.dataset.key].selected===''?'':String(mapping[select.dataset.key].selected)});validateMapping()}if(saved.stage==='confirmed'&&validateMapping())$id('confirmPropulsionMappingBtn').click();start.textContent='Parameters Identified';start.disabled=true}catch(error){console.warn('Could not restore propulsion session:',error)}}
  function setUploadState(ok,text){status.classList.toggle('is-complete',ok);status.querySelector('.propulsion-status-symbol').textContent=ok?'✓':'○';status.lastElementChild.textContent=text}
  function parseCSV(text,delimiter){
   const rows=[];let row=[],field='',quoted=false;
@@ -78,7 +82,7 @@
    const current=mapping[s.key].selected;select.value=current===''?'':String(current);
    if(mapping[s.key].candidates.length>1){item.append(el('span','propulsion-match-note','Multiple possible matches — verify selection'))}
    else if(current===''){item.append(el('span','propulsion-match-note warning','No automatic match — choose manually'))}
-   item.append(select);select.addEventListener('change',()=>{mapping[s.key].selected=select.value===''?'':Number(select.value);validateMapping()});
+   item.append(select);select.addEventListener('change',()=>{mapping[s.key].selected=select.value===''?'':Number(select.value);validateMapping();saveState()});
    grid.append(item);
   });
   analysisPanel.append(grid);
@@ -130,7 +134,7 @@
     tbody.append(tr);
    });
    table.append(tbody);tableWrap.append(table);step3.append(tableWrap);step3.hidden=false;workspace.insertBefore(step3,workspace.querySelector('.propulsion-local-note'));
-   start.disabled=true;
+   start.disabled=true;saveState();
   });
   validateMapping();
  }
@@ -163,9 +167,9 @@
   if(!/\.csv$/i.test(file.name)){input.value='';setUploadState(false,'Invalid file — please select a .csv file');return}
   if(file.size===0){input.value='';setUploadState(false,'The selected CSV file is empty');return}
   selectedFile=file;if(filePicker)filePicker.hidden=true;setUploadState(true,'CSV selected — ready for parameter identification');
-  meta.hidden=false;meta.textContent=file.name+' · '+(file.size/1024).toFixed(1)+' KB';reset.hidden=false;start.disabled=false;
+  meta.hidden=false;meta.textContent=file.name+' · '+(file.size/1024).toFixed(1)+' KB';reset.hidden=false;start.disabled=false;file.text().then(text=>{parseCSVText=text;saveState()}).catch(()=>{});
  });
- reset.addEventListener('click',()=>{input.value='';resetAnalysis();if(filePicker)filePicker.hidden=false;reset.textContent='Choose another log file';setUploadState(false,'No file selected')});
+ reset.addEventListener('click',async()=>{input.value='';resetAnalysis();if(filePicker)filePicker.hidden=false;reset.textContent='Choose another log file';setUploadState(false,'No file selected');try{const db=await openStateDB();await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).delete(DB_KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}catch(error){console.warn('Could not clear saved propulsion session:',error)}});
  start.addEventListener('click',async()=>{
   if(!selectedFile)return;
   start.disabled=true;start.textContent='Reading CSV…';
@@ -173,9 +177,10 @@
    const text=await selectedFile.text();parseCSVText=text;
    const delimiter=chooseDelimiter(text);const rows=parseCSV(text,delimiter);
    if(rows.length<2)throw new Error('The CSV does not contain a header and data rows.');
-   detect(rows);start.textContent='Parameters Identified';start.disabled=true;
+   detect(rows);start.textContent='Parameters Identified';start.disabled=true;saveState();
    setUploadState(true,'CSV read successfully — review the six parameter mappings below');
   }catch(error){start.textContent='Identify Parameters';start.disabled=false;showError(error.message||'CSV could not be read.')}
  });
  start.textContent='Identify Parameters';start.disabled=true;
+ loadState();
 })();
