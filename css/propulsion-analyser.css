@@ -57,3 +57,7 @@
 .propulsion-stat-parameter{color:#174f7d;font-weight:800}
 .propulsion-stat-column{color:#53697e;max-width:190px;overflow:hidden;text-overflow:ellipsis}
 .propulsion-stat-empty{color:#9a5b28;font-style:normal}
+
+/* Compact maximum-value and timestamp summary table */
+.propulsion-statistics-table{min-width:600px}
+.propulsion-statistics-table .propulsion-stat-timestamp{white-space:normal;min-width:180px;overflow-wrap:anywhere;color:#174f7d}
