@@ -150,7 +150,7 @@
    const primaryPts=pts.filter(p=>Number.isFinite(p.y)),secondaryPts=pts.filter(p=>Number.isFinite(p.y2));
    if(primaryPts.length<2){chartHost.replaceChildren();graphStatus.textContent='Not enough numeric X and Primary Y row pairs to plot the primary axis.';return}
    if(y2i!==null&&secondaryPts.length<2){chartHost.replaceChildren();graphStatus.textContent='Not enough numeric X and Secondary Y row pairs to plot the secondary axis.';return}
-   const W=1040,H=520,L=96,R=y2i===null?34:100,T=30,B=88,pw=W-L-R,ph=H-T-B;
+   const W=1040,H=520,L=132,R=y2i===null?34:100,T=30,B=88,pw=W-L-R,ph=H-T-B;
    const range=values=>{let min=Math.min(...values),max=Math.max(...values);if(min===max){min-=1;max+=1}return {min,max}};
    const xr=range(pts.map(p=>p.x)),yr=range(primaryPts.map(p=>p.y)),y2r=y2i===null?null:range(secondaryPts.map(p=>p.y2));
    const sx=v=>L+(v-xr.min)/(xr.max-xr.min)*pw,sy=v=>T+ph-(v-yr.min)/(yr.max-yr.min)*ph,sy2=v=>y2r?T+ph-(v-y2r.min)/(y2r.max-y2r.min)*ph:0;
@@ -162,7 +162,7 @@
    const drawSeries=(series,yFn,color)=>{const d=series.map((p,i)=>(i?'L':'M')+sx(p.x).toFixed(2)+','+yFn(p).toFixed(2)).join(' ');add('path',{d,fill:'none',stroke:color,'stroke-width':2.5,'stroke-linejoin':'round','stroke-linecap':'round'});series.forEach(p=>add('circle',{cx:sx(p.x),cy:yFn(p),r:3.2,fill:color,opacity:.85}))};
    drawSeries(primaryPts,p=>sy(p.y),'#287fbd');if(y2r)drawSeries(secondaryPts,p=>sy2(p.y2),'#dc8123');
    add('text',{x:L+pw/2,y:H-20,'text-anchor':'middle',fill:'#123b70','font-size':16,'font-weight':700},headerRow[xi]);
-   const yl=add('text',{x:24,y:T+ph/2,'text-anchor':'middle',fill:'#287fbd','font-size':15,'font-weight':700},headerRow[yi]);yl.setAttribute('transform',`rotate(-90 24 ${T+ph/2})`);
+   const yl=add('text',{x:30,y:T+ph/2,'text-anchor':'middle',fill:'#287fbd','font-size':15,'font-weight':700},headerRow[yi]);yl.setAttribute('transform',`rotate(-90 30 ${T+ph/2})`);
    if(y2r){const yrLabel=add('text',{x:W-20,y:T+ph/2,'text-anchor':'middle',fill:'#dc8123','font-size':15,'font-weight':700},headerRow[y2i]);yrLabel.setAttribute('transform',`rotate(90 ${W-20} ${T+ph/2})`)}
    pointGuide=add('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#e28b24','stroke-width':1.5,'stroke-dasharray':'5 4',opacity:.9});
    pointMarker=add('circle',{cx:sx(primaryPts[0].x),cy:sy(primaryPts[0].y),r:7,fill:'#fff',stroke:'#287fbd','stroke-width':3});
