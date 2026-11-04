@@ -211,21 +211,7 @@
    graphStatus.textContent='Plotted '+primaryPts.length.toLocaleString()+' primary Y pairs'+(y2r?' and '+secondaryPts.length.toLocaleString()+' secondary Y pairs':'')+' · X: '+headerRow[xi]+' · Primary Y: '+headerRow[yi]+(y2i===null?'':' · Secondary Y: '+headerRow[y2i])+'. '+removedReturnPoints.toLocaleString()+' points below the previous highest X value removed. Only record-high or equal-high X values are retained in CSV row order. Both Y series share the same X axis and use independent left/right scales.';graphXIndex=String(xi);graphYIndex=String(yi);graphY2Index=y2i===null?'':String(y2i);saveState();
   });
     const step5=el('section','propulsion-report-card propulsion-step-card propulsion-step-card--purple');step5.id='propulsionReportGenerationCard';step5.hidden=true;
-  step5.append(el('span','propulsion-step-label','STEP 05 · REPORT GENERATION'));step5.append(el('h3','','Generate Propulsion Test Report'));
-  step5.append(el('p','propulsion-statistics-description','Proceed here after completing the graphical analysis. Generate a consolidated report from the uploaded CSV, confirmed parameter mapping, parameter summary and graph configuration.'));
-  const reportStatus=el('p','propulsion-report-status','Ready to generate the report.');reportStatus.id='propulsionReportStatus';step5.append(reportStatus);
-  const reportActions=el('div','propulsion-actions');const generateReport=el('button','btn','Generate Report');generateReport.type='button';generateReport.id='generatePropulsionReportBtn';reportActions.append(generateReport);step5.append(reportActions);
-  const reportPreview=el('div','propulsion-report-preview');reportPreview.id='propulsionReportPreview';reportPreview.hidden=true;step5.append(reportPreview);
-  generateReport.addEventListener('click',()=>{
-   const rows=[['Report item','Details'],['Source CSV',selectedFile?.name||'Restored CSV log'],['Data rows',analysisRows.length.toLocaleString()],['Mapped parameters',specs.map(s=>s.label+': '+headerRow[mapping[s.key].selected]).join(' | ')],['Graph X axis',graphXIndex===''?'Not selected':headerRow[Number(graphXIndex)]],['Primary Y axis',graphYIndex===''?'Not selected':headerRow[Number(graphYIndex)]],['Secondary Y axis',graphY2Index===''?'Not selected':headerRow[Number(graphY2Index)]||'Not selected']];
-   reportPreview.replaceChildren();const reportTitle=el('h4','','PROPULSION TEST BENCH REPORT');reportPreview.append(reportTitle);
-   const reportMeta=el('p','propulsion-report-meta','Generated from '+(selectedFile?.name||'the restored CSV log')+' · '+new Date().toLocaleString());reportPreview.append(reportMeta);
-   const reportTable=document.createElement('table');reportTable.className='propulsion-statistics-table';const reportHead=document.createElement('thead'),reportHeadRow=document.createElement('tr');rows[0].forEach(v=>reportHeadRow.append(el('th','',v)));reportHead.append(reportHeadRow);reportTable.append(reportHead);
-   const reportBody=document.createElement('tbody');rows.slice(1).forEach(row=>{const tr=document.createElement('tr');row.forEach(v=>tr.append(el('td','',v)));reportBody.append(tr)});reportTable.append(reportBody);
-   const reportWrap=el('div','propulsion-statistics-table-wrap');reportWrap.append(reportTable);reportPreview.append(reportWrap);
-   const note=el('p','propulsion-report-meta','Engineering review: verify source data, test limits and acceptance criteria before approving this report.');reportPreview.append(note);
-   reportPreview.hidden=false;reportStatus.textContent='Report content generated and ready for review.';generateReport.textContent='Print / Save Report';generateReport.onclick=()=>window.print();
-  });
+  step5.append(el('span','propulsion-step-label','STEP 05 · REPORT GENERATION'));
   const reportProceedActions=el('div','propulsion-actions');const reportProceed=el('button','btn','Proceed to Generate Report');reportProceed.type='button';reportProceed.id='proceedToGenerateReportBtn';reportProceed.addEventListener('click',()=>{step5Visible=true;step5.hidden=false;reportProceed.disabled=true;reportProceed.textContent='Report Section Opened';saveState();step5.scrollIntoView({behavior:'smooth',block:'start'});});step4.append(reportProceedActions);reportProceedActions.append(reportProceed);
   workspace.insertBefore(step4,workspace.querySelector('.propulsion-local-note'));
   workspace.insertBefore(step5,workspace.querySelector('.propulsion-local-note'));
