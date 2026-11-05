@@ -491,7 +491,7 @@
   const updatePlotAvailability=()=>{plotButton.disabled=xSelect.value===''||ySelect.value==='';};
   const plotActions=el('div','propulsion-actions');const plotButton=el('button','btn','Plot Graph');plotButton.type='button';plotButton.id='plotPropulsionGraphBtn';plotButton.disabled=true;plotActions.append(plotButton);
   const handleAxisSelectionChange=()=>{
-   if(step5Visible){step5Visible=false;step5.hidden=true;reportDirectVisible=false;}
+   // Step 5 graph controls must not change Step 6 report visibility or its contents.
    graphRangeHasValidPlot=false;updateRangeActionAvailability();savedGraphSelection();updatePlotAvailability();
    graphStatus.textContent='Axis selection updated. Click Plot Graph to refresh the chart with the selected parameters.';
   };
@@ -698,7 +698,7 @@
      plotButton.click();
    });
     const step5=el('section','propulsion-report-card propulsion-step-card propulsion-step-card--purple');step5.id='propulsionReportGenerationCard';step5.hidden=true;
-  const returnToDataFiltering=()=>{reportDirectVisible=false;step3FilterVisible=true;step3Visible=false;step4Visible=false;step5Visible=false;analysisPanel.hidden=false;step3Filter.hidden=false;step3.hidden=true;step4.hidden=true;step5.hidden=true;saveState();step3Filter.scrollIntoView({behavior:'smooth',block:'start'});};
+  const returnToDataFiltering=()=>{reportDirectVisible=false;step3FilterVisible=true;step3Visible=false;step4Visible=false;step5Visible=false;analysisPanel.hidden=false;step3Filter.hidden=false;step3.hidden=true;step4.hidden=true;step5.hidden=true;reportProceed.disabled=false;reportProceed.textContent='Proceed to Generate Report';saveState();step3Filter.scrollIntoView({behavior:'smooth',block:'start'});};
   const addReturnButton=(parent)=>{const actions=el('div','propulsion-actions');const button=el('button','btn alt','Return to Data Filtering & Sorting');button.type='button';button.addEventListener('click',returnToDataFiltering);actions.append(button);parent.append(actions);return button;};
   step5.append(el('span','propulsion-step-label','STEP 06 · REPORT GENERATION'));
   const reportBuilder=el('div','propulsion-report-builder');
@@ -798,7 +798,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    const valid=['motorName','escName','propellerName','testDate'].every(key=>reportFields[key].value.trim());validation.textContent=valid?'Mandatory identification fields complete. PDF export is ready.':'Complete Motor Name, ESC Name, Propeller Name and Test Date before exporting.';
   }
   updateReportPreview();
-  const reportProceedActions=el('div','propulsion-actions');const reportProceed=el('button','btn','Proceed to Generate Report');reportProceed.type='button';reportProceed.id='proceedToGenerateReportBtn';reportProceed.addEventListener('click',()=>{reportDirectVisible=false;step5Visible=true;step5.hidden=false;reportProceed.disabled=true;reportProceed.textContent='Report Section Opened';saveState();step5.scrollIntoView({behavior:'smooth',block:'start'});});step4.append(reportProceedActions);reportProceedActions.append(reportProceed);
+  const reportProceedActions=el('div','propulsion-actions');const reportProceed=el('button','btn','Proceed to Generate Report');reportProceed.type='button';reportProceed.id='proceedToGenerateReportBtn';const setReportSectionOpen=(open)=>{step5Visible=!!open;step5.hidden=!step5Visible;reportProceed.disabled=step5Visible;reportProceed.textContent=step5Visible?'Report Section Opened':'Proceed to Generate Report';};reportProceed.addEventListener('click',()=>{reportDirectVisible=false;setReportSectionOpen(true);saveState();step5.scrollIntoView({behavior:'smooth',block:'start'});});step4.append(reportProceedActions);reportProceedActions.append(reportProceed);
   addReturnButton(step4);
   addReturnButton(step5);
   workspace.insertBefore(step4,workspace.querySelector('.propulsion-local-note'));
