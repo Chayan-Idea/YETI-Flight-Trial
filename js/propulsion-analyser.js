@@ -667,7 +667,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    const timestampAliases=['timestamp','time_stamp','datetime','date_time','date time','time','utc_time','local_time','sample_time','logged_at','date'];
    const timestampIndex=headerRow.map((name,index)=>({index,score:scoreHeader(name,timestampAliases)})).filter(item=>item.score>=65).sort((a,b)=>b.score-a.score)[0]?.index;
    const fmt=value=>new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(value);
-   specs.forEach(s=>{
+   activeSpecs('report').forEach(s=>{
     const idx=mapping[s.key].selected;
     let max=-Infinity,maxRow=-1;
     analysisRows.forEach((row,rowIndex)=>{
