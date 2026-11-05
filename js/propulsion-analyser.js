@@ -673,7 +673,8 @@ const statsPage=el('section','propulsion-report-summary-page');
     analysisRows.forEach((row,rowIndex)=>{
      const raw=String(row[idx]??'').trim();
      if(raw==='')return;
-     const value=Number(raw);
+     const rawValue=Number(raw);
+     const value=s.key==='torque'?Math.abs(rawValue):rawValue;
      if(Number.isFinite(value)&&value>max){max=value;maxRow=rowIndex}
     });
     const tr=document.createElement('tr');
