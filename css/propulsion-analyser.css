@@ -737,3 +737,12 @@
   background:inherit;
   box-shadow:none;
 }
+
+
+/* Unfreeze the Timestamp data column as well; keep only the header row sticky. */
+.propulsion-csv-preview-table tbody td:first-of-type{
+  position:static!important;
+  left:auto!important;
+  z-index:auto!important;
+  box-shadow:none!important;
+}
