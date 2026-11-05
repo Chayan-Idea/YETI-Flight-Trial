@@ -222,8 +222,11 @@
    details.append(label,formulaLabel,formula,mappingNote);
    const calculate=el('button','btn alt propulsion-calculated-action','Calculate and Add to Graph');calculate.type='button';calculate.disabled=true;
    calculate.title='Select the checkbox to enable this calculation.';
+   let addedToGraph=false;
+   const addedStatus=el('span','propulsion-calculated-added-status','✓ Added to Graph');
+   addedStatus.hidden=true;
    calculatedParameterControls[parameter.key]={checkbox,calculate,updateMappingNote};
-   checkbox.addEventListener('change',()=>{calculate.disabled=!checkbox.checked;});
+   checkbox.addEventListener('change',()=>{calculate.disabled=addedToGraph||!checkbox.checked;});
    calculate.addEventListener('click',()=>{
     updateMappingNote();
     const requiredKeys=parameter.key==='mechanicalPower'?['torque','actualRpm']:parameter.key==='electricalPower'?['voltage','current']:['thrust','voltage','current'];
@@ -270,9 +273,16 @@
     savedGraphSelection();updatePlotAvailability();
     const validCount=analysisRows.filter(row=>String(row[derivedIndex]??'').trim()!==''&&Number.isFinite(Number(row[derivedIndex]))).length;
     graphStatus.textContent=parameter.name+' calculated for '+validCount.toLocaleString()+' valid rows out of '+analysisRows.length.toLocaleString()+' included rows. Select Plot Graph to view it.';
+    addedToGraph=true;
+    calculate.disabled=true;
+    calculate.textContent='Added to Graph';
+    calculate.title='This calculated parameter has already been added to the graph data.';
+    addedStatus.hidden=false;
+    checkbox.disabled=true;
+    card.classList.add('is-added-to-graph');
     saveState();
    });
-   card.append(details,calculate);calculatedParameters.append(card);
+   card.append(details,calculate,addedStatus);calculatedParameters.append(card);
   });
   step3Filter.append(calculatedParameters);
   const filterActions=el('div','propulsion-actions');filterActions.append(proceed,directReportProceed);
