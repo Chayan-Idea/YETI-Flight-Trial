@@ -194,7 +194,7 @@
    const formulaLabel=el('span','propulsion-calculated-formula-label','FORMULA');
    const formula=el('div','propulsion-calculated-formula',parameter.formula||'Formula will be added after specification.');
    details.append(label,formulaLabel,formula);
-   const calculate=el('button','btn alt propulsion-calculated-action','Calculate and Add to Graph');calculate.type='button';calculate.disabled=!parameter.enabled;calculate.title=parameter.enabled?'Calculate Torque * RPM for every included CSV row and add the result as a graphable column.':'Available after the calculation formula is provided.';
+   const calculate=el('button','btn alt propulsion-calculated-action','Calculate and Add to Graph');calculate.type='button';calculate.disabled=!parameter.enabled||!checkbox.checked;calculate.title=parameter.enabled?'Select the checkbox to enable calculation of Torque * RPM for every included CSV row.':'Available after the calculation formula is provided.';
    if(parameter.key==='mechanicalPower'){
     checkbox.addEventListener('change',()=>{calculate.disabled=!checkbox.checked;});
     calculate.addEventListener('click',()=>{
