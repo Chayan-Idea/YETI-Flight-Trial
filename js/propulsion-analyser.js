@@ -176,8 +176,8 @@
   const step3=el('section','propulsion-statistics-card propulsion-step-card propulsion-step-card--green');step3.id='propulsionParameterSummaryCard';step3.hidden=true;
   workspace.insertBefore(analysisPanel,workspace.querySelector('.propulsion-local-note'));
   const step3Filter=el('section','propulsion-step-card propulsion-step-card--orange');step3Filter.id='propulsionDataFilteringCard';step3Filter.hidden=true;
-  step3Filter.append(el('span','propulsion-step-label','STEP 03 · DATA FILTERING'));
-  step3Filter.append(el('h3','','Data Filtering'));
+  step3Filter.append(el('span','propulsion-step-label','STEP 03 · DATA FILTERING & SORTING'));
+  step3Filter.append(el('h3','','Data Filtering & Sorting'));
   step3Filter.append(el('p','propulsion-statistics-description','This section is reserved for data filtering and filtered CSV generation. Functionality will be added in a later update.'));
   const filterActions=el('div','propulsion-actions');filterActions.append(proceed,directReportProceed);step3Filter.append(filterActions);
   workspace.insertBefore(step3Filter,workspace.querySelector('.propulsion-local-note'));
