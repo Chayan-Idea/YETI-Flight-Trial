@@ -893,6 +893,20 @@
 .propulsion-point-navigation-section .propulsion-x-range-panel{margin:4px 0 0;padding:12px 0 0;border:0;border-top:1px solid #d8e5ef;border-radius:0;background:transparent;}
 .propulsion-point-navigation-section .propulsion-x-range-title{color:#174f7d;font-size:12px;font-weight:850;letter-spacing:.035em;text-transform:uppercase;}
 
+/* Enforce a true single vertical column for every active X/Y range input. */
+.propulsion-point-navigation-section .propulsion-x-range-panel .propulsion-x-range-fields{
+  display:flex!important;
+  flex-direction:column!important;
+  flex-wrap:nowrap!important;
+  align-items:stretch!important;
+  width:100%;
+  gap:12px;
+}
+.propulsion-point-navigation-section .propulsion-x-range-panel .propulsion-graph-field{
+  display:grid;
+  width:100%;
+  max-width:none;
+}
 /* X-Y selector: four range inputs with one explicit Apply action. */
 .propulsion-x-range-fields{grid-template-columns:minmax(0,1fr);}
 .propulsion-x-range-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;}
