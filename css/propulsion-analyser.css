@@ -663,3 +663,11 @@
 
 /* Fixed chart frame: only plotted data scales; axes, labels and grid remain anchored */
 .propulsion-chart-svg{overflow:visible}
+
+/* Two clearly separated graph-navigation sections inside the point explorer */
+.propulsion-point-navigation-section,.propulsion-point-navigator{display:grid;gap:10px;margin:0;padding:14px;border:1px solid #cbddec;border-radius:10px;background:#fff}
+.propulsion-point-navigation-title{display:block;color:#174f7d;font-size:12px;font-weight:850;letter-spacing:.035em;text-transform:uppercase}
+.propulsion-point-navigation-section .propulsion-point-readout{margin:0}
+.propulsion-point-navigation-section .propulsion-point-slider-label{margin-top:2px}
+.propulsion-point-navigation-section .propulsion-point-counter{justify-self:end}
+.propulsion-point-navigator{margin:0}
