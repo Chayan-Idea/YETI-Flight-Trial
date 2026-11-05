@@ -174,8 +174,17 @@
   const h=el('h3','', 'Review detected parameters');h.id='propulsionMappingHeading';top.append(h);
   top.append(el('p','propulsion-mapping-description', 'Header row detected at CSV row '+(headerIndex+1)+'. Review the proposed column mapping before proceeding.'));
   analysisPanel.append(top);
-  const grid=el('div','propulsion-mapping-list');
-  activeSpecs('mapping').forEach(s=>{
+  const mappingGroups=[
+   {title:'Mechanical Parameter Identification',keys:['thrust','torque','commandRpm','actualRpm'],style:'mechanical'},
+   {title:'Electrical Parameter Identification',keys:['voltage','current'],style:'electrical'},
+   {title:'Thermal Parameter Identification',keys:['escTemperature','motorTemperature'],style:'thermal'},
+   {title:'Other Parameter Identification',keys:['accelerationX','accelerationY','accelerationZ'],style:'other'}
+  ];
+  mappingGroups.forEach(group=>{
+   const subsection=el('section','propulsion-mapping-subsection propulsion-mapping-subsection--'+group.style);
+   subsection.append(el('h4','propulsion-mapping-subsection-title',group.title));
+   const grid=el('div','propulsion-mapping-list');
+   activeSpecs('mapping').filter(spec=>group.keys.includes(spec.key)).forEach(s=>{
    const item=el('label','propulsion-mapping-row');const parameterEnabled=isParameterAvailable(s.key,'mapping');if(!parameterEnabled){item.classList.add('is-parameter-disabled');item.setAttribute('aria-disabled','true');}item.append(el('span','propulsion-mapping-label',s.label));
    const select=el('select','propulsion-column-select');select.dataset.key=s.key;select.disabled=!parameterEnabled;
    const empty=document.createElement('option');empty.value='';empty.textContent='Not detected — select a column';select.append(empty);
@@ -197,8 +206,10 @@
     validateMapping();saveState()
    });
    grid.append(item);
+   });
+   subsection.append(grid);
+   analysisPanel.append(subsection);
   });
-  analysisPanel.append(grid);
   const summary=el('div','propulsion-mapping-summary');summary.id='propulsionMappingSummary';analysisPanel.append(summary);
   const actions=el('div','propulsion-actions');const confirm=el('button','btn','Mapping Confirmed');confirm.type='button';confirm.id='confirmPropulsionMappingBtn';confirm.disabled=true;actions.append(confirm);
   const rescan=el('button','btn alt','Re-identify columns');rescan.type='button';rescan.addEventListener('click',()=>{try{detect(parseCSV(parseCSVText,chooseDelimiter(parseCSVText)))}catch(e){showError(e.message)}});actions.append(rescan);analysisPanel.append(actions);
