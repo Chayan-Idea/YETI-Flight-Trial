@@ -779,7 +779,7 @@
    const coverMeta=el('div','propulsion-report-cover-meta');coverMeta.append(el('span','','VALIDATED DATASET · '+analysisRows.length.toLocaleString()+' records'));cover.append(coverMeta);
 const statsPage=el('section','propulsion-report-summary-page');
    statsPage.append(el('div','propulsion-report-page-kicker','01  /  TEST RESULTS'),el('h2','','EXECUTIVE PERFORMANCE SUMMARY'));
-   const units={thrust:'N',torque:'Nm',commandRpm:'RPM',actualRpm:'RPM',voltage:'V',current:'A',motorTemperature:'°C',escTemperature:'°C',accelerationX:'m/s²',accelerationY:'m/s²',accelerationZ:'m/s²'};
+   const units={thrust:'N',torque:'Nm',commandRpm:'RPM',actualRpm:'RPM',voltage:'V',current:'A',motorTemperature:'°C',escTemperature:'°C',accelerationX:'g',accelerationY:'g',accelerationZ:'g'};
    const getNum=(row,key)=>{const idx=mapping[key]?.selected;if(idx===undefined||idx==='')return NaN;const raw=String(row[idx]??'').trim();return raw===''?NaN:Number(raw)};
    const fmt=(v,d=2)=>Number.isFinite(v)?new Intl.NumberFormat(undefined,{maximumFractionDigits:d}).format(v):'—';
    const peak=(key)=>{let value=-Infinity,at=-1;analysisRows.forEach((row,i)=>{const v=getNum(row,key);if(Number.isFinite(v)&&v>value){value=v;at=i}});return {value,at}};
@@ -830,7 +830,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    ['Parameter','Mapped CSV Column','Maximum','Timestamp'].forEach(label=>headRow.append(el('th','',label)));
    thead.append(headRow);table.append(thead);
    const tbody=document.createElement('tbody');
-   const units={thrust:'N',torque:'Nm',commandRpm:'RPM',actualRpm:'RPM',voltage:'V',current:'A',motorTemperature:'°C',escTemperature:'°C',accelerationX:'m/s²',accelerationY:'m/s²',accelerationZ:'m/s²'};
+   const units={thrust:'N',torque:'Nm',commandRpm:'RPM',actualRpm:'RPM',voltage:'V',current:'A',motorTemperature:'°C',escTemperature:'°C',accelerationX:'g',accelerationY:'g',accelerationZ:'g'};
    const timestampAliases=['timestamp','time_stamp','datetime','date_time','date time','time','utc_time','local_time','sample_time','logged_at','date'];
    const timestampIndex=headerRow.map((name,index)=>({index,score:scoreHeader(name,timestampAliases)})).filter(item=>item.score>=65).sort((a,b)=>b.score-a.score)[0]?.index;
    const fmt=value=>new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(value);
