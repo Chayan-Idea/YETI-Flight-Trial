@@ -718,8 +718,11 @@ const statsPage=el('section','propulsion-report-summary-page');
  }
  function resetAnalysis(){
   if(analysisPanel){analysisPanel.remove();analysisPanel=null}
-  workspace.querySelector('.propulsion-statistics-card')?.remove();workspace.querySelector('.propulsion-graphical-card')?.remove();
-  selectedFile=null;mapping={};calculatedParameterKeys=[];headerRow=[];dataRows=[];analysisRows=[];confirmed=false;step3Visible=false;step4Visible=false;step5Visible=false;reportDirectVisible=false;parseCSVText='';if(csvPreviewPanel){csvPreviewPanel.remove();csvPreviewPanel=null;}workspace.querySelector('.propulsion-csv-preview-toggle-actions')?.remove();workspace.querySelector('.propulsion-csv-preview-actions')?.remove();
+  // Step 03 is created after parameter identification and must not survive a log-type reset.
+  workspace.querySelector('#propulsionDataFilteringCard')?.remove();
+  workspace.querySelector('#propulsionParameterSummaryCard')?.remove();
+  workspace.querySelector('.propulsion-graphical-card')?.remove();
+  selectedFile=null;mapping={};calculatedParameterKeys=[];calculatedParameterControls={};headerRow=[];dataRows=[];analysisRows=[];confirmed=false;step3FilterVisible=false;step3Visible=false;step4Visible=false;step5Visible=false;reportDirectVisible=false;parseCSVText='';if(csvPreviewPanel){csvPreviewPanel.remove();csvPreviewPanel=null;}workspace.querySelector('.propulsion-csv-preview-toggle-actions')?.remove();workspace.querySelector('.propulsion-csv-preview-actions')?.remove();
   meta.hidden=true;meta.textContent='';reset.hidden=true;start.disabled=true;start.textContent='Identify Parameters';
  }
  function updateLogTypeUI(){const chosen=!!logType;if(logUploadArea){logUploadArea.hidden=!chosen;logUploadArea.style.display=chosen?'':'none';}if(input){input.disabled=!chosen;if(!chosen)input.value='';}if(start)start.disabled=!chosen||!selectedFile;const typeName=logType==='thrust'?'Thrust':'Torque';const title=$id('propulsionLogUploadTitle'),pickerTitle=$id('propulsionCsvPickerTitle'),description=$id('propulsionLogUploadDescription');if(title)title.textContent='Upload '+typeName+' Log';if(pickerTitle)pickerTitle.textContent='Upload '+typeName+' Log';if(description)description.textContent='Upload the CSV file containing '+typeName.toLowerCase()+' test data. '+(logType==='thrust'?'Torque-related':'Thrust-related')+' parameters will be disabled in subsequent steps.';logTypePicker?.querySelectorAll('.propulsion-log-type-option').forEach(option=>{const radio=option.querySelector('input');option.classList.toggle('is-selected',radio?.value===logType);});}
