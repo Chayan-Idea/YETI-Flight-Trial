@@ -190,6 +190,13 @@
    {key:'overallEfficiency',name:'Specific Thrust',formula:null,numerator:'Thrust (N)',denominator:'Electrical Power (W)',sources:[['thrust','Thrust'],['voltage','DC Voltage'],['current','DC Current']]}
   ];
   calculatedParameterControls={};
+  const invalidateGeneratedCsv=(message)=>{
+   csvExportButton.disabled=false;
+   csvPreviewToggle.hidden=true;csvPreview.hidden=true;csvDownloadButton.hidden=true;
+   generatedCsvText='';generatedExportRows=[];generatedTimestampIndex=-1;
+   proceed.hidden=true;directReportProceed.hidden=true;
+   csvStatus.textContent=message||'Derived parameter settings changed. Generate Filtered & Sorted CSV again to include the latest selections and calculations.';
+  };
   const mappedColumnName=key=>{
    const index=mapping[key]?.selected;
    return index===''||index===undefined?'Not mapped':(headerRow[index]||'Mapped column');
@@ -233,7 +240,7 @@
    retry.type='button';retry.hidden=true;
    retry.title='Enable this calculation again.';
    calculatedParameterControls[parameter.key]={checkbox,calculate,updateMappingNote};
-   checkbox.addEventListener('change',()=>{calculate.disabled=addedToGraph||!checkbox.checked;});
+   checkbox.addEventListener('change',()=>{calculate.disabled=addedToGraph||!checkbox.checked;invalidateGeneratedCsv('Derived parameter selection changed. Generate Filtered & Sorted CSV again to apply the latest selections.');saveState();});
    retry.addEventListener('click',()=>{
     addedToGraph=false;
     calculate.hidden=false;
@@ -266,6 +273,7 @@
     saveState();
    });
    calculate.addEventListener('click',()=>{
+    invalidateGeneratedCsv('A derived parameter calculation was updated. Generate Filtered & Sorted CSV again to include the latest calculations.');
     if(!checkbox.checked){graphStatus.textContent='Select the checkbox for '+parameter.name+' before calculating and adding it to the graph.';return;}
     updateMappingNote();
     const requiredKeys=parameter.key==='mechanicalPower'?['torque','actualRpm']:parameter.key==='electricalPower'?['voltage','current']:['thrust','voltage','current'];
