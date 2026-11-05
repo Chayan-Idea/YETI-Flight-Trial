@@ -2,7 +2,7 @@
 (()=>{
  'use strict';
  const $id=id=>document.getElementById(id);
- const logTypePicker=$id('propulsionLogTypePicker');let logType='';const input=$id('propulsionCsvInput'),filePicker=input?.closest('.propulsion-file-picker'),status=$id('propulsionUploadStatus'),meta=$id('propulsionFileMeta'),start=$id('startPropulsionAnalysisBtn'),reset=$id('resetPropulsionUploadBtn'),workspace=document.querySelector('.propulsion-analyser-workspace');
+ const logTypePicker=$id('propulsionLogTypePicker'),logUploadArea=$id('propulsionLogUploadArea');let logType='';const input=$id('propulsionCsvInput'),filePicker=input?.closest('.propulsion-file-picker'),status=$id('propulsionUploadStatus'),meta=$id('propulsionFileMeta'),start=$id('startPropulsionAnalysisBtn'),reset=$id('resetPropulsionUploadBtn'),workspace=document.querySelector('.propulsion-analyser-workspace');
  if(reset)reset.textContent='Choose another log file';
  if(!input||!status||!start||!workspace)return;
  const uploadCard=input.closest('.propulsion-upload-card');
@@ -709,7 +709,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   selectedFile=null;mapping={};calculatedParameterKeys=[];headerRow=[];dataRows=[];analysisRows=[];confirmed=false;step3Visible=false;step4Visible=false;step5Visible=false;reportDirectVisible=false;parseCSVText='';if(csvPreviewPanel){csvPreviewPanel.remove();csvPreviewPanel=null;}workspace.querySelector('.propulsion-csv-preview-toggle-actions')?.remove();workspace.querySelector('.propulsion-csv-preview-actions')?.remove();
   meta.hidden=true;meta.textContent='';reset.hidden=true;start.disabled=true;start.textContent='Identify Parameters';
  }
- function updateLogTypeUI(){if(filePicker)filePicker.classList.toggle('is-log-type-locked',!logType);if(input)input.disabled=!logType;if(start)start.disabled=!logType||!selectedFile;const copy=workspace?.querySelector('.propulsion-upload-card .muted');if(copy)copy.textContent=logType?'Selected '+(logType==='thrust'?'Thrust':'Torque')+' Log. '+(logType==='thrust'?'Torque-related':'Thrust-related')+' parameters will be disabled in subsequent steps.':'Choose Thrust Log or Torque Log before uploading a CSV file.';}
+ function updateLogTypeUI(){const chosen=!!logType;if(logUploadArea)logUploadArea.hidden=!chosen;if(input)input.disabled=!chosen;if(start)start.disabled=!chosen||!selectedFile;const typeName=logType==='thrust'?'Thrust':'Torque';const title=$id('propulsionLogUploadTitle'),pickerTitle=$id('propulsionCsvPickerTitle'),description=$id('propulsionLogUploadDescription');if(title)title.textContent='Upload '+typeName+' Log';if(pickerTitle)pickerTitle.textContent='Upload '+typeName+' Log';if(description)description.textContent='Upload the CSV file containing '+typeName.toLowerCase()+' test data. '+(logType==='thrust'?'Torque-related':'Thrust-related')+' parameters will be disabled in subsequent steps.';logTypePicker?.querySelectorAll('.propulsion-log-type-option').forEach(option=>{const radio=option.querySelector('input');option.classList.toggle('is-selected',radio?.value===logType);});}
  logTypePicker?.querySelectorAll('input[name="propulsionLogType"]').forEach(radio=>radio.addEventListener('change',()=>{const next=radio.value;if(logType&&logType!==next&&(selectedFile||confirmed)){if(!confirm('Changing the log type will reset the current analysis. Continue?')){logTypePicker.querySelector('input[value="'+logType+'"]').checked=true;return;}input.value='';resetAnalysis();}logType=next;updateLogTypeUI();saveState();}));
  input.addEventListener('change',()=>{
   resetAnalysis();
