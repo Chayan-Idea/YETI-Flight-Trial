@@ -13,32 +13,28 @@ const fail = message => failures.push(message);
 function checkJavaScript(file, source) {
   try {
     new vm.Script(source, { filename: file });
-    pass(`JavaScript syntax: ${file}`);
+    pass(\`JavaScript syntax: \${file}\`);
   } catch (error) {
-    fail(`JavaScript syntax: ${file}: ${error.message}`);
+    fail(\`JavaScript syntax: \${file}: \${error.message}\`);
   }
 }
 
-function stripCssComments(source) {
-  return source.replace(/\/\*[\s\S]*?\*\//g, '');
-}
-
 function checkCss(file) {
-  const source = stripCssComments(read(file));
+  const source = read(file).replace(/\/\*[\s\S]*?\*\//g, '');
   let depth = 0;
   for (const character of source) {
     if (character === '{') depth += 1;
     if (character === '}') depth -= 1;
     if (depth < 0) break;
   }
-  if (depth === 0) pass(`CSS block balance: ${file}`);
-  else fail(`CSS block balance: ${file} (final depth ${depth})`);
+  if (depth === 0) pass(\`CSS block balance: \${file}\`);
+  else fail(\`CSS block balance: \${file} (final depth \${depth})\`);
 }
 
 const html = read('index.html');
 const ids = [...html.matchAll(/\bid=["']([^"']+)["']/g)].map(match => match[1]);
 const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index);
-if (duplicates.length) fail(`Duplicate HTML IDs: ${[...new Set(duplicates)].join(', ')}`);
+if (duplicates.length) fail(\`Duplicate HTML IDs: \${[...new Set(duplicates)].join(', ')}\`);
 else pass('No duplicate static HTML IDs');
 
 const assetReferences = [...html.matchAll(/\b(?:src|href)=["']([^"'#]+)["']/g)]
@@ -46,8 +42,8 @@ const assetReferences = [...html.matchAll(/\b(?:src|href)=["']([^"'#]+)["']/g)]
   .filter(reference => reference.startsWith('./') || reference.startsWith('assets/'));
 for (const reference of assetReferences) {
   const localPath = reference.split('?')[0].replace(/^\.\//, '');
-  if (exists(localPath)) pass(`HTML asset exists: ${localPath}`);
-  else fail(`Missing HTML asset: ${localPath}`);
+  if (exists(localPath)) pass(\`HTML asset exists: \${localPath}\`);
+  else fail(\`Missing HTML asset: \${localPath}\`);
 }
 
 const externalScripts = [...html.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["'][^>]*><\/script>/gi)]
@@ -55,7 +51,7 @@ const externalScripts = [...html.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["'][
 for (const reference of externalScripts) {
   const localPath = reference.split('?')[0].replace(/^\.\//, '');
   if (!exists(localPath)) {
-    fail(`Missing JavaScript entry: ${localPath}`);
+    fail(\`Missing JavaScript entry: \${localPath}\`);
     continue;
   }
   checkJavaScript(localPath, read(localPath));
@@ -64,26 +60,24 @@ for (const reference of externalScripts) {
 const inlineScripts = [...html.matchAll(/<script\b(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)]
   .map(match => match[1])
   .filter(source => source.trim());
-inlineScripts.forEach((source, index) => checkJavaScript(`index.html inline script ${index + 1}`, source));
+inlineScripts.forEach((source, index) => checkJavaScript(\`index.html inline script \${index + 1}\`, source));
 
 const stylesheets = [...html.matchAll(/<link\b[^>]*\brel=["']stylesheet["'][^>]*\bhref=["']([^"']+)["'][^>]*>/gi)]
   .map(match => match[1]);
 for (const reference of stylesheets) {
   const localPath = reference.split('?')[0].replace(/^\.\//, '');
   if (exists(localPath)) checkCss(localPath);
-  else fail(`Missing stylesheet: ${localPath}`);
+  else fail(\`Missing stylesheet: \${localPath}\`);
 }
 
-for (const file of ['service-worker.js']) {
-  if (exists(file)) checkJavaScript(file, read(file));
-}
+checkJavaScript('service-worker.js', read('service-worker.js'));
 
 if (failures.length) {
   console.error('YETI Flight Trial validation FAILED');
-  for (const failure of failures) console.error(`✗ ${failure}`);
+  for (const failure of failures) console.error(\`✗ \${failure}\`);
   process.exitCode = 1;
 } else {
   console.log('YETI Flight Trial validation PASSED');
 }
-for (const check of checks) console.log(`✓ ${check}`);
-console.log(`Checks passed: ${checks.length}; failures: ${failures.length}`);
+for (const check of checks) console.log(\`✓ \${check}\`);
+console.log(\`Checks passed: \${checks.length}; failures: \${failures.length}\`);
