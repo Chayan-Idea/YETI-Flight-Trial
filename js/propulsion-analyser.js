@@ -820,8 +820,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    });
    db.close();
   }catch(error){console.warn('Could not clear previous propulsion session:',error)}
-  try{['yetiPropulsionLogTab','yetiPropulsionSidebarCollapsed'].forEach(key=>localStorage.removeItem(key));}
-  catch(error){console.warn('Could not clear saved propulsion view preferences:',error)}
+  // Keep navigation preferences; only analysis/session data is reset on refresh.
   input.value='';
   logType='';
   logTypePicker?.querySelectorAll('input[name="propulsionLogType"]').forEach(radio=>{radio.checked=false;});
