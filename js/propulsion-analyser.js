@@ -294,6 +294,8 @@
    calculatedParameterControls[parameter.key]={checkbox,calculate,retry,updateMappingNote};
    checkbox.addEventListener('change',()=>{calculate.disabled=addedToGraph||!checkbox.checked;invalidateGeneratedCsv('Derived parameter selection changed. Generate Filtered & Sorted CSV again to apply the latest selections.');saveState();});
    retry.addEventListener('click',()=>{
+    // A Retry is a derived-parameter edit: immediately invalidate the CSV confirmation gate and downstream output.
+    invalidateGeneratedCsv('A derived parameter was reset. Review the derived parameters and re-confirm both CSV preparation checkboxes before generating the file again.');
     addedToGraph=false;
     calculate.hidden=false;
     checkbox.disabled=false;
