@@ -763,3 +763,9 @@
   position:sticky!important;
   top:0!important;
 }
+
+
+/* CSV generation prerequisite confirmations */
+.propulsion-csv-confirmations{display:flex;flex-direction:column;gap:10px;margin:16px 0 12px;padding:14px 16px;border:1px solid #cbd9e6;border-radius:12px;background:#f8fbfe}
+.propulsion-csv-confirmation{display:flex;align-items:flex-start;gap:10px;color:#173b60;font-size:14px;font-weight:650;line-height:1.5;cursor:pointer}
+.propulsion-csv-confirmation input{width:17px;height:17px;margin:2px 0 0;flex:0 0 auto;accent-color:#1769aa}
