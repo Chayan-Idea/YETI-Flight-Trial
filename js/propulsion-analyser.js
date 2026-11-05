@@ -167,7 +167,7 @@
   top.append(el('p','propulsion-mapping-description', 'Header row detected at CSV row '+(headerIndex+1)+'. Review the proposed column mapping before proceeding.'));
   analysisPanel.append(top);
   const grid=el('div','propulsion-mapping-list');
-  specs.forEach(s=>{
+  activeSpecs('mapping').forEach(s=>{
    const item=el('label','propulsion-mapping-row');const parameterEnabled=isParameterAvailable(s.key,'mapping');if(!parameterEnabled){item.classList.add('is-parameter-disabled');item.setAttribute('aria-disabled','true');}item.append(el('span','propulsion-mapping-label',s.label));
    const select=el('select','propulsion-column-select');select.dataset.key=s.key;select.disabled=!parameterEnabled;
    const empty=document.createElement('option');empty.value='';empty.textContent='Not detected — select a column';select.append(empty);
