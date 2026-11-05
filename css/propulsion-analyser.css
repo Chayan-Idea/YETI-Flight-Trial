@@ -746,3 +746,20 @@
   z-index:auto!important;
   box-shadow:none!important;
 }
+
+
+/* Unfreeze the first two CSV columns (ROW and Timestamp) from the left edge. */
+.propulsion-csv-preview-table thead th:nth-child(1),
+.propulsion-csv-preview-table thead th:nth-child(2),
+.propulsion-csv-preview-table tbody th,
+.propulsion-csv-preview-table tbody td:first-of-type{
+  position:static!important;
+  left:auto!important;
+  z-index:auto!important;
+  box-shadow:none!important;
+}
+/* Keep only the header row fixed vertically. */
+.propulsion-csv-preview-table thead th{
+  position:sticky!important;
+  top:0!important;
+}
