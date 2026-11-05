@@ -806,6 +806,31 @@ const statsPage=el('section','propulsion-report-summary-page');
   }catch(error){start.textContent='Identify Parameters';start.disabled=false;showError(error.message||'CSV could not be read.')}
  });
  start.textContent='Identify Parameters';start.disabled=true;
- // Every refresh begins at Section 01 with no restored file, log type, mapping, or analysis.
- (async()=>{try{const db=await openStateDB();await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).delete(DB_KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close();}catch(error){console.warn('Could not clear previous propulsion session:',error)}updateLogTypeUI();})();
+ // Every page load starts a completely new propulsion session. No previous CSV,
+ // log type, mapping, derived calculation, graph selection, or workflow state is restored.
+ const beginFreshPropulsionSession=async()=>{
+  try{
+   const db=await openStateDB();
+   await new Promise((resolve,reject)=>{
+    const tx=db.transaction(DB_STORE,'readwrite');
+    tx.objectStore(DB_STORE).clear();
+    tx.oncomplete=resolve;
+    tx.onerror=()=>reject(tx.error);
+    tx.onabort=()=>reject(tx.error||new Error('Session reset was aborted'));
+   });
+   db.close();
+  }catch(error){console.warn('Could not clear previous propulsion session:',error)}
+  try{['yetiPropulsionLogTab','yetiPropulsionSidebarCollapsed'].forEach(key=>localStorage.removeItem(key));}
+  catch(error){console.warn('Could not clear saved propulsion view preferences:',error)}
+  input.value='';
+  logType='';
+  logTypePicker?.querySelectorAll('input[name="propulsionLogType"]').forEach(radio=>{radio.checked=false;});
+  resetAnalysis();
+  if(filePicker)filePicker.hidden=false;
+  reset.textContent='Choose another log file';
+  setUploadState(false,'Select Thrust Log or Torque Log to begin a new session');
+  updateLogTypeUI();
+ };
+ beginFreshPropulsionSession();
+ window.addEventListener('pageshow',event=>{if(event.persisted)window.location.reload();});
 })();
