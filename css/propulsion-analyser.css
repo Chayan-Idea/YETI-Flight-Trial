@@ -833,3 +833,14 @@
   z-index:17!important;
   background:#eaf3fa!important;
 }
+
+
+/* Step 02 parameter identification: four independently outlined groups inside the parent card. */
+.propulsion-mapping-subsection{--mapping-accent:#8062c6;position:relative;min-width:0;padding:15px 16px 16px;border:1.5px solid color-mix(in srgb,var(--mapping-accent) 38%,#fff);border-left:5px solid var(--mapping-accent);border-radius:13px;background:var(--mapping-tint,#fff);box-shadow:0 3px 11px rgba(18,59,112,.045)}
+.propulsion-mapping-subsection--mechanical{--mapping-accent:#2878b8;--mapping-tint:#f5faff}
+.propulsion-mapping-subsection--electrical{--mapping-accent:#b47a19;--mapping-tint:#fffbf2}
+.propulsion-mapping-subsection--thermal{--mapping-accent:#c45c48;--mapping-tint:#fff8f6}
+.propulsion-mapping-subsection--other{--mapping-accent:#21845c;--mapping-tint:#f5fbf7}
+.propulsion-mapping-subsection-title{margin:0 0 13px;padding:0 0 9px;border-bottom:1px solid color-mix(in srgb,var(--mapping-accent) 28%,#fff);color:var(--mapping-accent);font-size:14px;font-weight:850;letter-spacing:.01em}
+.propulsion-mapping-subsection .propulsion-mapping-list{margin:0}
+@media(max-width:620px){.propulsion-mapping-subsection{padding:13px 12px 14px}}
