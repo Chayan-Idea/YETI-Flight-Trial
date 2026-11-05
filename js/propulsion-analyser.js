@@ -234,15 +234,22 @@
   calculatedParameterControls={};
   let derivedReadyCheckbox=null,filteringReadyCheckbox=null;
   const updateCsvGenerationGate=()=>{csvExportButton.hidden=!(derivedReadyCheckbox?.checked&&filteringReadyCheckbox?.checked);};
+  const resetCsvConfirmationCheckboxes=()=>{
+   // Resolve by live DOM ID as well as the retained references so the visible controls always reset.
+   const derived=document.getElementById('confirmDerivedParametersReady')||derivedReadyCheckbox;
+   const filtering=document.getElementById('confirmFilteringSortingReady')||filteringReadyCheckbox;
+   [derived,filtering].forEach(input=>{
+    if(input){input.checked=false;input.removeAttribute('checked');}
+   });
+   updateCsvGenerationGate();
+  };
   const invalidateGeneratedCsv=(message)=>{
    // Any edit within Step 03 invalidates every downstream analysis/report section immediately.
    step3Visible=false;step4Visible=false;step5Visible=false;reportDirectVisible=false;
    step3.hidden=true;step4.hidden=true;step5.hidden=true;
    step3.replaceChildren();
    csvExportButton.disabled=false;
-   if(derivedReadyCheckbox)derivedReadyCheckbox.checked=false;
-   if(filteringReadyCheckbox)filteringReadyCheckbox.checked=false;
-   updateCsvGenerationGate();
+   resetCsvConfirmationCheckboxes();
    csvPreviewToggle.hidden=true;csvPreview.hidden=true;csvDownloadButton.hidden=true;
    generatedCsvText='';generatedExportRows=[];generatedTimestampIndex=-1;
    proceed.hidden=true;directReportProceed.hidden=true;
@@ -296,6 +303,8 @@
    retry.addEventListener('click',()=>{
     // A Retry is a derived-parameter edit: immediately invalidate the CSV confirmation gate and downstream output.
     invalidateGeneratedCsv('A derived parameter was reset. Review the derived parameters and re-confirm both CSV preparation checkboxes before generating the file again.');
+    // Repeat the reset at the Retry interaction boundary to prevent stale confirmation state.
+    resetCsvConfirmationCheckboxes();
     addedToGraph=false;
     calculate.hidden=false;
     checkbox.disabled=false;
