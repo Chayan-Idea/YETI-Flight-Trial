@@ -181,9 +181,9 @@
   step3Filter.append(el('p','propulsion-statistics-description','Select calculated parameters to add row-wise derived data columns. Formula definitions and calculation actions will be enabled as each formula is provided.'));
   const calculatedParameters=el('div','propulsion-calculated-parameters');calculatedParameters.id='propulsionCalculatedParameters';
   const calculatedParameterDefinitions=[
-   {key:'mechanicalPower',name:'Mechanical Power',formula:'Mechanical Power (W) = Torque * Motor Speed',sources:[['torque','Torque'],['actualRpm','Motor Speed']]},
-   {key:'electricalPower',name:'Electrical Power',formula:'Electrical Power (W) = DC Voltage * DC Current',sources:[['voltage','DC Voltage'],['current','DC Current']]},
-   {key:'overallEfficiency',name:'Overall Propulsion Efficiency',formula:'Overall Propulsion Efficiency = Thrust / Electrical Power',sources:[['thrust','Thrust'],['voltage','DC Voltage'],['current','DC Current']]}
+   {key:'mechanicalPower',name:'Mechanical Power',formula:'Pₘ (W) = τ (N·m) × N (RPM) × (2π / 60)',sources:[['torque','Torque'],['actualRpm','Motor Speed (Actual RPM)']]},
+   {key:'electricalPower',name:'Electrical Power',formula:'Pₑ (W) = VDC (V) × IDC (A)',sources:[['voltage','DC Voltage'],['current','DC Current']]},
+   {key:'overallEfficiency',name:'Specific Thrust',formula:'ST (N/W) = Thrust (N) / Electrical Power (W)',sources:[['thrust','Thrust'],['voltage','DC Voltage'],['current','DC Current']]}
   ];
   calculatedParameterControls={};
   const mappedColumnName=key=>{
@@ -227,7 +227,7 @@
     const calculateRow=row=>{
      if(parameter.key==='mechanicalPower'){
       const torque=numberFrom(row,'torque'),motorSpeed=numberFrom(row,'actualRpm');
-      return Number.isFinite(torque)&&Number.isFinite(motorSpeed)?torque*motorSpeed:NaN;
+      return Number.isFinite(torque)&&Number.isFinite(motorSpeed)?torque*motorSpeed*(2*Math.PI/60):NaN;
      }
      if(parameter.key==='electricalPower'){
       const voltage=numberFrom(row,'voltage'),current=numberFrom(row,'current');
@@ -235,7 +235,7 @@
      }
      const thrust=numberFrom(row,'thrust'),voltage=numberFrom(row,'voltage'),current=numberFrom(row,'current');
      const electricalPower=voltage*current;
-     return Number.isFinite(thrust)&&Number.isFinite(electricalPower)&&electricalPower!==0?thrust/electricalPower:NaN;
+     return Number.isFinite(thrust)&&Number.isFinite(electricalPower)&&electricalPower>0?thrust/electricalPower:NaN;
     };
     let derivedIndex=headerRow.indexOf(parameter.name);
     if(derivedIndex<0){derivedIndex=headerRow.length;headerRow.push(parameter.name);}
