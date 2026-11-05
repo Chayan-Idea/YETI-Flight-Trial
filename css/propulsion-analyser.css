@@ -844,3 +844,39 @@
 .propulsion-mapping-subsection-title{margin:0 0 13px;padding:0 0 9px;border-bottom:1px solid color-mix(in srgb,var(--mapping-accent) 28%,#fff);color:var(--mapping-accent);font-size:14px;font-weight:850;letter-spacing:.01em}
 .propulsion-mapping-subsection .propulsion-mapping-list{margin:0}
 @media(max-width:620px){.propulsion-mapping-subsection{padding:13px 12px 14px}}
+
+/* FINAL OVERRIDE — keep the first TWO columns frozen for every row in BOTH CSV previews.
+   Column 1 is the ROW index; column 2 is the first source CSV field. */
+.propulsion-csv-preview-table thead th:nth-child(1),
+.propulsion-csv-preview-table tbody th{
+  position:sticky!important;
+  left:0!important;
+  z-index:20!important;
+  background:#e7f0f8!important;
+}
+.propulsion-csv-preview-table thead th:nth-child(2){
+  position:sticky!important;
+  left:var(--csv-first-col-width,64px)!important;
+  z-index:19!important;
+  background:#eaf3fa!important;
+}
+.propulsion-csv-preview-table tbody td:first-of-type{
+  position:sticky!important;
+  left:var(--csv-first-col-width,64px)!important;
+  z-index:8!important;
+  background:#fff!important;
+}
+.propulsion-csv-preview-table tbody tr:nth-child(even) td:first-of-type{
+  background:#f5f9fc!important;
+}
+/* Preserve the top-left intersections where the frozen rows and columns meet. */
+.propulsion-csv-preview-table tbody tr:first-child th{
+  z-index:22!important;
+  left:0!important;
+  background:#e4eef7!important;
+}
+.propulsion-csv-preview-table tbody tr:first-child td:first-of-type{
+  z-index:21!important;
+  left:var(--csv-first-col-width,64px)!important;
+  background:#eaf3fa!important;
+}
