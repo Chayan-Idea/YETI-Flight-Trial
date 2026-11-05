@@ -719,3 +719,9 @@
 .propulsion-generated-csv-preview[hidden]{display:none}
 .propulsion-csv-export-status{line-height:1.55}
 .propulsion-subsection--csv .propulsion-actions{align-items:center;flex-wrap:wrap}
+
+
+/* Keep generated CSV controls on one row, with download aligned to the far right. */
+.propulsion-csv-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;width:100%}
+.propulsion-csv-actions .propulsion-csv-download-spacer{flex:1 1 auto}
+.propulsion-csv-actions #propulsionCsvDownloadButton{margin-left:auto}
