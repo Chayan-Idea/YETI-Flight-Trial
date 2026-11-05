@@ -518,6 +518,7 @@
   const graphRangeActions=el('div','propulsion-x-range-actions');
   const applyGraphRange=el('button','btn propulsion-x-range-apply','Apply');applyGraphRange.type='button';
   const resetXRange=el('button','btn alt propulsion-x-range-reset','Reset Full Range');resetXRange.type='button';
+  resetXRange.disabled=true;
   graphRangeActions.append(applyGraphRange,resetXRange);
   graphRangePanel.append(graphRangeFields,graphRangeActions);graphRangePanel.hidden=true;
   const chartHost=el('div','propulsion-chart-host');chartHost.id='propulsionChartHost';step4.append(chartHost);
