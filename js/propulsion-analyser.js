@@ -573,7 +573,7 @@ if(xSelect.value===''||ySelect.value===''){graphStatus.textContent='Select X and
   });
 
   let plottedPoints=[],pointMarker=null,secondaryPointMarker=null,pointGuide=null,xiForReadout=0,yiForReadout=0,y2iForReadout=null;
-   const updateRangeActionAvailability=()=>{const dualY=y2Select.value!=='';applyGraphRange.disabled=dualY;resetXRange.disabled=dualY||!plottedPoints.length;};
+   const updateRangeActionAvailability=()=>{const dualY=y2Select.value!=='';applyGraphRange.disabled=dualY;resetXRange.disabled=dualY||!plottedPoints.length;};updateRangeActionAvailability();
   const formatPointValue=value=>Number.isFinite(value)?new Intl.NumberFormat(undefined,{maximumFractionDigits:6}).format(value):'—';
   const selectGraphPoint=index=>{
    if(!plottedPoints.length||!pointMarker||!pointGuide)return;
