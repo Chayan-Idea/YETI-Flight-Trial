@@ -180,7 +180,19 @@
    const current=mapping[s.key].selected;select.value=current===''?'':String(current);
    if(mapping[s.key].candidates.length>1){item.append(el('span','propulsion-match-note','Multiple possible matches — verify selection'))}
    else if(current===''){item.append(el('span','propulsion-match-note warning','No automatic match — choose manually'))}
-   item.append(select);select.addEventListener('change',()=>{mapping[s.key].selected=select.value===''?'':Number(select.value);validateMapping();saveState()});
+   item.append(select);select.addEventListener('change',()=>{
+    mapping[s.key].selected=select.value===''?'':Number(select.value);
+    if(confirmed){
+     calculatedParameterDefinitions.forEach(parameter=>calculatedParameterControls[parameter.key]?.retry?.click());
+     headerRow=headerRow.slice(0,originalHeaderCount);analysisRows=dataRows.slice();calculatedParameterKeys=[];
+     confirmed=false;step3FilterVisible=false;step3Visible=false;step4Visible=false;step5Visible=false;reportDirectVisible=false;
+     step3Filter.hidden=true;step3.hidden=true;step4.hidden=true;step5.hidden=true;
+     next.hidden=true;next.replaceChildren();confirm.disabled=false;confirm.textContent='Mapping Confirmed';
+     proceed.hidden=true;directReportProceed.hidden=true;
+     invalidateGeneratedCsv('Step 02 mapping changed. Confirm the updated mapping and regenerate the Filtered & Sorted CSV.');
+    }
+    validateMapping();saveState()
+   });
    grid.append(item);
   });
   analysisPanel.append(grid);
@@ -265,7 +277,7 @@
    const retry=el('button','btn alt propulsion-calculated-retry','Retry');
    retry.type='button';retry.hidden=true;retry.disabled=!parameterEnabled;
    retry.title='Enable this calculation again.';
-   calculatedParameterControls[parameter.key]={checkbox,calculate,updateMappingNote};
+   calculatedParameterControls[parameter.key]={checkbox,calculate,retry,updateMappingNote};
    checkbox.addEventListener('change',()=>{calculate.disabled=addedToGraph||!checkbox.checked;invalidateGeneratedCsv('Derived parameter selection changed. Generate Filtered & Sorted CSV again to apply the latest selections.');saveState();});
    retry.addEventListener('click',()=>{
     addedToGraph=false;
@@ -446,7 +458,10 @@
   const savedGraphSelection=()=>{graphXIndex=xSelect.value;graphYIndex=ySelect.value;graphY2Index=y2Select.value;saveState()};
   const updatePlotAvailability=()=>{plotButton.disabled=xSelect.value===''||ySelect.value==='';};
   const plotActions=el('div','propulsion-actions');const plotButton=el('button','btn','Plot Graph');plotButton.type='button';plotButton.id='plotPropulsionGraphBtn';plotButton.disabled=true;plotActions.append(plotButton);
-  [xSelect,ySelect,y2Select].forEach(select=>select.addEventListener('change',()=>{savedGraphSelection();updatePlotAvailability()}));
+  [xSelect,ySelect,y2Select].forEach(select=>select.addEventListener('change',()=>{
+   if(step5Visible){step5Visible=false;step5.hidden=true;reportDirectVisible=false;}
+   savedGraphSelection();updatePlotAvailability()
+  }));
   graphControls.append(xField.label,yField.label,y2Field.label);step4.append(graphControls);
   step4.append(plotActions);
   const graphStatus=el('p','propulsion-graph-status','Choose an X axis and at least one Y axis parameter to enable Plot Graph.');graphStatus.id='propulsionGraphStatus';step4.append(graphStatus);
