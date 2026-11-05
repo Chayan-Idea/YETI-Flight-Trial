@@ -725,3 +725,15 @@
 .propulsion-csv-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;width:100%}
 .propulsion-csv-actions .propulsion-csv-download-spacer{flex:1 1 auto}
 .propulsion-csv-actions #propulsionCsvDownloadButton{margin-left:auto}
+
+
+/* Unfreeze the first CSV data row; only the column-header row remains fixed. */
+.propulsion-csv-preview-table tbody tr:first-child th,
+.propulsion-csv-preview-table tbody tr:first-child td{
+  position:static!important;
+  top:auto!important;
+  left:auto!important;
+  z-index:auto!important;
+  background:inherit;
+  box-shadow:none;
+}
