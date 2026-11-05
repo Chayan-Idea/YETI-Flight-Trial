@@ -40,9 +40,8 @@
   thead.append(headRow);table.append(thead);
   const tbody=document.createElement('tbody');table.append(tbody);viewport.append(table);
   const rawToggle=el('button','btn alt','Show Uploaded Raw CSV File');rawToggle.type='button';rawToggle.id='showUploadedRawCsvBtn';
-  const filteredToggle=el('button','btn alt','Show Data Filtered CSV File');filteredToggle.type='button';filteredToggle.id='showFilteredCsvBtn';
   const previewActions=el('div','propulsion-actions propulsion-csv-preview-toggle-actions');
-  previewActions.append(rawToggle,filteredToggle);
+  previewActions.append(rawToggle);
   const identifyActions=el('div','propulsion-actions propulsion-csv-preview-actions');identifyActions.append(start);identifyActions.hidden=true;
   let activeView='',visibleRows=[];
   const timestampAliases=['timestamp','time_stamp','datetime','date_time','date time','time','utc_time','local_time','sample_time','logged_at','date'];
@@ -70,14 +69,11 @@
    activeView=viewName;
    csvPreviewPanel.hidden=false;identifyActions.hidden=false;
    rawToggle.textContent=viewName==='raw'?'Hide Uploaded Raw CSV File':'Show Uploaded Raw CSV File';
-   filteredToggle.textContent=viewName==='filtered'?'Hide Data Filtered CSV File':'Show Data Filtered CSV File';
    rawToggle.setAttribute('aria-expanded',String(viewName==='raw'));
-   filteredToggle.setAttribute('aria-expanded',String(viewName==='filtered'));
    requestAnimationFrame(setFreezeOffsets);
   };
-  const hidePreview=()=>{csvPreviewPanel.hidden=true;identifyActions.hidden=true;activeView='';rawToggle.textContent='Show Uploaded Raw CSV File';filteredToggle.textContent='Show Data Filtered CSV File';rawToggle.setAttribute('aria-expanded','false');filteredToggle.setAttribute('aria-expanded','false')};
+  const hidePreview=()=>{csvPreviewPanel.hidden=true;identifyActions.hidden=true;activeView='';rawToggle.textContent='Show Uploaded Raw CSV File';rawToggle.setAttribute('aria-expanded','false')};
   rawToggle.addEventListener('click',()=>{if(activeView==='raw'&&!csvPreviewPanel.hidden)hidePreview();else renderRows(rows,'raw')});
-  filteredToggle.addEventListener('click',()=>{if(activeView==='filtered'&&!csvPreviewPanel.hidden)hidePreview();else if(filteredRows)renderRows(filteredRows,'filtered');else{graphStatusSafeMessage();}});
   function graphStatusSafeMessage(){info.textContent='Filtered preview unavailable: Actual RPM column could not be identified in this CSV. Please verify the column header.';title.textContent='Data Filtered CSV File';csvPreviewPanel.hidden=false;identifyActions.hidden=true;activeView='filtered';}
   if(uploadCard){uploadCard.insertAdjacentElement('afterend',previewActions);previewActions.insertAdjacentElement('afterend',csvPreviewPanel);}
   else{workspace.insertBefore(previewActions,workspace.firstChild);previewActions.insertAdjacentElement('afterend',csvPreviewPanel);}
@@ -180,8 +176,13 @@
   const step3=el('section','propulsion-statistics-card propulsion-step-card propulsion-step-card--green');step3.id='propulsionParameterSummaryCard';step3.hidden=true;
   workspace.insertBefore(analysisPanel,workspace.querySelector('.propulsion-local-note'));
   workspace.insertBefore(step3,workspace.querySelector('.propulsion-local-note'));
+  const step4Filter=el('section','propulsion-step-card propulsion-step-card--orange');step4Filter.id='propulsionDataFilteringCard';step4Filter.hidden=true;
+  step4Filter.append(el('span','propulsion-step-label','STEP 04 · DATA FILTERING'));
+  step4Filter.append(el('h3','','Data Filtering'));
+  step4Filter.append(el('p','propulsion-statistics-description','This section is reserved for data filtering and filtered CSV generation. Functionality will be added in a later update.'));
+  workspace.insertBefore(step4Filter,workspace.querySelector('.propulsion-local-note'));
   const step4=el('section','propulsion-graphical-card propulsion-step-card propulsion-step-card--blue');step4.id='propulsionGraphicalAnalysisCard';step4.hidden=true;
-  step4.append(el('span','propulsion-step-label','STEP 04 · GRAPHICAL ANALYSIS'));step4.append(el('h3','','Graphical Analysis'));
+  step4.append(el('span','propulsion-step-label','STEP 05 · GRAPHICAL ANALYSIS'));step4.append(el('h3','','Graphical Analysis'));
   step4.append(el('p','propulsion-statistics-description','Select any two numeric CSV columns to plot their relationship.'));
   const graphControls=el('div','propulsion-graph-controls');
   const makeAxisField=(labelText,id)=>{const label=el('label','propulsion-graph-field',labelText);const select=el('select','propulsion-column-select');select.id=id;const empty=document.createElement('option');empty.value='';empty.textContent='Select a CSV column';select.append(empty);headerRow.forEach((name,index)=>{const option=document.createElement('option');option.value=String(index);option.textContent=name;select.append(option)});label.append(select);return {label,select}};
@@ -310,9 +311,9 @@
    graphStatus.textContent='Plotted '+primaryPts.length.toLocaleString()+' primary Y pairs'+(y2r?' and '+secondaryPts.length.toLocaleString()+' secondary Y pairs':'')+' · X: '+headerRow[xi]+' · Primary Y: '+headerRow[yi]+(y2i===null?'':' · Secondary Y: '+headerRow[y2i])+'. '+removedReturnPoints.toLocaleString()+' points below the previous highest X value removed. Only record-high or equal-high X values are retained in CSV row order. Both Y series share the same X axis and use independent left/right scales.';graphXIndex=String(xi);graphYIndex=String(yi);graphY2Index=y2i===null?'':String(y2i);saveState();
   });
     const step5=el('section','propulsion-report-card propulsion-step-card propulsion-step-card--purple');step5.id='propulsionReportGenerationCard';step5.hidden=true;
-  const returnToMapping=()=>{reportDirectVisible=false;step3Visible=false;step4Visible=false;step5Visible=false;analysisPanel.hidden=false;step3.hidden=true;step4.hidden=true;step5.hidden=true;saveState();analysisPanel.scrollIntoView({behavior:'smooth',block:'start'});};
+  const returnToMapping=()=>{reportDirectVisible=false;step3Visible=false;step4Visible=false;step5Visible=false;analysisPanel.hidden=false;step3.hidden=true;step4Filter.hidden=true;step4.hidden=true;step5.hidden=true;saveState();analysisPanel.scrollIntoView({behavior:'smooth',block:'start'});};
   const addReturnButton=(parent)=>{const actions=el('div','propulsion-actions');const button=el('button','btn alt','Return to Parameter Mapping');button.type='button';button.addEventListener('click',returnToMapping);actions.append(button);parent.append(actions);return button;};
-  step5.append(el('span','propulsion-step-label','STEP 05 · REPORT GENERATION'));
+  step5.append(el('span','propulsion-step-label','STEP 06 · REPORT GENERATION'));
   const reportBuilder=el('div','propulsion-report-builder');
   const reportForm=el('div','propulsion-report-form');
   reportForm.append(el('h3','','Test Identification'));
@@ -405,10 +406,10 @@ const statsPage=el('section','propulsion-report-summary-page');
    const mappingList=el('ul','propulsion-confirmed-mapping');specs.forEach(s=>mappingList.append(el('li','',s.label+' → '+headerRow[mapping[s.key].selected])));next.append(mappingList,proceed,directReportProceed);proceed.hidden=false;directReportProceed.hidden=false;
    saveState();
   });
-  directReportProceed.addEventListener('click',()=>{if(!confirmed)return;reportDirectVisible=true;step3Visible=false;step4Visible=false;step5Visible=true;analysisPanel.hidden=true;step3.hidden=true;step4.hidden=true;step5.hidden=false;saveState();step5.scrollIntoView({behavior:'smooth',block:'start'});});
+  directReportProceed.addEventListener('click',()=>{if(!confirmed)return;reportDirectVisible=true;step3Visible=false;step4Visible=false;step5Visible=true;analysisPanel.hidden=true;step3.hidden=true;step4Filter.hidden=true;step4.hidden=true;step5.hidden=false;saveState();step5.scrollIntoView({behavior:'smooth',block:'start'});});
   proceed.addEventListener('click',()=>{
    if(!confirmed)return;
-   reportDirectVisible=false;step3Visible=true;step4Visible=false;step5Visible=false;analysisPanel.hidden=false;step3.hidden=false;step4.hidden=true;step5.hidden=true;step3.replaceChildren();
+   reportDirectVisible=false;step3Visible=true;step4Visible=false;step5Visible=false;analysisPanel.hidden=false;step3.hidden=false;step4Filter.hidden=true;step4.hidden=true;step5.hidden=true;step3.replaceChildren();
    step3.append(el('span','propulsion-step-label','STEP 03 · PARAMETER SUMMARY'));
    step3.append(el('h3','','Mapped Parameter Statistics'));
    step3.append(el('p','propulsion-statistics-description','Maximum values and timestamps use rows with non-zero Actual RPM. '+analysisRows.length.toLocaleString()+' of '+dataRows.length.toLocaleString()+' CSV data rows included after the Actual RPM = 0 exclusion.'));
@@ -445,6 +446,7 @@ const statsPage=el('section','propulsion-report-summary-page');
     tbody.append(tr);
    });
    table.append(tbody);tableWrap.append(table);step3.append(tableWrap);
+   const filterActions=el('div','propulsion-actions');const filterProceed=el('button','btn','Proceed to Data Filtering');filterProceed.type='button';filterActions.append(filterProceed);step3.append(filterActions);filterProceed.addEventListener('click',()=>{step4Filter.hidden=false;saveState();step4Filter.scrollIntoView({behavior:'smooth',block:'start'});});
    const graphActions=el('div','propulsion-actions');const graphProceed=el('button','btn','Proceed to Graphical Analysis');graphProceed.type='button';graphProceed.id='proceedToGraphicalAnalysisBtn';graphActions.append(graphProceed);step3.append(graphActions);
    graphProceed.addEventListener('click',()=>{step4Visible=true;step4.hidden=false;graphProceed.disabled=true;graphProceed.textContent='Graphical Analysis Selected';saveState();});
    if(step4Visible){step4.hidden=false;graphProceed.disabled=true;graphProceed.textContent='Graphical Analysis Selected';}
