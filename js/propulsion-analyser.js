@@ -178,7 +178,26 @@
   const step3Filter=el('section','propulsion-step-card propulsion-step-card--orange');step3Filter.id='propulsionDataFilteringCard';step3Filter.hidden=true;
   step3Filter.append(el('span','propulsion-step-label','STEP 03 · DATA FILTERING & SORTING'));
   step3Filter.append(el('h3','','Data Filtering & Sorting'));
-  step3Filter.append(el('p','propulsion-statistics-description','This section is reserved for data filtering and filtered CSV generation. Functionality will be added in a later update.'));
+  step3Filter.append(el('p','propulsion-statistics-description','Select calculated parameters to add row-wise derived data columns. Formula definitions and calculation actions will be enabled as each formula is provided.'));
+  const calculatedParameters=el('div','propulsion-calculated-parameters');calculatedParameters.id='propulsionCalculatedParameters';
+  const calculatedParameterDefinitions=[
+   {key:'mechanicalPower',name:'Mechanical Power'},
+   {key:'electricalPower',name:'Electrical Power'},
+   {key:'overallEfficiency',name:'Overall Propulsion Efficiency'}
+  ];
+  calculatedParameterDefinitions.forEach(parameter=>{
+   const card=el('div','propulsion-calculated-parameter');
+   const details=el('div','propulsion-calculated-parameter-details');
+   const label=el('label','propulsion-calculated-parameter-label');
+   const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.disabled=true;checkbox.setAttribute('aria-label','Calculate '+parameter.name);
+   const name=el('strong','',parameter.name);label.append(checkbox,name);
+   const formulaLabel=el('span','propulsion-calculated-formula-label','FORMULA');
+   const formula=el('div','propulsion-calculated-formula','Formula will be added after specification.');
+   details.append(label,formulaLabel,formula);
+   const calculate=el('button','btn alt propulsion-calculated-action','Calculate and Add to Graph');calculate.type='button';calculate.disabled=true;calculate.title='Available after the calculation formula is provided.';
+   card.append(details,calculate);calculatedParameters.append(card);
+  });
+  step3Filter.append(calculatedParameters);
   const filterActions=el('div','propulsion-actions');filterActions.append(proceed,directReportProceed);
   workspace.insertBefore(step3Filter,workspace.querySelector('.propulsion-local-note'));
   workspace.insertBefore(step3,workspace.querySelector('.propulsion-local-note'));
