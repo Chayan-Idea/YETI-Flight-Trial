@@ -701,3 +701,12 @@
 
 .propulsion-calculated-retry{flex:0 0 100%;width:max-content;max-width:100%;margin-left:auto;white-space:normal}
 .propulsion-calculated-retry[hidden]{display:none}
+
+/* Step 03 dedicated subsections */
+.propulsion-step-subsection{margin-top:20px;padding:20px;border:1px solid var(--step-border,#dbe3ec);border-left:4px solid var(--step-accent,#287fbd);border-radius:14px;background:rgba(255,255,255,.78)}
+.propulsion-step-subsection--derived{--step-border:#c9d9ef;--step-accent:#287fbd}
+.propulsion-step-subsection--csv{--step-border:#b9dfcf;--step-accent:#29966b}
+.propulsion-step-subsection h4{margin:0 0 8px;color:#123b70;font-size:17px;font-weight:800}
+.propulsion-subsection-description{margin:0;color:var(--muted,#64748b);font-size:13px;line-height:1.6}
+.propulsion-step-subsection .propulsion-calculated-parameters{margin:16px 0 0}
+.propulsion-csv-export-status{margin:14px 0 0;color:var(--muted,#64748b);font-size:12px;line-height:1.5}
