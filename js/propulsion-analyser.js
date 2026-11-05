@@ -414,7 +414,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   const checks=specs.map(s=>{const idx=mapping[s.key]?.selected;if(idx===''||idx===undefined)return false;let checked=0,numeric=0;for(const row of dataRows.slice(0,100)){const v=String(row[idx]??'').trim();if(v){checked++;if(Number.isFinite(Number(v)))numeric++}}return checked>0&&numeric/checked>=0.8});
   const allData=checks.every(Boolean);confirm.disabled=!(complete&&unique&&allData&&!confirmed);
   summary.className='propulsion-mapping-summary'+(complete&&unique&&allData?' is-valid':' is-warning');
-  summary.textContent=!complete?'Select a CSV column for every required parameter.':!unique?'Each parameter must use a different CSV column.':!allData?'One or more selected columns do not contain predominantly numeric data in the sampled rows. Review the mapping.':'Unique columns selected; Ready for confirmation..';
+  summary.textContent=!complete?'Select a CSV column for every required parameter.':!unique?'Each parameter must use a different CSV column.':!allData?'One or more selected columns do not contain predominantly numeric data in the sampled rows. Review the mapping.':'Unique columns selected; Ready for confirmation.';
   return complete&&unique&&allData;
  }
  function showError(message){
