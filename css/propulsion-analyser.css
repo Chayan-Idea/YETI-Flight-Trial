@@ -702,11 +702,14 @@
 .propulsion-calculated-retry{flex:0 0 100%;width:max-content;max-width:100%;margin-left:auto;white-space:normal}
 .propulsion-calculated-retry[hidden]{display:none}
 
-/* Step 03 dedicated subsections */
-.propulsion-step-subsection{margin-top:20px;padding:20px;border:1px solid var(--step-border,#dbe3ec);border-left:4px solid var(--step-accent,#287fbd);border-radius:14px;background:rgba(255,255,255,.78)}
-.propulsion-step-subsection--derived{--step-border:#c9d9ef;--step-accent:#287fbd}
-.propulsion-step-subsection--csv{--step-border:#b9dfcf;--step-accent:#29966b}
-.propulsion-step-subsection h4{margin:0 0 8px;color:#123b70;font-size:17px;font-weight:800}
-.propulsion-subsection-description{margin:0;color:var(--muted,#64748b);font-size:13px;line-height:1.6}
+/* Step 03: two clearly separated, independently highlighted work areas */
+.propulsion-step-subsection{position:relative;display:block;margin:22px 0 0;padding:0 20px 20px;border:1.5px solid var(--step-border,#dbe3ec);border-left:5px solid var(--step-accent,#287fbd);border-radius:16px;background:var(--step-panel,#fbfdff);box-shadow:0 5px 16px rgba(18,59,112,.055);overflow:hidden}
+.propulsion-step-subsection--derived{--step-border:#a9c9ec;--step-accent:#246eae;--step-panel:#f7fbff;--step-heading:#e8f2ff}
+.propulsion-step-subsection--csv{--step-border:#a9d7c0;--step-accent:#21845c;--step-panel:#f7fcf9;--step-heading:#e6f6ed}
+.propulsion-step-subsection h4{display:flex;align-items:center;gap:11px;margin:0 -20px 12px;padding:15px 20px;background:var(--step-heading);border-bottom:1px solid var(--step-border);color:#123b70;font-size:17px;font-weight:850;line-height:1.35;letter-spacing:-.015em}
+.propulsion-step-subsection h4::before{content:"";display:inline-block;flex:0 0 5px;height:25px;border-radius:5px;background:var(--step-accent);box-shadow:0 0 0 4px rgba(255,255,255,.72)}
+.propulsion-subsection-description{margin:0;color:var(--muted,#526174);font-size:13px;line-height:1.6}
 .propulsion-step-subsection .propulsion-calculated-parameters{margin:16px 0 0}
-.propulsion-csv-export-status{margin:14px 0 0;color:var(--muted,#64748b);font-size:12px;line-height:1.5}
+.propulsion-step-subsection--csv .propulsion-actions{margin-top:12px}
+.propulsion-csv-export-status{margin:14px 0 0;color:var(--muted,#526174);font-size:12px;line-height:1.5}
+@media(max-width:620px){.propulsion-step-subsection{padding:0 14px 16px;margin-top:16px}.propulsion-step-subsection h4{margin:0 -14px 10px;padding:13px 14px;font-size:15px}}
