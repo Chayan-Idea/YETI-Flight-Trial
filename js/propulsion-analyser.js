@@ -492,7 +492,7 @@
   const plotActions=el('div','propulsion-actions');const plotButton=el('button','btn','Plot Graph');plotButton.type='button';plotButton.id='plotPropulsionGraphBtn';plotButton.disabled=true;plotActions.append(plotButton);
   const handleAxisSelectionChange=()=>{
    if(step5Visible){step5Visible=false;step5.hidden=true;reportDirectVisible=false;}
-   resetXRange.disabled=true;savedGraphSelection();updatePlotAvailability();
+   graphRangeHasValidPlot=false;updateRangeActionAvailability();savedGraphSelection();updatePlotAvailability();
    graphStatus.textContent='Axis selection updated. Click Plot Graph to refresh the chart with the selected parameters.';
   };
   xSelect.addEventListener('change',()=>{
@@ -501,7 +501,7 @@
    handleAxisSelectionChange();
   });
   ySelect.addEventListener('change',()=>{yRangeStart.value='';yRangeEnd.value='';graphYRangeStart='';graphYRangeEnd='';handleAxisSelectionChange()});
-  y2Select.addEventListener('change',()=>{y2RangeStart.value='';y2RangeEnd.value='';graphY2RangeStart='';graphY2RangeEnd='';updateSecondaryRangeVisibility();handleAxisSelectionChange()});
+  y2Select.addEventListener('change',()=>{graphY2RangeStart='';graphY2RangeEnd='';handleAxisSelectionChange();updateRangeActionAvailability()});
   graphControls.append(xField.label,yField.label,y2Field.label);step4.append(graphControls);
   step4.append(plotActions);
   const graphStatus=el('p','propulsion-graph-status','Choose an X axis and at least one Y axis parameter to enable Plot Graph.');graphStatus.id='propulsionGraphStatus';step4.append(graphStatus);
@@ -510,14 +510,13 @@
   const graphRangeFields=el('div','propulsion-x-range-fields');
   const makeRangeField=(labelText,id,parent=graphRangeFields)=>{const label=el('label','propulsion-graph-field',labelText);const input=document.createElement('input');input.type='number';input.step='any';input.id=id;input.placeholder='Full graph range';input.className='propulsion-column-select';label.append(input);parent.append(label);return input};
   const xRangeStart=makeRangeField('Start X Point','propulsionXRangeStart'),xRangeEnd=makeRangeField('End X Point','propulsionXRangeEnd');
-  const yRangeStart=makeRangeField('Start Primary Y Point','propulsionYRangeStart'),yRangeEnd=makeRangeField('End Primary Y Point','propulsionYRangeEnd');
-   const y2RangeStart=makeRangeField('Start Secondary Y Point','propulsionY2RangeStart'),y2RangeEnd=makeRangeField('End Secondary Y Point','propulsionY2RangeEnd');
-   const secondaryRangeLabels=[y2RangeStart.parentElement,y2RangeEnd.parentElement];
-   const updateSecondaryRangeVisibility=()=>secondaryRangeLabels.forEach(label=>{label.hidden=y2Select.value==='';});
-   updateSecondaryRangeVisibility();
+  const yRangeStart=makeRangeField('Start Y Point','propulsionYRangeStart'),yRangeEnd=makeRangeField('End Y Point','propulsionYRangeEnd');
+   let graphRangeHasValidPlot=false;
+   const updateRangeActionAvailability=()=>{const multipleY=y2Select.value!=='';applyGraphRange.disabled=multipleY;resetXRange.disabled=multipleY||!graphRangeHasValidPlot;};
   const graphRangeActions=el('div','propulsion-x-range-actions');
   const applyGraphRange=el('button','btn propulsion-x-range-apply','Apply');applyGraphRange.type='button';
   const resetXRange=el('button','btn alt propulsion-x-range-reset','Reset Full Range');resetXRange.type='button';
+  resetXRange.disabled=true;
   resetXRange.disabled=true;
   graphRangeActions.append(applyGraphRange,resetXRange);
   graphRangePanel.append(graphRangeFields,graphRangeActions);graphRangePanel.hidden=true;
@@ -631,7 +630,6 @@
    if(xRangeStart.value===''||xRangeEnd.value===''){xRangeStart.value=String(fullXMin);xRangeEnd.value=String(fullXMax)}
    if(yRangeStart.value===''||yRangeEnd.value===''){yRangeStart.value=String(fullYMin);yRangeEnd.value=String(fullYMax)}
    const rangeStart=Number(xRangeStart.value),rangeEnd=Number(xRangeEnd.value),rangeYStart=Number(yRangeStart.value),rangeYEnd=Number(yRangeEnd.value);
-    if(y2i!==null&&(y2RangeStart.value===''||y2RangeEnd.value==='')){y2RangeStart.value=String(fullY2Min);y2RangeEnd.value=String(fullY2Max);}const rangeY2Start=y2i===null?NaN:Number(y2RangeStart.value),rangeY2End=y2i===null?NaN:Number(y2RangeEnd.value);
    if(!Number.isFinite(rangeStart)||!Number.isFinite(rangeEnd)||rangeStart>rangeEnd||(rangeStart===rangeEnd&&fullXMin!==fullXMax)||rangeStart<fullXMin||rangeEnd>fullXMax){
     graphRangePanel.hidden=false;
     graphStatus.textContent='Enter a valid X range within '+new Intl.NumberFormat(undefined,{maximumFractionDigits:6}).format(fullXMin)+' to '+new Intl.NumberFormat(undefined,{maximumFractionDigits:6}).format(fullXMax)+'. Start X Point must not exceed End X Point. The last valid graph has been retained.';return;
@@ -640,9 +638,8 @@
     graphRangePanel.hidden=false;
     graphStatus.textContent='Enter a valid Primary Y range within '+new Intl.NumberFormat(undefined,{maximumFractionDigits:6}).format(fullYMin)+' to '+new Intl.NumberFormat(undefined,{maximumFractionDigits:6}).format(fullYMax)+'. Start Y Point must be lower than End Y Point. The last valid graph has been retained.';return;
    }
-   if(y2i!==null&&(!fullY2Values.length||!Number.isFinite(rangeY2Start)||!Number.isFinite(rangeY2End)||rangeY2Start>=rangeY2End||rangeY2Start<fullY2Min||rangeY2End>fullY2Max)){graphRangePanel.hidden=false;graphStatus.textContent='Enter a valid Secondary Y range within '+new Intl.NumberFormat(undefined,{maximumFractionDigits:6}).format(fullY2Min)+' to '+new Intl.NumberFormat(undefined,{maximumFractionDigits:6}).format(fullY2Max)+'. Start Secondary Y Point must be lower than End Secondary Y Point. The last valid graph has been retained.';return;}
     const pts=originalPts.filter(p=>p.x>=rangeStart&&p.x<=rangeEnd);
-   const primaryPts=pts.filter(p=>Number.isFinite(p.y)),secondaryPts=pts.filter(p=>Number.isFinite(p.y2)&&p.y2>=rangeY2Start&&p.y2<=rangeY2End);
+   const primaryPts=pts.filter(p=>Number.isFinite(p.y)&&p.y>=rangeYStart&&p.y<=rangeYEnd),secondaryPts=pts.filter(p=>Number.isFinite(p.y2));
    if(primaryPts.length<2||(y2i!==null&&secondaryPts.length<2)){
     graphRangePanel.hidden=false;
     graphStatus.textContent='The selected X range does not contain enough valid data points for the selected Y axis. Widen the range. The last valid graph has been retained.';return;
@@ -679,15 +676,17 @@
    chartHost.replaceChildren(svg);pointExplorer.hidden=false;pointSlider.disabled=plottedPoints.length===0;pointSlider.max=String(Math.max(0,plottedPoints.length-1));pointSlider.value='0';updatePointSearchLabels();clearPointSearch();
    if(plottedPoints.length){selectGraphPoint(0);pointNavStatus.textContent='Slider and graph point selection are mapped to '+plottedPoints.length.toLocaleString()+' records inside the applied X, Primary Y'+(y2i===null?'':' and Secondary Y')+' ranges.';}
    else{pointCounter.textContent='Point 0 of 0';pointReadout.setAttribute('aria-label','No data points fall within the applied X and Primary Y ranges');timestampReadout.heading.textContent='TIMESTAMP';timestampReadout.value.textContent='No eligible data point';xReadout.heading.textContent='X · '+headerRow[xi];xReadout.value.textContent='—';yReadout.heading.textContent='PRIMARY Y · '+headerRow[yi];yReadout.value.textContent='—';y2Readout.heading.textContent=y2i===null?'SECONDARY Y · NOT SELECTED':'SECONDARY Y · '+headerRow[y2i];y2Readout.value.textContent='—';pointNavStatus.textContent='No data points fall within all applied ranges. Widen the X, Primary Y or Secondary Y range, then click Apply.';}
-   graphRangeStart=String(rangeStart);graphRangeEnd=String(rangeEnd);graphYRangeStart=String(rangeYStart);graphYRangeEnd=String(rangeYEnd);graphY2RangeStart=y2i===null?'':String(rangeY2Start);graphY2RangeEnd=y2i===null?'':String(rangeY2End);resetXRange.disabled=false;
+   graphRangeStart=String(rangeStart);graphRangeEnd=String(rangeEnd);graphYRangeStart=String(rangeYStart);graphYRangeEnd=String(rangeYEnd);graphY2RangeStart='';graphY2RangeEnd='';graphRangeHasValidPlot=true;updateRangeActionAvailability();
    graphStatus.textContent='Plotted '+primaryPts.length.toLocaleString()+' primary Y pairs'+(y2r?' and '+secondaryPts.length.toLocaleString()+' secondary Y pairs':'')+' · '+plottedPoints.length.toLocaleString()+' navigable points inside the applied X, Primary Y'+(y2i===null?'':' and Secondary Y')+' ranges · X: '+headerRow[xi]+' · Primary Y: '+headerRow[yi]+(y2i===null?'':' · Secondary Y: '+headerRow[y2i])+'. '+removedReturnPoints.toLocaleString()+' points below the previous highest X value removed. Only record-high or equal-high X values are retained in CSV row order. Both Y series share the same X axis and use independent left/right scales.';graphXIndex=String(xi);graphYIndex=String(yi);graphY2Index=y2i===null?'':String(y2i);saveState();
   });
    applyGraphRange.addEventListener('click',()=>{
-    if(xSelect.value===''||ySelect.value===''){graphStatus.textContent='Select X and Primary Y parameters before applying a graph range.';return;}
+    if(y2Select.value!=='')return;
+    if(xSelect.value===''||ySelect.value===''){graphStatus.textContent='Select X and Y parameters before applying a graph range.';return;}
     plotButton.click();
    });
-   resetXRange.disabled=true;
+   graphRangeHasValidPlot=false;updateRangeActionAvailability();
    resetXRange.addEventListener('click',()=>{
+    if(y2Select.value!=='')return;
     const xi=Number(xSelect.value),yi=Number(ySelect.value);if(!Number.isInteger(xi)||!Number.isInteger(yi)||xSelect.value===''||ySelect.value==='')return;
     const fullX=getFullGraphXRange(xi);
     const retainedIndices=new Set(getRecordHighXPoints(xi).map(point=>point.index));
@@ -695,7 +694,7 @@
     if(!fullX||!fullY.length){graphStatus.textContent='Cannot reset: no valid full graph range was found.';return;}
     xRangeStart.value=String(fullX.min);xRangeEnd.value=String(fullX.max);
     const minY=Math.min(...fullY),maxY=Math.max(...fullY);yRangeStart.value=String(minY===maxY?minY-1:minY);yRangeEnd.value=String(minY===maxY?maxY+1:maxY);
-    if(y2Select.value!==''){const secondaryIndex=Number(y2Select.value),fullY2=analysisRows.map((row,index)=>retainedIndices.has(index)?(String(row[secondaryIndex]??'').trim()===''?NaN:Number(row[secondaryIndex])):NaN).filter(Number.isFinite);if(fullY2.length){const min2=Math.min(...fullY2),max2=Math.max(...fullY2);y2RangeStart.value=String(min2===max2?min2-1:min2);y2RangeEnd.value=String(min2===max2?max2+1:max2);}}else{y2RangeStart.value='';y2RangeEnd.value='';}
+    graphRangeHasValidPlot=false;updateRangeActionAvailability();
      plotButton.click();
    });
     const step5=el('section','propulsion-report-card propulsion-step-card propulsion-step-card--purple');step5.id='propulsionReportGenerationCard';step5.hidden=true;
