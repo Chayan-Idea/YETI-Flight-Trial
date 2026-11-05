@@ -183,6 +183,7 @@
   derivedSection.append(el('h4','','Derived Parameter Identification & Calculation'));
   derivedSection.append(el('p','propulsion-subsection-description','Select derived parameters, review their mapped inputs and calculate row-wise values.'));
   const calculatedParameters=el('div','propulsion-calculated-parameters');calculatedParameters.id='propulsionCalculatedParameters';
+  const originalHeaderCount=headerRow.length;
   const calculatedParameterDefinitions=[
    {key:'mechanicalPower',name:'Mechanical Power',formula:null,sources:[['torque','Torque'],['actualRpm','Actual Motor Speed']]},
    {key:'electricalPower',name:'Electrical Power',formula:'Electrical Power (W) = DC Voltage (V) × DC Current (A)',sources:[['voltage','DC Voltage'],['current','DC Current']]},
@@ -244,6 +245,19 @@
     addedStatus.hidden=true;
     retry.hidden=true;
     card.classList.remove('is-added-to-graph');
+    calculatedParameterKeys=calculatedParameterKeys.filter(key=>key!==parameter.key);
+    const derivedIndex=headerRow.indexOf(parameter.name);
+    if(derivedIndex>=originalHeaderCount){
+     headerRow.splice(derivedIndex,1);
+     analysisRows=analysisRows.map(row=>{const next=row.slice();next.splice(derivedIndex,1);return next;});
+     [xSelect,ySelect,y2Select].forEach(select=>{
+      const previous=Number(select.value);
+      select.querySelectorAll('option').forEach(option=>{if(Number(option.value)===derivedIndex)option.remove();});
+      if(select.value!==''&&Number.isInteger(previous)&&previous>derivedIndex)select.value=String(previous-1);
+      else if(previous===derivedIndex)select.value='';
+     });
+     savedGraphSelection();updatePlotAvailability();
+    }
     csvExportButton.disabled=false;
     csvPreviewToggle.hidden=true;csvPreview.hidden=true;csvDownloadButton.hidden=true;
     generatedCsvText='';generatedExportRows=[];generatedTimestampIndex=-1;
@@ -252,6 +266,7 @@
     saveState();
    });
    calculate.addEventListener('click',()=>{
+    if(!checkbox.checked){graphStatus.textContent='Select the checkbox for '+parameter.name+' before calculating and adding it to the graph.';return;}
     updateMappingNote();
     const requiredKeys=parameter.key==='mechanicalPower'?['torque','actualRpm']:parameter.key==='electricalPower'?['voltage','current']:['thrust','voltage','current'];
     const missing=requiredKeys.filter(key=>mapping[key]?.selected===''||mapping[key]?.selected===undefined);
