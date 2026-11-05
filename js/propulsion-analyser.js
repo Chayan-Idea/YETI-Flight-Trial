@@ -866,6 +866,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   workspace.querySelector('#propulsionDataFilteringCard')?.remove();
   workspace.querySelector('#propulsionParameterSummaryCard')?.remove();
   workspace.querySelector('.propulsion-graphical-card')?.remove();
+  workspace.querySelector('#propulsionReportGenerationCard')?.remove();
   selectedFile=null;mapping={};calculatedParameterKeys=[];calculatedParameterControls={};headerRow=[];dataRows=[];analysisRows=[];confirmed=false;step3FilterVisible=false;step3Visible=false;step4Visible=false;step5Visible=false;reportDirectVisible=false;parseCSVText='';if(csvPreviewPanel){csvPreviewPanel.remove();csvPreviewPanel=null;}workspace.querySelector('.propulsion-csv-preview-toggle-actions')?.remove();workspace.querySelector('.propulsion-csv-preview-actions')?.remove();
   meta.hidden=true;meta.textContent='';reset.hidden=true;start.disabled=true;start.textContent='Identify Parameters';
  }
