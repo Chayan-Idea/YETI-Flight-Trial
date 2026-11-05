@@ -244,6 +244,12 @@
     addedStatus.hidden=true;
     retry.hidden=true;
     card.classList.remove('is-added-to-graph');
+    csvExportButton.disabled=false;
+    csvPreviewToggle.hidden=true;csvPreview.hidden=true;csvDownloadButton.hidden=true;
+    generatedCsvText='';generatedExportRows=[];generatedTimestampIndex=-1;
+    proceed.hidden=true;directReportProceed.hidden=true;
+    csvStatus.textContent='A derived parameter was reset. Generate Filtered & Sorted CSV again to include the updated calculations.';
+    saveState();
    });
    calculate.addEventListener('click',()=>{
     updateMappingNote();
