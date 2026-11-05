@@ -222,7 +222,47 @@
   const pointSliderLabel=el('label','propulsion-point-slider-label','Explore data point');
   const pointSlider=document.createElement('input');pointSlider.type='range';pointSlider.min='0';pointSlider.max='0';pointSlider.value='0';pointSlider.step='1';pointSlider.id='propulsionPointSlider';pointSlider.disabled=true;pointSlider.setAttribute('aria-label','Select data point on graph');pointSliderLabel.append(pointSlider);
   const pointCounter=el('span','propulsion-point-counter','Point 0 of 0');pointCounter.id='propulsionPointCounter';
-  pointExplorer.append(pointReadout,pointSliderLabel,pointCounter);step4.append(pointExplorer);
+  pointExplorer.append(pointReadout,pointSliderLabel,pointCounter);
+  const pointNavigator=el('section','propulsion-point-navigator');
+  pointNavigator.append(el('strong','propulsion-point-navigator-title','NAVIGATE TO A DATA VALUE'));
+  pointNavigator.append(el('p','propulsion-point-navigator-help','Enter a value in any one field. The nearest matching plotted point will be selected and the other values will update above.'));
+  const pointNavFields=el('div','propulsion-point-navigator-fields');
+  const makePointSearchField=(key,label,placeholder)=>{const wrap=el('label','propulsion-point-search-field');wrap.append(el('span','',label));const input=document.createElement('input');input.type='text';input.inputMode=key==='timestamp'?'text':'decimal';input.placeholder=placeholder;input.autocomplete='off';input.dataset.pointSearch=key;wrap.append(input);pointNavFields.append(wrap);return input};
+  const timestampSearch=makePointSearchField('timestamp','TIMESTAMP','Enter timestamp');
+  const xSearch=makePointSearchField('x','X AXIS','Enter X value');
+  const ySearch=makePointSearchField('y','PRIMARY Y AXIS','Enter primary Y');
+  const y2Search=makePointSearchField('y2','SECONDARY Y AXIS','Enter secondary Y');
+  const pointNavActions=el('div','propulsion-point-navigator-actions');
+  const navigateToPointButton=el('button','btn propulsion-point-navigate-button','Navigate to this point');navigateToPointButton.type='button';navigateToPointButton.disabled=true;
+  const clearPointSearchButton=el('button','btn alt propulsion-point-clear-button','Clear');clearPointSearchButton.type='button';
+  const pointNavStatus=el('p','propulsion-point-navigator-status','Enter one value to locate a plotted point.');pointNavStatus.setAttribute('role','status');pointNavStatus.setAttribute('aria-live','polite');
+  pointNavActions.append(navigateToPointButton,clearPointSearchButton);
+  pointNavigator.append(pointNavFields,pointNavActions,pointNavStatus);pointExplorer.append(pointNavigator);step4.append(pointExplorer);
+  const pointSearchInputs=[timestampSearch,xSearch,ySearch,y2Search];
+  const updatePointSearchLabels=()=>{xSearch.previousSibling.textContent='X · '+headerRow[xiForReadout];ySearch.previousSibling.textContent='PRIMARY Y · '+headerRow[yiForReadout];y2Search.previousSibling.textContent=y2iForReadout===null?'SECONDARY Y · NOT SELECTED':'SECONDARY Y · '+headerRow[y2iForReadout];y2Search.disabled=y2iForReadout===null};
+  const clearPointSearch=()=>{pointSearchInputs.forEach(input=>input.value='');pointNavStatus.textContent='Enter one value to locate a plotted point.';navigateToPointButton.disabled=!plottedPoints.length};
+  pointSearchInputs.forEach(input=>input.addEventListener('input',()=>{const entered=pointSearchInputs.filter(field=>field.value.trim()!=='').length;navigateToPointButton.disabled=!plottedPoints.length||entered!==1;pointNavStatus.textContent=entered>1?'Please enter a value in only one field.':entered===1?'Ready to locate the nearest plotted point.':'Enter one value to locate a plotted point.'}));
+  clearPointSearchButton.addEventListener('click',clearPointSearch);
+  navigateToPointButton.addEventListener('click',()=>{
+   const selected=pointSearchInputs.filter(field=>field.value.trim()!=='');
+   if(selected.length!==1){pointNavStatus.textContent='Enter a value in exactly one field.';return}
+   const field=selected[0],key=field.dataset.pointSearch,query=field.value.trim();let found=-1;
+   if(key==='timestamp'){
+    const exact=plottedPoints.findIndex(point=>String(point.timestamp).toLowerCase()===query.toLowerCase());
+    found=exact>=0?exact:plottedPoints.findIndex(point=>String(point.timestamp).toLowerCase().includes(query.toLowerCase()));
+   }else{
+    const target=Number(query);
+    if(!Number.isFinite(target)){pointNavStatus.textContent='Enter a valid numeric value for this axis.';return}
+    const property=key==='x'?'x':key==='y'?'y':'y2';
+    let distance=Infinity;
+    plottedPoints.forEach((point,index)=>{const value=point[property];if(!Number.isFinite(value))return;const delta=Math.abs(value-target);if(delta<distance){distance=delta;found=index}});
+   }
+   if(found<0){pointNavStatus.textContent=key==='timestamp'?'No plotted point matches that timestamp.':'No numeric plotted values are available for this axis.';return}
+   selectGraphPoint(found);
+   const actual=plottedPoints[found][key==='timestamp'?'timestamp':key];
+   pointNavStatus.textContent=(key==='timestamp'?'Timestamp match selected.':'Nearest plotted value selected: '+formatPointValue(actual)+'.')+' The other three values are shown above.';
+  });
+
   let plottedPoints=[],pointMarker=null,secondaryPointMarker=null,pointGuide=null,xiForReadout=0,yiForReadout=0,y2iForReadout=null;
   const formatPointValue=value=>Number.isFinite(value)?new Intl.NumberFormat(undefined,{maximumFractionDigits:6}).format(value):'—';
   const selectGraphPoint=index=>{
@@ -280,7 +320,7 @@
    svg.addEventListener('pointerdown',event=>{if(event.button!==0)return;graphDrag={id:event.pointerId,x:event.clientX,y:event.clientY,view:{...graphView},moved:false};svg.setPointerCapture(event.pointerId);svg.style.cursor='grabbing'});
    svg.addEventListener('pointermove',event=>{if(!graphDrag||graphDrag.id!==event.pointerId)return;const rect=svg.getBoundingClientRect(),dx=(event.clientX-graphDrag.x)/rect.width*graphDrag.view.w,dy=(event.clientY-graphDrag.y)/rect.height*graphDrag.view.h;if(Math.abs(dx)+Math.abs(dy)>3)graphDrag.moved=true;if(graphDrag.moved){graphView.x=graphDrag.view.x-dx;graphView.y=graphDrag.view.y-dy;applyGraphView()}});
    const endGraphDrag=event=>{if(graphDrag&&graphDrag.id===event.pointerId){graphDrag=null;svg.style.cursor='grab'}};svg.addEventListener('pointerup',endGraphDrag);svg.addEventListener('pointercancel',endGraphDrag);
-   chartHost.replaceChildren(svg);pointExplorer.hidden=false;pointSlider.disabled=false;pointSlider.max=String(pts.length-1);pointSlider.value='0';selectGraphPoint(0);
+   chartHost.replaceChildren(svg);pointExplorer.hidden=false;pointSlider.disabled=false;pointSlider.max=String(pts.length-1);pointSlider.value='0';updatePointSearchLabels();clearPointSearch();selectGraphPoint(0);
    graphStatus.textContent='Plotted '+primaryPts.length.toLocaleString()+' primary Y pairs'+(y2r?' and '+secondaryPts.length.toLocaleString()+' secondary Y pairs':'')+' · X: '+headerRow[xi]+' · Primary Y: '+headerRow[yi]+(y2i===null?'':' · Secondary Y: '+headerRow[y2i])+'. '+removedReturnPoints.toLocaleString()+' points below the previous highest X value removed. Only record-high or equal-high X values are retained in CSV row order. Both Y series share the same X axis and use independent left/right scales.';graphXIndex=String(xi);graphYIndex=String(yi);graphY2Index=y2i===null?'':String(y2i);saveState();
   });
     const step5=el('section','propulsion-report-card propulsion-step-card propulsion-step-card--purple');step5.id='propulsionReportGenerationCard';step5.hidden=true;
