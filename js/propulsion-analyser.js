@@ -399,6 +399,8 @@
    const rows=[headerRow,...exportRows];
    const csv='\\uFEFF'+rows.map(row=>headerRow.map((_,index)=>escapeCsv(row[index]??'')).join(',')).join('\\r\\n');
    generatedCsvText=csv;generatedExportRows=exportRows;generatedTimestampIndex=timestampIndex===undefined?-1:timestampIndex;
+   // From this point onward, the filtered and chronologically sorted export is the sole analysis dataset.
+   analysisRows=exportRows.map(row=>row.slice());
    csvPreviewHeadRow.replaceChildren();csvPreviewHeadRow.append(el('th','','ROW'));
    headerRow.forEach(name=>{const th=el('th','',name);th.scope='col';csvPreviewHeadRow.append(th)});
    csvPreviewHead.replaceChildren(csvPreviewHeadRow);csvPreviewBody.replaceChildren();
@@ -642,7 +644,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    step3FilterVisible=false;reportDirectVisible=false;step3Visible=true;step4Visible=false;step5Visible=false;analysisPanel.hidden=false;step3Filter.hidden=false;step3.hidden=false;step4.hidden=true;step5.hidden=true;step3.replaceChildren();
    step3.append(el('span','propulsion-step-label','STEP 04 · PARAMETER SUMMARY'));
    step3.append(el('h3','','Mapped Parameter Statistics'));
-   step3.append(el('p','propulsion-statistics-description','Maximum values and timestamps use rows with non-zero Actual RPM. '+analysisRows.length.toLocaleString()+' of '+dataRows.length.toLocaleString()+' CSV data rows included after the Actual RPM = 0 exclusion.'));
+   step3.append(el('p','propulsion-statistics-description','All statistics below use only the generated Filtered & Sorted CSV dataset ('+analysisRows.length.toLocaleString()+' rows).'));
    const tableWrap=el('div','propulsion-statistics-table-wrap');
    const table=document.createElement('table');table.className='propulsion-statistics-table';
    const thead=document.createElement('thead'),headRow=document.createElement('tr');
