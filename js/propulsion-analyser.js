@@ -84,6 +84,10 @@
   requestAnimationFrame(setFreezeOffsets);
   if(typeof ResizeObserver!=='undefined'){const freezeObserver=new ResizeObserver(setFreezeOffsets);freezeObserver.observe(viewport);freezeObserver.observe(table);}
  }
+ const STANDARD_GRAVITY=9.80665;
+ const accelerationParameterKeys=new Set(['accelerationX','accelerationY','accelerationZ']);
+ const isAccelerationColumn=index=>specs.some(spec=>accelerationParameterKeys.has(spec.key)&&mapping[spec.key]?.selected!==''&&Number(mapping[spec.key]?.selected)===Number(index));
+ const toDisplayAcceleration=value=>Number.isFinite(value)?value/STANDARD_GRAVITY:value;
  const specs=[
   {key:'thrust',label:'Thrust',aliases:['net_thrust_n','net thrust n','thrust n','thrust newton','thrust']},
   {key:'torque',label:'Torque',aliases:['esc_torque_nm','torque_nm','torque nm','torque']},
@@ -595,7 +599,7 @@
    const retained=[];let highestX=-Infinity;
    analysisRows.forEach((row,index)=>{
     const raw=String(row[xi]??'').trim();if(raw==='')return;
-    const x=Number(raw);if(!Number.isFinite(x)||x<highestX)return;
+    const parsed=Number(raw),x=isAccelerationColumn(xi)?toDisplayAcceleration(parsed):parsed;if(!Number.isFinite(x)||x<highestX)return;
     highestX=x;retained.push({index,x});
    });
    return retained;
@@ -613,7 +617,7 @@
    const timestampAliases=['timestamp','time_stamp','datetime','date_time','date time','time','utc_time','local_time','sample_time','logged_at','date'];const timestampIndex=headerRow.map((name,index)=>({index,score:scoreHeader(name,timestampAliases)})).filter(item=>item.score>=65).sort((a,b)=>b.score-a.score)[0]?.index;
    // Empty CSV cells are missing values, not numeric zero; this prevents false zero-origin graph segments.
    const parseCsvNumber=value=>{const text=String(value??'').trim();if(text==='')return NaN;const number=Number(text);return Number.isFinite(number)?number:NaN};
-   const rawPts=analysisRows.map((row,index)=>({x:parseCsvNumber(row[xi]),y:parseCsvNumber(row[yi]),y2:y2i===null?NaN:parseCsvNumber(row[y2i]),timestamp:timestampIndex===undefined?'Timestamp column not found':String(row[timestampIndex]??'').trim()||'Timestamp unavailable',index})).filter(p=>Number.isFinite(p.x));
+   const rawPts=analysisRows.map((row,index)=>({x:isAccelerationColumn(xi)?toDisplayAcceleration(parseCsvNumber(row[xi])):parseCsvNumber(row[xi]),y:isAccelerationColumn(yi)?toDisplayAcceleration(parseCsvNumber(row[yi])):parseCsvNumber(row[yi]),y2:y2i===null?NaN:(isAccelerationColumn(y2i)?toDisplayAcceleration(parseCsvNumber(row[y2i])):parseCsvNumber(row[y2i])),timestamp:timestampIndex===undefined?'Timestamp column not found':String(row[timestampIndex]??'').trim()||'Timestamp unavailable',index})).filter(p=>Number.isFinite(p.x));
    // Keep record-high X values only, preserving original CSV row order.
    const retainedXPoints=getRecordHighXPoints(xi),retainedXIndices=new Set(retainedXPoints.map(point=>point.index));
    const originalPts=rawPts.filter(point=>retainedXIndices.has(point.index));
@@ -663,9 +667,9 @@
    const plotAdd=(tag,attrs,textValue)=>{const node=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs||{}).forEach(([k,v])=>node.setAttribute(k,String(v)));if(textValue!==undefined)node.textContent=textValue;plotGroup.append(node);return node};
    const drawSeries=(series,yFn,color)=>{const d=series.map((p,i)=>(i?'L':'M')+sx(p.x).toFixed(2)+','+yFn(p).toFixed(2)).join(' ');plotAdd('path',{d,fill:'none',stroke:color,'stroke-width':2.5,'stroke-linejoin':'round','stroke-linecap':'round'});series.forEach(p=>plotAdd('circle',{cx:sx(p.x),cy:yFn(p),r:3.2,fill:color,opacity:.85}))};
    drawSeries(primaryPts,p=>sy(p.y),'#287fbd');if(y2r)drawSeries(secondaryPts,p=>sy2(p.y2),'#dc8123');
-   add('text',{x:L+pw/2,y:H-20,'text-anchor':'middle',fill:'#123b70','font-size':16,'font-weight':700},headerRow[xi]);
-   const yl=add('text',{x:30,y:T+ph/2,'text-anchor':'middle',fill:'#287fbd','font-size':15,'font-weight':700},headerRow[yi]);yl.setAttribute('transform',`rotate(-90 30 ${T+ph/2})`);
-   if(y2r){const yrLabel=add('text',{x:W-20,y:T+ph/2,'text-anchor':'middle',fill:'#dc8123','font-size':15,'font-weight':700},headerRow[y2i]);yrLabel.setAttribute('transform',`rotate(90 ${W-20} ${T+ph/2})`)}
+   add('text',{x:L+pw/2,y:H-20,'text-anchor':'middle',fill:'#123b70','font-size':16,'font-weight':700},headerRow[xi]+(isAccelerationColumn(xi)?' (g)':''));
+   const yl=add('text',{x:30,y:T+ph/2,'text-anchor':'middle',fill:'#287fbd','font-size':15,'font-weight':700},headerRow[yi]+(isAccelerationColumn(yi)?' (g)':''));yl.setAttribute('transform',`rotate(-90 30 ${T+ph/2})`);
+   if(y2r){const yrLabel=add('text',{x:W-20,y:T+ph/2,'text-anchor':'middle',fill:'#dc8123','font-size':15,'font-weight':700},headerRow[y2i]+(isAccelerationColumn(y2i)?' (g)':''));yrLabel.setAttribute('transform',`rotate(90 ${W-20} ${T+ph/2})`)}
    pointGuide=plotAdd('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#e28b24','stroke-width':1.5,'stroke-dasharray':'5 4',opacity:.9});
    plottedPoints=pts.filter(p=>Number.isFinite(p.y)&&p.y>=rangeYStart&&p.y<=rangeYEnd).map(p=>({...p,sx:sx(p.x),sy:sy(p.y),sy2:Number.isFinite(p.y2)?sy2(p.y2):T+ph}));
    xiForReadout=xi;yiForReadout=yi;y2iForReadout=y2i;
@@ -780,7 +784,7 @@
 const statsPage=el('section','propulsion-report-summary-page');
    statsPage.append(el('div','propulsion-report-page-kicker','01  /  TEST RESULTS'),el('h2','','EXECUTIVE PERFORMANCE SUMMARY'));
    const units={thrust:'N',torque:'Nm',commandRpm:'RPM',actualRpm:'RPM',voltage:'V',current:'A',motorTemperature:'°C',escTemperature:'°C',accelerationX:'g',accelerationY:'g',accelerationZ:'g'};
-   const getNum=(row,key)=>{const idx=mapping[key]?.selected;if(idx===undefined||idx==='')return NaN;const raw=String(row[idx]??'').trim();return raw===''?NaN:Number(raw)};
+   const getNum=(row,key)=>{const idx=mapping[key]?.selected;if(idx===undefined||idx==='')return NaN;const raw=String(row[idx]??'').trim();if(raw==='')return NaN;const value=Number(raw);return accelerationParameterKeys.has(key)?toDisplayAcceleration(value):value};
    const fmt=(v,d=2)=>Number.isFinite(v)?new Intl.NumberFormat(undefined,{maximumFractionDigits:d}).format(v):'—';
    const peak=(key)=>{let value=-Infinity,at=-1;analysisRows.forEach((row,i)=>{const v=getNum(row,key);if(Number.isFinite(v)&&v>value){value=v;at=i}});return {value,at}};
    const pThrust=peak('thrust'),pTorque=peak('torque'),pRpm=peak('actualRpm'),pVolt=peak('voltage'),pCurrent=peak('current'),pMotor=peak('motorTemperature'),pEsc=peak('escTemperature');
@@ -841,7 +845,7 @@ const statsPage=el('section','propulsion-report-summary-page');
      const raw=String(row[idx]??'').trim();
      if(raw==='')return;
      const rawValue=Number(raw);
-     const value=s.key==='torque'?Math.abs(rawValue):rawValue;
+     const value=accelerationParameterKeys.has(s.key)?toDisplayAcceleration(rawValue):s.key==='torque'?Math.abs(rawValue):rawValue;
      if(Number.isFinite(value)&&value>max){max=value;maxRow=rowIndex}
     });
     const tr=document.createElement('tr');
