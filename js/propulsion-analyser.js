@@ -353,7 +353,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    analysisRows=dataRows.filter(row=>!isZeroActualRpm(row));
    confirmed=true;confirm.disabled=true;confirm.textContent='Mapping Confirmed';
    next.hidden=false;next.replaceChildren(el('strong','', 'Parameter mapping confirmed'));
-   next.append(el('p','', 'Analysis dataset: '+analysisRows.length.toLocaleString()+' of '+dataRows.length.toLocaleString()+' CSV data rows. '+zeroActualRpmRows.toLocaleString()+' rows with Actual RPM = 0 excluded from Section 03 onwards. Original CSV and preview remain unchanged. Graph points are additionally filtered using the selected X-axis running maximum.'));
+   // Keep the confirmation panel concise; dataset filtering details remain internal.
    const mappingList=el('ul','propulsion-confirmed-mapping');specs.forEach(s=>mappingList.append(el('li','',s.label+' → '+headerRow[mapping[s.key].selected])));next.append(mappingList,proceed,directReportProceed);proceed.hidden=false;directReportProceed.hidden=false;
    saveState();
   });
