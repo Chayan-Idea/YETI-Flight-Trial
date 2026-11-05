@@ -771,3 +771,17 @@
 .propulsion-csv-confirmation input{width:17px;height:17px;margin:2px 0 0;flex:0 0 auto;accent-color:#1769aa}
 
 .propulsion-log-type-picker{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center;margin:16px 0;padding:14px 16px;border:1px solid #b9cde0;border-radius:12px;background:#f5f9fd}.propulsion-log-type-picker legend{padding:0 7px;color:#173b60;font-size:12px;font-weight:800;letter-spacing:.08em}.propulsion-log-type-picker label{display:inline-flex;align-items:center;gap:8px;color:#173b60;font-weight:700;cursor:pointer}.propulsion-log-type-picker input{width:17px;height:17px;accent-color:#1769aa}.propulsion-file-picker.is-log-type-locked{opacity:.45;pointer-events:none}.propulsion-file-picker.is-log-type-locked::after{content:'Select a log type above to enable CSV upload';display:block;margin-top:8px;color:#64748b;font-size:12px;font-weight:650}.is-parameter-disabled{opacity:.42!important;filter:grayscale(.8);pointer-events:none!important}
+
+/* Professional test-log type selector and conditional upload panel */
+.propulsion-log-type-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:18px 0 20px;padding:18px;border:1px solid #d6e1ec;border-radius:16px;background:linear-gradient(145deg,#f8fbff,#f1f6fb);box-shadow:0 5px 18px rgba(23,59,96,.05)}
+.propulsion-log-type-picker legend{grid-column:1/-1;padding:0 8px;color:#294b6d;font-size:12px;font-weight:800;letter-spacing:.12em}
+.propulsion-log-type-option{position:relative;display:flex!important;align-items:center;gap:13px;min-height:82px;padding:15px 16px;border:1.5px solid #d5e0eb;border-radius:12px;background:#fff;cursor:pointer;transition:border-color .18s,background .18s,box-shadow .18s}
+.propulsion-log-type-option input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.propulsion-log-type-icon{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border-radius:11px;background:#edf4fb;color:#285b89;font-size:25px;font-weight:700}
+.propulsion-log-type-copy{display:flex;flex:1;flex-direction:column;gap:4px}.propulsion-log-type-copy strong{color:#183b5d;font-size:15px}.propulsion-log-type-copy small{color:#64778b;font-size:11px;line-height:1.4}
+.propulsion-log-type-check{display:grid;place-items:center;width:23px;height:23px;border:1.5px solid #c6d3df;border-radius:50%;color:transparent;font-size:13px}
+.propulsion-log-type-option.is-selected{border-color:#2673b8;background:#f1f7fd;box-shadow:0 0 0 3px rgba(38,115,184,.09)}.propulsion-log-type-option.is-selected .propulsion-log-type-icon{background:#dcecfb;color:#145d9d}.propulsion-log-type-option.is-selected .propulsion-log-type-check{border-color:#1769aa;background:#1769aa;color:#fff}
+.propulsion-log-type-option:focus-within{outline:3px solid rgba(38,115,184,.2);outline-offset:2px}
+.propulsion-log-upload-area{margin-top:4px;padding:18px;border:1px solid #cbdbea;border-radius:14px;background:#fbfdff}.propulsion-log-upload-heading{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}.propulsion-log-upload-kicker{color:#39719f;font-size:10px;font-weight:800;letter-spacing:.13em}.propulsion-log-upload-heading strong{color:#173b60;font-size:17px}.propulsion-log-upload-heading>span:last-child{color:#64778b;font-size:12px;line-height:1.5}
+.propulsion-log-upload-area[hidden]{display:none!important}
+@media(max-width:620px){.propulsion-log-type-picker{grid-template-columns:1fr;padding:13px}.propulsion-log-type-option{min-height:74px}.propulsion-log-upload-area{padding:14px}}
