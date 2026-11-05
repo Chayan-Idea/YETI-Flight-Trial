@@ -222,7 +222,7 @@
    const card=el('div','propulsion-calculated-parameter');card.dataset.parameterKey=parameter.key;
    const details=el('div','propulsion-calculated-parameter-details');
    const label=el('label','propulsion-calculated-parameter-label');
-   const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.disabled=!parameterEnabled;checkbox.setAttribute('aria-label','Calculate '+parameter.name);
+   const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.disabled=false;checkbox.setAttribute('aria-label','Calculate '+parameter.name);if(!parameterEnabled){checkbox.setAttribute('aria-disabled','true');checkbox.title='Unavailable for the selected log type because the required parameter mapping is missing.';checkbox.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();const missingParameter=logType==='thrust'?'Torque':'Thrust';window.alert(`Can't be derived because ${missingParameter} parameter mapping is missing`);});card.classList.add('is-parameter-unavailable');}
    const name=el('strong','',parameter.name);label.append(checkbox,name);
    const formulaLabel=el('span','propulsion-calculated-formula-label','FORMULA');
    const formula=el('div','propulsion-calculated-formula');
