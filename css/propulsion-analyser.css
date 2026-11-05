@@ -671,3 +671,6 @@
 .propulsion-point-navigation-section .propulsion-point-slider-label{margin-top:2px}
 .propulsion-point-navigation-section .propulsion-point-counter{justify-self:end}
 .propulsion-point-navigator{margin:0}
+
+/* Reserved Step 04 — data filtering placeholder */
+.propulsion-step-card--orange{--step-border:#f0d0a8;--step-accent:#c77824;--step-tint:#fffaf3}
