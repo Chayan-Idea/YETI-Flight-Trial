@@ -489,10 +489,17 @@
   const savedGraphSelection=()=>{graphXIndex=xSelect.value;graphYIndex=ySelect.value;graphY2Index=y2Select.value;saveState()};
   const updatePlotAvailability=()=>{plotButton.disabled=xSelect.value===''||ySelect.value==='';};
   const plotActions=el('div','propulsion-actions');const plotButton=el('button','btn','Plot Graph');plotButton.type='button';plotButton.id='plotPropulsionGraphBtn';plotButton.disabled=true;plotActions.append(plotButton);
-  [xSelect,ySelect,y2Select].forEach(select=>select.addEventListener('change',()=>{
+  const handleAxisSelectionChange=()=>{
    if(step5Visible){step5Visible=false;step5.hidden=true;reportDirectVisible=false;}
-   resetXRange.disabled=true;savedGraphSelection();updatePlotAvailability()
-  }));
+   resetXRange.disabled=true;savedGraphSelection();updatePlotAvailability();
+   graphStatus.textContent='Axis selection updated. Click Plot Graph to refresh the chart with the selected parameters.';
+  };
+  xSelect.addEventListener('change',()=>{
+   // A new X column has a different numeric domain; never reuse the previous column's range.
+   xRangeStart.value='';xRangeEnd.value='';graphRangeStart='';graphRangeEnd='';
+   handleAxisSelectionChange();
+  });
+  [ySelect,y2Select].forEach(select=>select.addEventListener('change',handleAxisSelectionChange));
   graphControls.append(xField.label,yField.label,y2Field.label);step4.append(graphControls);
   step4.append(plotActions);
   const graphStatus=el('p','propulsion-graph-status','Choose an X axis and at least one Y axis parameter to enable Plot Graph.');graphStatus.id='propulsionGraphStatus';step4.append(graphStatus);
