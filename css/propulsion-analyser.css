@@ -896,7 +896,7 @@
 /* Enforce a true single vertical column for every active X/Y range input. */
 .propulsion-point-navigation-section .propulsion-x-range-panel .propulsion-x-range-fields{
   display:grid!important;
-  grid-template-columns:repeat(6,minmax(135px,1fr))!important;
+  grid-template-columns:repeat(4,minmax(135px,1fr))!important;
   grid-auto-flow:column;
   grid-auto-columns:minmax(135px,1fr);
   flex-wrap:nowrap!important;
