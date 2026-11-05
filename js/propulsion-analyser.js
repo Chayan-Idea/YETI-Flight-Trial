@@ -179,7 +179,7 @@
   step3Filter.append(el('span','propulsion-step-label','STEP 03 · DATA FILTERING & SORTING'));
   step3Filter.append(el('h3','','Data Filtering & Sorting'));
   step3Filter.append(el('p','propulsion-statistics-description','This section is reserved for data filtering and filtered CSV generation. Functionality will be added in a later update.'));
-  const filterActions=el('div','propulsion-actions');filterActions.append(proceed,directReportProceed);step3Filter.append(filterActions);
+  const filterActions=el('div','propulsion-actions');filterActions.append(proceed,directReportProceed);
   workspace.insertBefore(step3Filter,workspace.querySelector('.propulsion-local-note'));
   workspace.insertBefore(step3,workspace.querySelector('.propulsion-local-note'));
   const step4=el('section','propulsion-graphical-card propulsion-step-card propulsion-step-card--blue');step4.id='propulsionGraphicalAnalysisCard';step4.hidden=true;
@@ -404,7 +404,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    confirmed=true;confirm.disabled=true;confirm.textContent='Mapping Confirmed';
    next.hidden=false;next.replaceChildren(el('strong','', 'Parameter mapping confirmed'));
    // Keep the confirmation panel concise; dataset filtering details remain internal.
-   const mappingList=el('ul','propulsion-confirmed-mapping');specs.forEach(s=>mappingList.append(el('li','',s.label+' → '+headerRow[mapping[s.key].selected])));next.append(mappingList);proceed.hidden=false;directReportProceed.hidden=false;step3Filter.hidden=false;step3FilterVisible=true;saveState();
+   const mappingList=el('ul','propulsion-confirmed-mapping');specs.forEach(s=>mappingList.append(el('li','',s.label+' → '+headerRow[mapping[s.key].selected])));next.append(mappingList);proceed.hidden=false;directReportProceed.hidden=false;step3Filter.append(filterActions);step3Filter.hidden=false;step3FilterVisible=true;saveState();
    saveState();
   });
   directReportProceed.addEventListener('click',()=>{if(!confirmed)return;reportDirectVisible=true;step3Visible=false;step4Visible=false;step5Visible=true;analysisPanel.hidden=true;step3.hidden=true;step3Filter.hidden=true;step4.hidden=true;step5.hidden=false;saveState();step5.scrollIntoView({behavior:'smooth',block:'start'});});
