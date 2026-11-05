@@ -399,7 +399,9 @@
   csvConfirmation.append(derivedReadyLabel,filteringReadyLabel);
   const csvExportButton=el('button','btn','Generate Filtered & Sorted CSV');csvExportButton.type='button';csvExportButton.hidden=true;
   const csvPreviewToggle=el('button','btn alt','Show Generated CSV Preview');csvPreviewToggle.type='button';csvPreviewToggle.hidden=true;csvPreviewToggle.setAttribute('aria-expanded','false');
-  const csvPreview=el('div','propulsion-generated-csv-preview');csvPreview.hidden=true;
+  const csvPreview=el('section','propulsion-csv-preview-card propulsion-step-card propulsion-step-card--green propulsion-generated-csv-preview');csvPreview.hidden=true;csvPreview.setAttribute('aria-labelledby','generatedCsvPreviewHeading');
+  const csvPreviewLabel=el('div','propulsion-step-label','CSV FILE PREVIEW');
+  const csvPreviewTitle=el('h3','','Filtered & Sorted CSV File');csvPreviewTitle.id='generatedCsvPreviewHeading';
   const csvPreviewInfo=el('p','propulsion-csv-preview-meta','');
   const csvDownloadButton=el('button','btn','Download Filtered & Sorted CSV');csvDownloadButton.type='button';csvDownloadButton.hidden=true;
   const csvDownloadActions=el('div','propulsion-actions');csvDownloadActions.append(csvDownloadButton);
@@ -413,13 +415,13 @@
   const csvPreviewHead=document.createElement('thead'),csvPreviewHeadRow=document.createElement('tr');
   const csvPreviewBody=document.createElement('tbody');
   csvPreviewTable.append(csvPreviewHead,csvPreviewBody);csvPreviewViewport.append(csvPreviewTable);
-  csvPreview.append(csvSearchBar,csvPreviewViewport);
+  csvPreview.append(csvPreviewLabel,csvPreviewTitle,csvPreviewInfo,csvSearchBar,csvPreviewViewport);
   const searchGeneratedTimestamp=()=>{const query=csvTimestampSearch.value.trim();csvPreviewBody.querySelectorAll('tr.csv-timestamp-match').forEach(row=>row.classList.remove('csv-timestamp-match'));if(!query){csvSearchStatus.textContent='Enter a timestamp to search.';return;}if(generatedTimestampIndex<0){csvSearchStatus.textContent='No timestamp column was identified in the generated CSV.';return;}const matches=[];generatedExportRows.forEach((row,index)=>{if(String(row[generatedTimestampIndex]??'').trim()===query)matches.push(index);});if(!matches.length){csvSearchStatus.textContent='No exact timestamp match found.';return;}matches.forEach(index=>{const tr=csvPreviewBody.rows[index];if(tr)tr.classList.add('csv-timestamp-match');});const first=csvPreviewBody.rows[matches[0]];if(first){const top=first.offsetTop-csvPreviewViewport.offsetTop;csvPreviewViewport.scrollTop=Math.max(0,top-csvPreviewViewport.clientHeight/2+first.offsetHeight/2);}csvSearchStatus.textContent=matches.length.toLocaleString()+' matching row(s) highlighted.';};
   csvSearchButton.addEventListener('click',searchGeneratedTimestamp);csvTimestampSearch.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();searchGeneratedTimestamp();}});
   csvDownloadButton.addEventListener('click',()=>{if(!generatedCsvText)return;const blob=new Blob([generatedCsvText],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const link=document.createElement('a');const base=(selectedFile?.name||'propulsion_log.csv').replace(/\\.csv$/i,'');link.href=url;link.download=base+'_filtered_sorted.csv';document.body.append(link);link.click();link.remove();URL.revokeObjectURL(url);csvStatus.textContent='Filtered & sorted CSV downloaded.';});
   const updateGeneratedCsvFreezeOffsets=()=>{const header=csvPreviewHeadRow.getBoundingClientRect(),first=csvPreviewBody.rows[0]?.getBoundingClientRect(),firstColumn=csvPreviewHeadRow.cells[0]?.getBoundingClientRect().width;if(header.height)csvPreviewViewport.style.setProperty('--csv-header-height',header.height+'px');if(first?.height)csvPreviewViewport.style.setProperty('--csv-row1-height',first.height+'px');if(firstColumn)csvPreviewViewport.style.setProperty('--csv-first-col-width',firstColumn+'px');};
   csvPreviewToggle.addEventListener('click',()=>{
-   const show=csvPreview.hidden;csvPreview.hidden=!show;csvPreviewToggle.textContent=show?'Hide Filtered & Sorted CSV':'Show Filtered & Sorted CSV';csvPreviewToggle.setAttribute('aria-expanded',String(show));
+   const show=csvPreview.hidden;csvPreview.hidden=!show;csvPreviewToggle.textContent=show?'Hide Filtered & Sorted CSV File':'Show Filtered & Sorted CSV File';csvPreviewToggle.setAttribute('aria-expanded',String(show));
    if(show){requestAnimationFrame(updateGeneratedCsvFreezeOffsets);csvPreview.scrollIntoView({behavior:'smooth',block:'nearest'});}
   });
   if(typeof ResizeObserver!=='undefined'){const generatedFreezeObserver=new ResizeObserver(updateGeneratedCsvFreezeOffsets);generatedFreezeObserver.observe(csvPreviewViewport);generatedFreezeObserver.observe(csvPreviewTable);}
@@ -454,8 +456,9 @@
    headerRow.forEach(name=>{const th=el('th','',name);th.scope='col';csvPreviewHeadRow.append(th)});
    csvPreviewHead.replaceChildren(csvPreviewHeadRow);csvPreviewBody.replaceChildren();
    exportRows.forEach((row,index)=>{const tr=document.createElement('tr');const number=el('th','',String(index+1));number.scope='row';tr.append(number);headerRow.forEach((_,column)=>tr.append(el('td','',String(row[column]??''))));csvPreviewBody.append(tr)});
+   csvPreviewInfo.textContent=exportRows.length.toLocaleString()+' data rows · '+headerRow.length.toLocaleString()+' columns · Actual RPM values greater than zero retained; zero/negative values removed · '+sortNote;
    requestAnimationFrame(updateGeneratedCsvFreezeOffsets);
-   csvTimestampSearch.value='';csvSearchStatus.textContent='';csvPreview.hidden=true;csvPreviewToggle.hidden=false;csvPreviewToggle.textContent='Show Filtered & Sorted CSV';csvPreviewToggle.setAttribute('aria-expanded','false');
+   csvTimestampSearch.value='';csvSearchStatus.textContent='';csvPreview.hidden=true;csvPreviewToggle.hidden=false;csvPreviewToggle.textContent='Show Filtered & Sorted CSV File';csvPreviewToggle.setAttribute('aria-expanded','false');
    csvStatus.textContent='Filtered & sorted CSV prepared: '+exportRows.length.toLocaleString()+' filtered rows and '+headerRow.length.toLocaleString()+' columns. Derived columns included where calculated. Open the preview to inspect or download it.';csvExportButton.disabled=true;csvDownloadButton.hidden=false;proceed.hidden=false;directReportProceed.hidden=false;saveState();
   });
   step3Filter.append(csvSection);
