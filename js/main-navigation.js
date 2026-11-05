@@ -5,4 +5,4 @@ $('flightPreparationTab').addEventListener('click',()=>setModuleTab('flight'));
 $('propulsionAnalyzerTab').addEventListener('click',()=>setModuleTab('propulsion'));
 let savedModuleTab='flight';try{savedModuleTab=localStorage.getItem(MODULE_TAB_STATE_KEY)||'flight'}catch(e){}if(!['flight','propulsion'].includes(savedModuleTab))savedModuleTab='flight';setModuleTab(savedModuleTab,false);
 $('refreshPageBtn').addEventListener('click',()=>window.location.reload());
-if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js?v=6',{updateViaCache:'none'}).catch(err=>console.error('Service worker registration failed',err)));
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js?v=7',{updateViaCache:'none'}).catch(err=>console.error('Service worker registration failed',err)));
