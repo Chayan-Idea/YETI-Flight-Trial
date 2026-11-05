@@ -306,13 +306,46 @@
   step3Filter.append(derivedSection);
   const csvSection=el('section','propulsion-step-subsection propulsion-step-subsection--csv');
   csvSection.append(el('h4','','CSV Generation with Filtered & Sorted Data'));
-  csvSection.append(el('p','propulsion-subsection-description','Export the filtered dataset, including all successfully calculated derived-parameter columns.'));
-  const csvStatus=el('p','propulsion-csv-export-status','The export will contain '+analysisRows.length.toLocaleString()+' included data rows and all available columns.');
+  csvSection.append(el('p','propulsion-subsection-description','Export rows after applying the Actual RPM validity filter, chronological timestamp sorting where available, and all calculated derived-parameter columns.'));
+  const csvStatus=el('p','propulsion-csv-export-status','Ready to generate from '+analysisRows.length.toLocaleString()+' identified data rows and '+headerRow.length.toLocaleString()+' available columns.');
   csvStatus.setAttribute('role','status');csvStatus.setAttribute('aria-live','polite');
   const csvExportButton=el('button','btn','Generate Filtered & Sorted CSV');csvExportButton.type='button';
+  const csvPreviewToggle=el('button','btn alt','Show Generated CSV Preview');csvPreviewToggle.type='button';csvPreviewToggle.hidden=true;csvPreviewToggle.setAttribute('aria-expanded','false');
+  const csvPreview=el('div','propulsion-generated-csv-preview');csvPreview.hidden=true;
+  const csvPreviewInfo=el('p','propulsion-csv-preview-meta','');
+  const csvPreviewViewport=el('div','propulsion-csv-preview-viewport');csvPreviewViewport.setAttribute('role','region');csvPreviewViewport.setAttribute('aria-label','Generated filtered and sorted CSV preview');csvPreviewViewport.tabIndex=0;
+  const csvPreviewTable=document.createElement('table');csvPreviewTable.className='propulsion-csv-preview-table';
+  const csvPreviewHead=document.createElement('thead'),csvPreviewHeadRow=document.createElement('tr');
+  const csvPreviewBody=document.createElement('tbody');
+  csvPreviewTable.append(csvPreviewHead,csvPreviewBody);csvPreviewViewport.append(csvPreviewTable);
+  csvPreview.append(csvPreviewInfo,csvPreviewViewport);
+  csvPreviewToggle.addEventListener('click',()=>{
+   const show=csvPreview.hidden;csvPreview.hidden=!show;csvPreviewToggle.textContent=show?'Hide Generated CSV Preview':'Show Generated CSV Preview';csvPreviewToggle.setAttribute('aria-expanded',String(show));
+   if(show)csvPreview.scrollIntoView({behavior:'smooth',block:'nearest'});
+  });
+  const csvActions=el('div','propulsion-actions');csvActions.append(csvExportButton,csvPreviewToggle);
+  csvSection.append(csvStatus,csvActions,csvPreview);
   csvExportButton.addEventListener('click',()=>{
+   const rpmIndex=mapping.actualRpm?.selected;
+   if(rpmIndex===''||rpmIndex===undefined){csvStatus.textContent='CSV not generated: map the Actual RPM column in Step 02 before applying the RPM filter.';return;}
+   const timestampAliases=['timestamp','time_stamp','datetime','date_time','date time','time','utc_time','local_time','sample_time','logged_at','date'];
+   const timestampIndex=headerRow.map((name,index)=>({index,score:scoreHeader(name,timestampAliases)})).filter(item=>item.score>=65).sort((a,b)=>b.score-a.score)[0]?.index;
+   const sourceRows=analysisRows.map((row,index)=>({row:row.slice(),sourceIndex:index}));
+   const filteredRows=sourceRows.filter(item=>{
+    const raw=String(item.row[rpmIndex]??'').trim();
+    if(raw==='')return true;
+    const rpm=Number(raw);
+    return !Number.isFinite(rpm)||rpm>0;
+   });
+   let sortNote='Original row order retained because no timestamp column was identified.';
+   if(timestampIndex!==undefined){
+    const parsed=filteredRows.map(item=>{const raw=String(item.row[timestampIndex]??'').trim();const numeric=raw!==''?Number(raw):NaN;const date=numeric>0&&numeric<1e12?new Date(numeric*1000):numeric>=1e12?new Date(numeric):new Date(raw);return {...item,sortTime:Number.isFinite(date.getTime())?date.getTime():NaN};});
+    parsed.sort((a,b)=>{if(Number.isFinite(a.sortTime)&&Number.isFinite(b.sortTime))return a.sortTime-b.sortTime||a.sourceIndex-b.sourceIndex;if(Number.isFinite(a.sortTime))return -1;if(Number.isFinite(b.sortTime))return 1;return a.sourceIndex-b.sourceIndex;});
+    filteredRows.splice(0,filteredRows.length,...parsed);sortNote='Sorted by detected timestamp in ascending chronological order; unparseable timestamps remain in original order after valid timestamps.';
+   }
+   const exportRows=filteredRows.map(item=>item.row);
    const escapeCsv=value=>{const text=String(value??'');return /[",\\r\\n]/.test(text)?'"'+text.replace(/"/g,'""')+'"':text;};
-   const rows=[headerRow,...analysisRows];
+   const rows=[headerRow,...exportRows];
    const csv='\\uFEFF'+rows.map(row=>headerRow.map((_,index)=>escapeCsv(row[index]??'')).join(',')).join('\\r\\n');
    const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
    const url=URL.createObjectURL(blob);
@@ -320,10 +353,14 @@
    const base=(selectedFile?.name||'propulsion_log.csv').replace(/\\.csv$/i,'');
    link.href=url;link.download=base+'_filtered_sorted.csv';
    document.body.append(link);link.click();link.remove();URL.revokeObjectURL(url);
-   csvStatus.textContent='CSV generated: '+analysisRows.length.toLocaleString()+' filtered rows and '+headerRow.length.toLocaleString()+' columns exported.';
+   csvPreviewHeadRow.replaceChildren();csvPreviewHeadRow.append(el('th','','ROW'));
+   headerRow.forEach(name=>{const th=el('th','',name);th.scope='col';csvPreviewHeadRow.append(th)});
+   csvPreviewHead.replaceChildren(csvPreviewHeadRow);csvPreviewBody.replaceChildren();
+   exportRows.forEach((row,index)=>{const tr=document.createElement('tr');const number=el('th','',String(index+1));number.scope='row';tr.append(number);headerRow.forEach((_,column)=>tr.append(el('td','',String(row[column]??''))));csvPreviewBody.append(tr)});
+   csvPreviewInfo.textContent=exportRows.length.toLocaleString()+' exported rows · '+headerRow.length.toLocaleString()+' columns · '+(analysisRows.length-exportRows.length).toLocaleString()+' rows removed by RPM filter. '+sortNote;
+   csvPreview.hidden=true;csvPreviewToggle.hidden=false;csvPreviewToggle.textContent='Show Generated CSV Preview';csvPreviewToggle.setAttribute('aria-expanded','false');
+   csvStatus.textContent='CSV generated and downloaded: '+exportRows.length.toLocaleString()+' filtered rows and '+headerRow.length.toLocaleString()+' columns. Derived columns included where calculated.';
   });
-  const csvActions=el('div','propulsion-actions');csvActions.append(csvExportButton);
-  csvSection.append(csvStatus,csvActions);
   step3Filter.append(csvSection);
   const filterActions=el('div','propulsion-actions');filterActions.append(proceed,directReportProceed);
   workspace.insertBefore(step3Filter,workspace.querySelector('.propulsion-local-note'));
