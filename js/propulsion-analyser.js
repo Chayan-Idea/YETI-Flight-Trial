@@ -733,5 +733,6 @@ const statsPage=el('section','propulsion-report-summary-page');
   }catch(error){start.textContent='Identify Parameters';start.disabled=false;showError(error.message||'CSV could not be read.')}
  });
  start.textContent='Identify Parameters';start.disabled=true;
- loadState();
+ // Every refresh begins at Section 01 with no restored file, log type, mapping, or analysis.
+ (async()=>{try{const db=await openStateDB();await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).delete(DB_KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close();}catch(error){console.warn('Could not clear previous propulsion session:',error)}updateLogTypeUI();})();
 })();
