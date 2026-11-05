@@ -608,7 +608,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    let peakInputPower=0,peakThrustPerKw=0,sumAbsRpmError=0,rpmErrorCount=0,maxRpmError=0;
    analysisRows.forEach(row=>{const v=getNum(row,'voltage'),a=getNum(row,'current'),t=getNum(row,'thrust'),cmd=getNum(row,'commandRpm'),rpm=getNum(row,'actualRpm');if(Number.isFinite(v)&&Number.isFinite(a)){const kw=v*a/1000;if(kw>peakInputPower)peakInputPower=kw;if(Number.isFinite(t)&&kw>0)peakThrustPerKw=Math.max(peakThrustPerKw,t/kw)}if(Number.isFinite(cmd)&&cmd!==0&&Number.isFinite(rpm)){const e=Math.abs((rpm-cmd)/cmd)*100;sumAbsRpmError+=e;rpmErrorCount++;maxRpmError=Math.max(maxRpmError,e)}});
    const kpiGrid=el('div','propulsion-report-kpi-grid propulsion-report-all-parameters');
-   specs.forEach(spec=>{const m=peak(spec.key);const card=el('div','propulsion-report-kpi');card.append(el('span','',('MAXIMUM '+spec.label).toUpperCase()),el('strong','',m.at>=0?fmt(m.value)+' '+units[spec.key]:'—'));kpiGrid.append(card)});
+   activeSpecs().forEach(spec=>{const m=peak(spec.key);const card=el('div','propulsion-report-kpi');card.append(el('span','',('MAXIMUM '+spec.label).toUpperCase()),el('strong','',m.at>=0?fmt(m.value)+' '+units[spec.key]:'—'));kpiGrid.append(card)});
    statsPage.append(kpiGrid);
    statsPage.append(el('p','propulsion-report-small-note','Dataset: '+analysisRows.length.toLocaleString()+' rows included; records with Actual RPM = 0 excluded. Values shown are maximum recorded values for each mapped parameter.'));
    cover.append(statsPage);
@@ -706,7 +706,7 @@ const statsPage=el('section','propulsion-report-summary-page');
  function resetAnalysis(){
   if(analysisPanel){analysisPanel.remove();analysisPanel=null}
   workspace.querySelector('.propulsion-statistics-card')?.remove();workspace.querySelector('.propulsion-graphical-card')?.remove();
-  selectedFile=null;logType='';if(logTypePicker)logTypePicker.querySelectorAll('input').forEach(r=>r.checked=false);updateLogTypeUI();mapping={};calculatedParameterKeys=[];headerRow=[];dataRows=[];analysisRows=[];confirmed=false;step3Visible=false;step4Visible=false;step5Visible=false;reportDirectVisible=false;parseCSVText='';if(csvPreviewPanel){csvPreviewPanel.remove();csvPreviewPanel=null;}workspace.querySelector('.propulsion-csv-preview-toggle-actions')?.remove();workspace.querySelector('.propulsion-csv-preview-actions')?.remove();
+  selectedFile=null;mapping={};calculatedParameterKeys=[];headerRow=[];dataRows=[];analysisRows=[];confirmed=false;step3Visible=false;step4Visible=false;step5Visible=false;reportDirectVisible=false;parseCSVText='';if(csvPreviewPanel){csvPreviewPanel.remove();csvPreviewPanel=null;}workspace.querySelector('.propulsion-csv-preview-toggle-actions')?.remove();workspace.querySelector('.propulsion-csv-preview-actions')?.remove();
   meta.hidden=true;meta.textContent='';reset.hidden=true;start.disabled=true;start.textContent='Identify Parameters';
  }
  function updateLogTypeUI(){if(filePicker)filePicker.classList.toggle('is-log-type-locked',!logType);if(input)input.disabled=!logType;if(start)start.disabled=!logType||!selectedFile;const copy=workspace?.querySelector('.propulsion-upload-card .muted');if(copy)copy.textContent=logType?'Selected '+(logType==='thrust'?'Thrust':'Torque')+' Log. '+(logType==='thrust'?'Torque-related':'Thrust-related')+' parameters will be disabled in subsequent steps.':'Choose Thrust Log or Torque Log before uploading a CSV file.';}
