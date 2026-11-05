@@ -290,7 +290,7 @@
    };
    updateMappingNote();
    details.append(label,formulaLabel,formula,mappingNote);
-   const calculate=el('button','btn alt propulsion-calculated-action','Calculate and Add to Graph');calculate.type='button';calculate.disabled=true;calculate.hidden=!parameterEnabled;
+   const calculate=el('button','btn alt propulsion-calculated-action','Calculate and Add to Log file');calculate.type='button';calculate.disabled=true;calculate.hidden=!parameterEnabled;
    calculate.title='Select the checkbox to enable this calculation.';
    let addedToGraph=false;
    const addedStatus=el('span','propulsion-calculated-added-status','✓ Added to Graph');
@@ -310,7 +310,7 @@
     checkbox.disabled=false;
     checkbox.checked=false;
     calculate.disabled=true;
-    calculate.textContent='Calculate and Add to Graph';
+    calculate.textContent='Calculate and Add to Log file';
     calculate.title='Select the checkbox to enable this calculation.';
     addedStatus.hidden=true;
     retry.hidden=true;
