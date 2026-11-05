@@ -2,7 +2,7 @@
 (()=>{
  'use strict';
  const $id=id=>document.getElementById(id);
- const input=$id('propulsionCsvInput'),filePicker=input?.closest('.propulsion-file-picker'),status=$id('propulsionUploadStatus'),meta=$id('propulsionFileMeta'),start=$id('startPropulsionAnalysisBtn'),reset=$id('resetPropulsionUploadBtn'),workspace=document.querySelector('.propulsion-analyser-workspace');
+ const logTypePicker=$id('propulsionLogTypePicker');let logType='';const input=$id('propulsionCsvInput'),filePicker=input?.closest('.propulsion-file-picker'),status=$id('propulsionUploadStatus'),meta=$id('propulsionFileMeta'),start=$id('startPropulsionAnalysisBtn'),reset=$id('resetPropulsionUploadBtn'),workspace=document.querySelector('.propulsion-analyser-workspace');
  if(reset)reset.textContent='Choose another log file';
  if(!input||!status||!start||!workspace)return;
  const uploadCard=input.closest('.propulsion-upload-card');
@@ -98,8 +98,8 @@
  const DB_NAME='yeti-flight-trial-state',DB_STORE='propulsion-analyser',DB_KEY='active-session';
  function openStateDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(DB_STORE))req.result.createObjectStore(DB_STORE)};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
  let graphXIndex='',graphYIndex='',graphY2Index='';
- async function saveState(){try{const db=await openStateDB();await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).put({csvText:parseCSVText,fileName:selectedFile?.name||'Restored CSV log.csv',stage:step5Visible?'report':step4Visible?'graphical':step3Visible?'summary':step3FilterVisible?'filter':confirmed?'confirmed':analysisPanel?'identified':selectedFile?'uploaded':'empty',reportDirectVisible,mapping:Object.fromEntries(specs.map(s=>[s.key,mapping[s.key]?.selected??''])),graphXIndex,graphYIndex,graphY2Index,calculatedParameterKeys},DB_KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}catch(error){console.warn('Could not save propulsion session locally:',error)}}
- async function loadState(){try{const db=await openStateDB();const saved=await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readonly');const req=tx.objectStore(DB_STORE).get(DB_KEY);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});db.close();if(!saved?.csvText)return;parseCSVText=saved.csvText;selectedFile={name:saved.fileName||'Restored CSV log.csv',size:new Blob([parseCSVText]).size,text:async()=>parseCSVText};if(filePicker)filePicker.hidden=true;meta.hidden=false;meta.textContent=selectedFile.name+' · '+(selectedFile.size/1024).toFixed(1)+' KB · Restored locally';reset.hidden=false;setUploadState(true,'Previous CSV session restored from this browser');renderCsvPreview(parseCSVText);const rows=parseCSV(parseCSVText,chooseDelimiter(parseCSVText));detect(rows);if(saved.mapping){specs.forEach(spec=>{const value=saved.mapping[spec.key];if(value!==''&&value!==undefined)mapping[spec.key].selected=Number(value)});analysisPanel.querySelectorAll('.propulsion-column-select').forEach(select=>{select.value=mapping[select.dataset.key].selected===''?'':String(mapping[select.dataset.key].selected)});validateMapping()}if((saved.stage==='confirmed'||saved.stage==='filter'||saved.stage==='summary'||saved.stage==='graphical'||saved.stage==='report')&&validateMapping())$id('confirmPropulsionMappingBtn').click();if(Array.isArray(saved.calculatedParameterKeys)){saved.calculatedParameterKeys.forEach(key=>{const control=calculatedParameterControls[key];if(control){control.checkbox.checked=true;control.checkbox.dispatchEvent(new Event('change'));control.calculate.click();}})}if((saved.stage==='summary'||saved.stage==='graphical')&&confirmed)$id('proceedToParameterSummaryBtn')?.click();if(saved.stage==='summary'||saved.stage==='graphical')$id('proceedToParameterSummaryBtn')?.click();if(saved.stage==='report'&&saved.reportDirectVisible){$id('proceedToReportGenerationChoiceBtn')?.click()}else if((saved.stage==='graphical'||saved.stage==='report')&&step3Visible){$id('proceedToGraphicalAnalysisBtn')?.click();if(saved.stage==='report')$id('proceedToGenerateReportBtn')?.click();if(saved.graphXIndex!==undefined){graphXIndex=String(saved.graphXIndex);graphYIndex=String(saved.graphYIndex??'');graphY2Index=String(saved.graphY2Index??'');const xs=$id('propulsionXAxisSelect'),ys=$id('propulsionYAxisSelect'),y2s=$id('propulsionSecondaryYAxisSelect');if(xs)xs.value=graphXIndex;if(ys)ys.value=graphYIndex;if(y2s)y2s.value=graphY2Index;if($id('plotPropulsionGraphBtn')&&graphXIndex!==''&&graphYIndex!=='')$id('plotPropulsionGraphBtn').click();}}start.textContent='Parameters Identified';start.disabled=true}catch(error){console.warn('Could not restore propulsion session:',error)}}
+ async function saveState(){try{const db=await openStateDB();await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).put({csvText:parseCSVText,fileName:selectedFile?.name||'Restored CSV log.csv',stage:step5Visible?'report':step4Visible?'graphical':step3Visible?'summary':step3FilterVisible?'filter':confirmed?'confirmed':analysisPanel?'identified':selectedFile?'uploaded':'empty',reportDirectVisible,logType,mapping:Object.fromEntries(specs.map(s=>[s.key,mapping[s.key]?.selected??''])),graphXIndex,graphYIndex,graphY2Index,calculatedParameterKeys},DB_KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}catch(error){console.warn('Could not save propulsion session locally:',error)}}
+ async function loadState(){try{const db=await openStateDB();const saved=await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readonly');const req=tx.objectStore(DB_STORE).get(DB_KEY);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});db.close();if(!saved?.csvText)return;logType=saved.logType||'';if(logTypePicker){const choice=logTypePicker.querySelector('input[value="'+logType+'"]');if(choice)choice.checked=true;}updateLogTypeUI();parseCSVText=saved.csvText;selectedFile={name:saved.fileName||'Restored CSV log.csv',size:new Blob([parseCSVText]).size,text:async()=>parseCSVText};if(filePicker)filePicker.hidden=true;meta.hidden=false;meta.textContent=selectedFile.name+' · '+(selectedFile.size/1024).toFixed(1)+' KB · Restored locally';reset.hidden=false;setUploadState(true,'Previous CSV session restored from this browser');renderCsvPreview(parseCSVText);const rows=parseCSV(parseCSVText,chooseDelimiter(parseCSVText));detect(rows);if(saved.mapping){specs.forEach(spec=>{const value=saved.mapping[spec.key];if(value!==''&&value!==undefined)mapping[spec.key].selected=Number(value)});analysisPanel.querySelectorAll('.propulsion-column-select').forEach(select=>{select.value=mapping[select.dataset.key].selected===''?'':String(mapping[select.dataset.key].selected)});validateMapping()}if((saved.stage==='confirmed'||saved.stage==='filter'||saved.stage==='summary'||saved.stage==='graphical'||saved.stage==='report')&&validateMapping())$id('confirmPropulsionMappingBtn').click();if(Array.isArray(saved.calculatedParameterKeys)){saved.calculatedParameterKeys.forEach(key=>{const control=calculatedParameterControls[key];if(control){control.checkbox.checked=true;control.checkbox.dispatchEvent(new Event('change'));control.calculate.click();}})}if((saved.stage==='summary'||saved.stage==='graphical')&&confirmed)$id('proceedToParameterSummaryBtn')?.click();if(saved.stage==='summary'||saved.stage==='graphical')$id('proceedToParameterSummaryBtn')?.click();if(saved.stage==='report'&&saved.reportDirectVisible){$id('proceedToReportGenerationChoiceBtn')?.click()}else if((saved.stage==='graphical'||saved.stage==='report')&&step3Visible){$id('proceedToGraphicalAnalysisBtn')?.click();if(saved.stage==='report')$id('proceedToGenerateReportBtn')?.click();if(saved.graphXIndex!==undefined){graphXIndex=String(saved.graphXIndex);graphYIndex=String(saved.graphYIndex??'');graphY2Index=String(saved.graphY2Index??'');const xs=$id('propulsionXAxisSelect'),ys=$id('propulsionYAxisSelect'),y2s=$id('propulsionSecondaryYAxisSelect');if(xs)xs.value=graphXIndex;if(ys)ys.value=graphYIndex;if(y2s)y2s.value=graphY2Index;if($id('plotPropulsionGraphBtn')&&graphXIndex!==''&&graphYIndex!=='')$id('plotPropulsionGraphBtn').click();}}start.textContent='Parameters Identified';start.disabled=true}catch(error){console.warn('Could not restore propulsion session:',error)}}
  function setUploadState(ok,text){status.classList.toggle('is-complete',ok);status.querySelector('.propulsion-status-symbol').textContent=ok?'✓':'○';status.lastElementChild.textContent=text}
  function parseCSV(text,delimiter){
   const rows=[];let row=[],field='',quoted=false;
@@ -136,7 +136,7 @@
  function detect(rows){
   // Re-identification starts a fresh review cycle; a previous confirmation must not lock the new mapping.
   confirmed=false;step3Visible=false;step4Visible=false;step5Visible=false;
-  const hi=findHeader(rows);if(hi<0)throw new Error('Could not locate a recognizable header row in the first 10 rows.');
+  if(!logType)throw new Error('Select Thrust Log or Torque Log in Step 01 before identifying columns.');const hi=findHeader(rows);if(hi<0)throw new Error('Could not locate a recognizable header row in the first 10 rows.');
   headerRow=rows[hi].map((v,i)=>String(v??'').trim()||('Column '+(i+1)));
   dataRows=rows.slice(hi+1).filter(r=>r.some(v=>String(v??'').trim()!==''));analysisRows=dataRows.slice();
   mapping={};calculatedParameterKeys=[];
@@ -157,8 +157,8 @@
   analysisPanel.append(top);
   const grid=el('div','propulsion-mapping-list');
   specs.forEach(s=>{
-   const item=el('label','propulsion-mapping-row');item.append(el('span','propulsion-mapping-label',s.label));
-   const select=el('select','propulsion-column-select');select.dataset.key=s.key;
+   const item=el('label','propulsion-mapping-row');if(!isParameterEnabled(s.key)){item.classList.add('is-parameter-disabled');item.setAttribute('aria-disabled','true');}item.append(el('span','propulsion-mapping-label',s.label));
+   const select=el('select','propulsion-column-select');select.dataset.key=s.key;select.disabled=!isParameterEnabled(s.key);
    const empty=document.createElement('option');empty.value='';empty.textContent='Not detected — select a column';select.append(empty);
    headerRow.forEach((name,index)=>{const opt=document.createElement('option');opt.value=String(index);opt.textContent=name;select.append(opt)});
    const current=mapping[s.key].selected;select.value=current===''?'':String(current);
@@ -210,7 +210,7 @@
    const card=el('div','propulsion-calculated-parameter');card.dataset.parameterKey=parameter.key;
    const details=el('div','propulsion-calculated-parameter-details');
    const label=el('label','propulsion-calculated-parameter-label');
-   const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.setAttribute('aria-label','Calculate '+parameter.name);
+   const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.disabled=!parameterEnabled;checkbox.setAttribute('aria-label','Calculate '+parameter.name);
    const name=el('strong','',parameter.name);label.append(checkbox,name);
    const formulaLabel=el('span','propulsion-calculated-formula-label','FORMULA');
    const formula=el('div','propulsion-calculated-formula');
@@ -236,13 +236,13 @@
    };
    updateMappingNote();
    details.append(label,formulaLabel,formula,mappingNote);
-   const calculate=el('button','btn alt propulsion-calculated-action','Calculate and Add to Graph');calculate.type='button';calculate.disabled=true;
+   const calculate=el('button','btn alt propulsion-calculated-action','Calculate and Add to Graph');calculate.type='button';calculate.disabled=true;calculate.hidden=!parameterEnabled;
    calculate.title='Select the checkbox to enable this calculation.';
    let addedToGraph=false;
    const addedStatus=el('span','propulsion-calculated-added-status','✓ Added to Graph');
    addedStatus.hidden=true;
    const retry=el('button','btn alt propulsion-calculated-retry','Retry');
-   retry.type='button';retry.hidden=true;
+   retry.type='button';retry.hidden=true;retry.disabled=!parameterEnabled;
    retry.title='Enable this calculation again.';
    calculatedParameterControls[parameter.key]={checkbox,calculate,updateMappingNote};
    checkbox.addEventListener('change',()=>{calculate.disabled=addedToGraph||!checkbox.checked;invalidateGeneratedCsv('Derived parameter selection changed. Generate Filtered & Sorted CSV again to apply the latest selections.');saveState();});
@@ -634,7 +634,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    confirmed=true;calculatedParameterDefinitions.forEach(parameter=>calculatedParameterControls[parameter.key]?.updateMappingNote());confirm.disabled=true;confirm.textContent='Mapping Confirmed';
    next.hidden=false;next.replaceChildren(el('strong','', 'Parameter mapping confirmed'));
    // Keep the confirmation panel concise; dataset filtering details remain internal.
-   const mappingList=el('ul','propulsion-confirmed-mapping');specs.forEach(s=>mappingList.append(el('li','',s.label+' → '+headerRow[mapping[s.key].selected])));next.append(mappingList);proceed.hidden=true;directReportProceed.hidden=true;step3Filter.append(filterActions);step3.hidden=true;step3Filter.hidden=false;step3FilterVisible=true;saveState();
+   const mappingList=el('ul','propulsion-confirmed-mapping');activeSpecs().forEach(s=>mappingList.append(el('li','',s.label+' → '+headerRow[mapping[s.key].selected])));next.append(mappingList);proceed.hidden=true;directReportProceed.hidden=true;step3Filter.append(filterActions);step3.hidden=true;step3Filter.hidden=false;step3FilterVisible=true;saveState();
    saveState();
   });
   directReportProceed.addEventListener('click',()=>{if(!confirmed)return;reportDirectVisible=true;step3Visible=false;step4Visible=false;step5Visible=true;analysisPanel.hidden=true;step3.hidden=true;step3Filter.hidden=true;step4.hidden=true;step5.hidden=false;saveState();step5.scrollIntoView({behavior:'smooth',block:'start'});});
@@ -690,10 +690,10 @@ const statsPage=el('section','propulsion-report-summary-page');
  let parseCSVText='';
  function validateMapping(){
   if(!analysisPanel)return false;
-  const selections=specs.map(s=>mapping[s.key]?.selected??'');
-  const complete=selections.every(v=>v!=='');const unique=new Set(selections.map(String)).size===selections.length;
+  const selections=activeSpecs().map(s=>mapping[s.key]?.selected??'');
+  const complete=selections.length>0&&selections.every(v=>v!=='');const unique=new Set(selections.map(String)).size===selections.length;
   const confirm=$id('confirmPropulsionMappingBtn'),summary=$id('propulsionMappingSummary');
-  const checks=specs.map(s=>{const idx=mapping[s.key]?.selected;if(idx===''||idx===undefined)return false;let checked=0,numeric=0;for(const row of dataRows.slice(0,100)){const v=String(row[idx]??'').trim();if(v){checked++;if(Number.isFinite(Number(v)))numeric++}}return checked>0&&numeric/checked>=0.8});
+  const checks=activeSpecs().map(s=>{const idx=mapping[s.key]?.selected;if(idx===''||idx===undefined)return false;let checked=0,numeric=0;for(const row of dataRows.slice(0,100)){const v=String(row[idx]??'').trim();if(v){checked++;if(Number.isFinite(Number(v)))numeric++}}return checked>0&&numeric/checked>=0.8});
   const allData=checks.every(Boolean);confirm.disabled=!(complete&&unique&&allData&&!confirmed);
   summary.className='propulsion-mapping-summary'+(complete&&unique&&allData?' is-valid':' is-warning');
   summary.textContent=!complete?'Select a CSV column for every required parameter.':!unique?'Each parameter must use a different CSV column.':!allData?'One or more selected columns do not contain predominantly numeric data in the sampled rows. Review the mapping.':'Unique columns selected; Ready for confirmation.';
@@ -706,13 +706,15 @@ const statsPage=el('section','propulsion-report-summary-page');
  function resetAnalysis(){
   if(analysisPanel){analysisPanel.remove();analysisPanel=null}
   workspace.querySelector('.propulsion-statistics-card')?.remove();workspace.querySelector('.propulsion-graphical-card')?.remove();
-  selectedFile=null;mapping={};calculatedParameterKeys=[];headerRow=[];dataRows=[];analysisRows=[];confirmed=false;step3Visible=false;step4Visible=false;step5Visible=false;reportDirectVisible=false;parseCSVText='';if(csvPreviewPanel){csvPreviewPanel.remove();csvPreviewPanel=null;}workspace.querySelector('.propulsion-csv-preview-toggle-actions')?.remove();workspace.querySelector('.propulsion-csv-preview-actions')?.remove();
+  selectedFile=null;logType='';if(logTypePicker)logTypePicker.querySelectorAll('input').forEach(r=>r.checked=false);updateLogTypeUI();mapping={};calculatedParameterKeys=[];headerRow=[];dataRows=[];analysisRows=[];confirmed=false;step3Visible=false;step4Visible=false;step5Visible=false;reportDirectVisible=false;parseCSVText='';if(csvPreviewPanel){csvPreviewPanel.remove();csvPreviewPanel=null;}workspace.querySelector('.propulsion-csv-preview-toggle-actions')?.remove();workspace.querySelector('.propulsion-csv-preview-actions')?.remove();
   meta.hidden=true;meta.textContent='';reset.hidden=true;start.disabled=true;start.textContent='Identify Parameters';
  }
+ function updateLogTypeUI(){if(filePicker)filePicker.classList.toggle('is-log-type-locked',!logType);if(input)input.disabled=!logType;if(start)start.disabled=!logType||!selectedFile;const copy=workspace?.querySelector('.propulsion-upload-card .muted');if(copy)copy.textContent=logType?'Selected '+(logType==='thrust'?'Thrust':'Torque')+' Log. '+(logType==='thrust'?'Torque-related':'Thrust-related')+' parameters will be disabled in subsequent steps.':'Choose Thrust Log or Torque Log before uploading a CSV file.';}
+ logTypePicker?.querySelectorAll('input[name="propulsionLogType"]').forEach(radio=>radio.addEventListener('change',()=>{const next=radio.value;if(logType&&logType!==next&&(selectedFile||confirmed)){if(!confirm('Changing the log type will reset the current analysis. Continue?')){logTypePicker.querySelector('input[value="'+logType+'"]').checked=true;return;}input.value='';resetAnalysis();}logType=next;updateLogTypeUI();saveState();}));
  input.addEventListener('change',()=>{
   resetAnalysis();
   const file=input.files&&input.files[0];
-  if(!file){setUploadState(false,'No file selected');return}
+  if(!file){setUploadState(false,'No file selected');return}if(!logType){input.value='';setUploadState(false,'Select Thrust Log or Torque Log first');return}
   if(!/\.csv$/i.test(file.name)){input.value='';setUploadState(false,'Invalid file — please select a .csv file');return}
   if(file.size===0){input.value='';setUploadState(false,'The selected CSV file is empty');return}
   selectedFile=file;if(filePicker)filePicker.hidden=true;setUploadState(true,'CSV selected — ready for parameter identification');
