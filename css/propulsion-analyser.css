@@ -918,3 +918,38 @@
 .propulsion-x-range-apply{min-width:110px;}
 @media(max-width:900px){.propulsion-x-range-fields{grid-template-columns:minmax(0,1fr);}}
 @media(max-width:620px){.propulsion-x-range-fields{grid-template-columns:1fr;}.propulsion-x-range-actions>*{flex:1 1 100%;}}
+
+
+/* Disabled X-Y range selector: subtle muted appearance while preserving layout. */
+.propulsion-x-range-panel.is-disabled{
+  background:#eef2f6!important;
+  border-color:#d5dde6!important;
+  opacity:.78;
+  transition:background-color .18s ease,border-color .18s ease,opacity .18s ease;
+}
+.propulsion-point-navigation-section .propulsion-x-range-panel.is-disabled{
+  background:transparent!important;
+  border-top-color:#cbd5df!important;
+}
+.propulsion-x-range-panel.is-disabled .propulsion-x-range-title{
+  color:#778697!important;
+}
+.propulsion-x-range-panel.is-disabled .propulsion-graph-field{
+  color:#8995a3!important;
+}
+.propulsion-x-range-panel.is-disabled .propulsion-column-select,
+.propulsion-x-range-panel.is-disabled button:disabled{
+  background:#e5eaf0!important;
+  border-color:#d0d8e1!important;
+  color:#8995a3!important;
+  cursor:not-allowed!important;
+  box-shadow:none!important;
+}
+.propulsion-x-range-panel.is-disabled .propulsion-x-range-apply,
+.propulsion-x-range-panel.is-disabled .propulsion-x-range-reset{
+  background:#e3e8ee!important;
+  border-color:#d0d8e1!important;
+  color:#8995a3!important;
+  cursor:not-allowed!important;
+  box-shadow:none!important;
+}
