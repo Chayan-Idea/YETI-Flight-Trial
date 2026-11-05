@@ -408,7 +408,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   directReportProceed.addEventListener('click',()=>{if(!confirmed)return;reportDirectVisible=true;step3Visible=false;step4Visible=false;step5Visible=true;analysisPanel.hidden=true;step3.hidden=true;step4.hidden=true;step5.hidden=false;saveState();step5.scrollIntoView({behavior:'smooth',block:'start'});});
   proceed.addEventListener('click',()=>{
    if(!confirmed)return;
-   reportDirectVisible=false;step3Visible=true;step4Visible=false;step5Visible=false;analysisPanel.hidden=true;step3.hidden=false;step4.hidden=true;step5.hidden=true;step3.replaceChildren();
+   reportDirectVisible=false;step3Visible=true;step4Visible=false;step5Visible=false;analysisPanel.hidden=false;step3.hidden=false;step4.hidden=true;step5.hidden=true;step3.replaceChildren();
    step3.append(el('span','propulsion-step-label','STEP 03 · PARAMETER SUMMARY'));
    step3.append(el('h3','','Mapped Parameter Statistics'));
    step3.append(el('p','propulsion-statistics-description','Maximum values and timestamps use rows with non-zero Actual RPM. '+analysisRows.length.toLocaleString()+' of '+dataRows.length.toLocaleString()+' CSV data rows included after the Actual RPM = 0 exclusion.'));
