@@ -206,9 +206,12 @@
   const pointSliderLabel=el('label','propulsion-point-slider-label','Explore data point');
   const pointSlider=document.createElement('input');pointSlider.type='range';pointSlider.min='0';pointSlider.max='0';pointSlider.value='0';pointSlider.step='1';pointSlider.id='propulsionPointSlider';pointSlider.disabled=true;pointSlider.setAttribute('aria-label','Select data point on graph');pointSliderLabel.append(pointSlider);
   const pointCounter=el('span','propulsion-point-counter','Point 0 of 0');pointCounter.id='propulsionPointCounter';
-  pointExplorer.append(pointReadout,pointSliderLabel,pointCounter);
+  const sliderNavigationSection=el('section','propulsion-point-navigation-section');
+  sliderNavigationSection.append(el('strong','propulsion-point-navigation-title','GRAPH NAVIGATION USING SLIDING BAR'));
+  sliderNavigationSection.append(pointReadout,pointSliderLabel,pointCounter);
+  pointExplorer.append(sliderNavigationSection);
   const pointNavigator=el('section','propulsion-point-navigator');
-  pointNavigator.append(el('strong','propulsion-point-navigator-title','NAVIGATE TO A DATA VALUE'));
+  pointNavigator.append(el('strong','propulsion-point-navigation-title','GRAPH NAVIGATION BY DATA POINT'));
   pointNavigator.append(el('p','propulsion-point-navigator-help','Enter a value in any one field. The nearest matching plotted point will be selected and the other values will update above.'));
   const pointNavFields=el('div','propulsion-point-navigator-fields');
   const makePointSearchField=(key,label,placeholder)=>{const wrap=el('label','propulsion-point-search-field');wrap.append(el('span','',label));const input=document.createElement('input');input.type='text';input.inputMode=key==='timestamp'?'text':'decimal';input.placeholder=placeholder;input.autocomplete='off';input.dataset.pointSearch=key;wrap.append(input);pointNavFields.append(wrap);return input};
