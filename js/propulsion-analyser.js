@@ -297,7 +297,7 @@
    const calculate=el('button','btn alt propulsion-calculated-action','Calculate and Add to Log file');calculate.type='button';calculate.disabled=true;calculate.hidden=!parameterEnabled;
    calculate.title='Select the checkbox to enable this calculation.';
    let addedToGraph=false;
-   const addedStatus=el('span','propulsion-calculated-added-status','✓ Added to Graph');
+   const addedStatus=el('span','propulsion-calculated-added-status','✓ Added to Log file');
    addedStatus.hidden=true;
    const retry=el('button','btn alt propulsion-calculated-retry','Retry');
    retry.type='button';retry.hidden=true;retry.disabled=!parameterEnabled;
@@ -389,9 +389,9 @@
     graphStatus.textContent=parameter.name+' calculated for '+validCount.toLocaleString()+' valid rows out of '+analysisRows.length.toLocaleString()+' included rows. Select Plot Graph to view it.';
     addedToGraph=true;
     calculate.disabled=true;
-    calculate.textContent='Added to Graph';
+    calculate.textContent='✓ Added to Log file';
     calculate.hidden=true;
-    calculate.title='This calculated parameter has already been added to the graph data.';
+    calculate.title='This calculated parameter has already been added to the generated log file data.';
     addedStatus.hidden=false;
     retry.hidden=false;
     checkbox.disabled=true;
@@ -408,7 +408,7 @@
   const csvStatus=el('p','propulsion-csv-export-status','Ready to generate from '+analysisRows.length.toLocaleString()+' identified data rows and '+headerRow.length.toLocaleString()+' available columns.');
   csvStatus.setAttribute('role','status');csvStatus.setAttribute('aria-live','polite');
   const csvConfirmation=el('div','propulsion-csv-confirmations');
-  const derivedReadyLabel=el('label','propulsion-csv-confirmation');derivedReadyCheckbox=document.createElement('input');derivedReadyCheckbox.type='checkbox';derivedReadyCheckbox.id='confirmDerivedParametersReady';derivedReadyLabel.append(derivedReadyCheckbox,el('span','','Required Derived Parameters identified, calculated, added to graph'));
+  const derivedReadyLabel=el('label','propulsion-csv-confirmation');derivedReadyCheckbox=document.createElement('input');derivedReadyCheckbox.type='checkbox';derivedReadyCheckbox.id='confirmDerivedParametersReady';derivedReadyLabel.append(derivedReadyCheckbox,el('span','','Required Derived Parameters identified, calculated, added to log file'));
   const filteringReadyLabel=el('label','propulsion-csv-confirmation');filteringReadyCheckbox=document.createElement('input');filteringReadyCheckbox.type='checkbox';filteringReadyCheckbox.id='confirmFilteringSortingReady';filteringReadyLabel.append(filteringReadyCheckbox,el('span','','Apply Data Filtering & Sorting Logic'));
   [derivedReadyCheckbox,filteringReadyCheckbox].forEach(input=>input.addEventListener('change',updateCsvGenerationGate));
   csvConfirmation.append(derivedReadyLabel,filteringReadyLabel);
