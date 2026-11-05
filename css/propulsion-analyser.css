@@ -698,3 +698,6 @@
 .propulsion-calculated-added-status[hidden]{display:none}
 .propulsion-calculated-parameter.is-added-to-graph{border-color:#9bcda8;background:linear-gradient(135deg,rgba(234,248,238,.72),rgba(255,255,255,.96))}
 .propulsion-calculated-action:disabled{opacity:.72;cursor:not-allowed}
+
+.propulsion-calculated-retry{flex:0 0 auto;white-space:normal}
+.propulsion-calculated-retry[hidden]{display:none}
