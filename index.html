@@ -44,22 +44,28 @@
   <div class="propulsion-upload-card propulsion-step-card propulsion-step-card--blue">
     <div class="propulsion-step-label">STEP 01 · INPUT LOG</div>
     <h3 id="propulsionUploadHeading">Upload Propulsion Test Bench Log</h3>
-    <fieldset class="propulsion-log-type-picker" id="propulsionLogTypePicker"><legend>SELECT TEST LOG TYPE</legend><label><input type="radio" name="propulsionLogType" value="thrust"> Thrust Log</label><label><input type="radio" name="propulsionLogType" value="torque"> Torque Log</label></fieldset>
-    <p class="muted">Select the propulsion test bench log in CSV format to begin.</p>
-    <label class="propulsion-file-picker" for="propulsionCsvInput">
-      <span class="propulsion-upload-icon" aria-hidden="true">↑</span>
-      <strong>Choose CSV log file</strong>
-      <span>CSV format only</span>
-      <input id="propulsionCsvInput" type="file" accept=".csv,text/csv">
-    </label>
-    <div id="propulsionUploadStatus" class="propulsion-upload-status" role="status" aria-live="polite">
-      <span class="propulsion-status-symbol" aria-hidden="true">○</span>
-      <span>No file selected</span>
-    </div>
-    <div class="propulsion-file-meta" id="propulsionFileMeta" hidden></div>
-    <div class="propulsion-actions">
-      <button type="button" class="btn" id="startPropulsionAnalysisBtn" disabled>Start Analysing</button>
-      <button type="button" class="btn alt" id="resetPropulsionUploadBtn" hidden>Choose another file</button>
+    <fieldset class="propulsion-log-type-picker" id="propulsionLogTypePicker">
+      <legend>SELECT TEST LOG TYPE</legend>
+      <label class="propulsion-log-type-option"><input type="radio" name="propulsionLogType" value="thrust"><span class="propulsion-log-type-icon" aria-hidden="true">↗</span><span class="propulsion-log-type-copy"><strong>Thrust Log</strong><small>Thrust measurement and propulsion performance</small></span><span class="propulsion-log-type-check" aria-hidden="true">✓</span></label>
+      <label class="propulsion-log-type-option"><input type="radio" name="propulsionLogType" value="torque"><span class="propulsion-log-type-icon" aria-hidden="true">⟳</span><span class="propulsion-log-type-copy"><strong>Torque Log</strong><small>Torque measurement and motor performance</small></span><span class="propulsion-log-type-check" aria-hidden="true">✓</span></label>
+    </fieldset>
+    <div class="propulsion-log-upload-area" id="propulsionLogUploadArea" hidden>
+      <div class="propulsion-log-upload-heading"><span class="propulsion-log-upload-kicker">SELECTED TEST TYPE</span><strong id="propulsionLogUploadTitle">Upload Thrust Log</strong><span id="propulsionLogUploadDescription">Upload the CSV file containing thrust test data.</span></div>
+      <label class="propulsion-file-picker" for="propulsionCsvInput">
+        <span class="propulsion-upload-icon" aria-hidden="true">↑</span>
+        <strong id="propulsionCsvPickerTitle">Upload Thrust Log</strong>
+        <span>CSV format only · Select a .csv file</span>
+        <input id="propulsionCsvInput" type="file" accept=".csv,text/csv">
+      </label>
+      <div id="propulsionUploadStatus" class="propulsion-upload-status" role="status" aria-live="polite">
+        <span class="propulsion-status-symbol" aria-hidden="true">○</span>
+        <span>No file selected</span>
+      </div>
+      <div class="propulsion-file-meta" id="propulsionFileMeta" hidden></div>
+      <div class="propulsion-actions">
+        <button type="button" class="btn" id="startPropulsionAnalysisBtn" disabled>Start Analysing</button>
+        <button type="button" class="btn alt" id="resetPropulsionUploadBtn" hidden>Choose another file</button>
+      </div>
     </div>
   </div>
   <div class="propulsion-progress-card propulsion-step-card propulsion-step-card--purple" id="propulsionProgressCard" hidden>
@@ -86,5 +92,5 @@ let tab='single',collapsed=false;try{tab=localStorage.getItem('yetiPropulsionLog
 </script>
 <script src="./js/flight-preparation.js?v=1"></script>
 <script src="./js/main-navigation.js?v=2"></script>
-<script src="./js/propulsion-analyser.js?v=93"></script></body></html>
+<script src="./js/propulsion-analyser.js?v=94"></script></body></html>
 <!-- GitHub Pages redeployment trigger: 2026-11-05 -->
