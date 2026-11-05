@@ -145,8 +145,13 @@
   return best.score>=4?best.index:-1;
  }
  function detect(rows){
-  // Re-identification starts a fresh review cycle; a previous confirmation must not lock the new mapping.
-  confirmed=false;step3Visible=false;step4Visible=false;step5Visible=false;
+  // Re-identification starts a fresh review cycle and removes every previously unlocked downstream step.
+  workspace.querySelector('#propulsionDataFilteringCard')?.remove();
+  workspace.querySelector('#propulsionParameterSummaryCard')?.remove();
+  workspace.querySelector('#propulsionGraphicalAnalysisCard')?.remove();
+  workspace.querySelector('#propulsionReportGenerationCard')?.remove();
+  step3FilterVisible=false;step3Visible=false;step4Visible=false;step5Visible=false;reportDirectVisible=false;
+  confirmed=false;
   if(!logType)throw new Error('Select Thrust Log or Torque Log in Step 01 before identifying columns.');const hi=findHeader(rows);if(hi<0)throw new Error('Could not locate a recognizable header row in the first 10 rows.');
   headerRow=rows[hi].map((v,i)=>String(v??'').trim()||('Column '+(i+1)));
   dataRows=rows.slice(hi+1).filter(r=>r.some(v=>String(v??'').trim()!==''));analysisRows=dataRows.slice();
@@ -204,6 +209,10 @@
   let derivedReadyCheckbox=null,filteringReadyCheckbox=null;
   const updateCsvGenerationGate=()=>{csvExportButton.hidden=!(derivedReadyCheckbox?.checked&&filteringReadyCheckbox?.checked);};
   const invalidateGeneratedCsv=(message)=>{
+   // Any edit within Step 03 invalidates every downstream analysis/report section immediately.
+   step3Visible=false;step4Visible=false;step5Visible=false;reportDirectVisible=false;
+   step3.hidden=true;step4.hidden=true;step5.hidden=true;
+   step3.replaceChildren();
    csvExportButton.disabled=false;
    if(derivedReadyCheckbox)derivedReadyCheckbox.checked=false;
    if(filteringReadyCheckbox)filteringReadyCheckbox.checked=false;
@@ -649,7 +658,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    const mappingList=el('ul','propulsion-confirmed-mapping');activeSpecs('mapping').forEach(s=>mappingList.append(el('li','',s.label+' → '+headerRow[mapping[s.key].selected])));next.append(mappingList);proceed.hidden=true;directReportProceed.hidden=true;step3Filter.append(filterActions);step3.hidden=true;step3Filter.hidden=false;step3FilterVisible=true;saveState();
    saveState();
   });
-  directReportProceed.addEventListener('click',()=>{if(!confirmed)return;reportDirectVisible=true;step3Visible=false;step4Visible=false;step5Visible=true;analysisPanel.hidden=true;step3.hidden=true;step3Filter.hidden=true;step4.hidden=true;step5.hidden=false;saveState();step5.scrollIntoView({behavior:'smooth',block:'start'});});
+  directReportProceed.addEventListener('click',()=>{if(!confirmed||!generatedCsvText)return;reportDirectVisible=true;step3Visible=false;step4Visible=false;step5Visible=true;analysisPanel.hidden=true;step3.hidden=true;step3Filter.hidden=true;step4.hidden=true;step5.hidden=false;saveState();step5.scrollIntoView({behavior:'smooth',block:'start'});});
   proceed.addEventListener('click',()=>{if(!confirmed)return;showParameterSummary();});
   const showParameterSummary=()=>{
    if(!confirmed)return;
