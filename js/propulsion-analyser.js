@@ -181,9 +181,9 @@
   step3Filter.append(el('p','propulsion-statistics-description','Select calculated parameters to add row-wise derived data columns. Formula definitions and calculation actions will be enabled as each formula is provided.'));
   const calculatedParameters=el('div','propulsion-calculated-parameters');calculatedParameters.id='propulsionCalculatedParameters';
   const calculatedParameterDefinitions=[
-   {key:'mechanicalPower',name:'Mechanical Power',formula:'Mechanical Power (watts) = Torque (newton-metres) × Actual Motor Speed (revolutions per minute) × (2 × pi / 60)',sources:[['torque','Torque'],['actualRpm','Actual Motor Speed']]},
-   {key:'electricalPower',name:'Electrical Power',formula:'Electrical Power (watts) = Direct-Current Voltage (volts) × Direct-Current Current (amperes)',sources:[['voltage','Direct-Current Voltage'],['current','Direct-Current Current']]},
-   {key:'overallEfficiency',name:'Specific Thrust',formula:null,numerator:'Thrust (newtons)',denominator:'Electrical Power (watts)',sources:[['thrust','Thrust'],['voltage','Direct-Current Voltage'],['current','Direct-Current Current']]}
+   {key:'mechanicalPower',name:'Mechanical Power',formula:null,sources:[['torque','Torque'],['actualRpm','Actual Motor Speed']]},
+   {key:'electricalPower',name:'Electrical Power',formula:'Electrical Power (W) = Direct-Current Voltage (V) × Direct-Current Current (A)',sources:[['voltage','DC Voltage'],['current','DC Current']]},
+   {key:'overallEfficiency',name:'Specific Thrust',formula:null,numerator:'Thrust (N)',denominator:'Electrical Power (W)',sources:[['thrust','Thrust'],['voltage','DC Voltage'],['current','DC Current']]}
   ];
   calculatedParameterControls={};
   const mappedColumnName=key=>{
@@ -198,8 +198,14 @@
    const name=el('strong','',parameter.name);label.append(checkbox,name);
    const formulaLabel=el('span','propulsion-calculated-formula-label','FORMULA');
    const formula=el('div','propulsion-calculated-formula');
-   if(parameter.key==='overallEfficiency'){
-    const equation=el('span','propulsion-formula-equation','Specific Thrust (newtons per watt) = ');
+   if(parameter.key==='mechanicalPower'){
+    formula.append(el('span','propulsion-formula-equation','Mechanical Power (W) = Torque (N·m) × Actual Motor Speed (RPM) × '));
+    const conversion=el('span','propulsion-formula-fraction propulsion-formula-conversion');
+    conversion.setAttribute('role','math');
+    conversion.append(el('span','propulsion-formula-numerator','2π'),el('span','propulsion-formula-denominator','60'));
+    formula.append(conversion);
+   }else if(parameter.key==='overallEfficiency'){
+    const equation=el('span','propulsion-formula-equation','Specific Thrust (N/W) = ');
     const fraction=el('span','propulsion-formula-fraction');
     fraction.setAttribute('role','math');
     fraction.append(el('span','propulsion-formula-numerator',parameter.numerator),el('span','propulsion-formula-denominator',parameter.denominator));
