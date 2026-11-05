@@ -501,7 +501,7 @@
    handleAxisSelectionChange();
   });
   ySelect.addEventListener('change',()=>{yRangeStart.value='';yRangeEnd.value='';graphYRangeStart='';graphYRangeEnd='';handleAxisSelectionChange()});
-  y2Select.addEventListener('change',()=>{y2RangeStart.value='';y2RangeEnd.value='';graphY2RangeStart='';graphY2RangeEnd='';handleAxisSelectionChange()});
+  y2Select.addEventListener('change',()=>{y2RangeStart.value='';y2RangeEnd.value='';graphY2RangeStart='';graphY2RangeEnd='';updateSecondaryRangeVisibility();handleAxisSelectionChange()});
   graphControls.append(xField.label,yField.label,y2Field.label);step4.append(graphControls);
   step4.append(plotActions);
   const graphStatus=el('p','propulsion-graph-status','Choose an X axis and at least one Y axis parameter to enable Plot Graph.');graphStatus.id='propulsionGraphStatus';step4.append(graphStatus);
@@ -512,6 +512,9 @@
   const xRangeStart=makeRangeField('Start X Point','propulsionXRangeStart'),xRangeEnd=makeRangeField('End X Point','propulsionXRangeEnd');
   const yRangeStart=makeRangeField('Start Primary Y Point','propulsionYRangeStart'),yRangeEnd=makeRangeField('End Primary Y Point','propulsionYRangeEnd');
    const y2RangeStart=makeRangeField('Start Secondary Y Point','propulsionY2RangeStart'),y2RangeEnd=makeRangeField('End Secondary Y Point','propulsionY2RangeEnd');
+   const secondaryRangeLabels=[y2RangeStart.parentElement,y2RangeEnd.parentElement];
+   const updateSecondaryRangeVisibility=()=>secondaryRangeLabels.forEach(label=>{label.hidden=y2Select.value==='';});
+   updateSecondaryRangeVisibility();
   const graphRangeActions=el('div','propulsion-x-range-actions');
   const applyGraphRange=el('button','btn propulsion-x-range-apply','Apply');applyGraphRange.type='button';
   const resetXRange=el('button','btn alt propulsion-x-range-reset','Reset Full Range');resetXRange.type='button';
