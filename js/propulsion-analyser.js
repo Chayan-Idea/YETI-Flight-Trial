@@ -92,12 +92,15 @@
   {key:'voltage',label:'DC Voltage',aliases:['dc_voltage_v','dc voltage','bus_voltage_v','battery_voltage_v','voltage_v']},
   {key:'current',label:'DC Current',aliases:['current_a','dc_current_a','dc current','battery_current_a','bus_current_a']},
   {key:'motorTemperature',label:'Motor Temperature',aliases:['motor_temperature_c','motor_temp_c','motor temperature','motor temp','motor_temperature','motor_temp','temperature_motor','motor winding temperature']},
-  {key:'escTemperature',label:'ESC Temperature',aliases:['esc_temperature_c','esc_temp_c','esc temperature','esc temp','esc_temperature','esc_temp','controller_temperature','electronic speed controller temperature']}
+  {key:'escTemperature',label:'ESC Temperature',aliases:['esc_temperature_c','esc_temp_c','esc temperature','esc temp','esc_temperature','esc_temp','controller_temperature','electronic speed controller temperature']},
+  {key:'accelerationX',label:'Acceleration Along X Axis',aliases:['acceleration_x','accel_x','acc_x','x_acceleration','x_accel','acceleration along x axis','linear_acceleration_x','acceleration_x_m_s2','accel_x_m_s2']},
+  {key:'accelerationY',label:'Acceleration Along Y Axis',aliases:['acceleration_y','accel_y','acc_y','y_acceleration','y_accel','acceleration along y axis','linear_acceleration_y','acceleration_y_m_s2','accel_y_m_s2']},
+  {key:'accelerationZ',label:'Acceleration Along Z Axis',aliases:['acceleration_z','accel_z','acc_z','z_acceleration','z_accel','acceleration along z axis','linear_acceleration_z','accel_z_m_s2','acceleration_z_m_s2']}
  ];
  // Single source of truth for mode-dependent parameter availability across the workflow.
  const PARAMETER_DEPENDENCY_MATRIX={
-  thrust:{mapping:['thrust','commandRpm','actualRpm','voltage','current','motorTemperature','escTemperature'],derived:['electricalPower','overallEfficiency'],report:['thrust','commandRpm','actualRpm','voltage','current','motorTemperature','escTemperature']},
-  torque:{mapping:['torque','commandRpm','actualRpm','voltage','current','motorTemperature','escTemperature'],derived:['mechanicalPower','electricalPower'],report:['torque','commandRpm','actualRpm','voltage','current','motorTemperature','escTemperature']}
+  thrust:{mapping:['thrust','commandRpm','actualRpm','voltage','current','motorTemperature','escTemperature','accelerationX','accelerationY','accelerationZ'],derived:['electricalPower','overallEfficiency'],report:['thrust','commandRpm','actualRpm','voltage','current','motorTemperature','escTemperature','accelerationX','accelerationY','accelerationZ']},
+  torque:{mapping:['torque','commandRpm','actualRpm','voltage','current','motorTemperature','escTemperature','accelerationX','accelerationY','accelerationZ'],derived:['mechanicalPower','electricalPower'],report:['torque','commandRpm','actualRpm','voltage','current','motorTemperature','escTemperature','accelerationX','accelerationY','accelerationZ']}
  };
  function isParameterAvailable(key,stage='mapping'){
   const mode=PARAMETER_DEPENDENCY_MATRIX[logType];
@@ -636,7 +639,7 @@
    const coverMeta=el('div','propulsion-report-cover-meta');coverMeta.append(el('span','','VALIDATED DATASET · '+analysisRows.length.toLocaleString()+' records'));cover.append(coverMeta);
 const statsPage=el('section','propulsion-report-summary-page');
    statsPage.append(el('div','propulsion-report-page-kicker','01  /  TEST RESULTS'),el('h2','','EXECUTIVE PERFORMANCE SUMMARY'));
-   const units={thrust:'N',torque:'Nm',commandRpm:'RPM',actualRpm:'RPM',voltage:'V',current:'A',motorTemperature:'°C',escTemperature:'°C'};
+   const units={thrust:'N',torque:'Nm',commandRpm:'RPM',actualRpm:'RPM',voltage:'V',current:'A',motorTemperature:'°C',escTemperature:'°C',accelerationX:'m/s²',accelerationY:'m/s²',accelerationZ:'m/s²'};
    const getNum=(row,key)=>{const idx=mapping[key]?.selected;if(idx===undefined||idx==='')return NaN;const raw=String(row[idx]??'').trim();return raw===''?NaN:Number(raw)};
    const fmt=(v,d=2)=>Number.isFinite(v)?new Intl.NumberFormat(undefined,{maximumFractionDigits:d}).format(v):'—';
    const peak=(key)=>{let value=-Infinity,at=-1;analysisRows.forEach((row,i)=>{const v=getNum(row,key);if(Number.isFinite(v)&&v>value){value=v;at=i}});return {value,at}};
@@ -687,7 +690,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    ['Parameter','Mapped CSV Column','Maximum','Timestamp'].forEach(label=>headRow.append(el('th','',label)));
    thead.append(headRow);table.append(thead);
    const tbody=document.createElement('tbody');
-   const units={thrust:'N',torque:'Nm',commandRpm:'RPM',actualRpm:'RPM',voltage:'V',current:'A',motorTemperature:'°C',escTemperature:'°C'};
+   const units={thrust:'N',torque:'Nm',commandRpm:'RPM',actualRpm:'RPM',voltage:'V',current:'A',motorTemperature:'°C',escTemperature:'°C',accelerationX:'m/s²',accelerationY:'m/s²',accelerationZ:'m/s²'};
    const timestampAliases=['timestamp','time_stamp','datetime','date_time','date time','time','utc_time','local_time','sample_time','logged_at','date'];
    const timestampIndex=headerRow.map((name,index)=>({index,score:scoreHeader(name,timestampAliases)})).filter(item=>item.score>=65).sort((a,b)=>b.score-a.score)[0]?.index;
    const fmt=value=>new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(value);
