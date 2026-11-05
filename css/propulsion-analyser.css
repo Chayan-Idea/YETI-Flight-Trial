@@ -669,3 +669,6 @@
 .propulsion-point-navigate-button,.propulsion-point-clear-button{padding:9px 13px!important;font-size:12px!important}
 .propulsion-point-navigator-status{margin:0;color:#526a80;font-size:12px;min-height:1.3em}
 @media(max-width:620px){.propulsion-point-navigator-fields{grid-template-columns:1fr}.propulsion-point-navigator-actions>*{flex:1}}
+
+/* Fixed chart frame: only plotted data scales; axes, labels and grid remain anchored */
+.propulsion-chart-svg{overflow:visible}
