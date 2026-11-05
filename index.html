@@ -44,6 +44,7 @@
   <div class="propulsion-upload-card propulsion-step-card propulsion-step-card--blue">
     <div class="propulsion-step-label">STEP 01 · INPUT LOG</div>
     <h3 id="propulsionUploadHeading">Upload Propulsion Test Bench Log</h3>
+    <fieldset class="propulsion-log-type-picker" id="propulsionLogTypePicker"><legend>SELECT TEST LOG TYPE</legend><label><input type="radio" name="propulsionLogType" value="thrust"> Thrust Log</label><label><input type="radio" name="propulsionLogType" value="torque"> Torque Log</label></fieldset>
     <p class="muted">Select the propulsion test bench log in CSV format to begin.</p>
     <label class="propulsion-file-picker" for="propulsionCsvInput">
       <span class="propulsion-upload-icon" aria-hidden="true">↑</span>
@@ -85,5 +86,5 @@ let tab='single',collapsed=false;try{tab=localStorage.getItem('yetiPropulsionLog
 </script>
 <script src="./js/flight-preparation.js?v=1"></script>
 <script src="./js/main-navigation.js?v=2"></script>
-<script src="./js/propulsion-analyser.js?v=91"></script></body></html>
+<script src="./js/propulsion-analyser.js?v=92"></script></body></html>
 <!-- GitHub Pages redeployment trigger: 2026-11-05 -->
