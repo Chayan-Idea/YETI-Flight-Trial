@@ -674,3 +674,15 @@
 
 /* Reserved Step 04 — data filtering placeholder */
 .propulsion-step-card--orange{--step-border:#f0d0a8;--step-accent:#c77824;--step-tint:#fffaf3}
+
+/* Step 03 calculated-parameter placeholders */
+.propulsion-calculated-parameters{display:grid;grid-template-columns:1fr;gap:12px;margin:18px 0}
+.propulsion-calculated-parameter{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:16px;border:1px solid var(--step-border,#e5e7eb);border-radius:14px;background:var(--step-tint,#fff)}
+.propulsion-calculated-parameter-details{display:grid;gap:8px;min-width:0;flex:1}
+.propulsion-calculated-parameter-label{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--text,#1f2937)}
+.propulsion-calculated-parameter-label input{width:17px;height:17px;accent-color:var(--step-accent,#c77824)}
+.propulsion-calculated-formula-label{font-size:10px;letter-spacing:.09em;font-weight:800;color:var(--muted,#64748b)}
+.propulsion-calculated-formula{padding:9px 11px;border:1px dashed var(--step-border,#d1d5db);border-radius:8px;color:var(--muted,#64748b);font-size:13px;background:rgba(255,255,255,.65)}
+.propulsion-calculated-action{flex:0 0 auto;white-space:normal}
+.propulsion-calculated-action:disabled{opacity:.55;cursor:not-allowed}
+@media(max-width:640px){.propulsion-calculated-parameter{align-items:stretch;flex-direction:column}.propulsion-calculated-action{width:100%}}
