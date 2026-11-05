@@ -94,7 +94,7 @@
   {key:'motorTemperature',label:'Motor Temperature',aliases:['motor_temperature_c','motor_temp_c','motor temperature','motor temp','motor_temperature','motor_temp','temperature_motor','motor winding temperature']},
   {key:'escTemperature',label:'ESC Temperature',aliases:['esc_temperature_c','esc_temp_c','esc temperature','esc temp','esc_temperature','esc_temp','controller_temperature','electronic speed controller temperature']}
  ];
- let selectedFile=null,headerRow=[],dataRows=[],analysisRows=[],mapping={},calculatedParameterKeys=[],confirmed=false,step3FilterVisible=false,step3Visible=false,step4Visible=false,step5Visible=false,reportDirectVisible=false,analysisPanel=null;
+ let selectedFile=null,headerRow=[],dataRows=[],analysisRows=[],mapping={},calculatedParameterKeys=[],calculatedParameterControls={},confirmed=false,step3FilterVisible=false,step3Visible=false,step4Visible=false,step5Visible=false,reportDirectVisible=false,analysisPanel=null;
  const DB_NAME='yeti-flight-trial-state',DB_STORE='propulsion-analyser',DB_KEY='active-session';
  function openStateDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(DB_STORE))req.result.createObjectStore(DB_STORE)};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
  let graphXIndex='',graphYIndex='',graphY2Index='';
@@ -185,7 +185,7 @@
    {key:'electricalPower',name:'Electrical Power',formula:'Electrical Power (W) = DC Voltage * DC Current',sources:[['voltage','DC Voltage'],['current','DC Current']]},
    {key:'overallEfficiency',name:'Overall Propulsion Efficiency',formula:'Overall Propulsion Efficiency = Thrust / Electrical Power',sources:[['thrust','Thrust'],['voltage','DC Voltage'],['current','DC Current']]}
   ];
-  const calculatedParameterControls={};
+  calculatedParameterControls={};
   const mappedColumnName=key=>{
    const index=mapping[key]?.selected;
    return index===''||index===undefined?'Not mapped':(headerRow[index]||'Mapped column');
