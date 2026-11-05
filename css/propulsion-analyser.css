@@ -785,3 +785,51 @@
 .propulsion-log-upload-area{margin-top:4px;padding:18px;border:1px solid #cbdbea;border-radius:14px;background:#fbfdff}.propulsion-log-upload-heading{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}.propulsion-log-upload-kicker{color:#39719f;font-size:10px;font-weight:800;letter-spacing:.13em}.propulsion-log-upload-heading strong{color:#173b60;font-size:17px}.propulsion-log-upload-heading>span:last-child{color:#64778b;font-size:12px;line-height:1.5}
 .propulsion-log-upload-area[hidden]{display:none!important}
 @media(max-width:620px){.propulsion-log-type-picker{grid-template-columns:1fr;padding:13px}.propulsion-log-type-option{min-height:74px}.propulsion-log-upload-area{padding:14px}}
+
+
+/* FINAL CSV preview freeze behaviour: freeze the first two rows and first two columns
+   in BOTH the uploaded/raw and generated/filtered preview tables. */
+.propulsion-csv-preview-viewport{
+  --csv-header-height:38px;
+  --csv-first-col-width:64px;
+}
+.propulsion-csv-preview-table thead th{
+  position:sticky!important;
+  top:0!important;
+  z-index:12!important;
+  background:#eaf3fa!important;
+}
+.propulsion-csv-preview-table tbody th:first-child,
+.propulsion-csv-preview-table tbody td:first-of-type{
+  position:sticky!important;
+  left:0!important;
+  z-index:7!important;
+  background:#f4f8fb!important;
+}
+.propulsion-csv-preview-table thead th:first-child{
+  left:0!important;
+  z-index:16!important;
+  background:#dceaf5!important;
+}
+.propulsion-csv-preview-table thead th:nth-child(2){
+  left:var(--csv-first-col-width)!important;
+  z-index:15!important;
+  background:#e1eef8!important;
+}
+.propulsion-csv-preview-table tbody tr:first-child th,
+.propulsion-csv-preview-table tbody tr:first-child td{
+  position:sticky!important;
+  top:var(--csv-header-height)!important;
+  z-index:10!important;
+  background:#f0f6fb!important;
+}
+.propulsion-csv-preview-table tbody tr:first-child th:first-child{
+  left:0!important;
+  z-index:18!important;
+  background:#e4eef7!important;
+}
+.propulsion-csv-preview-table tbody tr:first-child td:first-of-type{
+  left:var(--csv-first-col-width)!important;
+  z-index:17!important;
+  background:#eaf3fa!important;
+}
