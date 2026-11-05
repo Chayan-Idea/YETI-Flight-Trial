@@ -512,7 +512,7 @@
   const xRangeStart=makeRangeField('Start X Point','propulsionXRangeStart'),xRangeEnd=makeRangeField('End X Point','propulsionXRangeEnd');
   const yRangeStart=makeRangeField('Start Y Point','propulsionYRangeStart'),yRangeEnd=makeRangeField('End Y Point','propulsionYRangeEnd');
    let graphRangeHasValidPlot=false;
-   const updateRangeActionAvailability=()=>{const multipleY=y2Select.value!=='';applyGraphRange.disabled=multipleY;resetXRange.disabled=multipleY||!graphRangeHasValidPlot;};
+   const updateRangeActionAvailability=()=>{const multipleY=y2Select.value!=='';graphRangePanel.classList.toggle('is-disabled',multipleY);graphRangePanel.setAttribute('aria-disabled',String(multipleY));[xRangeStart,xRangeEnd,yRangeStart,yRangeEnd,applyGraphRange,resetXRange].forEach(control=>{control.disabled=multipleY||(control===resetXRange&&!graphRangeHasValidPlot)});};
   const graphRangeActions=el('div','propulsion-x-range-actions');
   const applyGraphRange=el('button','btn propulsion-x-range-apply','Apply');applyGraphRange.type='button';
   const resetXRange=el('button','btn alt propulsion-x-range-reset','Reset Full Range');resetXRange.type='button';
