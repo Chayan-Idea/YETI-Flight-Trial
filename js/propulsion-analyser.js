@@ -190,8 +190,13 @@
    {key:'overallEfficiency',name:'Specific Thrust',formula:null,numerator:'Thrust (N)',denominator:'Electrical Power (W)',sources:[['thrust','Thrust'],['voltage','DC Voltage'],['current','DC Current']]}
   ];
   calculatedParameterControls={};
+  let derivedReadyCheckbox=null,filteringReadyCheckbox=null;
+  const updateCsvGenerationGate=()=>{csvExportButton.hidden=!(derivedReadyCheckbox?.checked&&filteringReadyCheckbox?.checked);};
   const invalidateGeneratedCsv=(message)=>{
    csvExportButton.disabled=false;
+   if(derivedReadyCheckbox)derivedReadyCheckbox.checked=false;
+   if(filteringReadyCheckbox)filteringReadyCheckbox.checked=false;
+   updateCsvGenerationGate();
    csvPreviewToggle.hidden=true;csvPreview.hidden=true;csvDownloadButton.hidden=true;
    generatedCsvText='';generatedExportRows=[];generatedTimestampIndex=-1;
    proceed.hidden=true;directReportProceed.hidden=true;
@@ -340,7 +345,12 @@
   csvSection.append(el('p','propulsion-subsection-description','Export rows after applying the Actual RPM validity filter, chronological timestamp sorting where available, and all calculated derived-parameter columns.'));
   const csvStatus=el('p','propulsion-csv-export-status','Ready to generate from '+analysisRows.length.toLocaleString()+' identified data rows and '+headerRow.length.toLocaleString()+' available columns.');
   csvStatus.setAttribute('role','status');csvStatus.setAttribute('aria-live','polite');
-  const csvExportButton=el('button','btn','Generate Filtered & Sorted CSV');csvExportButton.type='button';
+  const csvConfirmation=el('div','propulsion-csv-confirmations');
+  const derivedReadyLabel=el('label','propulsion-csv-confirmation');derivedReadyCheckbox=document.createElement('input');derivedReadyCheckbox.type='checkbox';derivedReadyCheckbox.id='confirmDerivedParametersReady';derivedReadyLabel.append(derivedReadyCheckbox,el('span','','Required Derived Parameters identified, calculated, added to graph'));
+  const filteringReadyLabel=el('label','propulsion-csv-confirmation');filteringReadyCheckbox=document.createElement('input');filteringReadyCheckbox.type='checkbox';filteringReadyCheckbox.id='confirmFilteringSortingReady';filteringReadyLabel.append(filteringReadyCheckbox,el('span','','Apply Data Filtering & Sorting Logic'));
+  [derivedReadyCheckbox,filteringReadyCheckbox].forEach(input=>input.addEventListener('change',updateCsvGenerationGate));
+  csvConfirmation.append(derivedReadyLabel,filteringReadyLabel);
+  const csvExportButton=el('button','btn','Generate Filtered & Sorted CSV');csvExportButton.type='button';csvExportButton.hidden=true;
   const csvPreviewToggle=el('button','btn alt','Show Generated CSV Preview');csvPreviewToggle.type='button';csvPreviewToggle.hidden=true;csvPreviewToggle.setAttribute('aria-expanded','false');
   const csvPreview=el('div','propulsion-generated-csv-preview');csvPreview.hidden=true;
   const csvPreviewInfo=el('p','propulsion-csv-preview-meta','');
@@ -365,7 +375,7 @@
    if(show)csvPreview.scrollIntoView({behavior:'smooth',block:'nearest'});
   });
   const csvActions=el('div','propulsion-actions propulsion-csv-actions');csvActions.append(csvExportButton,csvPreviewToggle,csvDownloadButton);
-  csvSection.append(csvStatus,csvActions,csvPreview);
+  csvSection.append(csvConfirmation,csvStatus,csvActions,csvPreview);
   csvExportButton.addEventListener('click',()=>{
    const rpmIndex=mapping.actualRpm?.selected;
    if(rpmIndex===''||rpmIndex===undefined){csvStatus.textContent='CSV not generated: map the Actual RPM column in Step 02 before applying the RPM filter.';return;}
