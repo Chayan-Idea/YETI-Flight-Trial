@@ -111,9 +111,9 @@
  let selectedFile=null,headerRow=[],dataRows=[],analysisRows=[],mapping={},calculatedParameterKeys=[],calculatedParameterControls={},confirmed=false,step3FilterVisible=false,step3Visible=false,step4Visible=false,step5Visible=false,reportDirectVisible=false,analysisPanel=null;
  const DB_NAME='yeti-flight-trial-state',DB_STORE='propulsion-analyser',DB_KEY='active-session';
  function openStateDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(DB_STORE))req.result.createObjectStore(DB_STORE)};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
- let graphXIndex='',graphYIndex='',graphY2Index='';
- async function saveState(){try{const db=await openStateDB();await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).put({csvText:parseCSVText,fileName:selectedFile?.name||'Restored CSV log.csv',stage:step5Visible?'report':step4Visible?'graphical':step3Visible?'summary':step3FilterVisible?'filter':confirmed?'confirmed':analysisPanel?'identified':selectedFile?'uploaded':'empty',reportDirectVisible,logType,mapping:Object.fromEntries(specs.map(s=>[s.key,mapping[s.key]?.selected??''])),graphXIndex,graphYIndex,graphY2Index,calculatedParameterKeys},DB_KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}catch(error){console.warn('Could not save propulsion session locally:',error)}}
- async function loadState(){try{const db=await openStateDB();const saved=await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readonly');const req=tx.objectStore(DB_STORE).get(DB_KEY);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});db.close();if(!saved?.csvText)return;logType=saved.logType||'';if(logTypePicker){const choice=logTypePicker.querySelector('input[value="'+logType+'"]');if(choice)choice.checked=true;}updateLogTypeUI();parseCSVText=saved.csvText;selectedFile={name:saved.fileName||'Restored CSV log.csv',size:new Blob([parseCSVText]).size,text:async()=>parseCSVText};if(filePicker)filePicker.hidden=true;meta.hidden=false;meta.textContent=selectedFile.name+' · '+(selectedFile.size/1024).toFixed(1)+' KB · Restored locally';reset.hidden=false;setUploadState(true,'Previous CSV session restored from this browser');renderCsvPreview(parseCSVText);const rows=parseCSV(parseCSVText,chooseDelimiter(parseCSVText));detect(rows);if(saved.mapping){specs.forEach(spec=>{const value=saved.mapping[spec.key];if(value!==''&&value!==undefined)mapping[spec.key].selected=Number(value)});analysisPanel.querySelectorAll('.propulsion-column-select').forEach(select=>{select.value=mapping[select.dataset.key].selected===''?'':String(mapping[select.dataset.key].selected)});validateMapping()}if((saved.stage==='confirmed'||saved.stage==='filter'||saved.stage==='summary'||saved.stage==='graphical'||saved.stage==='report')&&validateMapping())$id('confirmPropulsionMappingBtn').click();if(Array.isArray(saved.calculatedParameterKeys)){saved.calculatedParameterKeys.forEach(key=>{const control=calculatedParameterControls[key];if(control){control.checkbox.checked=true;control.checkbox.dispatchEvent(new Event('change'));control.calculate.click();}})}if((saved.stage==='summary'||saved.stage==='graphical')&&confirmed)$id('proceedToParameterSummaryBtn')?.click();if(saved.stage==='summary'||saved.stage==='graphical')$id('proceedToParameterSummaryBtn')?.click();if(saved.stage==='report'&&saved.reportDirectVisible){$id('proceedToReportGenerationChoiceBtn')?.click()}else if((saved.stage==='graphical'||saved.stage==='report')&&step3Visible){$id('proceedToGraphicalAnalysisBtn')?.click();if(saved.stage==='report')$id('proceedToGenerateReportBtn')?.click();if(saved.graphXIndex!==undefined){graphXIndex=String(saved.graphXIndex);graphYIndex=String(saved.graphYIndex??'');graphY2Index=String(saved.graphY2Index??'');const xs=$id('propulsionXAxisSelect'),ys=$id('propulsionYAxisSelect'),y2s=$id('propulsionSecondaryYAxisSelect');if(xs)xs.value=graphXIndex;if(ys)ys.value=graphYIndex;if(y2s)y2s.value=graphY2Index;if($id('plotPropulsionGraphBtn')&&graphXIndex!==''&&graphYIndex!=='')$id('plotPropulsionGraphBtn').click();}}start.textContent='Parameters Identified';start.disabled=true}catch(error){console.warn('Could not restore propulsion session:',error)}}
+ let graphXIndex='',graphYIndex='',graphY2Index='',graphRangeStart='',graphRangeEnd='';
+ async function saveState(){try{const db=await openStateDB();await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).put({csvText:parseCSVText,fileName:selectedFile?.name||'Restored CSV log.csv',stage:step5Visible?'report':step4Visible?'graphical':step3Visible?'summary':step3FilterVisible?'filter':confirmed?'confirmed':analysisPanel?'identified':selectedFile?'uploaded':'empty',reportDirectVisible,logType,mapping:Object.fromEntries(specs.map(s=>[s.key,mapping[s.key]?.selected??''])),graphXIndex,graphYIndex,graphY2Index,graphRangeStart,graphRangeEnd,calculatedParameterKeys},DB_KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}catch(error){console.warn('Could not save propulsion session locally:',error)}}
+ async function loadState(){try{const db=await openStateDB();const saved=await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readonly');const req=tx.objectStore(DB_STORE).get(DB_KEY);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});db.close();if(!saved?.csvText)return;logType=saved.logType||'';if(logTypePicker){const choice=logTypePicker.querySelector('input[value="'+logType+'"]');if(choice)choice.checked=true;}updateLogTypeUI();parseCSVText=saved.csvText;selectedFile={name:saved.fileName||'Restored CSV log.csv',size:new Blob([parseCSVText]).size,text:async()=>parseCSVText};if(filePicker)filePicker.hidden=true;meta.hidden=false;meta.textContent=selectedFile.name+' · '+(selectedFile.size/1024).toFixed(1)+' KB · Restored locally';reset.hidden=false;setUploadState(true,'Previous CSV session restored from this browser');renderCsvPreview(parseCSVText);const rows=parseCSV(parseCSVText,chooseDelimiter(parseCSVText));detect(rows);if(saved.mapping){specs.forEach(spec=>{const value=saved.mapping[spec.key];if(value!==''&&value!==undefined)mapping[spec.key].selected=Number(value)});analysisPanel.querySelectorAll('.propulsion-column-select').forEach(select=>{select.value=mapping[select.dataset.key].selected===''?'':String(mapping[select.dataset.key].selected)});validateMapping()}if((saved.stage==='confirmed'||saved.stage==='filter'||saved.stage==='summary'||saved.stage==='graphical'||saved.stage==='report')&&validateMapping())$id('confirmPropulsionMappingBtn').click();if(Array.isArray(saved.calculatedParameterKeys)){saved.calculatedParameterKeys.forEach(key=>{const control=calculatedParameterControls[key];if(control){control.checkbox.checked=true;control.checkbox.dispatchEvent(new Event('change'));control.calculate.click();}})}if((saved.stage==='summary'||saved.stage==='graphical')&&confirmed)$id('proceedToParameterSummaryBtn')?.click();if(saved.stage==='summary'||saved.stage==='graphical')$id('proceedToParameterSummaryBtn')?.click();if(saved.stage==='report'&&saved.reportDirectVisible){$id('proceedToReportGenerationChoiceBtn')?.click()}else if((saved.stage==='graphical'||saved.stage==='report')&&step3Visible){$id('proceedToGraphicalAnalysisBtn')?.click();if(saved.stage==='report')$id('proceedToGenerateReportBtn')?.click();if(saved.graphXIndex!==undefined){graphXIndex=String(saved.graphXIndex);graphYIndex=String(saved.graphYIndex??'');graphY2Index=String(saved.graphY2Index??'');const xs=$id('propulsionXAxisSelect'),ys=$id('propulsionYAxisSelect'),y2s=$id('propulsionSecondaryYAxisSelect');if(xs)xs.value=graphXIndex;if(ys)ys.value=graphYIndex;if(y2s)y2s.value=graphY2Index;graphRangeStart=String(saved.graphRangeStart??'');graphRangeEnd=String(saved.graphRangeEnd??'');const savedRangeStart=$id('propulsionXRangeStart'),savedRangeEnd=$id('propulsionXRangeEnd');if(savedRangeStart)savedRangeStart.value=graphRangeStart;if(savedRangeEnd)savedRangeEnd.value=graphRangeEnd;if($id('plotPropulsionGraphBtn')&&graphXIndex!==''&&graphYIndex!=='')$id('plotPropulsionGraphBtn').click();}}start.textContent='Parameters Identified';start.disabled=true}catch(error){console.warn('Could not restore propulsion session:',error)}}
  function setUploadState(ok,text){status.classList.toggle('is-complete',ok);status.querySelector('.propulsion-status-symbol').textContent=ok?'✓':'○';status.lastElementChild.textContent=text}
  function parseCSV(text,delimiter){
   const rows=[];let row=[],field='',quoted=false;
@@ -491,7 +491,7 @@
   const plotActions=el('div','propulsion-actions');const plotButton=el('button','btn','Plot Graph');plotButton.type='button';plotButton.id='plotPropulsionGraphBtn';plotButton.disabled=true;plotActions.append(plotButton);
   [xSelect,ySelect,y2Select].forEach(select=>select.addEventListener('change',()=>{
    if(step5Visible){step5Visible=false;step5.hidden=true;reportDirectVisible=false;}
-   savedGraphSelection();updatePlotAvailability()
+   resetXRange.disabled=true;savedGraphSelection();updatePlotAvailability()
   }));
   graphControls.append(xField.label,yField.label,y2Field.label);step4.append(graphControls);
   step4.append(plotActions);
@@ -574,6 +574,20 @@
    pointGuide.setAttribute('x1',point.sx);pointGuide.setAttribute('x2',point.sx);
    pointSlider.setAttribute('aria-valuetext','Point '+(safeIndex+1)+' of '+plottedPoints.length+', X '+formatPointValue(point.x)+', primary Y '+formatPointValue(point.y)+', secondary Y '+formatPointValue(point.y2));
   };
+  const getRecordHighXPoints=xi=>{
+   const retained=[];let highestX=-Infinity;
+   analysisRows.forEach((row,index)=>{
+    const raw=String(row[xi]??'').trim();if(raw==='')return;
+    const x=Number(raw);if(!Number.isFinite(x)||x<highestX)return;
+    highestX=x;retained.push({index,x});
+   });
+   return retained;
+  };
+  const getFullGraphXRange=xi=>{
+   const points=getRecordHighXPoints(xi);if(!points.length)return null;
+   let min=Infinity,max=-Infinity;points.forEach(point=>{if(point.x<min)min=point.x;if(point.x>max)max=point.x});
+   return {min,max};
+  };
   // Use the live input event as the sole slider update source while dragging.
   pointSlider.addEventListener('input',()=>selectGraphPoint(pointSlider.value));
   plotButton.addEventListener('click',()=>{
@@ -584,22 +598,24 @@
    const parseCsvNumber=value=>{const text=String(value??'').trim();if(text==='')return NaN;const number=Number(text);return Number.isFinite(number)?number:NaN};
    const rawPts=analysisRows.map((row,index)=>({x:parseCsvNumber(row[xi]),y:parseCsvNumber(row[yi]),y2:y2i===null?NaN:parseCsvNumber(row[y2i]),timestamp:timestampIndex===undefined?'Timestamp column not found':String(row[timestampIndex]??'').trim()||'Timestamp unavailable',index})).filter(p=>Number.isFinite(p.x));
    // Keep record-high X values only, preserving original CSV row order.
-   let highestX=-Infinity;
-   const originalPts=rawPts.filter(p=>{if(p.x<highestX)return false;highestX=p.x;return true;});
+   const retainedXPoints=getRecordHighXPoints(xi),retainedXIndices=new Set(retainedXPoints.map(point=>point.index));
+   const originalPts=rawPts.filter(point=>retainedXIndices.has(point.index));
    const removedReturnPoints=rawPts.length-originalPts.length;
-   if(!originalPts.length){chartHost.replaceChildren();graphStatus.textContent='No numeric X values are available to plot.';return}
-   const fullXMin=Math.min(...originalPts.map(p=>p.x)),fullXMax=Math.max(...originalPts.map(p=>p.x));
+   if(!originalPts.length){graphStatus.textContent='No numeric X values are available to plot.';return}
+   const fullGraphRange=getFullGraphXRange(xi);
+   if(!fullGraphRange){graphStatus.textContent='No valid full X-axis range is available for this column.';return}
+   const fullXMin=fullGraphRange.min,fullXMax=fullGraphRange.max;
    if(xRangeStart.value===''||xRangeEnd.value===''){xRangeStart.value=String(fullXMin);xRangeEnd.value=String(fullXMax)}
    const rangeStart=Number(xRangeStart.value),rangeEnd=Number(xRangeEnd.value);
-   if(!Number.isFinite(rangeStart)||!Number.isFinite(rangeEnd)||rangeStart>=rangeEnd||rangeStart<fullXMin||rangeEnd>fullXMax){
-    graphRangePanel.hidden=false;chartHost.replaceChildren();pointExplorer.hidden=true;
-    graphStatus.textContent='Enter a valid X range within '+new Intl.NumberFormat(undefined,{maximumFractionDigits:6}).format(fullXMin)+' to '+new Intl.NumberFormat(undefined,{maximumFractionDigits:6}).format(fullXMax)+', with Start X Point smaller than End X Point.';return;
+   if(!Number.isFinite(rangeStart)||!Number.isFinite(rangeEnd)||rangeStart>rangeEnd||(rangeStart===rangeEnd&&fullXMin!==fullXMax)||rangeStart<fullXMin||rangeEnd>fullXMax){
+    graphRangePanel.hidden=false;
+    graphStatus.textContent='Enter a valid X range within '+new Intl.NumberFormat(undefined,{maximumFractionDigits:6}).format(fullXMin)+' to '+new Intl.NumberFormat(undefined,{maximumFractionDigits:6}).format(fullXMax)+'. Start X Point must not exceed End X Point. The last valid graph has been retained.';return;
    }
    const pts=originalPts.filter(p=>p.x>=rangeStart&&p.x<=rangeEnd);
    const primaryPts=pts.filter(p=>Number.isFinite(p.y)),secondaryPts=pts.filter(p=>Number.isFinite(p.y2));
    if(primaryPts.length<2||(y2i!==null&&secondaryPts.length<2)){
-    graphRangePanel.hidden=false;chartHost.replaceChildren();pointExplorer.hidden=true;
-    graphStatus.textContent='The selected X range does not contain enough valid data points for the selected Y axis. Widen the range.';return;
+    graphRangePanel.hidden=false;
+    graphStatus.textContent='The selected X range does not contain enough valid data points for the selected Y axis. Widen the range. The last valid graph has been retained.';return;
    }
    graphRangePanel.hidden=false;
    if(primaryPts.length<2){chartHost.replaceChildren();graphStatus.textContent='Not enough numeric X and Primary Y row pairs to plot the primary axis.';return}
@@ -629,15 +645,18 @@
    plottedPoints=pts.map(p=>({...p,sx:sx(p.x),sy:Number.isFinite(p.y)?sy(p.y):T+ph,sy2:Number.isFinite(p.y2)?sy2(p.y2):T+ph}));xiForReadout=xi;yiForReadout=yi;y2iForReadout=y2i;
    const pointNodes=[];pts.forEach((p,index)=>{const addHitTarget=y=>{const node=plotAdd('circle',{cx:sx(p.x),cy:y,r:11,fill:'transparent',stroke:'transparent'});node.style.cursor='crosshair';node.addEventListener('pointerenter',()=>selectGraphPoint(index));node.addEventListener('focus',()=>selectGraphPoint(index));node.setAttribute('tabindex','0');node.setAttribute('aria-label','X '+formatPointValue(p.x)+', primary Y '+formatPointValue(p.y)+', secondary Y '+formatPointValue(p.y2));pointNodes.push(node)};if(Number.isFinite(p.y))addHitTarget(sy(p.y));if(Number.isFinite(p.y2))addHitTarget(sy2(p.y2))});
    chartHost.replaceChildren(svg);pointExplorer.hidden=false;pointSlider.disabled=false;pointSlider.max=String(pts.length-1);pointSlider.value='0';updatePointSearchLabels();clearPointSearch();selectGraphPoint(0);
+   graphRangeStart=String(rangeStart);graphRangeEnd=String(rangeEnd);resetXRange.disabled=false;
    graphStatus.textContent='Plotted '+primaryPts.length.toLocaleString()+' primary Y pairs'+(y2r?' and '+secondaryPts.length.toLocaleString()+' secondary Y pairs':'')+' · X: '+headerRow[xi]+' · Primary Y: '+headerRow[yi]+(y2i===null?'':' · Secondary Y: '+headerRow[y2i])+'. '+removedReturnPoints.toLocaleString()+' points below the previous highest X value removed. Only record-high or equal-high X values are retained in CSV row order. Both Y series share the same X axis and use independent left/right scales.';graphXIndex=String(xi);graphYIndex=String(yi);graphY2Index=y2i===null?'':String(y2i);saveState();
   });
    const redrawForXRange=()=>{if(xSelect.value!==''&&ySelect.value!=='')plotButton.click()};
    [xRangeStart,xRangeEnd].forEach(input=>input.addEventListener('change',redrawForXRange));
+   resetXRange.disabled=true;
    resetXRange.addEventListener('click',()=>{
-    const xi=Number(xSelect.value);if(!Number.isInteger(xi))return;
-    const values=analysisRows.map(row=>{const raw=String(row[xi]??'').trim();return raw!==''&&Number.isFinite(Number(raw))?Number(raw):NaN}).filter(Number.isFinite);
-    if(!values.length)return;
-    xRangeStart.value=String(Math.min(...values));xRangeEnd.value=String(Math.max(...values));redrawForXRange();
+    const xi=Number(xSelect.value);if(!Number.isInteger(xi)||xSelect.value==='')return;
+    const fullRange=getFullGraphXRange(xi);
+    if(!fullRange){graphStatus.textContent='Cannot reset: no valid plotted X-axis values were found.';return;}
+    xRangeStart.value=String(fullRange.min);xRangeEnd.value=String(fullRange.max);
+    redrawForXRange();
    });
     const step5=el('section','propulsion-report-card propulsion-step-card propulsion-step-card--purple');step5.id='propulsionReportGenerationCard';step5.hidden=true;
   const returnToDataFiltering=()=>{reportDirectVisible=false;step3FilterVisible=true;step3Visible=false;step4Visible=false;step5Visible=false;analysisPanel.hidden=false;step3Filter.hidden=false;step3.hidden=true;step4.hidden=true;step5.hidden=true;saveState();step3Filter.scrollIntoView({behavior:'smooth',block:'start'});};
