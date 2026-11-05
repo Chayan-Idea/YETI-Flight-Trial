@@ -655,3 +655,17 @@
 .propulsion-graph-zoom-slider input{width:100%;accent-color:#287fbd;cursor:pointer}
 .propulsion-chart-svg{touch-action:none;user-select:none}
 @media(max-width:620px){.propulsion-graph-zoom-controls{grid-template-columns:1fr}.propulsion-graph-navigation{padding:11px}.propulsion-graph-navigation-top{align-items:flex-start;flex-direction:column}}
+
+/* Navigate directly to a plotted point by entering any one of its four values */
+.propulsion-point-navigator{display:grid;gap:10px;margin-top:14px;padding:14px;border:1px solid #cbddec;border-radius:11px;background:#f8fbff}
+.propulsion-point-navigator-title{color:#174f7d;font-size:12px;letter-spacing:.04em}
+.propulsion-point-navigator-help{margin:0;color:#64788b;font-size:12px;line-height:1.5}
+.propulsion-point-navigator-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.propulsion-point-search-field{display:grid;gap:5px;color:#315b7c;font-size:11px;font-weight:800}
+.propulsion-point-search-field input{width:100%;min-width:0;box-sizing:border-box;padding:10px 11px;border:1px solid #c7d7e5;border-radius:8px;background:#fff;color:#24384b;font:inherit;font-size:13px;font-weight:600}
+.propulsion-point-search-field input:focus{outline:2px solid #287fbd;outline-offset:1px}
+.propulsion-point-search-field input:disabled{background:#eef2f6;color:#8a98a6}
+.propulsion-point-navigator-actions{display:flex;gap:8px;flex-wrap:wrap}
+.propulsion-point-navigate-button,.propulsion-point-clear-button{padding:9px 13px!important;font-size:12px!important}
+.propulsion-point-navigator-status{margin:0;color:#526a80;font-size:12px;min-height:1.3em}
+@media(max-width:620px){.propulsion-point-navigator-fields{grid-template-columns:1fr}.propulsion-point-navigator-actions>*{flex:1}}
