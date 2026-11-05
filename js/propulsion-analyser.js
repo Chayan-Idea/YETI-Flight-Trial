@@ -667,7 +667,7 @@
    const yl=add('text',{x:30,y:T+ph/2,'text-anchor':'middle',fill:'#287fbd','font-size':15,'font-weight':700},headerRow[yi]);yl.setAttribute('transform',`rotate(-90 30 ${T+ph/2})`);
    if(y2r){const yrLabel=add('text',{x:W-20,y:T+ph/2,'text-anchor':'middle',fill:'#dc8123','font-size':15,'font-weight':700},headerRow[y2i]);yrLabel.setAttribute('transform',`rotate(90 ${W-20} ${T+ph/2})`)}
    pointGuide=plotAdd('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#e28b24','stroke-width':1.5,'stroke-dasharray':'5 4',opacity:.9});
-   plottedPoints=pts.filter(p=>Number.isFinite(p.y)&&p.y>=rangeYStart&&p.y<=rangeYEnd&&(y2i===null||(Number.isFinite(p.y2)&&p.y2>=rangeY2Start&&p.y2<=rangeY2End))).map(p=>({...p,sx:sx(p.x),sy:sy(p.y),sy2:Number.isFinite(p.y2)?sy2(p.y2):T+ph}));
+   plottedPoints=pts.filter(p=>Number.isFinite(p.y)&&p.y>=rangeYStart&&p.y<=rangeYEnd).map(p=>({...p,sx:sx(p.x),sy:sy(p.y),sy2:Number.isFinite(p.y2)?sy2(p.y2):T+ph}));
    xiForReadout=xi;yiForReadout=yi;y2iForReadout=y2i;
    const firstNavigable=plottedPoints[0]||null;
    pointMarker=plotAdd('circle',{cx:firstNavigable?.sx??sx(primaryPts[0].x),cy:firstNavigable?.sy??sy(primaryPts[0].y),r:7,fill:'#fff',stroke:'#287fbd','stroke-width':3,visibility:firstNavigable?'visible':'hidden'});
