@@ -83,11 +83,12 @@
 </main><footer>YETI Flight Trial · Controlled procedures remain authoritative.</footer>
 <script>
 (()=>{const layout=document.getElementById('propulsionLogLayout'),toggle=document.getElementById('propulsionSidebarToggle'),single=document.getElementById('singleLogAnalysisTab'),multiple=document.getElementById('multipleLogAnalysisTab'),singlePanel=document.getElementById('singleLogAnalysisPanel'),multiplePanel=document.getElementById('multipleLogAnalysisPanel');if(!layout||!toggle||!single||!multiple)return;
-const setTab=which=>{const isSingle=which==='single';singlePanel.hidden=!isSingle;multiplePanel.hidden=isSingle;single.classList.toggle('active',isSingle);multiple.classList.toggle('active',!isSingle);single.setAttribute('aria-selected',String(isSingle));multiple.setAttribute('aria-selected',String(!isSingle));try{localStorage.setItem('yetiPropulsionLogTab',which)}catch(e){}};
-const setCollapsed=collapsed=>{layout.classList.toggle('propulsion-sidebar-expanded',!collapsed);toggle.setAttribute('aria-expanded',String(!collapsed));toggle.setAttribute('aria-label',collapsed?'Expand propulsion navigation':'Collapse propulsion navigation');toggle.title=collapsed?'Expand propulsion navigation':'Collapse propulsion navigation';toggle.querySelector('.propulsion-sidebar-toggle-label').textContent=collapsed?'Expand':'Collapse';try{localStorage.setItem('yetiPropulsionSidebarCollapsed',String(collapsed))}catch(e){}};
+const setTab=which=>{const isSingle=which==='single';singlePanel.hidden=!isSingle;multiplePanel.hidden=isSingle;single.classList.toggle('active',isSingle);multiple.classList.toggle('active',!isSingle);single.setAttribute('aria-selected',String(isSingle));multiple.setAttribute('aria-selected',String(!isSingle));};
+const setCollapsed=collapsed=>{layout.classList.toggle('propulsion-sidebar-expanded',!collapsed);toggle.setAttribute('aria-expanded',String(!collapsed));toggle.setAttribute('aria-label',collapsed?'Expand propulsion navigation':'Collapse propulsion navigation');toggle.title=collapsed?'Expand propulsion navigation':'Collapse propulsion navigation';toggle.querySelector('.propulsion-sidebar-toggle-label').textContent=collapsed?'Expand':'Collapse';};
 toggle.addEventListener('click',()=>setCollapsed(layout.classList.contains('propulsion-sidebar-expanded')));
 single.addEventListener('click',()=>setTab('single'));multiple.addEventListener('click',()=>setTab('multiple'));
-let tab='single',collapsed=false;try{tab=localStorage.getItem('yetiPropulsionLogTab')||'single';collapsed=localStorage.getItem('yetiPropulsionSidebarCollapsed')==='true'}catch(e){}setTab(tab==='multiple'?'multiple':'single');setCollapsed(collapsed);
+try{localStorage.removeItem('yetiPropulsionLogTab');localStorage.removeItem('yetiPropulsionSidebarCollapsed')}catch(e){}
+setTab('single');setCollapsed(true);
 })();
 </script>
 <script src="./js/flight-preparation.js?v=1"></script>
