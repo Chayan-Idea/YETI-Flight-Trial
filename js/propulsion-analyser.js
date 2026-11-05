@@ -497,9 +497,11 @@
   pointNavActions.append(navigateToPointButton,clearPointSearchButton);
   pointNavigator.append(pointNavFields,pointNavActions,pointNavStatus);pointExplorer.append(pointNavigator);step4.append(pointExplorer);
   const pointSearchInputs=[timestampSearch,xSearch,ySearch,y2Search];
-  const updatePointSearchLabels=()=>{xSearch.previousSibling.textContent='X · '+headerRow[xiForReadout];ySearch.previousSibling.textContent='PRIMARY Y · '+headerRow[yiForReadout];y2Search.previousSibling.textContent=y2iForReadout===null?'SECONDARY Y · NOT SELECTED':'SECONDARY Y · '+headerRow[y2iForReadout];y2Search.disabled=y2iForReadout===null};
-  const clearPointSearch=()=>{pointSearchInputs.forEach(input=>input.value='');pointNavStatus.textContent='Enter one value to locate a plotted point.';navigateToPointButton.disabled=!plottedPoints.length};
-  pointSearchInputs.forEach(input=>input.addEventListener('input',()=>{const entered=pointSearchInputs.filter(field=>field.value.trim()!=='').length;navigateToPointButton.disabled=!plottedPoints.length||entered!==1;pointNavStatus.textContent=entered>1?'Please enter a value in only one field.':entered===1?'Ready to locate the nearest plotted point.':'Enter one value to locate a plotted point.'}));
+  let lockedPointSearchKey='';
+  const syncPointSearchLock=()=>{pointSearchInputs.forEach(input=>{const unavailable=input===y2Search&&y2iForReadout===null;input.disabled=unavailable||(!!lockedPointSearchKey&&input.dataset.pointSearch!==lockedPointSearchKey);});};
+  const updatePointSearchLabels=()=>{xSearch.previousSibling.textContent='X · '+headerRow[xiForReadout];ySearch.previousSibling.textContent='PRIMARY Y · '+headerRow[yiForReadout];y2Search.previousSibling.textContent=y2iForReadout===null?'SECONDARY Y · NOT SELECTED':'SECONDARY Y · '+headerRow[y2iForReadout];syncPointSearchLock()};
+  const clearPointSearch=()=>{pointSearchInputs.forEach(input=>input.value='');lockedPointSearchKey='';syncPointSearchLock();pointNavStatus.textContent='Enter one value to locate a plotted point.';navigateToPointButton.disabled=!plottedPoints.length};
+  pointSearchInputs.forEach(input=>input.addEventListener('input',()=>{if(!lockedPointSearchKey&&input.value.trim()!=='')lockedPointSearchKey=input.dataset.pointSearch;syncPointSearchLock();const entered=pointSearchInputs.filter(field=>field.value.trim()!=='').length;navigateToPointButton.disabled=!plottedPoints.length||entered!==1;pointNavStatus.textContent=entered>1?'Please enter a value in only one field.':entered===1?'Ready to locate the nearest plotted point.':'Enter a value to locate a plotted point. Click Clear to choose another field.'}));
   clearPointSearchButton.addEventListener('click',clearPointSearch);
   navigateToPointButton.addEventListener('click',()=>{
    const selected=pointSearchInputs.filter(field=>field.value.trim()!=='');
