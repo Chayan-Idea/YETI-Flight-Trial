@@ -198,37 +198,6 @@
   step4.append(plotActions);
   const graphStatus=el('p','propulsion-graph-status','Choose an X axis and at least one Y axis parameter to enable Plot Graph.');graphStatus.id='propulsionGraphStatus';step4.append(graphStatus);
   const chartHost=el('div','propulsion-chart-host');chartHost.id='propulsionChartHost';step4.append(chartHost);
-  const graphNav=el('section','propulsion-graph-navigation');graphNav.setAttribute('aria-label','Graph zoom and navigation controls');
-  const graphNavTop=el('div','propulsion-graph-navigation-top');graphNavTop.append(el('strong','','GRAPH NAVIGATION'),el('span','propulsion-graph-nav-hint','Scroll to zoom · Drag to pan'));
-  const graphNavButtons=el('div','propulsion-graph-nav-buttons');
-  const makeGraphNavButton=(label,title,action)=>{const b=el('button','btn alt propulsion-graph-nav-button',label);b.type='button';b.title=title;b.addEventListener('click',action);graphNavButtons.append(b);return b};
-  const graphZoomX=el('input','');graphZoomX.type='range';graphZoomX.min='1';graphZoomX.max='8';graphZoomX.step='0.1';graphZoomX.value='1';graphZoomX.setAttribute('aria-label','Horizontal graph zoom');
-  const graphZoomY=el('input','');graphZoomY.type='range';graphZoomY.min='1';graphZoomY.max='8';graphZoomY.step='0.1';graphZoomY.value='1';graphZoomY.setAttribute('aria-label','Vertical graph zoom');
-  const makeZoomSlider=(label,input)=>{const wrap=el('label','propulsion-graph-zoom-slider');const text=el('span','',label);wrap.append(text,input);return wrap};
-  const graphZoomControls=el('div','propulsion-graph-zoom-controls');graphZoomControls.append(makeZoomSlider('X-AXIS ZOOM',graphZoomX),makeZoomSlider('Y-AXIS ZOOM',graphZoomY));
-  let activeGraphSvg=null,graphPlotGroup=null,graphAxisTickNodes=null,graphScale=null,graphPlotBounds=null,graphView={x:132,y:30,w:874,h:402},graphDrag=null;
-  const clampGraphView=()=>{
-   if(!graphPlotBounds)return;
-   const {L,T,pw,ph}=graphPlotBounds;
-   graphView.w=Math.max(pw/8,Math.min(pw,graphView.w));graphView.h=Math.max(ph/8,Math.min(ph,graphView.h));
-   graphView.x=Math.max(L,Math.min(L+pw-graphView.w,graphView.x));
-   graphView.y=Math.max(T,Math.min(T+ph-graphView.h,graphView.y));
-  };
-  const applyGraphView=()=>{
-   if(!activeGraphSvg||!graphPlotGroup||!graphPlotBounds||!graphScale)return;
-   clampGraphView();
-   const {L,T,pw,ph}=graphPlotBounds,sx=pw/graphView.w,sy=ph/graphView.h;
-   graphPlotGroup.setAttribute('transform',`matrix(${sx} 0 0 ${sy} ${L-graphView.x*sx} ${T-graphView.y*sy})`);
-   if(graphAxisTickNodes){for(let i=0;i<=5;i++){const px=L+pw*i/5,py=T+ph-ph*i/5,sourceX=graphView.x+(px-L)/sx,sourceY=graphView.y+(py-T)/sy;const xValue=graphScale.xr.min+(sourceX-L)/pw*(graphScale.xr.max-graphScale.xr.min),yValue=graphScale.yr.max-(sourceY-T)/ph*(graphScale.yr.max-graphScale.yr.min);graphAxisTickNodes.x[i].textContent=graphScale.fmt(xValue);graphAxisTickNodes.y[i].textContent=graphScale.fmt(yValue);if(graphAxisTickNodes.y2[i]){const y2Value=graphScale.y2r.max-(sourceY-T)/ph*(graphScale.y2r.max-graphScale.y2r.min);graphAxisTickNodes.y2[i].textContent=graphScale.fmt(y2Value)}}}
-  };
-  const resetGraphView=()=>{if(!activeGraphSvg||!graphPlotBounds)return;const {L,T,pw,ph}=graphPlotBounds;graphView={x:L,y:T,w:pw,h:ph};graphZoomX.value='1';graphZoomY.value='1';applyGraphView()};
-  const setGraphZoom=(axis,value)=>{if(!activeGraphSvg||!graphPlotBounds)return;const {L,T,pw,ph}=graphPlotBounds,factor=Math.max(1,Math.min(8,Number(value)||1)),old=axis==='x'?graphView.w:graphView.h,base=axis==='x'?pw:ph,next=base/factor,center=axis==='x'?graphView.x+old/2:graphView.y+old/2;if(axis==='x'){graphView.x=center-next/2;graphView.w=next}else{graphView.y=center-next/2;graphView.h=next}applyGraphView()};
-  const zoomGraphAt=(factor,cx=.5,cy=.5)=>{if(!activeGraphSvg||!graphPlotBounds)return;const {L,T,pw,ph}=graphPlotBounds,fx=Math.max(1,Math.min(8,pw/graphView.w*factor)),fy=Math.max(1,Math.min(8,ph/graphView.h*factor)),nextW=pw/fx,nextH=ph/fy,px=graphView.x+graphView.w*cx,py=graphView.y+graphView.h*cy;graphView.x=px-nextW*cx;graphView.y=py-nextH*cy;graphView.w=nextW;graphView.h=nextH;clampGraphView();graphZoomX.value=String(Math.max(1,Math.min(8,pw/graphView.w)));graphZoomY.value=String(Math.max(1,Math.min(8,ph/graphView.h)));applyGraphView()};
-  makeGraphNavButton('−','Zoom out',()=>zoomGraphAt(1/1.25));makeGraphNavButton('+','Zoom in',()=>zoomGraphAt(1.25));makeGraphNavButton('Reset view','Restore original graph scale and position',resetGraphView);
-  graphZoomX.addEventListener('input',()=>setGraphZoom('x',graphZoomX.value));graphZoomY.addEventListener('input',()=>setGraphZoom('y',graphZoomY.value));
-  makeGraphNavButton('−','Zoom out',()=>zoomGraphAt(1/1.25));makeGraphNavButton('+','Zoom in',()=>zoomGraphAt(1.25));makeGraphNavButton('Reset view','Restore original graph scale and position',resetGraphView);
-  graphZoomX.addEventListener('input',()=>setGraphZoom('x',graphZoomX.value));graphZoomY.addEventListener('input',()=>setGraphZoom('y',graphZoomY.value));
-  graphNav.append(graphNavTop,graphNavButtons,graphZoomControls);step4.append(graphNav);
   const pointExplorer=el('div','propulsion-point-explorer');pointExplorer.hidden=true;
   const pointReadout=el('div','propulsion-point-readout');
   const makeValueCard=(label)=>{const card=el('div','propulsion-point-value');const heading=el('span','propulsion-point-value-label',label);const value=el('strong','propulsion-point-value-number','—');card.append(heading,value);pointReadout.append(card);return {heading,value}};
@@ -318,7 +287,7 @@
    const add=(tag,attrs,textValue)=>{const n=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs||{}).forEach(([k,v])=>n.setAttribute(k,String(v)));if(textValue!==undefined)n.textContent=textValue;svg.append(n);return n};
    const fmt=value=>new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(value);
    const axisTicks={x:[],y:[],y2:[]};
-   for(let i=0;i<=5;i++){const x=L+pw*i/5,y=T+ph-ph*i/5;add('line',{x1:x,y1:T,x2:x,y2:T+ph,stroke:'#e3eaf1','stroke-width':1});add('line',{x1:L,y1:y,x2:L+pw,y2:y,stroke:'#e3eaf1','stroke-width':1});axisTicks.x.push(add('text',{x,y:T+ph+28,'text-anchor':'middle',fill:'#000000','font-size':16,'font-weight':800},''));axisTicks.y.push(add('text',{x:L-16,y:y+6,'text-anchor':'end',fill:'#000000','font-size':16,'font-weight':800},''));if(y2r)axisTicks.y2.push(add('text',{x:L+pw+16,y:y+6,'text-anchor':'start',fill:'#000000','font-size':16,'font-weight':800},''))}
+   for(let i=0;i<=5;i++){const x=L+pw*i/5,y=T+ph-ph*i/5;add('line',{x1:x,y1:T,x2:x,y2:T+ph,stroke:'#e3eaf1','stroke-width':1});add('line',{x1:L,y1:y,x2:L+pw,y2:y,stroke:'#e3eaf1','stroke-width':1});axisTicks.x.push(add('text',{x,y:T+ph+28,'text-anchor':'middle',fill:'#000000','font-size':16,'font-weight':800},fmt(xr.min+(xr.max-xr.min)*i/5)));axisTicks.y.push(add('text',{x:L-16,y:y+6,'text-anchor':'end',fill:'#000000','font-size':16,'font-weight':800},fmt(yr.min+(yr.max-yr.min)*i/5)));if(y2r)axisTicks.y2.push(add('text',{x:L+pw+16,y:y+6,'text-anchor':'start',fill:'#000000','font-size':16,'font-weight':800},fmt(y2r.min+(y2r.max-y2r.min)*i/5)))}
    add('line',{x1:L,y1:T+ph,x2:L+pw,y2:T+ph,stroke:'#111827','stroke-width':3.5});add('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#111827','stroke-width':3.5});if(y2r)add('line',{x1:L+pw,y1:T,x2:L+pw,y2:T+ph,stroke:'#111827','stroke-width':3.5});
    const clipId='propulsion-plot-clip-'+Math.random().toString(36).slice(2);const defs=document.createElementNS('http://www.w3.org/2000/svg','defs'),clip=document.createElementNS('http://www.w3.org/2000/svg','clipPath');clip.setAttribute('id',clipId);const clipRect=document.createElementNS('http://www.w3.org/2000/svg','rect');clipRect.setAttribute('x',L);clipRect.setAttribute('y',T);clipRect.setAttribute('width',pw);clipRect.setAttribute('height',ph);clip.append(clipRect);defs.append(clip);svg.append(defs);
    const plotViewport=document.createElementNS('http://www.w3.org/2000/svg','g');plotViewport.setAttribute('clip-path',`url(#${clipId})`);svg.append(plotViewport);
@@ -334,12 +303,6 @@
    secondaryPointMarker=y2r?plotAdd('circle',{cx:sx(secondaryPts[0].x),cy:sy2(secondaryPts[0].y2),r:7,fill:'#fff',stroke:'#dc8123','stroke-width':3}):null;
    plottedPoints=pts.map(p=>({...p,sx:sx(p.x),sy:Number.isFinite(p.y)?sy(p.y):T+ph,sy2:Number.isFinite(p.y2)?sy2(p.y2):T+ph}));xiForReadout=xi;yiForReadout=yi;y2iForReadout=y2i;
    const pointNodes=[];pts.forEach((p,index)=>{const addHitTarget=y=>{const node=plotAdd('circle',{cx:sx(p.x),cy:y,r:11,fill:'transparent',stroke:'transparent'});node.style.cursor='crosshair';node.addEventListener('pointerenter',()=>selectGraphPoint(index));node.addEventListener('focus',()=>selectGraphPoint(index));node.setAttribute('tabindex','0');node.setAttribute('aria-label','X '+formatPointValue(p.x)+', primary Y '+formatPointValue(p.y)+', secondary Y '+formatPointValue(p.y2));pointNodes.push(node)};if(Number.isFinite(p.y))addHitTarget(sy(p.y));if(Number.isFinite(p.y2))addHitTarget(sy2(p.y2))});
-   activeGraphSvg=svg;graphPlotGroup=plotGroup;graphAxisTickNodes=axisTicks;graphScale={xr,yr,y2r,fmt};graphPlotBounds={L,T,pw,ph};resetGraphView();
-   svg.style.touchAction='none';svg.style.cursor='grab';
-   svg.addEventListener('wheel',event=>{event.preventDefault();const rect=svg.getBoundingClientRect(),px=(event.clientX-rect.left)/rect.width*W,py=(event.clientY-rect.top)/rect.height*H,cx=Math.max(0,Math.min(1,(px-L)/pw)),cy=Math.max(0,Math.min(1,(py-T)/ph));if(px>=L&&px<=L+pw&&py>=T&&py<=T+ph)zoomGraphAt(event.deltaY<0?1.15:1/1.15,cx,cy)},{passive:false});
-   svg.addEventListener('pointerdown',event=>{if(event.button!==0)return;const rect=svg.getBoundingClientRect(),px=(event.clientX-rect.left)/rect.width*W,py=(event.clientY-rect.top)/rect.height*H;if(px<L||px>L+pw||py<T||py>T+ph)return;graphDrag={id:event.pointerId,x:event.clientX,y:event.clientY,view:{...graphView},moved:false};svg.setPointerCapture(event.pointerId);svg.style.cursor='grabbing'});
-   svg.addEventListener('pointermove',event=>{if(!graphDrag||graphDrag.id!==event.pointerId)return;const rect=svg.getBoundingClientRect(),dx=(event.clientX-graphDrag.x)/rect.width*W/pw*graphDrag.view.w,dy=(event.clientY-graphDrag.y)/rect.height*H/ph*graphDrag.view.h;if(Math.abs(dx)+Math.abs(dy)>3)graphDrag.moved=true;if(graphDrag.moved){graphView.x=graphDrag.view.x-dx;graphView.y=graphDrag.view.y-dy;clampGraphView();applyGraphView()}});
-   const endGraphDrag=event=>{if(graphDrag&&graphDrag.id===event.pointerId){graphDrag=null;svg.style.cursor='grab'}};svg.addEventListener('pointerup',endGraphDrag);svg.addEventListener('pointercancel',endGraphDrag);
    chartHost.replaceChildren(svg);pointExplorer.hidden=false;pointSlider.disabled=false;pointSlider.max=String(pts.length-1);pointSlider.value='0';updatePointSearchLabels();clearPointSearch();selectGraphPoint(0);
    graphStatus.textContent='Plotted '+primaryPts.length.toLocaleString()+' primary Y pairs'+(y2r?' and '+secondaryPts.length.toLocaleString()+' secondary Y pairs':'')+' · X: '+headerRow[xi]+' · Primary Y: '+headerRow[yi]+(y2i===null?'':' · Secondary Y: '+headerRow[y2i])+'. '+removedReturnPoints.toLocaleString()+' points below the previous highest X value removed. Only record-high or equal-high X values are retained in CSV row order. Both Y series share the same X axis and use independent left/right scales.';graphXIndex=String(xi);graphYIndex=String(yi);graphY2Index=y2i===null?'':String(y2i);saveState();
   });
