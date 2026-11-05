@@ -693,3 +693,8 @@
 .propulsion-formula-numerator,.propulsion-formula-denominator{display:block;padding:2px 9px}
 .propulsion-formula-numerator{border-bottom:1.5px solid currentColor}
 .propulsion-formula-denominator{padding-top:3px}
+
+.propulsion-calculated-added-status{display:inline-flex;align-items:center;align-self:center;gap:6px;padding:7px 11px;border:1px solid #86c99a;border-radius:7px;background:#eaf8ee;color:#176b35;font-size:12px;font-weight:800;letter-spacing:.01em}
+.propulsion-calculated-added-status[hidden]{display:none}
+.propulsion-calculated-parameter.is-added-to-graph{border-color:#9bcda8;background:linear-gradient(135deg,rgba(234,248,238,.72),rgba(255,255,255,.96))}
+.propulsion-calculated-action:disabled{opacity:.72;cursor:not-allowed}
