@@ -677,7 +677,8 @@
    resetXRange.addEventListener('click',()=>{
     const xi=Number(xSelect.value),yi=Number(ySelect.value);if(!Number.isInteger(xi)||!Number.isInteger(yi)||xSelect.value===''||ySelect.value==='')return;
     const fullX=getFullGraphXRange(xi);
-    const fullY=analysisRows.map(row=>{const value=String(row[yi]??'').trim();return value===''?NaN:Number(value)}).filter(Number.isFinite);
+    const retainedIndices=new Set(getRecordHighXPoints(xi).map(point=>point.index));
+    const fullY=analysisRows.map((row,index)=>{if(!retainedIndices.has(index))return NaN;const value=String(row[yi]??'').trim();return value===''?NaN:Number(value)}).filter(Number.isFinite);
     if(!fullX||!fullY.length){graphStatus.textContent='Cannot reset: no valid full graph range was found.';return;}
     xRangeStart.value=String(fullX.min);xRangeEnd.value=String(fullX.max);
     const minY=Math.min(...fullY),maxY=Math.max(...fullY);yRangeStart.value=String(minY===maxY?minY-1:minY);yRangeEnd.value=String(minY===maxY?maxY+1:maxY);
