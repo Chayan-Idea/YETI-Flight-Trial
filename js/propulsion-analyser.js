@@ -649,7 +649,7 @@
    if(y2i!==null&&secondaryPts.length<2){chartHost.replaceChildren();graphStatus.textContent='Not enough numeric X and Secondary Y row pairs to plot the secondary axis.';return}
    const W=1040,H=520,L=132,R=y2i===null?34:100,T=30,B=88,pw=W-L-R,ph=H-T-B;
    const range=values=>{let min=Math.min(...values),max=Math.max(...values);if(min===max){min-=1;max+=1}return {min,max}};
-   const xr=range(pts.map(p=>p.x)),yr={min:rangeYStart,max:rangeYEnd},y2r=y2i===null?null:{min:rangeY2Start,max:rangeY2End};
+   const xr=range(pts.map(p=>p.x)),yr={min:rangeYStart,max:rangeYEnd},y2r=y2i===null?null:range(secondaryPts.map(p=>p.y2));
    const sx=v=>L+(v-xr.min)/(xr.max-xr.min)*pw,sy=v=>T+ph-(v-yr.min)/(yr.max-yr.min)*ph,sy2=v=>y2r?T+ph-(v-y2r.min)/(y2r.max-y2r.min)*ph:0;
    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('role','img');svg.setAttribute('aria-label',headerRow[xi]+' versus '+headerRow[yi]+(y2i===null?'':' and '+headerRow[y2i]));svg.classList.add('propulsion-chart-svg');
    const add=(tag,attrs,textValue)=>{const n=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs||{}).forEach(([k,v])=>n.setAttribute(k,String(v)));if(textValue!==undefined)n.textContent=textValue;svg.append(n);return n};
