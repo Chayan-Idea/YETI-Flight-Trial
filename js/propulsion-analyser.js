@@ -182,7 +182,7 @@
   const calculatedParameters=el('div','propulsion-calculated-parameters');calculatedParameters.id='propulsionCalculatedParameters';
   const calculatedParameterDefinitions=[
    {key:'mechanicalPower',name:'Mechanical Power',formula:null,sources:[['torque','Torque'],['actualRpm','Actual Motor Speed']]},
-   {key:'electricalPower',name:'Electrical Power',formula:'Electrical Power (W) = Direct-Current Voltage (V) × Direct-Current Current (A)',sources:[['voltage','DC Voltage'],['current','DC Current']]},
+   {key:'electricalPower',name:'Electrical Power',formula:'Electrical Power (W) = DC Voltage (V) × DC Current (A)',sources:[['voltage','DC Voltage'],['current','DC Current']]},
    {key:'overallEfficiency',name:'Specific Thrust',formula:null,numerator:'Thrust (N)',denominator:'Electrical Power (W)',sources:[['thrust','Thrust'],['voltage','DC Voltage'],['current','DC Current']]}
   ];
   calculatedParameterControls={};
