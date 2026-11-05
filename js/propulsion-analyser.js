@@ -504,12 +504,12 @@
   step4.append(plotActions);
   const graphStatus=el('p','propulsion-graph-status','Choose an X axis and at least one Y axis parameter to enable Plot Graph.');graphStatus.id='propulsionGraphStatus';step4.append(graphStatus);
   const graphRangePanel=el('div','propulsion-x-range-panel');
-  graphRangePanel.append(el('strong','propulsion-x-range-title','EXPLORE DATA POINT · X-AXIS RANGE'));
+  graphRangePanel.append(el('strong','propulsion-x-range-title','X-Y RANGE SELECTOR'));
   const graphRangeFields=el('div','propulsion-x-range-fields');
   const makeRangeField=(labelText,id)=>{const label=el('label','propulsion-graph-field',labelText);const input=document.createElement('input');input.type='number';input.step='any';input.id=id;input.placeholder='Full graph range';input.className='propulsion-column-select';label.append(input);graphRangeFields.append(label);return input};
   const xRangeStart=makeRangeField('Start X Point','propulsionXRangeStart'),xRangeEnd=makeRangeField('End X Point','propulsionXRangeEnd');
   const resetXRange=el('button','btn alt propulsion-x-range-reset','Reset Full Range');resetXRange.type='button';
-  graphRangePanel.append(graphRangeFields,resetXRange);graphRangePanel.hidden=true;step4.append(graphRangePanel);
+  graphRangePanel.append(graphRangeFields,resetXRange);graphRangePanel.hidden=true;
   const chartHost=el('div','propulsion-chart-host');chartHost.id='propulsionChartHost';step4.append(chartHost);
   const pointExplorer=el('div','propulsion-point-explorer');pointExplorer.hidden=true;
   const pointReadout=el('div','propulsion-point-readout');
@@ -521,7 +521,7 @@
   const pointCounter=el('span','propulsion-point-counter','Point 0 of 0');pointCounter.id='propulsionPointCounter';
   const sliderNavigationSection=el('section','propulsion-point-navigation-section');
   sliderNavigationSection.append(el('strong','propulsion-point-navigation-title','GRAPH NAVIGATION USING SLIDING BAR'));
-  sliderNavigationSection.append(pointReadout,pointSliderLabel,pointCounter);
+  sliderNavigationSection.append(pointReadout,pointSliderLabel,pointCounter,graphRangePanel);
   pointExplorer.append(sliderNavigationSection);
   const pointNavigator=el('section','propulsion-point-navigator');
   pointNavigator.append(el('strong','propulsion-point-navigation-title','GRAPH NAVIGATION BY DATA POINT'));
