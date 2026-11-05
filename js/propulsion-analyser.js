@@ -181,7 +181,7 @@
   step3Filter.append(el('p','propulsion-statistics-description','Select calculated parameters to add row-wise derived data columns. Formula definitions and calculation actions will be enabled as each formula is provided.'));
   const calculatedParameters=el('div','propulsion-calculated-parameters');calculatedParameters.id='propulsionCalculatedParameters';
   const calculatedParameterDefinitions=[
-   {key:'mechanicalPower',name:'Mechanical Power'},
+   {key:'mechanicalPower',name:'Mechanical Power',formula:'Torque * RPM',enabled:true},
    {key:'electricalPower',name:'Electrical Power'},
    {key:'overallEfficiency',name:'Overall Propulsion Efficiency'}
   ];
@@ -189,12 +189,39 @@
    const card=el('div','propulsion-calculated-parameter');
    const details=el('div','propulsion-calculated-parameter-details');
    const label=el('label','propulsion-calculated-parameter-label');
-   const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.disabled=true;checkbox.setAttribute('aria-label','Calculate '+parameter.name);
+   const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.disabled=!parameter.enabled;checkbox.setAttribute('aria-label','Calculate '+parameter.name);
    const name=el('strong','',parameter.name);label.append(checkbox,name);
    const formulaLabel=el('span','propulsion-calculated-formula-label','FORMULA');
-   const formula=el('div','propulsion-calculated-formula','Formula will be added after specification.');
+   const formula=el('div','propulsion-calculated-formula',parameter.formula||'Formula will be added after specification.');
    details.append(label,formulaLabel,formula);
-   const calculate=el('button','btn alt propulsion-calculated-action','Calculate and Add to Graph');calculate.type='button';calculate.disabled=true;calculate.title='Available after the calculation formula is provided.';
+   const calculate=el('button','btn alt propulsion-calculated-action','Calculate and Add to Graph');calculate.type='button';calculate.disabled=!parameter.enabled;calculate.title=parameter.enabled?'Calculate Torque * RPM for every included CSV row and add the result as a graphable column.':'Available after the calculation formula is provided.';
+   if(parameter.key==='mechanicalPower'){
+    checkbox.addEventListener('change',()=>{calculate.disabled=!checkbox.checked;});
+    calculate.addEventListener('click',()=>{
+     const torqueIndex=mapping.torque?.selected, rpmIndex=mapping.actualRpm?.selected;
+     if(torqueIndex===''||torqueIndex===undefined||rpmIndex===''||rpmIndex===undefined){
+      graphStatus.textContent='Mechanical Power requires mapped Torque and Actual RPM columns. Confirm both mappings in Step 02.';
+      return;
+     }
+     const existingIndex=headerRow.indexOf('Mechanical Power');
+     if(existingIndex<0){
+      const derivedIndex=headerRow.length;
+      headerRow.push('Mechanical Power');
+      analysisRows=analysisRows.map(row=>{
+       const torque=Number(String(row[torqueIndex]??'').trim()),rpm=Number(String(row[rpmIndex]??'').trim());
+       const next=row.slice();next[derivedIndex]=String(row[torqueIndex]??'').trim()===''||String(row[rpmIndex]??'').trim()===''||!Number.isFinite(torque)||!Number.isFinite(rpm)?'':String(torque*rpm);
+       return next;
+      });
+      [xSelect,ySelect,y2Select].forEach(select=>{const option=document.createElement('option');option.value=String(derivedIndex);option.textContent='Mechanical Power';select.append(option)});
+     }
+     const derivedIndex=headerRow.indexOf('Mechanical Power');
+     if(xSelect.value===''&&numericColumns.length)xSelect.value=String(numericColumns[0].index);
+     ySelect.value=String(derivedIndex);
+     savedGraphSelection();updatePlotAvailability();
+     graphStatus.textContent='Mechanical Power calculated as Torque * RPM for '+analysisRows.length.toLocaleString()+' included rows. Select Plot Graph to view it.';
+     saveState();
+    });
+   }
    card.append(details,calculate);calculatedParameters.append(card);
   });
   step3Filter.append(calculatedParameters);
