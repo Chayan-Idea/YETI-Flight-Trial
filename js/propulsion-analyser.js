@@ -94,8 +94,17 @@
   {key:'motorTemperature',label:'Motor Temperature',aliases:['motor_temperature_c','motor_temp_c','motor temperature','motor temp','motor_temperature','motor_temp','temperature_motor','motor winding temperature']},
   {key:'escTemperature',label:'ESC Temperature',aliases:['esc_temperature_c','esc_temp_c','esc temperature','esc temp','esc_temperature','esc_temp','controller_temperature','electronic speed controller temperature']}
  ];
- // The selected test-log mode controls which parameter families are active.
- function activeSpecs(){return specs.filter(spec=>!(logType==='thrust'&&spec.key==='torque')&&!(logType==='torque'&&spec.key==='thrust'));}
+ // Single source of truth for mode-dependent parameter availability across the workflow.
+ const PARAMETER_DEPENDENCY_MATRIX={
+  thrust:{mapping:['thrust','commandRpm','actualRpm','voltage','current','motorTemperature','escTemperature'],derived:['electricalPower','overallEfficiency'],report:['thrust','commandRpm','actualRpm','voltage','current','motorTemperature','escTemperature']},
+  torque:{mapping:['torque','commandRpm','actualRpm','voltage','current','motorTemperature','escTemperature'],derived:['mechanicalPower','electricalPower'],report:['torque','commandRpm','actualRpm','voltage','current','motorTemperature','escTemperature']}
+ };
+ function isParameterAvailable(key,stage='mapping'){
+  const mode=PARAMETER_DEPENDENCY_MATRIX[logType];
+  return !!mode&&Array.isArray(mode[stage])&&mode[stage].includes(key);
+ }
+ function activeSpecs(stage='mapping'){return specs.filter(spec=>isParameterAvailable(spec.key,stage));}
+
  let selectedFile=null,headerRow=[],dataRows=[],analysisRows=[],mapping={},calculatedParameterKeys=[],calculatedParameterControls={},confirmed=false,step3FilterVisible=false,step3Visible=false,step4Visible=false,step5Visible=false,reportDirectVisible=false,analysisPanel=null;
  const DB_NAME='yeti-flight-trial-state',DB_STORE='propulsion-analyser',DB_KEY='active-session';
  function openStateDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(DB_STORE))req.result.createObjectStore(DB_STORE)};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
@@ -159,7 +168,7 @@
   analysisPanel.append(top);
   const grid=el('div','propulsion-mapping-list');
   specs.forEach(s=>{
-   const item=el('label','propulsion-mapping-row');const parameterEnabled=!(logType==='thrust'&&s.key==='torque')&&!(logType==='torque'&&s.key==='thrust');if(!parameterEnabled){item.classList.add('is-parameter-disabled');item.setAttribute('aria-disabled','true');}item.append(el('span','propulsion-mapping-label',s.label));
+   const item=el('label','propulsion-mapping-row');const parameterEnabled=isParameterAvailable(s.key,'mapping');if(!parameterEnabled){item.classList.add('is-parameter-disabled');item.setAttribute('aria-disabled','true');}item.append(el('span','propulsion-mapping-label',s.label));
    const select=el('select','propulsion-column-select');select.dataset.key=s.key;select.disabled=!parameterEnabled;
    const empty=document.createElement('option');empty.value='';empty.textContent='Not detected — select a column';select.append(empty);
    headerRow.forEach((name,index)=>{const opt=document.createElement('option');opt.value=String(index);opt.textContent=name;select.append(opt)});
@@ -209,6 +218,7 @@
    return index===''||index===undefined?'Not mapped':(headerRow[index]||'Mapped column');
   };
   calculatedParameterDefinitions.forEach(parameter=>{
+   const parameterEnabled=isParameterAvailable(parameter.key,'derived');
    const card=el('div','propulsion-calculated-parameter');card.dataset.parameterKey=parameter.key;
    const details=el('div','propulsion-calculated-parameter-details');
    const label=el('label','propulsion-calculated-parameter-label');
@@ -610,7 +620,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    let peakInputPower=0,peakThrustPerKw=0,sumAbsRpmError=0,rpmErrorCount=0,maxRpmError=0;
    analysisRows.forEach(row=>{const v=getNum(row,'voltage'),a=getNum(row,'current'),t=getNum(row,'thrust'),cmd=getNum(row,'commandRpm'),rpm=getNum(row,'actualRpm');if(Number.isFinite(v)&&Number.isFinite(a)){const kw=v*a/1000;if(kw>peakInputPower)peakInputPower=kw;if(Number.isFinite(t)&&kw>0)peakThrustPerKw=Math.max(peakThrustPerKw,t/kw)}if(Number.isFinite(cmd)&&cmd!==0&&Number.isFinite(rpm)){const e=Math.abs((rpm-cmd)/cmd)*100;sumAbsRpmError+=e;rpmErrorCount++;maxRpmError=Math.max(maxRpmError,e)}});
    const kpiGrid=el('div','propulsion-report-kpi-grid propulsion-report-all-parameters');
-   activeSpecs().forEach(spec=>{const m=peak(spec.key);const card=el('div','propulsion-report-kpi');card.append(el('span','',('MAXIMUM '+spec.label).toUpperCase()),el('strong','',m.at>=0?fmt(m.value)+' '+units[spec.key]:'—'));kpiGrid.append(card)});
+   activeSpecs('report').forEach(spec=>{const m=peak(spec.key);const card=el('div','propulsion-report-kpi');card.append(el('span','',('MAXIMUM '+spec.label).toUpperCase()),el('strong','',m.at>=0?fmt(m.value)+' '+units[spec.key]:'—'));kpiGrid.append(card)});
    statsPage.append(kpiGrid);
    statsPage.append(el('p','propulsion-report-small-note','Dataset: '+analysisRows.length.toLocaleString()+' rows included; records with Actual RPM = 0 excluded. Values shown are maximum recorded values for each mapped parameter.'));
    cover.append(statsPage);
@@ -636,7 +646,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    confirmed=true;calculatedParameterDefinitions.forEach(parameter=>calculatedParameterControls[parameter.key]?.updateMappingNote());confirm.disabled=true;confirm.textContent='Mapping Confirmed';
    next.hidden=false;next.replaceChildren(el('strong','', 'Parameter mapping confirmed'));
    // Keep the confirmation panel concise; dataset filtering details remain internal.
-   const mappingList=el('ul','propulsion-confirmed-mapping');activeSpecs().forEach(s=>mappingList.append(el('li','',s.label+' → '+headerRow[mapping[s.key].selected])));next.append(mappingList);proceed.hidden=true;directReportProceed.hidden=true;step3Filter.append(filterActions);step3.hidden=true;step3Filter.hidden=false;step3FilterVisible=true;saveState();
+   const mappingList=el('ul','propulsion-confirmed-mapping');activeSpecs('mapping').forEach(s=>mappingList.append(el('li','',s.label+' → '+headerRow[mapping[s.key].selected])));next.append(mappingList);proceed.hidden=true;directReportProceed.hidden=true;step3Filter.append(filterActions);step3.hidden=true;step3Filter.hidden=false;step3FilterVisible=true;saveState();
    saveState();
   });
   directReportProceed.addEventListener('click',()=>{if(!confirmed)return;reportDirectVisible=true;step3Visible=false;step4Visible=false;step5Visible=true;analysisPanel.hidden=true;step3.hidden=true;step3Filter.hidden=true;step4.hidden=true;step5.hidden=false;saveState();step5.scrollIntoView({behavior:'smooth',block:'start'});});
@@ -692,10 +702,10 @@ const statsPage=el('section','propulsion-report-summary-page');
  let parseCSVText='';
  function validateMapping(){
   if(!analysisPanel)return false;
-  const selections=activeSpecs().map(s=>mapping[s.key]?.selected??'');
+  const selections=activeSpecs('mapping').map(s=>mapping[s.key]?.selected??'');
   const complete=selections.length>0&&selections.every(v=>v!=='');const unique=new Set(selections.map(String)).size===selections.length;
   const confirm=$id('confirmPropulsionMappingBtn'),summary=$id('propulsionMappingSummary');
-  const checks=activeSpecs().map(s=>{const idx=mapping[s.key]?.selected;if(idx===''||idx===undefined)return false;let checked=0,numeric=0;for(const row of dataRows.slice(0,100)){const v=String(row[idx]??'').trim();if(v){checked++;if(Number.isFinite(Number(v)))numeric++}}return checked>0&&numeric/checked>=0.8});
+  const checks=activeSpecs('mapping').map(s=>{const idx=mapping[s.key]?.selected;if(idx===''||idx===undefined)return false;let checked=0,numeric=0;for(const row of dataRows.slice(0,100)){const v=String(row[idx]??'').trim();if(v){checked++;if(Number.isFinite(Number(v)))numeric++}}return checked>0&&numeric/checked>=0.8});
   const allData=checks.every(Boolean);confirm.disabled=!(complete&&unique&&allData&&!confirmed);
   summary.className='propulsion-mapping-summary'+(complete&&unique&&allData?' is-valid':' is-warning');
   summary.textContent=!complete?'Select a CSV column for every required parameter.':!unique?'Each parameter must use a different CSV column.':!allData?'One or more selected columns do not contain predominantly numeric data in the sampled rows. Review the mapping.':'Unique columns selected; Ready for confirmation.';
