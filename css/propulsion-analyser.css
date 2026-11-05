@@ -686,3 +686,10 @@
 .propulsion-calculated-action{flex:0 0 auto;white-space:normal}
 .propulsion-calculated-action:disabled{opacity:.55;cursor:not-allowed}
 @media(max-width:640px){.propulsion-calculated-parameter{align-items:stretch;flex-direction:column}.propulsion-calculated-action{width:100%}}
+
+.propulsion-calculated-formula{display:flex;align-items:center;flex-wrap:wrap;gap:8px;overflow-x:auto;overflow-y:hidden;overflow-wrap:normal}
+.propulsion-formula-equation{white-space:nowrap}
+.propulsion-formula-fraction{display:inline-flex;flex-direction:column;align-items:stretch;vertical-align:middle;text-align:center;line-height:1.35;white-space:nowrap;font-size:.94em}
+.propulsion-formula-numerator,.propulsion-formula-denominator{display:block;padding:2px 9px}
+.propulsion-formula-numerator{border-bottom:1.5px solid currentColor}
+.propulsion-formula-denominator{padding-top:3px}
