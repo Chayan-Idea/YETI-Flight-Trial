@@ -235,6 +235,7 @@
    checkbox.addEventListener('change',()=>{calculate.disabled=addedToGraph||!checkbox.checked;});
    retry.addEventListener('click',()=>{
     addedToGraph=false;
+    calculate.hidden=false;
     checkbox.disabled=false;
     checkbox.checked=false;
     calculate.disabled=true;
@@ -293,6 +294,7 @@
     addedToGraph=true;
     calculate.disabled=true;
     calculate.textContent='Added to Graph';
+    calculate.hidden=true;
     calculate.title='This calculated parameter has already been added to the graph data.';
     addedStatus.hidden=false;
     retry.hidden=false;
