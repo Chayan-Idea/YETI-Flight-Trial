@@ -366,7 +366,7 @@
    exportRows.forEach((row,index)=>{const tr=document.createElement('tr');const number=el('th','',String(index+1));number.scope='row';tr.append(number);headerRow.forEach((_,column)=>tr.append(el('td','',String(row[column]??''))));csvPreviewBody.append(tr)});
    csvPreviewInfo.textContent=exportRows.length.toLocaleString()+' exported rows · '+headerRow.length.toLocaleString()+' columns · '+(analysisRows.length-exportRows.length).toLocaleString()+' rows removed by RPM filter. '+sortNote;
    csvTimestampSearch.value='';csvSearchStatus.textContent='';csvPreview.hidden=true;csvPreviewToggle.hidden=false;csvPreviewToggle.textContent='Show Filtered & Sorted CSV';csvPreviewToggle.setAttribute('aria-expanded','false');
-   csvStatus.textContent='Filtered & sorted CSV prepared: '+exportRows.length.toLocaleString()+' filtered rows and '+headerRow.length.toLocaleString()+' columns. Derived columns included where calculated. Open the preview to inspect or download it.';
+   csvStatus.textContent='Filtered & sorted CSV prepared: '+exportRows.length.toLocaleString()+' filtered rows and '+headerRow.length.toLocaleString()+' columns. Derived columns included where calculated. Open the preview to inspect or download it.';proceed.hidden=false;directReportProceed.hidden=false;saveState();
   });
   step3Filter.append(csvSection);
   const filterActions=el('div','propulsion-actions');filterActions.append(proceed,directReportProceed);
@@ -594,7 +594,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    confirmed=true;calculatedParameterDefinitions.forEach(parameter=>calculatedParameterControls[parameter.key]?.updateMappingNote());confirm.disabled=true;confirm.textContent='Mapping Confirmed';
    next.hidden=false;next.replaceChildren(el('strong','', 'Parameter mapping confirmed'));
    // Keep the confirmation panel concise; dataset filtering details remain internal.
-   const mappingList=el('ul','propulsion-confirmed-mapping');specs.forEach(s=>mappingList.append(el('li','',s.label+' → '+headerRow[mapping[s.key].selected])));next.append(mappingList);proceed.hidden=false;directReportProceed.hidden=false;step3Filter.append(filterActions);step3.hidden=true;step3Filter.hidden=false;step3FilterVisible=true;saveState();
+   const mappingList=el('ul','propulsion-confirmed-mapping');specs.forEach(s=>mappingList.append(el('li','',s.label+' → '+headerRow[mapping[s.key].selected])));next.append(mappingList);proceed.hidden=true;directReportProceed.hidden=true;step3Filter.append(filterActions);step3.hidden=true;step3Filter.hidden=false;step3FilterVisible=true;saveState();
    saveState();
   });
   directReportProceed.addEventListener('click',()=>{if(!confirmed)return;reportDirectVisible=true;step3Visible=false;step4Visible=false;step5Visible=true;analysisPanel.hidden=true;step3.hidden=true;step3Filter.hidden=true;step4.hidden=true;step5.hidden=false;saveState();step5.scrollIntoView({behavior:'smooth',block:'start'});});
