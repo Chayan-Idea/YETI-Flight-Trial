@@ -496,6 +496,13 @@
   graphControls.append(xField.label,yField.label,y2Field.label);step4.append(graphControls);
   step4.append(plotActions);
   const graphStatus=el('p','propulsion-graph-status','Choose an X axis and at least one Y axis parameter to enable Plot Graph.');graphStatus.id='propulsionGraphStatus';step4.append(graphStatus);
+  const graphRangePanel=el('div','propulsion-x-range-panel');
+  graphRangePanel.append(el('strong','propulsion-x-range-title','EXPLORE DATA POINT · X-AXIS RANGE'));
+  const graphRangeFields=el('div','propulsion-x-range-fields');
+  const makeRangeField=(labelText,id)=>{const label=el('label','propulsion-graph-field',labelText);const input=document.createElement('input');input.type='number';input.step='any';input.id=id;input.placeholder='Full graph range';input.className='propulsion-column-select';label.append(input);graphRangeFields.append(label);return input};
+  const xRangeStart=makeRangeField('Start X Point','propulsionXRangeStart'),xRangeEnd=makeRangeField('End X Point','propulsionXRangeEnd');
+  const resetXRange=el('button','btn alt propulsion-x-range-reset','Reset Full Range');resetXRange.type='button';
+  graphRangePanel.append(graphRangeFields,resetXRange);graphRangePanel.hidden=true;step4.append(graphRangePanel);
   const chartHost=el('div','propulsion-chart-host');chartHost.id='propulsionChartHost';step4.append(chartHost);
   const pointExplorer=el('div','propulsion-point-explorer');pointExplorer.hidden=true;
   const pointReadout=el('div','propulsion-point-readout');
@@ -578,9 +585,23 @@
    const rawPts=analysisRows.map((row,index)=>({x:parseCsvNumber(row[xi]),y:parseCsvNumber(row[yi]),y2:y2i===null?NaN:parseCsvNumber(row[y2i]),timestamp:timestampIndex===undefined?'Timestamp column not found':String(row[timestampIndex]??'').trim()||'Timestamp unavailable',index})).filter(p=>Number.isFinite(p.x));
    // Keep record-high X values only, preserving original CSV row order.
    let highestX=-Infinity;
-   const pts=rawPts.filter(p=>{if(p.x<highestX)return false;highestX=p.x;return true;});
-   const removedReturnPoints=rawPts.length-pts.length;
+   const originalPts=rawPts.filter(p=>{if(p.x<highestX)return false;highestX=p.x;return true;});
+   const removedReturnPoints=rawPts.length-originalPts.length;
+   if(!originalPts.length){chartHost.replaceChildren();graphStatus.textContent='No numeric X values are available to plot.';return}
+   const fullXMin=Math.min(...originalPts.map(p=>p.x)),fullXMax=Math.max(...originalPts.map(p=>p.x));
+   if(xRangeStart.value===''||xRangeEnd.value===''){xRangeStart.value=String(fullXMin);xRangeEnd.value=String(fullXMax)}
+   const rangeStart=Number(xRangeStart.value),rangeEnd=Number(xRangeEnd.value);
+   if(!Number.isFinite(rangeStart)||!Number.isFinite(rangeEnd)||rangeStart>=rangeEnd||rangeStart<fullXMin||rangeEnd>fullXMax){
+    graphRangePanel.hidden=false;chartHost.replaceChildren();pointExplorer.hidden=true;
+    graphStatus.textContent='Enter a valid X range within '+new Intl.NumberFormat(undefined,{maximumFractionDigits:6}).format(fullXMin)+' to '+new Intl.NumberFormat(undefined,{maximumFractionDigits:6}).format(fullXMax)+', with Start X Point smaller than End X Point.';return;
+   }
+   const pts=originalPts.filter(p=>p.x>=rangeStart&&p.x<=rangeEnd);
    const primaryPts=pts.filter(p=>Number.isFinite(p.y)),secondaryPts=pts.filter(p=>Number.isFinite(p.y2));
+   if(primaryPts.length<2||(y2i!==null&&secondaryPts.length<2)){
+    graphRangePanel.hidden=false;chartHost.replaceChildren();pointExplorer.hidden=true;
+    graphStatus.textContent='The selected X range does not contain enough valid data points for the selected Y axis. Widen the range.';return;
+   }
+   graphRangePanel.hidden=false;
    if(primaryPts.length<2){chartHost.replaceChildren();graphStatus.textContent='Not enough numeric X and Primary Y row pairs to plot the primary axis.';return}
    if(y2i!==null&&secondaryPts.length<2){chartHost.replaceChildren();graphStatus.textContent='Not enough numeric X and Secondary Y row pairs to plot the secondary axis.';return}
    const W=1040,H=520,L=132,R=y2i===null?34:100,T=30,B=88,pw=W-L-R,ph=H-T-B;
@@ -610,6 +631,14 @@
    chartHost.replaceChildren(svg);pointExplorer.hidden=false;pointSlider.disabled=false;pointSlider.max=String(pts.length-1);pointSlider.value='0';updatePointSearchLabels();clearPointSearch();selectGraphPoint(0);
    graphStatus.textContent='Plotted '+primaryPts.length.toLocaleString()+' primary Y pairs'+(y2r?' and '+secondaryPts.length.toLocaleString()+' secondary Y pairs':'')+' · X: '+headerRow[xi]+' · Primary Y: '+headerRow[yi]+(y2i===null?'':' · Secondary Y: '+headerRow[y2i])+'. '+removedReturnPoints.toLocaleString()+' points below the previous highest X value removed. Only record-high or equal-high X values are retained in CSV row order. Both Y series share the same X axis and use independent left/right scales.';graphXIndex=String(xi);graphYIndex=String(yi);graphY2Index=y2i===null?'':String(y2i);saveState();
   });
+   const redrawForXRange=()=>{if(xSelect.value!==''&&ySelect.value!=='')plotButton.click()};
+   [xRangeStart,xRangeEnd].forEach(input=>input.addEventListener('change',redrawForXRange));
+   resetXRange.addEventListener('click',()=>{
+    const xi=Number(xSelect.value);if(!Number.isInteger(xi))return;
+    const values=analysisRows.map(row=>{const raw=String(row[xi]??'').trim();return raw!==''&&Number.isFinite(Number(raw))?Number(raw):NaN}).filter(Number.isFinite);
+    if(!values.length)return;
+    xRangeStart.value=String(Math.min(...values));xRangeEnd.value=String(Math.max(...values));redrawForXRange();
+   });
     const step5=el('section','propulsion-report-card propulsion-step-card propulsion-step-card--purple');step5.id='propulsionReportGenerationCard';step5.hidden=true;
   const returnToDataFiltering=()=>{reportDirectVisible=false;step3FilterVisible=true;step3Visible=false;step4Visible=false;step5Visible=false;analysisPanel.hidden=false;step3Filter.hidden=false;step3.hidden=true;step4.hidden=true;step5.hidden=true;saveState();step3Filter.scrollIntoView({behavior:'smooth',block:'start'});};
   const addReturnButton=(parent)=>{const actions=el('div','propulsion-actions');const button=el('button','btn alt','Return to Data Filtering & Sorting');button.type='button';button.addEventListener('click',returnToDataFiltering);actions.append(button);parent.append(actions);return button;};
