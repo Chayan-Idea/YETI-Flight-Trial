@@ -179,6 +179,9 @@
   step3Filter.append(el('span','propulsion-step-label','STEP 03 · DATA FILTERING & SORTING'));
   step3Filter.append(el('h3','','Data Filtering & Sorting'));
   step3Filter.append(el('p','propulsion-statistics-description','Select calculated parameters to add row-wise derived data columns. Formula definitions and calculation actions will be enabled as each formula is provided.'));
+  const derivedSection=el('section','propulsion-step-subsection propulsion-step-subsection--derived');
+  derivedSection.append(el('h4','','Derived Parameter Identification & Calculation'));
+  derivedSection.append(el('p','propulsion-subsection-description','Select derived parameters, review their mapped inputs and calculate row-wise values.'));
   const calculatedParameters=el('div','propulsion-calculated-parameters');calculatedParameters.id='propulsionCalculatedParameters';
   const calculatedParameterDefinitions=[
    {key:'mechanicalPower',name:'Mechanical Power',formula:null,sources:[['torque','Torque'],['actualRpm','Actual Motor Speed']]},
@@ -299,7 +302,29 @@
    });
    card.append(details,calculate,addedStatus,retry);calculatedParameters.append(card);
   });
-  step3Filter.append(calculatedParameters);
+  derivedSection.append(calculatedParameters);
+  step3Filter.append(derivedSection);
+  const csvSection=el('section','propulsion-step-subsection propulsion-step-subsection--csv');
+  csvSection.append(el('h4','','CSV Generation with Filtered & Sorted Data'));
+  csvSection.append(el('p','propulsion-subsection-description','Export the filtered dataset, including all successfully calculated derived-parameter columns.'));
+  const csvStatus=el('p','propulsion-csv-export-status','The export will contain '+analysisRows.length.toLocaleString()+' included data rows and all available columns.');
+  csvStatus.setAttribute('role','status');csvStatus.setAttribute('aria-live','polite');
+  const csvExportButton=el('button','btn','Generate Filtered & Sorted CSV');csvExportButton.type='button';
+  csvExportButton.addEventListener('click',()=>{
+   const escapeCsv=value=>{const text=String(value??'');return /[",\\r\\n]/.test(text)?'"'+text.replace(/"/g,'""')+'"':text;};
+   const rows=[headerRow,...analysisRows];
+   const csv='\\uFEFF'+rows.map(row=>headerRow.map((_,index)=>escapeCsv(row[index]??'')).join(',')).join('\\r\\n');
+   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+   const url=URL.createObjectURL(blob);
+   const link=document.createElement('a');
+   const base=(selectedFile?.name||'propulsion_log.csv').replace(/\\.csv$/i,'');
+   link.href=url;link.download=base+'_filtered_sorted.csv';
+   document.body.append(link);link.click();link.remove();URL.revokeObjectURL(url);
+   csvStatus.textContent='CSV generated: '+analysisRows.length.toLocaleString()+' filtered rows and '+headerRow.length.toLocaleString()+' columns exported.';
+  });
+  const csvActions=el('div','propulsion-actions');csvActions.append(csvExportButton);
+  csvSection.append(csvStatus,csvActions);
+  step3Filter.append(csvSection);
   const filterActions=el('div','propulsion-actions');filterActions.append(proceed,directReportProceed);
   workspace.insertBefore(step3Filter,workspace.querySelector('.propulsion-local-note'));
   workspace.insertBefore(step3,workspace.querySelector('.propulsion-local-note'));
