@@ -225,8 +225,22 @@
    let addedToGraph=false;
    const addedStatus=el('span','propulsion-calculated-added-status','✓ Added to Graph');
    addedStatus.hidden=true;
+   const retry=el('button','btn alt propulsion-calculated-retry','Retry');
+   retry.type='button';retry.hidden=true;
+   retry.title='Enable this calculation again.';
    calculatedParameterControls[parameter.key]={checkbox,calculate,updateMappingNote};
    checkbox.addEventListener('change',()=>{calculate.disabled=addedToGraph||!checkbox.checked;});
+   retry.addEventListener('click',()=>{
+    addedToGraph=false;
+    checkbox.disabled=false;
+    checkbox.checked=false;
+    calculate.disabled=true;
+    calculate.textContent='Calculate and Add to Graph';
+    calculate.title='Select the checkbox to enable this calculation.';
+    addedStatus.hidden=true;
+    retry.hidden=true;
+    card.classList.remove('is-added-to-graph');
+   });
    calculate.addEventListener('click',()=>{
     updateMappingNote();
     const requiredKeys=parameter.key==='mechanicalPower'?['torque','actualRpm']:parameter.key==='electricalPower'?['voltage','current']:['thrust','voltage','current'];
@@ -278,11 +292,12 @@
     calculate.textContent='Added to Graph';
     calculate.title='This calculated parameter has already been added to the graph data.';
     addedStatus.hidden=false;
+    retry.hidden=false;
     checkbox.disabled=true;
     card.classList.add('is-added-to-graph');
     saveState();
    });
-   card.append(details,calculate,addedStatus);calculatedParameters.append(card);
+   card.append(details,calculate,addedStatus,retry);calculatedParameters.append(card);
   });
   step3Filter.append(calculatedParameters);
   const filterActions=el('div','propulsion-actions');filterActions.append(proceed,directReportProceed);
