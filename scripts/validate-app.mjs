@@ -36,12 +36,12 @@ function checkCss(file) {
 }
 
 const html = read('index.html');
-const ids = [...html.matchAll(/\\bid=["']([^"']+)["']/g)].map(match => match[1]);
+const ids = [...html.matchAll(/\bid=["']([^"']+)["']/g)].map(match => match[1]);
 const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index);
 if (duplicates.length) fail(`Duplicate HTML IDs: ${[...new Set(duplicates)].join(', ')}`);
 else pass('No duplicate static HTML IDs');
 
-const assetReferences = [...html.matchAll(/\\b(?:src|href)=["']([^"'#]+)["']/g)]
+const assetReferences = [...html.matchAll(/\b(?:src|href)=["']([^"'#]+)["']/g)]
   .map(match => match[1])
   .filter(reference => reference.startsWith('./') || reference.startsWith('assets/'));
 for (const reference of assetReferences) {
@@ -50,7 +50,7 @@ for (const reference of assetReferences) {
   else fail(`Missing HTML asset: ${localPath}`);
 }
 
-const externalScripts = [...html.matchAll(/<script\\b[^>]*\\bsrc=["']([^"']+)["'][^>]*><\\/script>/gi)]
+const externalScripts = [...html.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["'][^>]*><\/script>/gi)]
   .map(match => match[1]);
 for (const reference of externalScripts) {
   const localPath = reference.split('?')[0].replace(/^\.\//, '');
@@ -61,12 +61,12 @@ for (const reference of externalScripts) {
   checkJavaScript(localPath, read(localPath));
 }
 
-const inlineScripts = [...html.matchAll(/<script\\b(?![^>]*\\bsrc=)[^>]*>([\\s\\S]*?)<\\/script>/gi)]
+const inlineScripts = [...html.matchAll(/<script\b(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)]
   .map(match => match[1])
   .filter(source => source.trim());
 inlineScripts.forEach((source, index) => checkJavaScript(`index.html inline script ${index + 1}`, source));
 
-const stylesheets = [...html.matchAll(/<link\\b[^>]*\\brel=["']stylesheet["'][^>]*\\bhref=["']([^"']+)["'][^>]*>/gi)]
+const stylesheets = [...html.matchAll(/<link\b[^>]*\brel=["']stylesheet["'][^>]*\bhref=["']([^"']+)["'][^>]*>/gi)]
   .map(match => match[1]);
 for (const reference of stylesheets) {
   const localPath = reference.split('?')[0].replace(/^\.\//, '');
