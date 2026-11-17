@@ -44,3 +44,17 @@
 .ml-derived-card small{margin-top:4px;color:#718176;font-size:10px;line-height:1.45}
 .ml-derived-card button{align-self:flex-start;font-size:10px}
 .ml-filter-grid article button{margin-top:8px;padding:7px 9px;border:1px solid #cbd7e2;border-radius:7px;background:#fff;color:#34536f;font-size:10px}
+
+/* Parameter mapping groups mirror the Single Log Analyser category layout. */
+.ml-map-groups{display:grid;gap:14px;margin-top:14px}
+.ml-map-group{--ml-map-accent:#8062c6;--ml-map-tint:#fbfaff;min-width:0;padding:14px 15px 15px;border:1.5px solid color-mix(in srgb,var(--ml-map-accent) 38%,#fff);border-left:5px solid var(--ml-map-accent);border-radius:13px;background:var(--ml-map-tint);box-shadow:0 3px 11px rgba(18,59,112,.045)}
+.ml-map-group--mechanical{--ml-map-accent:#2878b8;--ml-map-tint:#f5faff}
+.ml-map-group--electrical{--ml-map-accent:#b47a19;--ml-map-tint:#fffbf2}
+.ml-map-group--thermal{--ml-map-accent:#c45c48;--ml-map-tint:#fff8f6}
+.ml-map-group--other{--ml-map-accent:#21845c;--ml-map-tint:#f5fbf7}
+.ml-map-group-title{margin:0 0 12px;padding:0 0 9px;border-bottom:1px solid color-mix(in srgb,var(--ml-map-accent) 28%,#fff);color:var(--ml-map-accent);font-size:13px;font-weight:850;letter-spacing:.01em}
+.ml-map-group .ml-table-wrap{margin:0;border:1px solid color-mix(in srgb,var(--ml-map-accent) 18%,#fff);border-radius:9px;background:#fff}
+.ml-map-group .ml-map{margin:0}
+.ml-map-group .ml-map thead th{background:color-mix(in srgb,var(--ml-map-accent) 9%,#fff)}
+.ml-map-group .ml-map tbody th{background:color-mix(in srgb,var(--ml-map-accent) 4%,#fff)}
+@media(max-width:620px){.ml-map-group{padding:12px}}
