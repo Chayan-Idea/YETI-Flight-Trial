@@ -7,6 +7,34 @@
  if(!input||!status||!start||!workspace)return;
  const uploadCard=input.closest('.propulsion-upload-card');
  let csvPreviewPanel=null;
+ function createVirtualCsvRows(viewport,tbody,rows,columnCount){
+  const rowHeight=38,overscan=12;let currentRows=rows,start=-1,end=-1,frame=0;
+  const topSpacer=document.createElement('tr'),topCell=document.createElement('td');
+  const bottomSpacer=document.createElement('tr'),bottomCell=document.createElement('td');
+  [topSpacer,bottomSpacer].forEach((tr)=>{tr.className='propulsion-csv-virtual-spacer';const cell=tr===topSpacer?topCell:bottomCell;cell.colSpan=columnCount+1;cell.setAttribute('aria-hidden','true');tr.append(cell)});
+  const makeRow=(row,index)=>{
+   const tr=document.createElement('tr');tr.className='propulsion-csv-virtual-row';tr.dataset.rowIndex=String(index);
+   const number=el('th','',String(index+1));number.scope='row';tr.append(number);
+   for(let col=0;col<columnCount;col++){const value=String(row?.[col]??'');const td=el('td','',value);td.title=value;tr.append(td)}
+   return tr;
+  };
+  const render=()=>{
+   frame=0;const total=currentRows.length,visible=Math.max(1,Math.ceil((viewport.clientHeight||460)/rowHeight));
+   const nextStart=Math.max(0,Math.floor(viewport.scrollTop/rowHeight)-overscan),nextEnd=Math.min(total,nextStart+visible+overscan*2);
+   if(nextStart===start&&nextEnd===end)return;
+   start=nextStart;end=nextEnd;const frag=document.createDocumentFragment();
+   topCell.style.height=(start*rowHeight)+'px';bottomCell.style.height=(Math.max(0,total-end)*rowHeight)+'px';
+   frag.append(topSpacer);for(let index=start;index<end;index++)frag.append(makeRow(currentRows[index],index));frag.append(bottomSpacer);tbody.replaceChildren(frag);
+  };
+  const schedule=()=>{if(!frame)frame=requestAnimationFrame(render)};
+  viewport.addEventListener('scroll',schedule,{passive:true});render();
+  return {
+   refresh(){start=-1;end=-1;render()},
+   setRows(nextRows){currentRows=nextRows;start=-1;end=-1;viewport.scrollTop=0;render()},
+   scrollTo(index){const safe=Math.max(0,Math.min(currentRows.length-1,index));viewport.scrollTop=Math.max(0,safe*rowHeight-(viewport.clientHeight||460)/2);start=-1;render()},
+   getRow(index){return tbody.querySelector('tr[data-row-index="'+index+'"]')||null;}
+  };
+ }
  function renderCsvPreview(text){
   if(csvPreviewPanel)csvPreviewPanel.remove();
   const rows=parseCSV(text,chooseDelimiter(text));
@@ -53,21 +81,19 @@
    const matches=[];
    visibleRows.forEach((row,index)=>{if(index>headerIndex&&String(row[timestampColumn]??'').trim()===query)matches.push(index)});
    if(!matches.length){searchStatus.textContent='No exact timestamp match found.';return}
-   matches.forEach(index=>{const tr=tbody.rows[index];if(tr)tr.classList.add('csv-timestamp-match')});
-   const first=tbody.rows[matches[0]];
-   if(first){const top=first.offsetTop-viewport.offsetTop;viewport.scrollTop=Math.max(0,top-viewport.clientHeight/2+first.offsetHeight/2);}
-   searchStatus.textContent=matches.length.toLocaleString()+' matching row(s) highlighted.';
+   virtualPreview?.scrollTo(matches[0]);requestAnimationFrame(()=>matches.forEach(index=>virtualPreview?.getRow(index)?.classList.add('csv-timestamp-match')));
+   searchStatus.textContent=matches.length.toLocaleString()+' matching row(s) found; first match brought into view.';
   };
   searchButton.addEventListener('click',searchTimestamp);
   timestampSearch.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();searchTimestamp()}});
+  let virtualPreview=null;
   const renderRows=(viewRows,viewName)=>{
-   visibleRows=viewRows;tbody.replaceChildren();searchStatus.textContent='';timestampSearch.value='';
-   viewRows.forEach((row,rowIndex)=>{const tr=document.createElement('tr');const indexCell=el('th','',String(rowIndex+1));indexCell.scope='row';tr.append(indexCell);for(let col=0;col<maxColumns;col++)tr.append(el('td','',String(row[col]??'')));tbody.append(tr)});
+   visibleRows=viewRows;searchStatus.textContent='';timestampSearch.value='';
+   if(virtualPreview)virtualPreview.setRows(visibleRows);else virtualPreview=createVirtualCsvRows(viewport,tbody,visibleRows,maxColumns);
    title.textContent=viewName==='raw'?'Uploaded Raw CSV File':'Data Filtered CSV File';
-   info.textContent=viewRows.length.toLocaleString()+' rows · '+maxColumns.toLocaleString()+' columns · '+(viewName==='raw'?'Original uploaded file, unchanged':'Rows with Actual RPM equal to zero or below removed');
+   info.textContent=viewRows.length.toLocaleString()+' rows · '+maxColumns.toLocaleString()+' columns · Virtual preview; complete dataset retained · '+(viewName==='raw'?'Original uploaded file, unchanged':'Rows with Actual RPM equal to zero or below removed');
    viewport.setAttribute('aria-label',viewName==='raw'?'Uploaded raw CSV data preview':'Data filtered CSV preview');
-   activeView=viewName;
-   csvPreviewPanel.hidden=false;identifyActions.hidden=false;
+   activeView=viewName;csvPreviewPanel.hidden=false;identifyActions.hidden=false;
    rawToggle.textContent=viewName==='raw'?'Hide Uploaded Raw CSV File':'Show Uploaded Raw CSV File';
    rawToggle.setAttribute('aria-expanded',String(viewName==='raw'));
    requestAnimationFrame(setFreezeOffsets);
@@ -424,14 +450,14 @@
   const csvTimestampSearch=document.createElement('input');csvTimestampSearch.type='text';csvTimestampSearch.className='propulsion-csv-search-input';csvTimestampSearch.placeholder='Paste timestamp to find matching row';csvTimestampSearch.setAttribute('aria-label','Search generated CSV by timestamp');
   const csvSearchButton=el('button','btn alt','Search Timestamp');csvSearchButton.type='button';
   const csvSearchStatus=el('span','propulsion-csv-search-status','');csvSearchBar.append(csvTimestampSearch,csvSearchButton,csvSearchStatus);
-  let generatedCsvText='',generatedExportRows=[],generatedTimestampIndex=-1;
+  let generatedCsvText='',generatedExportRows=[],generatedTimestampIndex=-1,generatedPreviewRows=[],generatedPreviewVirtual=null;
   const csvPreviewViewport=el('div','propulsion-csv-preview-viewport');csvPreviewViewport.setAttribute('role','region');csvPreviewViewport.setAttribute('aria-label','Generated filtered and sorted CSV preview');csvPreviewViewport.tabIndex=0;
   const csvPreviewTable=document.createElement('table');csvPreviewTable.className='propulsion-csv-preview-table';
   const csvPreviewHead=document.createElement('thead'),csvPreviewHeadRow=document.createElement('tr');
   const csvPreviewBody=document.createElement('tbody');
   csvPreviewTable.append(csvPreviewHead,csvPreviewBody);csvPreviewViewport.append(csvPreviewTable);
   csvPreview.append(csvPreviewLabel,csvPreviewTitle,csvPreviewInfo,csvSearchBar,csvPreviewViewport);
-  const searchGeneratedTimestamp=()=>{const query=csvTimestampSearch.value.trim();csvPreviewBody.querySelectorAll('tr.csv-timestamp-match').forEach(row=>row.classList.remove('csv-timestamp-match'));if(!query){csvSearchStatus.textContent='Enter a timestamp to search.';return;}if(generatedTimestampIndex<0){csvSearchStatus.textContent='No timestamp column was identified in the generated CSV.';return;}const matches=[];generatedExportRows.forEach((row,index)=>{if(String(row[generatedTimestampIndex]??'').trim()===query)matches.push(index);});if(!matches.length){csvSearchStatus.textContent='No exact timestamp match found.';return;}matches.forEach(index=>{const tr=csvPreviewBody.rows[index+1];if(tr)tr.classList.add('csv-timestamp-match');});const first=csvPreviewBody.rows[matches[0]+1];if(first){const top=first.offsetTop-csvPreviewViewport.offsetTop;csvPreviewViewport.scrollTop=Math.max(0,top-csvPreviewViewport.clientHeight/2+first.offsetHeight/2);}csvSearchStatus.textContent=matches.length.toLocaleString()+' matching row(s) highlighted.';};
+  const searchGeneratedTimestamp=()=>{const query=csvTimestampSearch.value.trim();csvPreviewBody.querySelectorAll('tr.csv-timestamp-match').forEach(row=>row.classList.remove('csv-timestamp-match'));if(!query){csvSearchStatus.textContent='Enter a timestamp to search.';return;}if(generatedTimestampIndex<0){csvSearchStatus.textContent='No timestamp column was identified in the generated CSV.';return;}const matches=[];generatedExportRows.forEach((row,index)=>{if(String(row[generatedTimestampIndex]??'').trim()===query)matches.push(index+1);});if(!matches.length){csvSearchStatus.textContent='No exact timestamp match found.';return;}generatedPreviewVirtual?.scrollTo(matches[0]);requestAnimationFrame(()=>matches.forEach(index=>generatedPreviewVirtual?.getRow(index)?.classList.add('csv-timestamp-match')));csvSearchStatus.textContent=matches.length.toLocaleString()+' matching row(s) found; first match brought into view.';};
   csvSearchButton.addEventListener('click',searchGeneratedTimestamp);csvTimestampSearch.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();searchGeneratedTimestamp();}});
   csvDownloadButton.addEventListener('click',()=>{if(!generatedCsvText)return;const blob=new Blob([generatedCsvText],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const link=document.createElement('a');const base=(selectedFile?.name||'propulsion_log.csv').replace(/\\.csv$/i,'');link.href=url;link.download=base+'_filtered_sorted.csv';document.body.append(link);link.click();link.remove();URL.revokeObjectURL(url);csvStatus.textContent='Filtered & sorted CSV downloaded.';});
   const updateGeneratedCsvFreezeOffsets=()=>{const header=csvPreviewHeadRow.getBoundingClientRect(),first=csvPreviewBody.rows[0]?.getBoundingClientRect(),firstColumn=csvPreviewHeadRow.cells[0]?.getBoundingClientRect().width;if(header.height)csvPreviewViewport.style.setProperty('--csv-header-height',header.height+'px');if(first?.height)csvPreviewViewport.style.setProperty('--csv-row1-height',first.height+'px');if(firstColumn)csvPreviewViewport.style.setProperty('--csv-first-col-width',firstColumn+'px');};
@@ -471,7 +497,8 @@
    headerRow.forEach((_,column)=>{const th=el('th','','COLUMN '+(column+1));th.scope='col';csvPreviewHeadRow.append(th)});
    csvPreviewHead.replaceChildren(csvPreviewHeadRow);csvPreviewBody.replaceChildren();
    // Match the Raw CSV preview: generic column headings and the CSV header retained as the first frozen body row.
-   [headerRow,...exportRows].forEach((row,index)=>{const tr=document.createElement('tr');const number=el('th','',String(index+1));number.scope='row';tr.append(number);headerRow.forEach((_,column)=>tr.append(el('td','',String(row[column]??''))));csvPreviewBody.append(tr)});
+   generatedPreviewRows=[headerRow,...exportRows];
+   if(generatedPreviewVirtual)generatedPreviewVirtual.setRows(generatedPreviewRows);else generatedPreviewVirtual=createVirtualCsvRows(csvPreviewViewport,csvPreviewBody,generatedPreviewRows,headerRow.length);
    csvPreviewInfo.textContent=(exportRows.length+1).toLocaleString()+' CSV rows (including header) · '+headerRow.length.toLocaleString()+' columns · Actual RPM values greater than zero retained; zero/negative values removed · '+sortNote;
    requestAnimationFrame(updateGeneratedCsvFreezeOffsets);
    csvTimestampSearch.value='';csvSearchStatus.textContent='';csvPreview.hidden=true;csvPreviewToggle.hidden=false;csvPreviewToggle.textContent='Show Filtered & Sorted CSV File';csvPreviewToggle.setAttribute('aria-expanded','false');
