@@ -58,3 +58,23 @@
 .ml-map-group .ml-map thead th{background:color-mix(in srgb,var(--ml-map-accent) 9%,#fff)}
 .ml-map-group .ml-map tbody th{background:color-mix(in srgb,var(--ml-map-accent) 4%,#fff)}
 @media(max-width:620px){.ml-map-group{padding:12px}}
+
+/* Filtered and sorted CSV generation workflow, gated by two confirmations. */
+.ml-csv-export{margin-top:18px;padding:16px;border:1.5px solid #b9d8c8;border-radius:12px;background:#f7fcf9}
+.ml-csv-export h4{margin:0 0 7px;color:#176b4b;font-size:14px;font-weight:850}
+.ml-csv-export>p{color:#61796d;font-size:11px;line-height:1.55}
+.ml-csv-confirmations{display:grid;gap:9px;margin:13px 0}
+.ml-csv-confirmations label{display:flex;align-items:flex-start;gap:9px;padding:11px 12px;border:1px solid #cbded3;border-radius:8px;background:#fff;color:#294d3c;font-size:11px;line-height:1.45;cursor:pointer}
+.ml-csv-confirmations input{margin-top:2px;accent-color:#21845c;flex:0 0 auto}
+.ml-csv-status{padding:9px 11px;border-radius:7px;background:#edf6f1;color:#476b58}
+.ml-csv-results{display:grid;gap:12px;margin-top:14px}
+.ml-csv-result{min-width:0;padding:13px;border:1px solid #cfe0d5;border-radius:10px;background:#fff}
+.ml-csv-result h5{margin:0 0 6px;color:#174f39;font-size:12px;overflow-wrap:anywhere}
+.ml-csv-result p,.ml-csv-result small{color:#687c70;font-size:10px}
+.ml-csv-result .ml-actions{justify-content:flex-start;flex-wrap:wrap}
+.ml-csv-result button{font-size:11px}
+.ml-csv-preview{margin-top:10px}
+.ml-csv-preview-wrap{max-width:100%;max-height:360px;overflow:auto;border:1px solid #d8e2dc;border-radius:7px;background:#fff}
+.ml-csv-preview-wrap table{width:max-content;min-width:100%;border-collapse:collapse;font-size:10px}
+.ml-csv-preview-wrap th,.ml-csv-preview-wrap td{padding:6px 8px;border:1px solid #e2e9e4;text-align:left;white-space:nowrap}
+.ml-csv-preview-wrap th{position:sticky;top:0;background:#edf5f0;color:#284b39}
