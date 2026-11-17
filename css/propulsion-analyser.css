@@ -953,3 +953,23 @@
   cursor:not-allowed!important;
   box-shadow:none!important;
 }
+
+/* Virtualized CSV preview: keep rendered rows compact and predictable for smooth scrolling. */
+.propulsion-csv-preview-table .propulsion-csv-virtual-row>th,
+.propulsion-csv-preview-table .propulsion-csv-virtual-row>td{
+  box-sizing:border-box;
+  height:38px;
+  max-height:38px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  overflow-wrap:normal;
+}
+.propulsion-csv-preview-table .propulsion-csv-virtual-spacer,
+.propulsion-csv-preview-table .propulsion-csv-virtual-spacer>td{
+  height:auto;
+  padding:0!important;
+  border:0!important;
+  line-height:0;
+  pointer-events:none;
+}
