@@ -108,7 +108,7 @@
   csvPreviewPanel.insertAdjacentElement('afterend',identifyActions);
   const setFreezeOffsets=()=>{const header=headRow.getBoundingClientRect(),first=tbody.rows[0]?.getBoundingClientRect(),rowIndexWidth=headRow.cells[0]?.getBoundingClientRect().width;if(header.height)viewport.style.setProperty('--csv-header-height',header.height+'px');if(first?.height)viewport.style.setProperty('--csv-row1-height',first.height+'px');if(rowIndexWidth)viewport.style.setProperty('--csv-first-col-width',rowIndexWidth+'px');};
   requestAnimationFrame(setFreezeOffsets);
-  if(typeof ResizeObserver!=='undefined'){const freezeObserver=new ResizeObserver(setFreezeOffsets);freezeObserver.observe(viewport);freezeObserver.observe(table);}
+  if(typeof ResizeObserver!=='undefined'){const freezeObserver=new ResizeObserver(()=>{virtualPreview?.refresh();setFreezeOffsets()});freezeObserver.observe(viewport);freezeObserver.observe(table);}
  }
  const STANDARD_GRAVITY=9.80665;
  const accelerationParameterKeys=new Set(['accelerationX','accelerationY','accelerationZ']);
@@ -465,7 +465,7 @@
    const show=csvPreview.hidden;csvPreview.hidden=!show;csvPreviewToggle.textContent=show?'Hide Filtered & Sorted CSV File':'Show Filtered & Sorted CSV File';csvPreviewToggle.setAttribute('aria-expanded',String(show));
    if(show){requestAnimationFrame(updateGeneratedCsvFreezeOffsets);csvPreview.scrollIntoView({behavior:'smooth',block:'nearest'});}
   });
-  if(typeof ResizeObserver!=='undefined'){const generatedFreezeObserver=new ResizeObserver(updateGeneratedCsvFreezeOffsets);generatedFreezeObserver.observe(csvPreviewViewport);generatedFreezeObserver.observe(csvPreviewTable);}
+  if(typeof ResizeObserver!=='undefined'){const generatedFreezeObserver=new ResizeObserver(()=>{generatedPreviewVirtual?.refresh();updateGeneratedCsvFreezeOffsets()});generatedFreezeObserver.observe(csvPreviewViewport);generatedFreezeObserver.observe(csvPreviewTable);}
   const csvActions=el('div','propulsion-actions propulsion-csv-actions');csvActions.append(csvExportButton,csvPreviewToggle,csvDownloadButton);
   csvSection.append(csvConfirmation,csvStatus,csvActions,csvPreview);
   csvExportButton.addEventListener('click',()=>{
