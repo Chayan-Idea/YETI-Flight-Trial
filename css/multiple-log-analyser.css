@@ -24,3 +24,14 @@
 .ml-range-panel.is-disabled{opacity:.55;background:#edf1f5}
 .ml-range-panel button{margin-right:7px}
 @media(max-width:760px){.ml-axis,.ml-point-readout{grid-template-columns:repeat(2,minmax(0,1fr))}.ml-point-search,.ml-range-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Two-log, test-type-first workflow. */
+.ml-type-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.ml-type-option{display:flex;align-items:center;gap:11px;padding:16px;border:1px solid #cbd9e7;border-radius:10px;background:#fff;cursor:pointer}
+.ml-type-option:has(input:checked){border-color:#2878b8;background:#f0f7fd;box-shadow:0 0 0 2px #2878b81a}
+.ml-type-option input{width:17px;height:17px;accent-color:#2878b8}
+.ml-type-option b,.ml-type-option small{display:block}
+.ml-type-option b{color:#214a6b;font-size:13px}
+.ml-type-option small{margin-top:4px;color:#708196;font-size:10px}
+.ml-upload-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:760px){.ml-type-grid,.ml-upload-grid{grid-template-columns:1fr}}
