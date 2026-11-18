@@ -1184,28 +1184,68 @@ const statsPage=el('section','propulsion-report-summary-page');
    card.append(details,calculate,addedStatus,retry);sharedDerivedCards.append(card);
   });
   sharedDerivedSection.append(sharedDerivedCards);
-  const logCards=el('div','propulsion-phase3-log-grid');
-  multiSession.logs.forEach((log,index)=>{
-   const source=multiFiles[index],card=el('section','propulsion-phase3-log-card'),heading=el('div','propulsion-phase3-log-heading');
-   heading.append(el('span','propulsion-step-label','LOG '+log.id),el('h4','',source.file.name));card.append(heading);
-   const action=el('button','btn','Apply Data Filtering');action.type='button';
-   const summary=el('p','propulsion-phase3-result','Data filtering has not yet been applied.');summary.setAttribute('role','status');
-   const tableHost=el('div','propulsion-phase3-preview');
-   action.addEventListener('click',()=>{
-    try{
-     commonEngine.filterLog(log,{actualRpmIndex:log.mapping.actualRpm});
-     log._phase3Filtered=true;log._phase3Ready=false;log._derivedKeys=[...sharedDerivedAdded];
-     if(log._derivedKeys.length)commonEngine.calculateLog(log,multiLogType,log._derivedKeys);
-     const removed=log.sourceRows.length-log.filteredRows.length;
-     summary.textContent=Math.max(0,log.filteredRows.length-1).toLocaleString()+' data rows retained · '+removed.toLocaleString()+' data rows removed (Actual RPM ≤ 0) · '+log._derivedKeys.length+' derived parameter(s) added.';
-     renderMultiLogPreview(log,tableHost,log._derivedKeys);
-     Object.entries(sharedDerivedActions).forEach(([key,controls])=>{controls.calculate.disabled=!sharedDerivedChecks[key].checked||sharedDerivedAdded.has(key);});
-     updateMultiReadiness();
-    }catch(error){summary.textContent=error.message||'Unable to filter this log.';log._phase3Filtered=false;updateMultiReadiness();}
-   });
-   card.append(action,summary,tableHost);card._phase3Controls={summary,tableHost};logCards.append(card);log._phase3Card=card;
+
+  const csvSection=el('section','propulsion-step-subsection propulsion-step-subsection--csv');
+  csvSection.append(el('h4','','CSV Generation with Filtered & Sorted Data'));
+  csvSection.append(el('p','propulsion-subsection-description','Generate one consolidated CSV containing every uploaded log, with the Actual RPM validity filter, chronological timestamp sorting where available, and all calculated derived-parameter columns.'));
+  const csvConfirmation=el('div','propulsion-csv-confirmations');
+  const derivedReadyLabel=el('label','propulsion-csv-confirmation'),derivedReadyCheckbox=document.createElement('input');derivedReadyCheckbox.type='checkbox';derivedReadyCheckbox.id='confirmMultiDerivedParametersReady';derivedReadyLabel.append(derivedReadyCheckbox,el('span','','Required Derived Parameters identified, calculated, added to log file'));
+  const filteringReadyLabel=el('label','propulsion-csv-confirmation'),filteringReadyCheckbox=document.createElement('input');filteringReadyCheckbox.type='checkbox';filteringReadyCheckbox.id='confirmMultiFilteringSortingReady';filteringReadyLabel.append(filteringReadyCheckbox,el('span','','Apply Data Filtering & Sorting Logic'));
+  csvConfirmation.append(derivedReadyLabel,filteringReadyLabel);
+  const csvStatus=el('p','propulsion-csv-export-status','Complete the derived-parameter calculations, then confirm both preparation steps to generate the consolidated CSV.');
+  csvStatus.setAttribute('role','status');csvStatus.setAttribute('aria-live','polite');
+  const csvExportButton=el('button','btn','Generate Filtered & Sorted CSV');csvExportButton.type='button';csvExportButton.hidden=true;
+  const csvDownloadButton=el('button','btn alt','Download Filtered & Sorted CSV');csvDownloadButton.type='button';csvDownloadButton.hidden=true;
+  let generatedMultiCsv='';
+  const updateMultiCsvGate=()=>{
+   const allDerived=(commonEngine.DERIVED_BY_TEST[multiLogType]||[]).every(key=>sharedDerivedAdded.has(key));
+   const ready=allDerived&&derivedReadyCheckbox.checked&&filteringReadyCheckbox.checked;
+   csvExportButton.hidden=!ready;
+   if(derivedReadyCheckbox.checked&&!allDerived)csvStatus.textContent='Not ready: calculate every required derived parameter above and wait for the success status on each one.';
+  };
+  [derivedReadyCheckbox,filteringReadyCheckbox].forEach(input=>input.addEventListener('change',updateMultiCsvGate));
+  csvExportButton.addEventListener('click',()=>{
+   try{
+    const requiredKeys=commonEngine.DERIVED_BY_TEST[multiLogType]||[];
+    const incomplete=requiredKeys.filter(key=>!sharedDerivedAdded.has(key));
+    if(incomplete.length)throw new Error('Calculate all required derived parameters before generating the CSV.');
+    const prepared=multiSession.logs.map(log=>{
+     if(!log._phase3Filtered){commonEngine.filterLog(log,{actualRpmIndex:log.mapping.actualRpm});log._phase3Filtered=true;}
+     const header=(log.filteredRows[0]||log.headers||[]).slice();
+     const aliases=['timestamp','time_stamp','datetime','date_time','date time','time','utc_time','local_time','sample_time','logged_at','date'];
+     const timestampIndex=header.map((name,index)=>({index,score:scoreHeader(name,aliases)})).filter(item=>item.score>=65).sort((a,b)=>b.score-a.score)[0]?.index;
+     if(timestampIndex!==undefined){
+      const body=log.filteredRows.slice(1).map((row,index)=>{const raw=String(row[timestampIndex]??'').trim(),numeric=raw!==''?Number(raw):NaN,date=numeric>0&&numeric<1e12?new Date(numeric*1000):numeric>=1e12?new Date(numeric):new Date(raw);return {row,index,stamp:Number.isFinite(date.getTime())?date.getTime():NaN};});
+      body.sort((a,b)=>{if(Number.isFinite(a.stamp)&&Number.isFinite(b.stamp))return a.stamp-b.stamp||a.index-b.index;if(Number.isFinite(a.stamp))return -1;if(Number.isFinite(b.stamp))return 1;return a.index-b.index;});
+      log.filteredRows=[header,...body.map(item=>item.row)];
+     }
+     commonEngine.calculateLog(log,multiLogType,requiredKeys);log._derivedKeys=requiredKeys.slice();log._phase3Ready=true;
+     return {log,header};
+    });
+    const labels={mechanicalPower:'Mechanical Power (W)',electricalPower:'Electrical Power (W)',specificThrust:'Specific Thrust (N/W)'},columns=['Log File'],seen=new Set(columns);
+    prepared.forEach(({header})=>header.forEach(name=>{const value=String(name??'').trim();if(value&&!seen.has(value)){seen.add(value);columns.push(value);}}));
+    requiredKeys.forEach(key=>{const value=labels[key];if(!seen.has(value)){seen.add(value);columns.push(value);}});
+    const escapeCsv=value=>{const text=String(value??'');return /[",\\r\\n]/.test(text)?'"'+text.replace(/"/g,'""')+'"':text;};
+    const rows=[columns];
+    prepared.forEach(({log,header})=>log.calculatedRows.slice(1).forEach(item=>{
+     const row=Array(columns.length).fill('');row[0]=log.fileName;
+     header.forEach((name,index)=>{const column=columns.indexOf(String(name??'').trim());if(column>0)row[column]=item.source[index]??'';});
+     requiredKeys.forEach(key=>{row[columns.indexOf(labels[key])]=Number.isFinite(item.derived[key])?item.derived[key]:'';});rows.push(row);
+    }));
+    generatedMultiCsv='\\uFEFF'+rows.map(row=>row.map(escapeCsv).join(',')).join('\\r\\n');
+    multiSession.logs.forEach(log=>{log._phase3Ready=true;});updateMultiReadiness();
+    csvDownloadButton.hidden=false;csvExportButton.disabled=true;
+    csvStatus.textContent='Consolidated CSV prepared successfully: '+(rows.length-1).toLocaleString()+' data rows from '+prepared.length+' logs, with '+requiredKeys.length+' derived parameter columns. Each row includes its source log filename.';
+   }catch(error){csvStatus.textContent='CSV generation failed: '+(error.message||'Unable to prepare the consolidated CSV.');csvStatus.setAttribute('role','alert');}
   });
-  multiAnalysisCard.append(sharedDerivedSection,logCards);
+  csvDownloadButton.addEventListener('click',()=>{
+   if(!generatedMultiCsv)return;
+   const blob=new Blob([generatedMultiCsv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),link=document.createElement('a');
+   link.href=url;link.download='YETI_Multi_Log_Filtered_Sorted_Analysis.csv';document.body.append(link);link.click();link.remove();URL.revokeObjectURL(url);
+   csvStatus.textContent='Consolidated filtered and sorted CSV downloaded.';
+  });
+  csvSection.append(csvConfirmation,csvStatus,csvExportButton,csvDownloadButton);
+  multiAnalysisCard.append(sharedDerivedSection,csvSection);
   const graph=el('section','propulsion-phase3-graph-card propulsion-step-card propulsion-step-card--blue');graph.id='propulsionPhase4GraphCard';
   graph.append(el('div','propulsion-step-label','STEP 04 · COMPARATIVE GRAPHICAL ANALYSIS'),el('h3','','Compare Multiple Logs on Common Axes'),el('p','propulsion-mapping-description','Choose common X and Y parameters. Toggle each log series independently and explore the plotted points.'));
   const controls=el('div','propulsion-phase3-graph-controls');
