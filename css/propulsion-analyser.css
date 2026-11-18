@@ -941,3 +941,21 @@
 .propulsion-phase3-explorer input{width:100%}
 .propulsion-phase3-point-readout{margin:0;color:#34465b;font-size:.8rem;line-height:1.5}
 @media(max-width:760px){.propulsion-phase3-log-grid{grid-template-columns:1fr}.propulsion-phase3-graph-controls{grid-template-columns:1fr}.propulsion-phase3-explorer{grid-template-columns:1fr}.propulsion-phase3-log-card,.propulsion-phase3-graph-card{padding:14px}}
+
+
+/* Phase 4 consolidated multi-log report builder. */
+.propulsion-phase4-report-card{margin-top:24px}
+.propulsion-phase4-report-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0}
+.propulsion-phase4-field{display:flex;flex-direction:column;gap:6px;min-width:0;color:#526276;font-size:.76rem;font-weight:800}
+.propulsion-phase4-field input,.propulsion-phase4-field textarea{width:100%;min-width:0;padding:10px 12px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;color:#172b4d;font:inherit;font-weight:500}
+.propulsion-phase4-field--wide{grid-column:1/-1}
+.propulsion-phase4-report-status{padding:11px 13px;border-radius:9px;background:#f1f5f9;color:#475569;font-size:.82rem;line-height:1.5}
+.propulsion-phase4-report-preview{margin-top:16px;padding:18px;border:1px solid #dce5ef;border-radius:12px;background:#fff}
+.propulsion-phase4-report-preview h4{margin:0 0 10px;color:#17365d}
+.propulsion-phase4-report-preview p{font-size:.8rem;line-height:1.55;color:#475569}
+.propulsion-phase4-log-summary{margin-top:14px;padding:12px;border:1px solid #e0e7ef;border-radius:10px}
+.propulsion-phase4-report-table{width:100%;border-collapse:collapse;font-size:.75rem}
+.propulsion-phase4-report-table th,.propulsion-phase4-report-table td{padding:8px;border:1px solid #dce4ed;text-align:left}
+.propulsion-phase4-report-table th{background:#eef4fa;color:#24476b}
+.propulsion-phase4-report-graph svg{width:100%;height:auto}
+@media(max-width:680px){.propulsion-phase4-report-form{grid-template-columns:1fr}.propulsion-phase4-field--wide{grid-column:auto}.propulsion-phase4-report-preview{padding:12px}}
