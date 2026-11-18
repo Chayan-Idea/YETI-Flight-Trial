@@ -1216,7 +1216,10 @@ const statsPage=el('section','propulsion-report-summary-page');
   // A full navigation reloads the entire application; the URL carries the chosen setup into the fresh page.
   window.location.assign(nextUrl.toString());
  });
- $id('propulsionMultiLogTypePicker')?.querySelectorAll('input[name="propulsionMultiLogType"]').forEach(radio=>radio.addEventListener('change',()=>{multiLogType=radio.value;$id('propulsionMultiLogTypePicker')?.querySelectorAll('.propulsion-log-type-option').forEach(option=>option.classList.toggle('is-selected',option.querySelector('input')?.checked));resetMultiSetup();updateMultiUploadGate();}));
+ const multiLogTypePicker=$id('propulsionMultiLogTypePicker');
+ function syncMultiLogTypeSelection(){multiLogTypePicker?.querySelectorAll('.propulsion-log-type-option').forEach(option=>{const selected=!!option.querySelector('input')?.checked;option.classList.toggle('is-selected',selected);if(selected){option.style.setProperty('background-color','#1769aa','important');option.style.setProperty('border-color','#1769aa','important');}else{option.style.removeProperty('background-color');option.style.removeProperty('border-color');}});}
+ multiLogTypePicker?.querySelectorAll('input[name="propulsionMultiLogType"]').forEach(radio=>radio.addEventListener('change',()=>{multiLogType=radio.value;syncMultiLogTypeSelection();resetMultiSetup();updateMultiUploadGate();}));
+ syncMultiLogTypeSelection();
  identifyMultipleLogsBtn?.addEventListener('click',()=>{try{identifyAllMultiLogs();}catch(error){if(multiUploadStatus)multiUploadStatus.textContent=error.message||'Unable to identify the uploaded logs.';}});
  setMultiMode();
 
