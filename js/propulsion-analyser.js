@@ -1135,25 +1135,45 @@ const statsPage=el('section','propulsion-report-summary-page');
     updateAction();updateMultiReadiness();
    });
    calculate.addEventListener('click',()=>{
-    const unfiltered=multiSession.logs.filter(log=>!log._phase3Filtered);
-    if(unfiltered.length){note.textContent='Apply Data Filtering to every log before calculating derived parameters.';return;}
     try{
-     const required=commonEngine.REQUIRED_BY_DERIVED?.[key]|| (key==='mechanicalPower'?['torque','actualRpm']:key==='electricalPower'?['voltage','current']:['thrust','voltage','current']);
+     // Match the single-log workflow: a calculation action must process its source
+     // data, not silently stop because one of the multi-log filters was not clicked.
+     // Apply the RPM validity filter independently to every log when needed.
+     multiSession.logs.forEach(log=>{
+      if(!log._phase3Filtered){
+       if(!Number.isInteger(log.mapping?.actualRpm))throw new Error('Log '+log.id+' is missing its confirmed Actual RPM mapping.');
+       commonEngine.filterLog(log,{actualRpmIndex:log.mapping.actualRpm});
+       log._phase3Filtered=true;
+      }
+     });
+     const required=key==='mechanicalPower'?['torque','actualRpm']:key==='electricalPower'?['voltage','current']:['thrust','voltage','current'];
      for(const log of multiSession.logs){
-      if(!Array.isArray(log.filteredRows)||!log.filteredRows.length)throw new Error('Log '+log.id+' has no filtered rows. Apply Data Filtering again.');
+      // Refresh the engine mapping from that log's confirmed Step 02 selection
+      // immediately before calculation, preventing stale mapping state.
+      engineSetMapping(log,log._uiMapping||{});
+      if(!Array.isArray(log.filteredRows)||!log.filteredRows.length)throw new Error('Log '+log.id+' has no filtered rows. Re-upload or re-identify this log.');
       const missing=required.filter(name=>!Number.isInteger(log.mapping?.[name]));
       if(missing.length)throw new Error('Log '+log.id+' is missing required mappings: '+missing.join(', '));
      }
-     // Calculate against every log first. Only publish the shared selection and success UI
-     // after every calculation succeeds, preventing partial "added to all logs" states.
      const nextKeys=[...sharedDerivedAdded,key];
      const results=multiSession.logs.map(log=>({log,keys:nextKeys.slice(),rows:commonEngine.calculateLog(log,multiLogType,nextKeys)}));
-     results.forEach(({log,keys})=>{log._derivedKeys=keys;if(log._phase3Card){const host=log._phase3Card._phase3Controls.tableHost;renderMultiLogPreview(log,host,keys);const status=log._phase3Card._phase3Controls.summary;status.textContent=Math.max(0,log.filteredRows.length-1).toLocaleString()+' data rows retained · '+Math.max(0,log.sourceRows.length-log.filteredRows.length).toLocaleString()+' data rows removed (Actual RPM ≤ 0) · '+keys.length+' derived parameter(s) calculated and added to this log file.';}});
+     results.forEach(({log,keys})=>{
+      log._derivedKeys=keys;
+      if(log._phase3Card){
+       const controls=log._phase3Card._phase3Controls;
+       renderMultiLogPreview(log,controls.tableHost,keys);
+       controls.summary.textContent=Math.max(0,log.filteredRows.length-1).toLocaleString()+' data rows retained · '+Math.max(0,log.sourceRows.length-log.filteredRows.length).toLocaleString()+' data rows removed (Actual RPM ≤ 0) · '+keys.length+' derived parameter(s) calculated and added to this log file.';
+      }
+     });
      sharedDerivedAdded.add(key);
      calculate.hidden=true;addedStatus.hidden=false;retry.hidden=false;check.disabled=true;card.classList.add('is-added-to-graph');
-     note.textContent='Successfully calculated and added '+parameterName+' to all '+multiSession.logs.length+' logs using each log’s confirmed Step 02 mappings.';
+     note.textContent='✓ Successfully calculated '+parameterName+' and added it to all '+multiSession.logs.length+' logs. RPM filtering and each log’s confirmed Step 02 mappings were applied.';
+     note.setAttribute('role','status');note.setAttribute('aria-live','polite');
      updateMultiReadiness();
-    }catch(error){note.textContent=error.message||'Unable to calculate this parameter for every log. No success status was applied.';}
+    }catch(error){
+     note.textContent='Calculation not completed: '+(error.message||'Unable to calculate this parameter for every log.');
+     note.setAttribute('role','alert');
+    }
    });
    retry.addEventListener('click',()=>{
     sharedDerivedAdded.delete(key);check.disabled=false;check.checked=false;calculate.hidden=false;calculate.disabled=true;calculate.textContent='Calculate and Add to All logs';calculate.title='Select the parameter and apply filtering to every log before calculating.';addedStatus.hidden=true;retry.hidden=true;card.classList.remove('is-added-to-graph');
