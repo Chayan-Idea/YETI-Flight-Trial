@@ -31,10 +31,11 @@ const server = http.createServer((req,res)=>{
   if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-page').count()<3)throw new Error('Comparative report must render the live A4 preview pages for cover, per-log results and graph when plotted.');
   if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-brand-lockup').count()!==1)throw new Error('Comparative A4 cover must use the Single-Log ideaForge brand lockup.');
   if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-accent-rule').count()!==1)throw new Error('Comparative A4 cover must use the Single-Log green and blue accent rule.');
-  const perLogSummaryPages=multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-multi-summary-page');
-  if(await perLogSummaryPages.count()!==2)throw new Error('Comparative PDF must include one executive parameter-summary page for each log.');
-  if(await perLogSummaryPages.first().locator('.propulsion-report-comparative-kpi').count()<6)throw new Error('Per-log executive summary must show all mapped comparative-summary parameters as KPI tiles.');
-  if(await perLogSummaryPages.first().locator('.propulsion-report-kpi-timestamp').count()!==await perLogSummaryPages.first().locator('.propulsion-report-comparative-kpi').count())throw new Error('Every per-log KPI tile must include its maximum-value timestamp.');
+  const comparativeSummary=multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-comparative-summary-table');
+  if(await comparativeSummary.count()!==1)throw new Error('Comparative PDF must show one parameter-by-log executive summary table.');
+  if(await comparativeSummary.locator('thead th').count()!==3)throw new Error('Executive summary table must contain a parameter column and one column for each log.');
+  if(await comparativeSummary.locator('tbody tr').count()<6)throw new Error('Executive summary table must include all mapped comparative-summary parameters.');
+  if(await comparativeSummary.locator('.propulsion-report-kpi-timestamp').count()!==await comparativeSummary.locator('tbody tr').count()*2)throw new Error('Every parameter/log table cell must include its maximum-value timestamp.');
 
   if(!(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-inline-title').innerText()).includes('YETI Propulsion Bench Data Validation Report'))throw new Error('Comparative cover title must match the Single-Log report design.');
 
