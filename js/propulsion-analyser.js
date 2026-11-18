@@ -1322,7 +1322,7 @@ const statsPage=el('section','propulsion-report-summary-page');
     specsForLog.forEach(spec=>{
      let maximum=-Infinity,maximumRow=null;
      rows.slice(1).forEach(item=>{
-      const value=spec.derived?item.derived?.[spec.key]:Number(String(item.source?.[spec.index]??'').trim());
+      const raw=String(item.source?.[spec.index]??'').trim();const value=spec.derived?item.derived?.[spec.key]:(raw===''?NaN:Number(raw));
       if(Number.isFinite(value)&&value>maximum){maximum=value;maximumRow=item;}
      });
      const timestamp=maximumRow?(timestampIndex===undefined?'Timestamp column not found':String(maximumRow.source?.[timestampIndex]??'').trim()||'Timestamp unavailable'):(timestampIndex===undefined?'Timestamp column not found':'No numeric data');
