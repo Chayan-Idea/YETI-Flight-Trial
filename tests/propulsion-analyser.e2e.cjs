@@ -158,7 +158,10 @@ const server = http.createServer((req,res)=>{
   if(await commonSlider.getAttribute('max')!=='1000')throw new Error('Comparative slider must use one normalized common X-axis scale, not concatenated log point counts.');
   await commonSlider.fill('500');
   const perLogReadouts=page.locator('.propulsion-phase3-point-readout .propulsion-phase3-log-point-readout');
-  if(await perLogReadouts.count()!==2)throw new Error('Common X-axis slider must show a separate readout for every log.');
+  if(await perLogReadouts.count()!==0)throw new Error('Per-log values should be rendered in a table, not separate line-style readout blocks.');
+  const readoutTable=page.locator('.propulsion-phase3-readout-table');
+  if(await readoutTable.count()!==1||await readoutTable.locator('tbody tr').count()!==2)throw new Error('Common X-axis slider must show every log in a structured table.');
+  if(await readoutTable.locator('thead th').count()!==5)throw new Error('Per-log readout table must show Log, File Name, X, Y and Data Row columns.');
   for(let index=0;index<2;index++){
    const entry=perLogReadouts.nth(index);
    if(!(await entry.innerText()).includes('X (')||!(await entry.innerText()).includes('Y ('))throw new Error('Each log readout must show its own X and Y values.');
