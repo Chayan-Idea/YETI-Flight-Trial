@@ -959,3 +959,18 @@
 .propulsion-phase4-report-table th{background:#eef4fa;color:#24476b}
 .propulsion-phase4-report-graph svg{width:100%;height:auto}
 @media(max-width:680px){.propulsion-phase4-report-form{grid-template-columns:1fr}.propulsion-phase4-field--wide{grid-column:auto}.propulsion-phase4-report-preview{padding:12px}}
+
+
+/* Multi-log parameter identification: consolidated, responsive table layout. */
+.propulsion-multi-mapping-table-wrap{width:100%;max-width:100%;overflow-x:auto;margin:14px 0 18px;border:1px solid #d8e2ed;border-radius:12px;background:#fff}
+.propulsion-multi-mapping-table{width:100%;min-width:680px;border-collapse:separate;border-spacing:0;font-size:.78rem}
+.propulsion-multi-mapping-table th,.propulsion-multi-mapping-table td{padding:12px 14px;border-bottom:1px solid #e2e8f0;text-align:left;vertical-align:middle}
+.propulsion-multi-mapping-table thead th{background:#eaf1f8;color:#24476b;font-size:.7rem;font-weight:850;letter-spacing:.055em;white-space:nowrap}
+.propulsion-multi-mapping-table tbody tr:last-child th,.propulsion-multi-mapping-table tbody tr:last-child td{border-bottom:0}
+.propulsion-multi-mapping-table tbody tr:nth-child(even){background:#f8fafc}
+.propulsion-multi-mapping-table .propulsion-multi-mapping-group{width:17%;color:#526276;font-weight:750;white-space:nowrap}
+.propulsion-multi-mapping-table .propulsion-multi-mapping-parameter{width:25%;color:#17365d;font-weight:800}
+.propulsion-multi-mapping-status{color:#17633a;font-size:.74rem}
+.propulsion-multi-mapping-status.is-warning{color:#a45b13}
+.propulsion-multi-mapping-table .propulsion-column-select{width:100%;min-width:190px;min-height:40px;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#172b4d;font:inherit}
+@media(max-width:680px){.propulsion-multi-mapping-table-wrap{margin-inline:-2px}.propulsion-multi-mapping-table th,.propulsion-multi-mapping-table td{padding:10px}}
