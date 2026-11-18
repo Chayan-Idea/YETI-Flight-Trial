@@ -133,6 +133,9 @@ const server = http.createServer((req,res)=>{
   await generateCsv.waitFor({state:'visible'});await generateCsv.click();
   await csvSection.getByText(/Consolidated CSV prepared successfully: 4 data rows from 2 logs/).waitFor();
   await csvSection.locator('button').filter({hasText:'Download Filtered & Sorted CSV'}).waitFor({state:'visible'});
+  const multiPreviewToggle=csvSection.locator('button').filter({hasText:'Show Generated CSV Preview'});await multiPreviewToggle.waitFor({state:'visible'});await multiPreviewToggle.click();
+  await csvSection.locator('.propulsion-generated-csv-preview').waitFor({state:'visible'});
+  if(await csvSection.locator('.propulsion-csv-preview-table tbody tr').count()===0)throw new Error('Generated multi-log CSV preview did not display its rows.');
   await page.locator('#multiGraphSecondaryYAxis').selectOption('commandRpm');
   await page.locator('.propulsion-phase3-graph-card button').filter({hasText:'Plot Comparative Graph'}).click();
   await page.locator('.propulsion-phase3-plot-host svg').waitFor({state:'visible'});
