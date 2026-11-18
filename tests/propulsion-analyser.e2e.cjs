@@ -6,7 +6,7 @@ const root = path.resolve(__dirname, '..');
 const mime = { '.html':'text/html', '.js':'text/javascript', '.css':'text/css', '.svg':'image/svg+xml', '.png':'image/png', '.webmanifest':'application/manifest+json' };
 const server = http.createServer((req,res)=>{
   const pathname = decodeURIComponent(new URL(req.url, 'http://127.0.0.1').pathname);
-  const target = path.resolve(root, '.' + pathname);
+  const target = path.resolve(root, pathname === '/' ? './index.html' : '.' + pathname);
   if (!target.startsWith(root) || !fs.existsSync(target) || fs.statSync(target).isDirectory()) { res.writeHead(404);res.end('Not found');return; }
   res.writeHead(200, {'content-type':mime[path.extname(target)]||'application/octet-stream','cache-control':'no-store'});
   fs.createReadStream(target).pipe(res);
