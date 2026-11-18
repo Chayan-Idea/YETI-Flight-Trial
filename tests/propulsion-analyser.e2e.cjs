@@ -29,6 +29,10 @@ const server = http.createServer((req,res)=>{
   if(await reportInputTable.locator('tbody tr').count()!==8)throw new Error('Comparative report must retain all eight existing identification fields for each log.');
   if(await multiReport.locator('#multiReport_commonObjective').count()!==1)throw new Error('Comparative report must have exactly one shared objective/manual entry field.');
   if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-page').count()<3)throw new Error('Comparative report must render the live A4 preview pages for cover, per-log results and graph when plotted.');
+  if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-brand-lockup').count()!==1)throw new Error('Comparative A4 cover must use the Single-Log ideaForge brand lockup.');
+  if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-accent-rule').count()!==1)throw new Error('Comparative A4 cover must use the Single-Log green and blue accent rule.');
+  if(!(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-inline-title').innerText()).includes('YETI Propulsion Bench Data Validation Report'))throw new Error('Comparative cover title must match the Single-Log report design.');
+
     await page.locator('#propulsionAnalyzerTab').click();
   await page.locator('#propulsionLogCount').selectOption('1');
   await page.locator('#propulsionLogTypePicker input[value="thrust"]').evaluate(el=>{el.checked=true;el.dispatchEvent(new Event('change',{bubbles:true}));});
