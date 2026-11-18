@@ -161,7 +161,7 @@ const server = http.createServer((req,res)=>{
   if(await perLogReadouts.count()!==0)throw new Error('Per-log values should be rendered in a table, not separate line-style readout blocks.');
   const readoutTable=page.locator('.propulsion-phase3-readout-table');
   if(await readoutTable.count()!==1||await readoutTable.locator('tbody tr').count()!==2)throw new Error('Common X-axis slider must show every log in a structured table.');
-  if(await readoutTable.locator('thead th').count()!==5)throw new Error('Per-log readout table must show Log, File Name, X, Y and Data Row columns.');
+  if(await readoutTable.locator('thead th').count()!==4)throw new Error('Per-log readout table must show only Log, File Name, X and Y columns.');
   for(let index=0;index<2;index++){
    const entry=perLogReadouts.nth(index);
    if(!(await entry.innerText()).includes('X (')||!(await entry.innerText()).includes('Y ('))throw new Error('Each log readout must show its own X and Y values.');
