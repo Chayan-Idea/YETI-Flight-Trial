@@ -987,24 +987,32 @@ const statsPage=el('section','propulsion-report-summary-page');
  }
  function renderMultiMappings(){
   if(!multiSession||!multiMappingHost)return;multiMappingHost.replaceChildren();multiMappingConfirmed=false;
-  const intro=el('section','propulsion-multi-mapping-intro propulsion-step-card propulsion-step-card--green');intro.append(el('div','propulsion-step-label','STEP 02 · INDEPENDENT PARAMETER MAPPING'),el('h3','','Review Each Log Separately'),el('p','propulsion-mapping-description','Every log has its own CSV headers and independent parameter mapping. Automatic matches are suggestions; verify each log before confirming.'));multiMappingHost.append(intro);
-  multiSession.logs.forEach((log,index)=>{
-   const source=multiFiles[index],card=el('section','propulsion-multi-log-mapping propulsion-step-card propulsion-step-card--purple'),top=el('div','propulsion-mapping-top'),mapping=getMultiMappingDefaults(source.headers);card.dataset.logId=log.id;
-   top.append(el('span','propulsion-step-label','LOG '+log.id+' · '+source.file.name),el('h3','','Parameter Mapping — Log '+log.id),el('p','propulsion-mapping-description','Header row detected at CSV row '+(source.headerIndex+1)+' · '+source.data.length.toLocaleString()+' data rows'));card.append(top);
-   const groups=[{title:'Mechanical',keys:['thrust','torque','commandRpm','actualRpm']},{title:'Electrical',keys:['voltage','current']},{title:'Thermal',keys:['escTemperature','motorTemperature']},{title:'Other',keys:['accelerationX','accelerationY','accelerationZ']}];
-   const tableWrap=el('div','propulsion-multi-mapping-table-wrap'),table=el('table','propulsion-multi-mapping-table'),thead=document.createElement('thead'),headRow=document.createElement('tr');
-   ['PARAMETER GROUP','PARAMETER','AUTO-DETECTION STATUS','CSV COLUMN MAPPING'].forEach(label=>{const th=el('th','',label);th.scope='col';headRow.append(th);});thead.append(headRow);table.append(thead);
-   const tbody=document.createElement('tbody');
-   groups.forEach(group=>group.keys.filter(key=>(PARAMETER_DEPENDENCY_MATRIX[multiLogType]?.mapping||[]).includes(key)).forEach(key=>{
-    const spec=specs.find(item=>item.key===key),row=document.createElement('tr'),groupCell=el('td','propulsion-multi-mapping-group',group.title),parameterCell=el('th','propulsion-multi-mapping-parameter',spec.label),statusCell=el('td','propulsion-multi-mapping-status'),mappingCell=document.createElement('td'),select=el('select','propulsion-column-select');
-    parameterCell.scope='row';select.dataset.parameter=key;const empty=document.createElement('option');empty.value='';empty.textContent='Not detected — select a column';select.append(empty);source.headers.forEach((name,col)=>{const option=document.createElement('option');option.value=String(col);option.textContent=name;select.append(option);});select.value=mapping[key].selected===''?'':String(mapping[key].selected);
-    statusCell.textContent=mapping[key].candidates.length>1?'Multiple possible matches — verify selection':mapping[key].selected===''?'No automatic match — choose manually':'Automatic match suggested';statusCell.classList.toggle('is-warning',mapping[key].selected==='');statusCell.classList.toggle('is-suggested',mapping[key].selected!=='');
-    select.addEventListener('change',()=>{mapping[key].selected=select.value===''?'':Number(select.value);engineSetMapping(log,mapping);validateMultiMappingCards();});
-    mappingCell.append(select);row.append(groupCell,parameterCell,statusCell,mappingCell);tbody.append(row);
-   }));
-   table.append(tbody);tableWrap.append(table);card.append(tableWrap);
-   card.append(el('div','propulsion-mapping-summary is-warning','Review the suggested mappings.'));card.lastElementChild.dataset.mappingSummary=log.id;log._uiMapping=mapping;multiMappingHost.append(card);engineSetMapping(log,mapping);
-  });
+  const intro=el('section','propulsion-multi-mapping-intro propulsion-step-card propulsion-step-card--green');
+  intro.append(el('div','propulsion-step-label','STEP 02 · PARAMETER IDENTIFICATION'),el('h3','','Unified Parameter Identification — All Logs'),el('p','propulsion-mapping-description','Each parameter appears once. Review the auto-detection status and select the matching CSV column independently for every uploaded log.'));multiMappingHost.append(intro);
+  const logs=multiSession.logs,groups=[{title:'Mechanical',keys:['thrust','torque','commandRpm','actualRpm']},{title:'Electrical',keys:['voltage','current']},{title:'Thermal',keys:['escTemperature','motorTemperature']},{title:'Other',keys:['accelerationX','accelerationY','accelerationZ']}];
+  const mappings=logs.map((log,index)=>{const mapping=getMultiMappingDefaults(multiFiles[index].headers);log._uiMapping=mapping;engineSetMapping(log,mapping);return mapping;});
+  const tableWrap=el('div','propulsion-multi-mapping-table-wrap'),table=el('table','propulsion-multi-mapping-table propulsion-multi-mapping-unified'),thead=document.createElement('thead');
+  const groupHead=document.createElement('tr'),subHead=document.createElement('tr');
+  const groupTh=el('th','','PARAMETER GROUP'),parameterTh=el('th','','PARAMETER');groupTh.rowSpan=2;parameterTh.rowSpan=2;groupTh.scope='col';parameterTh.scope='col';groupHead.append(groupTh,parameterTh);
+  logs.forEach((log,index)=>{const th=el('th','','LOG '+(index+1)+' · '+multiFiles[index].file.name);th.colSpan=2;th.scope='colgroup';groupHead.append(th);const status=el('th','','AUTO-DETECTION STATUS');status.scope='col';const mapping=el('th','','CSV COLUMN MAPPING');mapping.scope='col';subHead.append(status,mapping);});
+  thead.append(groupHead,subHead);table.append(thead);
+  const tbody=document.createElement('tbody'),activeKeys=new Set(multiActiveSpecs().map(spec=>spec.key));
+  groups.forEach(group=>group.keys.filter(key=>activeKeys.has(key)).forEach(key=>{
+   const spec=specs.find(item=>item.key===key),row=document.createElement('tr'),groupCell=el('td','propulsion-multi-mapping-group',group.title),parameterCell=el('th','propulsion-multi-mapping-parameter',spec.label);parameterCell.scope='row';row.append(groupCell,parameterCell);
+   logs.forEach((log,index)=>{
+    const source=multiFiles[index],mapping=mappings[index],candidate=mapping[key],statusCell=el('td','propulsion-multi-mapping-status'),mappingCell=document.createElement('td'),select=el('select','propulsion-column-select');
+    statusCell.textContent=candidate.candidates.length>1?'Multiple matches — verify':candidate.selected===''?'No match — select manually':'Automatic match suggested';statusCell.classList.toggle('is-warning',candidate.selected==='');statusCell.classList.toggle('is-suggested',candidate.selected!=='');
+    select.dataset.parameter=key;select.dataset.logIndex=String(index);select.setAttribute('aria-label','Log '+(index+1)+' '+spec.label+' CSV column');const empty=document.createElement('option');empty.value='';empty.textContent='Not detected — select a column';select.append(empty);
+    source.headers.forEach((name,col)=>{const option=document.createElement('option');option.value=String(col);option.textContent=name;select.append(option);});select.value=candidate.selected===''?'':String(candidate.selected);
+    select.addEventListener('change',()=>{candidate.selected=select.value===''?'':Number(select.value);statusCell.textContent=candidate.selected===''?'No match — select manually':'Manually selected';statusCell.classList.toggle('is-warning',candidate.selected==='');statusCell.classList.toggle('is-suggested',candidate.selected!=='');engineSetMapping(log,mapping);validateMultiMappingCards();});
+    mappingCell.append(select);row.append(statusCell,mappingCell);
+   });
+   tbody.append(row);
+  }));
+  table.append(tbody);tableWrap.append(table);multiMappingHost.append(tableWrap);
+  const summaries=el('div','propulsion-multi-mapping-summary-grid');
+  logs.forEach((log,index)=>{const summary=el('div','propulsion-mapping-summary is-warning','Review the suggested mappings for Log '+(index+1)+'.');summary.dataset.mappingSummary=log.id;summaries.append(summary);});
+  multiMappingHost.append(summaries);
   const actions=el('div','propulsion-actions propulsion-multi-confirm-actions'),confirmButton=el('button','btn','Confirm All Log Mappings'),result=el('p','propulsion-multi-confirm-status','All logs must have valid, unique numeric column mappings before confirmation.');confirmButton.type='button';confirmButton.id='confirmAllMultiLogMappingsBtn';confirmButton.disabled=true;result.id='multiMappingConfirmStatus';actions.append(confirmButton);multiMappingHost.append(actions,result);
   confirmButton.addEventListener('click',()=>{if(!validateMultiMappingCards().valid)return;multiSession.logs.forEach(log=>engineSetMapping(log,log._uiMapping));multiMappingConfirmed=true;result.className='propulsion-multi-confirm-status is-valid';result.textContent='All '+multiSession.logs.length+' log mappings confirmed independently. Continue to independent filtering, derived calculations and comparative graph analysis below.';confirmButton.disabled=true;confirmButton.textContent='All Mappings Confirmed';renderMultiAnalysisWorkspace();});
   validateMultiMappingCards();
