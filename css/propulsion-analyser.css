@@ -1029,43 +1029,38 @@
 #propulsionPhase4GraphCard .propulsion-step-label{color:var(--step-accent);}
 #propulsionPhase4GraphCard h3{margin:0;color:#123b70;font-size:18px;}
 
-/* YETI analyzer step headings — Style 3: industrial technical index strip. */
+
+
+/* YETI analyzer step headings — Style 4: split-label engineering style.
+   Each step label inherits its accent from the outline colour of its own card. */
 .propulsion-step-card > .propulsion-step-label,
 .propulsion-mapping-top .propulsion-step-label{
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
-  box-sizing:border-box;width:100%;margin:0;padding:11px 15px;
-  border-radius:10px 10px 0 0;background:#102a43;color:#b9d0e2;
-  font-size:.66rem;font-weight:850;letter-spacing:.105em;line-height:1.35;
+  display:inline-flex;align-items:center;width:max-content;max-width:100%;
+  box-sizing:border-box;margin:0 0 10px;padding:6px 11px;
+  border:1px solid var(--step-accent,#287fbd);border-radius:6px;
+  background:var(--step-tint,#f8fbff);color:var(--step-accent,#287fbd);
+  font-size:.67rem;font-weight:900;letter-spacing:.075em;line-height:1.35;
   text-transform:uppercase;
-}
-.propulsion-step-card > .propulsion-step-label::before,
-.propulsion-mapping-top .propulsion-step-label::before{
-  content:"PROCESS INDEX";color:#70d6ae;font-size:.62rem;font-weight:900;
-  letter-spacing:.13em;white-space:nowrap;
 }
 .propulsion-step-card > .propulsion-step-label + h3,
 .propulsion-mapping-top .propulsion-step-label + h3{
-  position:relative;box-sizing:border-box;margin:0;padding:5px 15px 17px;
-  border-radius:0 0 10px 10px;background:#102a43;color:#fff;
-  font-size:clamp(1.05rem,1.8vw,1.28rem);font-weight:850;line-height:1.3;
-  letter-spacing:-.025em;
-}
-.propulsion-step-card > .propulsion-step-label + h3::after,
-.propulsion-mapping-top .propulsion-step-label + h3::after{
-  content:"";position:absolute;left:15px;right:15px;bottom:0;height:4px;
-  border-radius:4px;background:linear-gradient(90deg,#36b889 0 17%,#34546d 17% 100%);
+  margin:0;color:#123b70;font-size:clamp(1.2rem,2vw,1.55rem);
+  font-weight:850;line-height:1.25;letter-spacing:-.035em;
 }
 .propulsion-step-card > .propulsion-step-label + h3 + p,
-.propulsion-mapping-top .propulsion-step-label + h3 + p{
-  margin-top:13px;
-}
+.propulsion-mapping-top .propulsion-step-label + h3 + p{margin-top:9px}
+.propulsion-step-card--blue{--step-heading-tint:#eef6fd}
+.propulsion-step-card--purple{--step-heading-tint:#f3effc}
+.propulsion-step-card--green{--step-heading-tint:#edf8f2}
+.propulsion-step-card--orange{--step-heading-tint:#fff4e8}
+.propulsion-step-card > .propulsion-step-label{background:var(--step-heading-tint,var(--step-tint,#f8fbff))}
+.propulsion-mapping-card{--step-border:#d3c8f0;--step-accent:#8062c6;--step-tint:#fbf9ff;--step-heading-tint:#f3effc}
+.propulsion-multi-mapping-intro{--step-border:#b9dfcf;--step-accent:#29966b;--step-tint:#f7fcf9;--step-heading-tint:#edf8f2}
+#propulsionPhase4GraphCard{--step-heading-tint:#eef6fd}
+#propulsionPhase4ReportCard{--step-heading-tint:#f3effc}
 @media(max-width:600px){
   .propulsion-step-card > .propulsion-step-label,
-  .propulsion-mapping-top .propulsion-step-label{padding:10px 12px;font-size:.6rem;letter-spacing:.07em}
-  .propulsion-step-card > .propulsion-step-label::before,
-  .propulsion-mapping-top .propulsion-step-label::before{font-size:.56rem;letter-spacing:.08em}
+  .propulsion-mapping-top .propulsion-step-label{padding:6px 9px;font-size:.61rem;letter-spacing:.055em}
   .propulsion-step-card > .propulsion-step-label + h3,
-  .propulsion-mapping-top .propulsion-step-label + h3{padding:5px 12px 15px;font-size:1.02rem}
-  .propulsion-step-card > .propulsion-step-label + h3::after,
-  .propulsion-mapping-top .propulsion-step-label + h3::after{left:12px;right:12px}
+  .propulsion-mapping-top .propulsion-step-label + h3{font-size:1.12rem}
 }
