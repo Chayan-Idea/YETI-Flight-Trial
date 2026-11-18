@@ -1224,3 +1224,19 @@
  #multiPropulsionReportLivePreview .propulsion-report-comparative-summary-table thead{display:table-header-group}
  #multiPropulsionReportLivePreview .propulsion-report-comparative-summary-table tr{break-inside:avoid;page-break-inside:avoid}
 }
+
+/* Compact comparative summary so every mapped parameter fits on one A4 page. */
+#multiPropulsionReportLivePreview .propulsion-report-multi-summary-page{padding:10mm 12mm!important;display:flex;flex-direction:column;justify-content:flex-start}
+#multiPropulsionReportLivePreview .propulsion-report-multi-summary-page .propulsion-report-page-kicker{margin:0 0 1.5mm;font-size:7pt}
+#multiPropulsionReportLivePreview .propulsion-report-multi-summary-page h2{margin:0 0 2.5mm;padding-bottom:2mm;font-size:14pt}
+#multiPropulsionReportLivePreview .propulsion-report-comparative-summary-table{border-spacing:0 .7mm;font-size:6pt}
+#multiPropulsionReportLivePreview .propulsion-report-comparative-summary-table thead th{padding:1.5mm 1mm;font-size:6pt;line-height:1.1}
+#multiPropulsionReportLivePreview .propulsion-report-comparative-summary-table thead th:first-child{width:20%}
+#multiPropulsionReportLivePreview .propulsion-report-comparative-summary-table tbody th{width:20%;padding:1.2mm 1.5mm;font-size:6.2pt;line-height:1.1}
+#multiPropulsionReportLivePreview .propulsion-report-comparative-summary-table tbody td{padding:.5mm}
+#multiPropulsionReportLivePreview .propulsion-report-comparative-cell{min-height:10.5mm;padding:1mm;border-radius:1.3mm;gap:.8mm}
+#multiPropulsionReportLivePreview .propulsion-report-comparative-cell-value{font-size:9pt;line-height:1.05}
+#multiPropulsionReportLivePreview .propulsion-report-comparative-cell .propulsion-report-kpi-timestamp{font-size:5pt;line-height:1.05}
+#multiPropulsionReportLivePreview .propulsion-report-multi-summary-page .propulsion-report-small-note{margin-top:2mm!important;font-size:5.5pt;line-height:1.15}
+#multiPropulsionReportLivePreview .propulsion-report-multi-summary-page .propulsion-report-footer{padding-top:2mm;font-size:6pt}
+@media print{#multiPropulsionReportLivePreview .propulsion-report-multi-summary-page{padding:10mm 12mm!important}#multiPropulsionReportLivePreview .propulsion-report-comparative-summary-table tr{break-inside:avoid;page-break-inside:avoid}}
