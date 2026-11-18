@@ -1206,7 +1206,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   // A full navigation reloads the entire application; the URL carries the chosen setup into the fresh page.
   window.location.assign(nextUrl.toString());
  });
- $id('propulsionMultiLogTypePicker')?.querySelectorAll('input[name="propulsionMultiLogType"]').forEach(radio=>radio.addEventListener('change',()=>{multiLogType=radio.value;resetMultiSetup();updateMultiUploadGate();}));
+ $id('propulsionMultiLogTypePicker')?.querySelectorAll('input[name="propulsionMultiLogType"]').forEach(radio=>radio.addEventListener('change',()=>{multiLogType=radio.value;$id('propulsionMultiLogTypePicker')?.querySelectorAll('.propulsion-log-type-option').forEach(option=>option.classList.toggle('is-selected',option.querySelector('input')?.checked));resetMultiSetup();updateMultiUploadGate();}));
  identifyMultipleLogsBtn?.addEventListener('click',()=>{try{identifyAllMultiLogs();}catch(error){if(multiUploadStatus)multiUploadStatus.textContent=error.message||'Unable to identify the uploaded logs.';}});
  setMultiMode();
 
