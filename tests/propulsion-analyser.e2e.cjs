@@ -19,7 +19,11 @@ const server = http.createServer((req,res)=>{
   const page=await browser.newPage();
   const pageErrors=[];page.on('pageerror',error=>pageErrors.push(error.message));
   await page.goto('http://127.0.0.1:4173/',{waitUntil:'networkidle'});
+  await page.locator('#flightPreparationTab').click();
+  await page.locator('#flightPreparationPanel').waitFor({state:'visible'});
   await page.locator('#propulsionAnalyzerTab').click();
+  await page.locator('#propulsionLogCount').selectOption('1');
+  await page.locator('.propulsion-upload-card').first().waitFor({state:'visible'});
   await page.locator('#propulsionLogCount').selectOption('2');
   await page.locator('#propulsionMultiLogTypePicker input[value="thrust"]').check();
   const csvA='thrust,command_rpm,actual_rpm,dc_voltage_v,dc_current_a\n100,1000,980,50,10\n110,1100,1080,50,11\n90,900,0,50,10\n';
@@ -33,7 +37,13 @@ const server = http.createServer((req,res)=>{
   await page.locator('#confirmAllMultiLogMappingsBtn').click();
   const applyButtons=page.locator('.propulsion-phase3-log-card button');
   if(await applyButtons.count()!==2)throw new Error('Expected one independent processing action per log.');
-  await applyButtons.nth(0).click();await applyButtons.nth(1).click();
+  const derivedChecks=page.locator('.propulsion-phase3-log-card .propulsion-phase3-derived-option input');
+  await derivedChecks.nth(0).check();
+  await applyButtons.nth(0).click();
+  await derivedChecks.nth(2).check();
+  await applyButtons.nth(1).click();
+  const resultSummaries=page.locator('.propulsion-phase3-result');
+  if(!(await resultSummaries.nth(0).innerText()).includes('2 rows retained')||!(await resultSummaries.nth(1).innerText()).includes('2 rows retained'))throw new Error('Independent RPM filtering did not retain the expected two data rows per log.');
   await page.locator('#multiGraphSecondaryYAxis').selectOption('commandRpm');
   await page.locator('.propulsion-phase3-graph-card button').filter({hasText:'Plot Comparative Graph'}).click();
   await page.locator('.propulsion-phase3-plot-host svg').waitFor({state:'visible'});
@@ -46,6 +56,9 @@ const server = http.createServer((req,res)=>{
   await report.waitForLoadState('domcontentloaded');
   await report.getByText('YETI Propulsion Comparative Validation Report').waitFor();
   await report.getByText('run-a.csv').waitFor();await report.getByText('run-b.csv').waitFor();
+  await page.locator('#propulsionAnalyzerTab').click();
+  await page.locator('#flightPreparationTab').click();
+  await page.locator('#flightPreparationPanel').waitFor({state:'visible'});
   if(pageErrors.length)throw new Error('Browser runtime errors: '+pageErrors.join(' | '));
   console.log('Propulsion analyzer browser E2E passed: 2-log upload, independent mapping, RPM filtering, comparative graph with secondary Y axis, report generation and PDF print view.');
  } catch(error) { console.error(error);process.exitCode=1; }
