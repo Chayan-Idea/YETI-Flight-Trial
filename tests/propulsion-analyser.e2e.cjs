@@ -131,11 +131,16 @@ const server = http.createServer((req,res)=>{
   await csvSection.locator('#confirmMultiFilteringSortingReady').check();
   const generateCsv=csvSection.locator('button').filter({hasText:'Generate Filtered & Sorted CSV'});
   await generateCsv.waitFor({state:'visible'});await generateCsv.click();
-  await csvSection.getByText(/Consolidated CSV prepared successfully: 4 data rows from 2 logs/).waitFor();
-  await csvSection.locator('button').filter({hasText:'Download Filtered & Sorted CSV'}).waitFor({state:'visible'});
-  const multiPreviewToggle=csvSection.locator('button').filter({hasText:'Show Generated CSV Preview'});await multiPreviewToggle.waitFor({state:'visible'});await multiPreviewToggle.click();
-  await csvSection.locator('.propulsion-generated-csv-preview').waitFor({state:'visible'});
-  if(await csvSection.locator('.propulsion-csv-preview-table tbody tr').count()===0)throw new Error('Generated multi-log CSV preview did not display its rows.');
+  await csvSection.getByText(/Successfully generated 2 separate CSV files/).waitFor();
+  const generatedFiles=csvSection.locator('.propulsion-generated-csv-preview');
+  if(await generatedFiles.count()!==2)throw new Error('2-log mode must generate two independent CSV result cards.');
+  for(let index=0;index<2;index++){
+   const fileCard=generatedFiles.nth(index);
+   if(await fileCard.locator('button').filter({hasText:'Show CSV Preview'}).count()!==1||await fileCard.locator('button').filter({hasText:'Download CSV'}).count()!==1)throw new Error('Each generated log CSV must have its own preview and download buttons.');
+   await fileCard.locator('button').filter({hasText:'Show CSV Preview'}).click();
+   await fileCard.locator('.propulsion-csv-preview-viewport').waitFor({state:'visible'});
+   if(await fileCard.locator('.propulsion-csv-preview-table tbody tr').count()===0)throw new Error('Generated individual CSV preview did not display its rows.');
+  }
   await page.locator('#multiGraphSecondaryYAxis').selectOption('commandRpm');
   await page.locator('.propulsion-phase3-graph-card button').filter({hasText:'Plot Comparative Graph'}).click();
   await page.locator('.propulsion-phase3-plot-host svg').waitFor({state:'visible'});
