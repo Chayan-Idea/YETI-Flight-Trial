@@ -116,14 +116,16 @@ const server = http.createServer((req,res)=>{
   const calculateSpecific=sharedDerivedCards.nth(1).locator('button').filter({hasText:'Calculate and Add to All logs'});
   if(await calculateElectrical.isDisabled()||await calculateSpecific.isDisabled())throw new Error('Checking a shared derived parameter must immediately enable its Calculate and Add to Log File action, matching Single-Log behaviour.');
   if(await calculateElectrical.count()!==1||await calculateSpecific.count()!==1)throw new Error('Each shared derived parameter must show the Calculate and Add to All logs action.');
-  await applyButtons.nth(0).click();
-  await applyButtons.nth(1).click();
-  if(await calculateElectrical.isDisabled()||await calculateSpecific.isDisabled())throw new Error('Derived calculation actions should enable after every log has been filtered.');
+  // The shared calculation action must also work when the user has not
+  // manually pressed each per-log filter button first.
   await calculateElectrical.click();
   const electricalCard=sharedDerivedCards.nth(0);
   await electricalCard.locator('.propulsion-calculated-added-status').waitFor({state:'visible'});
   if(!(await electricalCard.locator('.propulsion-calculated-added-status').innerText()).includes('✓ Added to All logs'))throw new Error('Successful Electrical Power calculation must show the green Added to All logs status.');
   await electricalCard.locator('.propulsion-calculated-retry').waitFor({state:'visible'});
+  for(const summary of await page.locator('.propulsion-phase3-result').all())if(!(await summary.innerText()).includes('data rows retained'))throw new Error('Calculation action did not automatically filter every log.');
+  await applyButtons.nth(0).click();
+  await applyButtons.nth(1).click();
   if(await calculateElectrical.isVisible())throw new Error('Calculate action should be replaced by the success status after calculation.');
   await electricalCard.locator('.propulsion-calculated-retry').click();
   if(!(await calculateElectrical.isVisible())||!(await calculateElectrical.isDisabled()))throw new Error('Retry must restore the unchecked Calculate and Add to All logs action.');
