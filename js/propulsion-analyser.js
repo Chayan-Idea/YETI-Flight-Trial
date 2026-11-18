@@ -988,24 +988,23 @@ const statsPage=el('section','propulsion-report-summary-page');
  function renderMultiMappings(){
   if(!multiSession||!multiMappingHost)return;multiMappingHost.replaceChildren();multiMappingConfirmed=false;
   const intro=el('section','propulsion-multi-mapping-intro propulsion-step-card propulsion-step-card--green');
-  intro.append(el('div','propulsion-step-label','STEP 02 · PARAMETER IDENTIFICATION'),el('h3','','Unified Parameter Identification — All Logs'),el('p','propulsion-mapping-description','Each parameter appears once. Review the auto-detection status and select the matching CSV column independently for every uploaded log.'));multiMappingHost.append(intro);
+  intro.append(el('div','propulsion-step-label','STEP 02 · PARAMETER IDENTIFICATION'),el('h3','','Unified Parameter Identification — All Logs'),el('p','propulsion-mapping-description','Each parameter appears once. Select the matching CSV column independently for every uploaded log.'));multiMappingHost.append(intro);
   const logs=multiSession.logs,groups=[{title:'Mechanical',keys:['thrust','torque','commandRpm','actualRpm']},{title:'Electrical',keys:['voltage','current']},{title:'Thermal',keys:['escTemperature','motorTemperature']},{title:'Other',keys:['accelerationX','accelerationY','accelerationZ']}];
   const mappings=logs.map((log,index)=>{const mapping=getMultiMappingDefaults(multiFiles[index].headers);log._uiMapping=mapping;engineSetMapping(log,mapping);return mapping;});
   const tableWrap=el('div','propulsion-multi-mapping-table-wrap'),table=el('table','propulsion-multi-mapping-table propulsion-multi-mapping-unified'),thead=document.createElement('thead');
   const groupHead=document.createElement('tr'),subHead=document.createElement('tr');
   const groupTh=el('th','','PARAMETER GROUP'),parameterTh=el('th','','PARAMETER');groupTh.rowSpan=2;parameterTh.rowSpan=2;groupTh.scope='col';parameterTh.scope='col';groupHead.append(groupTh,parameterTh);
-  logs.forEach((log,index)=>{const th=el('th','','LOG '+(index+1)+' · '+multiFiles[index].file.name);th.colSpan=2;th.scope='colgroup';groupHead.append(th);const status=el('th','','AUTO-DETECTION STATUS');status.scope='col';const mapping=el('th','','CSV COLUMN MAPPING');mapping.scope='col';subHead.append(status,mapping);});
+  logs.forEach((log,index)=>{const th=el('th','','LOG '+(index+1)+' · '+multiFiles[index].file.name);th.colSpan=1;th.scope='colgroup';groupHead.append(th);const mapping=el('th','','CSV COLUMN MAPPING');mapping.scope='col';subHead.append(mapping);});
   thead.append(groupHead,subHead);table.append(thead);
   const tbody=document.createElement('tbody'),activeKeys=new Set(multiActiveSpecs().map(spec=>spec.key));
   groups.forEach(group=>group.keys.filter(key=>activeKeys.has(key)).forEach(key=>{
    const spec=specs.find(item=>item.key===key),row=document.createElement('tr'),groupCell=el('td','propulsion-multi-mapping-group',group.title),parameterCell=el('th','propulsion-multi-mapping-parameter',spec.label);parameterCell.scope='row';row.append(groupCell,parameterCell);
    logs.forEach((log,index)=>{
-    const source=multiFiles[index],mapping=mappings[index],candidate=mapping[key],statusCell=el('td','propulsion-multi-mapping-status'),mappingCell=document.createElement('td'),select=el('select','propulsion-column-select');
-    statusCell.textContent=candidate.candidates.length>1?'Multiple matches — verify':candidate.selected===''?'No match — select manually':'Automatic match suggested';statusCell.classList.toggle('is-warning',candidate.selected==='');statusCell.classList.toggle('is-suggested',candidate.selected!=='');
+    const source=multiFiles[index],mapping=mappings[index],candidate=mapping[key],mappingCell=document.createElement('td'),select=el('select','propulsion-column-select');
     select.dataset.parameter=key;select.dataset.logIndex=String(index);select.setAttribute('aria-label','Log '+(index+1)+' '+spec.label+' CSV column');const empty=document.createElement('option');empty.value='';empty.textContent='Not detected — select a column';select.append(empty);
     source.headers.forEach((name,col)=>{const option=document.createElement('option');option.value=String(col);option.textContent=name;select.append(option);});select.value=candidate.selected===''?'':String(candidate.selected);
-    select.addEventListener('change',()=>{candidate.selected=select.value===''?'':Number(select.value);statusCell.textContent=candidate.selected===''?'No match — select manually':'Manually selected';statusCell.classList.toggle('is-warning',candidate.selected==='');statusCell.classList.toggle('is-suggested',candidate.selected!=='');engineSetMapping(log,mapping);validateMultiMappingCards();});
-    mappingCell.append(select);row.append(statusCell,mappingCell);
+    select.addEventListener('change',()=>{candidate.selected=select.value===''?'':Number(select.value);engineSetMapping(log,mapping);validateMultiMappingCards();});
+    mappingCell.append(select);row.append(mappingCell);
    });
    tbody.append(row);
   }));
