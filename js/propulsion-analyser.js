@@ -1343,8 +1343,9 @@ const statsPage=el('section','propulsion-report-summary-page');
     summaries.forEach(values=>{
      const td=document.createElement('td'),entry=values.get(parameter.key);
      if(entry){
-      td.append(el('strong','propulsion-multi-summary-maximum',entry.maximum));
-      td.append(el('span','propulsion-multi-summary-timestamp',entry.timestamp));
+      const maximumLabel=el('strong','propulsion-multi-summary-maximum',entry.maximum);maximumLabel.style.display='block';
+      const timestampLabel=el('span','propulsion-multi-summary-timestamp',entry.timestamp);timestampLabel.style.display='block';timestampLabel.style.fontSize='0.82em';timestampLabel.style.marginTop='4px';timestampLabel.style.opacity='0.8';
+      td.append(maximumLabel,timestampLabel);
      }else td.textContent='—';
      tr.append(td);
     });
