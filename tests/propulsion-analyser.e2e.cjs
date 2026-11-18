@@ -162,6 +162,12 @@ const server = http.createServer((req,res)=>{
   const readoutTable=page.locator('.propulsion-phase3-readout-table');
   if(await readoutTable.count()!==1||await readoutTable.locator('tbody tr').count()!==2)throw new Error('Common X-axis slider must show every log in a structured table.');
   if(await readoutTable.locator('thead th').count()!==4)throw new Error('Per-log readout table must show only Log, File Name, X and Y columns.');
+  const sliderStyle=await commonSlider.evaluate(el=>({width:getComputedStyle(el).width,marginLeft:getComputedStyle(el).marginLeft,appearance:getComputedStyle(el).appearance}));
+  if(sliderStyle.appearance!=='none')throw new Error('Comparative slider must use the custom endpoint-aligned track styling.');
+  const graphSvg=page.locator('.propulsion-phase3-plot-host svg');
+  const svgStyle=await graphSvg.evaluate(el=>({width:getComputedStyle(el).width,minWidth:getComputedStyle(el).minWidth}));
+  if(svgStyle.minWidth!=='0px')throw new Error('Comparative graph must fit its viewport so the slider and graph share visible endpoints.');
+
   for(let index=0;index<2;index++){
    const entry=perLogReadouts.nth(index);
    if(!(await entry.innerText()).includes('X (')||!(await entry.innerText()).includes('Y ('))throw new Error('Each log readout must show its own X and Y values.');
