@@ -1286,9 +1286,22 @@ const statsPage=el('section','propulsion-report-summary-page');
   const status=el('p','propulsion-phase3-graph-status','Apply filtering and calculations to every log before plotting.');status.setAttribute('role','status');
   const plotHost=el('div','propulsion-phase3-plot-host');
   const explorer=el('div','propulsion-phase3-explorer');
+  const rangePanel=el('section','propulsion-x-range-panel propulsion-phase3-range-panel');
+  rangePanel.append(el('strong','propulsion-x-range-title','X-Y RANGE SELECTOR'));
+  const rangeFields=el('div','propulsion-x-range-fields');
+  const makeMultiRangeField=(label,id)=>{const wrap=el('label','propulsion-graph-field',label),field=document.createElement('input');field.type='number';field.step='any';field.id=id;field.placeholder='Full graph range';field.className='propulsion-column-select';wrap.append(field);rangeFields.append(wrap);return field;};
+  const rangeXStart=makeMultiRangeField('Start X Point','multiGraphXRangeStart'),rangeXEnd=makeMultiRangeField('End X Point','multiGraphXRangeEnd');
+  const rangeYStart=makeMultiRangeField('Start Y Point','multiGraphYRangeStart'),rangeYEnd=makeMultiRangeField('End Y Point','multiGraphYRangeEnd');
+  const rangeActions=el('div','propulsion-x-range-actions');
+  const applyRange=el('button','btn propulsion-x-range-apply','Apply');applyRange.type='button';
+  const resetRange=el('button','btn alt propulsion-x-range-reset','Reset Full Range');resetRange.type='button';resetRange.disabled=true;
+  rangeActions.append(applyRange,resetRange);rangePanel.append(rangeFields,rangeActions);
   const sliderLabel=el('label','propulsion-phase3-control','GRAPH NAVIGATION USING SLIDING BAR');const slider=document.createElement('input');slider.type='range';slider.min='0';slider.max='0';slider.value='0';slider.step='1';slider.disabled=true;slider.setAttribute('aria-label','Explore comparative graph data points');sliderLabel.append(slider);
   const readout=el('p','propulsion-phase3-point-readout','No point selected.');readout.setAttribute('aria-live','polite');explorer.append(sliderLabel,readout);
-  plotButton.addEventListener('click',()=>drawMultiComparison({xSelect,ySelect,plotHost,status,slider,readout}));
+  plotButton.addEventListener('click',()=>drawMultiComparison({xSelect,ySelect,plotHost,status,slider,readout,rangePanel,rangeXStart,rangeXEnd,rangeYStart,rangeYEnd,resetRange}));
+  applyRange.addEventListener('click',()=>drawMultiComparison({xSelect,ySelect,plotHost,status,slider,readout,rangePanel,rangeXStart,rangeXEnd,rangeYStart,rangeYEnd,resetRange}));
+  resetRange.addEventListener('click',()=>{rangeXStart.value='';rangeXEnd.value='';rangeYStart.value='';rangeYEnd.value='';drawMultiComparison({xSelect,ySelect,plotHost,status,slider,readout,rangePanel,rangeXStart,rangeXEnd,rangeYStart,rangeYEnd,resetRange});});
+  explorer.append(rangePanel,sliderLabel,readout);
   graph.append(controls,status,plotHost,explorer);
   multiGraphCard=graph;
     const multiSummaryCard=el('section','propulsion-statistics-card propulsion-step-card propulsion-step-card--green');multiSummaryCard.id='propulsionMultiParameterSummaryCard';multiSummaryCard.hidden=true;
@@ -1379,7 +1392,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   if(status)status.textContent=ready?'All logs are processed. Select axes and plot the comparison.':'Apply filtering and calculations to every log before plotting.';
  }
  function drawMultiComparison(ui){
-  const {xSelect,ySelect,plotHost,status,slider,readout}=ui;
+  const {xSelect,ySelect,plotHost,status,slider,readout,rangePanel,rangeXStart,rangeXEnd,rangeYStart,rangeYEnd,resetRange}=ui;
   if(!multiSession.logs.every(log=>log._phase3Ready)){status.textContent='Process every log before plotting.';return;}
   const xKey=xSelect.value,yKey=ySelect.value;
   if(!xKey||!yKey||xKey===yKey){status.textContent='Select two different parameters: one for the X axis and one for the Y axis.';return;}
@@ -1393,7 +1406,18 @@ const statsPage=el('section','propulsion-report-summary-page');
   const all=series.flatMap(item=>item.points);
   if(!all.length){status.textContent='No valid numeric X/Y data pairs were found across the processed logs.';plotHost.replaceChildren();slider.disabled=true;slider.max='0';readout.textContent='No point selected.';return;}
   const bounds=values=>{let min=Math.min(...values),max=Math.max(...values);if(min===max){const pad=Math.abs(min)*.05||1;min-=pad;max+=pad;}return {min,max};};
-  const xr=bounds(all.map(point=>point.x)),yr=bounds(all.map(point=>point.y));
+  const fullX=bounds(all.map(point=>point.x)),fullY=bounds(all.map(point=>point.y));
+  if(rangeXStart.value===''||rangeXEnd.value===''){rangeXStart.value=String(fullX.min);rangeXEnd.value=String(fullX.max);}
+  if(rangeYStart.value===''||rangeYEnd.value===''){rangeYStart.value=String(fullY.min);rangeYEnd.value=String(fullY.max);}
+  const xMin=Number(rangeXStart.value),xMax=Number(rangeXEnd.value),yMin=Number(rangeYStart.value),yMax=Number(rangeYEnd.value);
+  if(![xMin,xMax,yMin,yMax].every(Number.isFinite)||xMin>=xMax||yMin>=yMax||xMin<fullX.min||xMax>fullX.max||yMin<fullY.min||yMax>fullY.max){
+   status.textContent='Enter valid X and Y ranges within the full graph limits. Start values must be lower than End values. The previous valid graph is retained.';rangePanel.hidden=false;return;
+  }
+  const visibleSeries=series.map(item=>({...item,points:item.points.filter(point=>point.x>=xMin&&point.x<=xMax&&point.y>=yMin&&point.y<=yMax)}));
+  const visibleAll=visibleSeries.flatMap(item=>item.points);
+  if(!visibleAll.length){status.textContent='No plotted points fall inside the selected X-Y range. Widen the range and apply again.';return;}
+  const xr={min:xMin,max:xMax},yr={min:yMin,max:yMax};
+  resetRange.disabled=false;rangePanel.hidden=false;
   const W=1040,H=520,L=105,R=35,T=30,B=82,pw=W-L-R,ph=H-T-B,sx=x=>L+(x-xr.min)/(xr.max-xr.min)*pw,sy=y=>T+ph-(y-yr.min)/(yr.max-yr.min)*ph;
   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 '+W+' '+H);svg.classList.add('propulsion-chart-svg');svg.setAttribute('role','img');svg.setAttribute('aria-label','Comparative plot of '+xKey+' versus '+yKey+' with all '+series.length+' logs superimposed');
   const add=(tag,attrs,textValue)=>{const node=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs||{}).forEach(([key,value])=>node.setAttribute(key,String(value)));if(textValue!==undefined)node.textContent=textValue;svg.append(node);return node;};
@@ -1402,7 +1426,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   add('line',{x1:L,y1:T+ph,x2:L+pw,y2:T+ph,stroke:'#111827','stroke-width':2});add('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#111827','stroke-width':2});
   add('text',{x:L+pw/2,y:H-18,'text-anchor':'middle',fill:'#123b70','font-size':15,'font-weight':700},xLabel);
   const yAxisLabel=add('text',{x:25,y:T+ph/2,'text-anchor':'middle',fill:'#123b70','font-size':15,'font-weight':700},yLabel);yAxisLabel.setAttribute('transform','rotate(-90 25 '+(T+ph/2)+')');
-  series.forEach(item=>{
+  visibleSeries.forEach(item=>{
    const color=multiColors[item.index%multiColors.length],points=item.points;
    if(!points.length)return;
    const path=points.map((point,index)=>(index?'L':'M')+sx(point.x)+','+sy(point.y)).join(' ');
@@ -1413,7 +1437,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   series.forEach(item=>{const color=multiColors[item.index%multiColors.length],name='LOG '+(item.index+1);add('line',{x1:legendX,y1:18,x2:legendX+24,y2:18,stroke:color,'stroke-width':4,'stroke-linecap':'round'});add('text',{x:legendX+30,y:22,fill:'#334155','font-size':12,'font-weight':700},name);legendX+=95;});
   plotHost.replaceChildren(svg);
   const guide=add('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#d97706','stroke-width':1.5,'stroke-dasharray':'5 4','pointer-events':'none'});
-  const selectedMarkers=series.map(item=>add('circle',{cx:L,cy:T,r:7,fill:'#fff',stroke:multiColors[item.index%multiColors.length],'stroke-width':3,'pointer-events':'none',visibility:'hidden'}));
+  const selectedMarkers=visibleSeries.map(item=>add('circle',{cx:L,cy:T,r:7,fill:'#fff',stroke:multiColors[item.index%multiColors.length],'stroke-width':3,'pointer-events':'none',visibility:'hidden'}));
   const sliderSteps=1000;
   const updateAtCommonX=position=>{
    const fraction=Math.max(0,Math.min(sliderSteps,Number(position)||0))/sliderSteps;
@@ -1428,7 +1452,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    ['LOG','FILE NAME','X AXIS · '+xLabel,'Y AXIS · '+yLabel].forEach(label=>headRow.append(el('th','',label)));
    thead.append(headRow);table.append(thead);
    const tbody=document.createElement('tbody');
-   series.forEach(item=>{
+   visibleSeries.forEach(item=>{
     const points=item.points,color=multiColors[item.index%multiColors.length],marker=selectedMarkers[item.index];
     let nearest=null,distance=Infinity;
     points.forEach(point=>{const delta=Math.abs(point.x-targetX);if(delta<distance){distance=delta;nearest=point;}});
@@ -1473,7 +1497,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   const endPointer=event=>{if(activePointerId===event.pointerId){activePointerId=null;try{interactionLayer.releasePointerCapture(event.pointerId)}catch(_){}}};
   interactionLayer.addEventListener('pointerup',endPointer);
   interactionLayer.addEventListener('pointercancel',endPointer);
-  status.textContent=all.length.toLocaleString()+' plotted data points across '+series.filter(item=>item.points.length).length+' logs. The navigation slider spans the common X-axis range; each log displays its nearest X and Y values at the selected position.';
+  status.textContent=visibleAll.length.toLocaleString()+' plotted points within the applied X-Y range across '+visibleSeries.filter(item=>item.points.length).length+' logs. Use Reset Full Range to restore the complete comparison.';
  }
 
  function identifyAllMultiLogs(){if(!commonEngine)throw new Error('The common analysis engine did not load.');const count=Number(logCountSelect.value);multiSession=commonEngine.createSession(count,multiLogType);multiSession.logs.forEach((log,index)=>{const source=multiFiles[index];commonEngine.setLogData(log,{fileName:source.file.name,headers:source.headers,rows:[source.headers,...source.data]});log._headerIndex=source.headerIndex;log._dataRows=source.data;});renderMultiMappings();multiMappingHost.scrollIntoView({behavior:'smooth',block:'start'});}
