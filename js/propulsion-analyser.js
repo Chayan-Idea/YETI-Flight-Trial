@@ -1011,6 +1011,62 @@ const statsPage=el('section','propulsion-report-summary-page');
   const value=String(row?.[index]??'').trim();if(!value)return NaN;
   const number=Number(value.replace(/,/g,''));return Number.isFinite(number)?number:NaN;
  }
+
+ function buildMultiLogReportCard(){
+  const card=el('section','propulsion-phase4-report-card propulsion-step-card propulsion-step-card--green');card.id='propulsionPhase4ReportCard';
+  card.append(el('div','propulsion-step-label','STEP 05 · MULTI-LOG REPORT GENERATION'),el('h3','','Generate Comparative Test Validation Report'),el('p','propulsion-mapping-description','Create a consolidated A4 report containing test identification, per-log processing results, derived-parameter statistics and the comparative graph.'));
+  const form=el('div','propulsion-phase4-report-form');
+  const fields={};
+  const addField=(key,label,type='text',required=true)=>{const wrap=el('label','propulsion-phase4-field');wrap.append(el('span','',label+(required?' *':'')));const input=document.createElement('input');input.type=type;input.required=required;input.id='multiReport_'+key;wrap.append(input);form.append(wrap);fields[key]=input;};
+  addField('motor','Motor Name');addField('esc','ESC Name');addField('propeller','Propeller Name');addField('date','Test Date','date');addField('motorId','Motor ID','text',false);addField('escId','ESC ID','text',false);addField('propellerId','Propeller ID','text',false);
+  const objective=el('label','propulsion-phase4-field propulsion-phase4-field--wide');objective.append(el('span','','Test Objective'));const objectiveInput=document.createElement('textarea');objectiveInput.rows=3;objectiveInput.placeholder='Describe the objective of this comparative test';objective.append(objectiveInput);form.append(objective);
+  const status=el('p','propulsion-phase4-report-status','Process every log and complete the mandatory test identification fields before exporting.');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+  const preview=el('div','propulsion-phase4-report-preview');
+  const exportButton=el('button','btn','Export Comparative Report as PDF');exportButton.type='button';exportButton.disabled=true;
+  const validate=()=>{const ready=multiSession.logs.every(log=>log._phase3Ready)&&['motor','esc','propeller','date'].every(key=>fields[key].value.trim());exportButton.disabled=!ready;status.textContent=ready?'All logs are processed and mandatory report details are complete. Ready to export.':'Process every log and complete the mandatory test identification fields before exporting.';};
+  Object.values(fields).forEach(input=>input.addEventListener('input',validate));
+  function buildPreview(){
+   preview.replaceChildren();
+   const heading=el('h4','','YETI Propulsion Comparative Validation Report');
+   const meta=el('p','', 'Test Type: '+multiLogType.toUpperCase()+' · Logs: '+multiSession.logs.length+' · Date: '+fields.date.value);
+   preview.append(heading,meta);
+   const identification=el('p','', 'Motor: '+fields.motor.value+' ('+(fields.motorId.value||'ID not supplied')+') · ESC: '+fields.esc.value+' ('+(fields.escId.value||'ID not supplied')+') · Propeller: '+fields.propeller.value+' ('+(fields.propellerId.value||'ID not supplied')+')');
+   preview.append(identification);
+   if(objectiveInput.value.trim())preview.append(el('p','', 'Objective: '+objectiveInput.value.trim()));
+   multiSession.logs.forEach(log=>{
+    const section=el('section','propulsion-phase4-log-summary');
+    section.append(el('h5','', 'LOG '+log.id+' — '+log.fileName));
+    const rows=log.calculatedRows||[],count=Math.max(0,log.filteredRows.length-1),removed=log.sourceRows.length-log.filteredRows.length;
+    section.append(el('p','', 'Rows retained: '+count+' · Rows removed by Actual RPM filter: '+removed+' · Derived parameters: '+(log._derivedKeys?.join(', ')||'None')));
+    if(log._derivedKeys?.length){
+     const table=document.createElement('table');table.className='propulsion-phase4-report-table';
+     const head=document.createElement('tr');['Derived Parameter','Minimum','Maximum','Average'].forEach(value=>head.append(el('th','',value)));const thead=document.createElement('thead');thead.append(head);table.append(thead);
+     const body=document.createElement('tbody');
+     log._derivedKeys.forEach(key=>{const vals=rows.slice(1).map(item=>item.derived[key]).filter(Number.isFinite);const tr=document.createElement('tr');const label=key==='mechanicalPower'?'Mechanical Power (W)':key==='electricalPower'?'Electrical Power (W)':'Specific Thrust (N/W)';const avg=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:NaN;[label,vals.length?Math.min(...vals).toFixed(4):'—',vals.length?Math.max(...vals).toFixed(4):'—',Number.isFinite(avg)?avg.toFixed(4):'—'].forEach(value=>tr.append(el('td','',String(value))));body.append(tr);});
+     table.append(body);section.append(table);
+    }
+    preview.append(section);
+   });
+   const currentSvg=multiAnalysisCard?.querySelector('.propulsion-phase3-plot-host svg');
+   if(currentSvg){const graphSection=el('section','propulsion-phase4-report-graph');graphSection.append(el('h4','','Comparative Graph'));const clone=currentSvg.cloneNode(true);clone.removeAttribute('style');graphSection.append(clone);preview.append(graphSection);}
+  }
+  exportButton.addEventListener('click',()=>{
+   validate();if(exportButton.disabled)return;buildPreview();
+   const win=window.open('','_blank');if(!win){status.textContent='Allow pop-ups for this site to export the PDF report.';return;}
+   const style='<style>@page{size:A4 portrait;margin:14mm}*{box-sizing:border-box}body{font:10pt Arial,sans-serif;color:#1f2937;margin:0}h1{font-size:20pt;color:#17365d;margin:0 0 8mm}h2{font-size:14pt;color:#24476b;border-bottom:1px solid #cbd5e1;padding-bottom:3mm;margin-top:8mm}h3{font-size:12pt;color:#24476b}h4{font-size:11pt;color:#17365d;margin:5mm 0 2mm}h5{font-size:10pt;margin:4mm 0 2mm}p{line-height:1.5;margin:2mm 0 3mm}.report-meta{padding:4mm;background:#f1f5f9;border-radius:3mm;margin:4mm 0}.report-table{width:100%;border-collapse:collapse;margin:3mm 0 5mm;font-size:8.5pt}.report-table th,.report-table td{border:1px solid #cbd5e1;padding:2.5mm;text-align:left}.report-table th{background:#eef4fa}.log-block{page-break-inside:avoid;border:1px solid #dbe4ee;padding:4mm;margin:4mm 0;border-radius:2mm}.graph svg{width:100%;height:auto;max-height:180mm}.footer{margin-top:8mm;color:#64748b;font-size:8pt;border-top:1px solid #dbe4ee;padding-top:3mm}</style>';
+   const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+   const logBlocks=multiSession.logs.map(log=>{
+    const rows=log.calculatedRows||[],count=Math.max(0,log.filteredRows.length-1),removed=log.sourceRows.length-log.filteredRows.length;
+    const stats=(log._derivedKeys||[]).map(key=>{const vals=rows.slice(1).map(item=>item.derived[key]).filter(Number.isFinite),label=key==='mechanicalPower'?'Mechanical Power (W)':key==='electricalPower'?'Electrical Power (W)':'Specific Thrust (N/W)',avg=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:NaN;return '<tr><td>'+esc(label)+'</td><td>'+(vals.length?Math.min(...vals).toFixed(4):'—')+'</td><td>'+(vals.length?Math.max(...vals).toFixed(4):'—')+'</td><td>'+(Number.isFinite(avg)?avg.toFixed(4):'—')+'</td></tr>';}).join('');
+    return '<div class="log-block"><h3>Log '+esc(log.id)+' — '+esc(log.fileName)+'</h3><p>Rows retained: '+count+' · Rows removed (Actual RPM ≤ 0): '+removed+'</p><p>Derived parameters: '+esc((log._derivedKeys||[]).join(', ')||'None')+'</p>'+(stats?'<table class="report-table"><thead><tr><th>Derived parameter</th><th>Minimum</th><th>Maximum</th><th>Average</th></tr></thead><tbody>'+stats+'</tbody></table>':'')+'</div>';
+   }).join('');
+   const graphSvg=multiAnalysisCard?.querySelector('.propulsion-phase3-plot-host svg')?.outerHTML||'';
+   const html='<!doctype html><html><head><meta charset="utf-8"><title>YETI Comparative Propulsion Report</title>'+style+'</head><body><h1>YETI Propulsion Comparative Validation Report</h1><div class="report-meta"><p><b>Test Type:</b> '+esc(multiLogType.toUpperCase())+' &nbsp; <b>Number of Logs:</b> '+multiSession.logs.length+'</p><p><b>Test Date:</b> '+esc(fields.date.value)+'</p><p><b>Motor:</b> '+esc(fields.motor.value)+' &nbsp; <b>Motor ID:</b> '+esc(fields.motorId.value||'Not supplied')+'</p><p><b>ESC:</b> '+esc(fields.esc.value)+' &nbsp; <b>ESC ID:</b> '+esc(fields.escId.value||'Not supplied')+'</p><p><b>Propeller:</b> '+esc(fields.propeller.value)+' &nbsp; <b>Propeller ID:</b> '+esc(fields.propellerId.value||'Not supplied')+'</p><p><b>Objective:</b> '+esc(objectiveInput.value||'Not specified')+'</p></div><h2>Per-Log Analysis Results</h2>'+logBlocks+(graphSvg?'<h2>Comparative Graph</h2><div class="graph">'+graphSvg+'</div>':'<p>No comparative graph has been plotted. Generate the graph in the analysis section before exporting if it is required in the report.</p>')+'<p class="footer">Generated by YETI Flight Trial · Review measured data and approved acceptance criteria before making airworthiness or release decisions.</p></body></html>';
+   win.document.open();win.document.write(html);win.document.close();win.focus();setTimeout(()=>win.print(),350);status.textContent='Print dialog opened. Select “Save as PDF” to create the comparative report.';
+  });
+  card.append(form,status,exportButton,preview);multiAnalysisCard.append(card);validate();
+ }
+
  function renderMultiAnalysisWorkspace(){
   if(!multiMappingConfirmed||!multiSession||!multiMappingHost)return;
   multiAnalysisCard?.remove();
@@ -1078,6 +1134,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   [xSelect,ySelect].forEach(select=>select.addEventListener('change',()=>{rangeStart.value='';rangeEnd.value='';}));
   graph.append(controls,seriesControls,status,plotHost,explorer);
   multiAnalysisCard.append(graph);
+  buildMultiLogReportCard();
   multiMappingHost.append(multiAnalysisCard);
   updateMultiGraphAvailability();
  }
