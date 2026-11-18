@@ -75,6 +75,16 @@ const server = http.createServer((req,res)=>{
   await page.locator('#identifyMultipleLogsBtn').click();
   await page.locator('#confirmAllMultiLogMappingsBtn').waitFor({state:'visible'});
   const mappingTables=page.locator('.propulsion-multi-mapping-unified');
+  const assertMappingFits=async(label)=>{
+   const dimensions=await page.evaluate(()=>{
+    const table=document.querySelector('.propulsion-multi-mapping-table-wrap');
+    const grid=document.querySelector('.propulsion-multi-mapping-unified');
+    return {viewport:document.documentElement.clientWidth,document:document.documentElement.scrollWidth,wrapper:table?.clientWidth,wrapperScroll:table?.scrollWidth,table:grid?.clientWidth,tableScroll:grid?.scrollWidth,selects:[...document.querySelectorAll('.propulsion-multi-mapping-unified select')].map(el=>({width:el.clientWidth,scroll:el.scrollWidth}))};
+   });
+   if(dimensions.document>dimensions.viewport+1||dimensions.wrapperScroll>dimensions.wrapper+1||dimensions.tableScroll>dimensions.table+1)throw new Error(label+' parameter table causes horizontal overflow: '+JSON.stringify(dimensions));
+   if(dimensions.selects.some(item=>item.width===0||item.width>0&&item.scroll>item.width+2))throw new Error(label+' mapping selector overflows its cell: '+JSON.stringify(dimensions.selects));
+  };
+  await assertMappingFits('2-log');
   if(await mappingTables.count()!==1)throw new Error('All uploaded logs must be represented in one unified parameter-identification table.');
   if(await mappingTables.locator('tbody tr').count()!==10)throw new Error('The unified Thrust table should contain all 10 applicable parameter rows exactly once.');
   if(await mappingTables.locator('thead tr:first-child th').count()!==4)throw new Error('The unified table should show Parameter Group, Parameter and one grouped header per uploaded log.');
@@ -123,6 +133,7 @@ const server = http.createServer((req,res)=>{
    await page.locator('#identifyMultipleLogsBtn').click();
    await page.locator('#confirmAllMultiLogMappingsBtn').waitFor({state:'visible'});
    const unified=page.locator('.propulsion-multi-mapping-unified');
+   await assertMappingFits(count+'-log');
    if(await unified.count()!==1)throw new Error(count+'-log mode must render exactly one unified parameter-identification table.');
    if(await unified.locator('thead tr:first-child th').count()!==count+2)throw new Error(count+'-log table must contain Parameter Group, Parameter and one grouped header per log.');
    if(await unified.locator('thead tr:nth-child(2) th').count()!==count)throw new Error(count+'-log table must contain exactly one CSV mapping column per log.');
