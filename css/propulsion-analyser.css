@@ -1104,3 +1104,30 @@
 /* Workflow visibility is controlled with the HTML hidden attribute.
    Keep it authoritative over component display rules such as .propulsion-actions{display:flex}. */
 [hidden]{display:none!important}
+
+/* Comparative X-Y selector spans the complete graph-navigation container width. */
+.propulsion-phase3-explorer .propulsion-phase3-range-panel{
+  grid-column:1 / -1!important;
+  justify-self:stretch!important;
+  align-self:stretch!important;
+  display:grid;
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+}
+.propulsion-phase3-range-panel .propulsion-x-range-fields{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  width:100%!important;
+  min-width:0!important;
+  overflow:visible!important;
+  grid-auto-flow:row!important;
+  grid-auto-columns:auto!important;
+}
+@media(max-width:760px){
+  .propulsion-phase3-range-panel .propulsion-x-range-fields{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:420px){
+  .propulsion-phase3-range-panel .propulsion-x-range-fields{grid-template-columns:minmax(0,1fr)!important}
+}
