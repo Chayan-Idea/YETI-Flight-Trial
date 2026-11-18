@@ -25,7 +25,7 @@ const server = http.createServer((req,res)=>{
   await page.locator('#propulsionLogCount').selectOption('1');
   await page.locator('.propulsion-upload-card').first().waitFor({state:'visible'});
   await page.locator('#propulsionLogCount').selectOption('2');
-  await page.locator('#propulsionMultiLogTypePicker input[value="thrust"]').check();
+  await page.locator('#propulsionMultiLogTypePicker input[value="thrust"]').check({force:true});
   const csvA='thrust,command_rpm,actual_rpm,dc_voltage_v,dc_current_a\n100,1000,980,50,10\n110,1100,1080,50,11\n90,900,0,50,10\n';
   const csvB='thrust,command_rpm,actual_rpm,dc_voltage_v,dc_current_a\n200,1500,1480,60,12\n210,1600,1580,60,13\n190,1400,-10,60,12\n';
   const uploads=page.locator('#propulsionMultiUploadGrid input[type="file"]');
