@@ -1274,30 +1274,24 @@ const statsPage=el('section','propulsion-report-summary-page');
   const multiProceedReport=el('button','btn alt','Proceed with Report Generation');multiProceedReport.type='button';multiProceedReport.hidden=true;
   multiProceedActions.hidden=true;multiProceedActions.append(multiProceedInApp,multiProceedReport);
   const graph=el('section','propulsion-phase3-graph-card propulsion-step-card propulsion-step-card--blue');graph.id='propulsionPhase4GraphCard';
-  graph.append(el('div','propulsion-step-label','STEP 05 · COMPARATIVE GRAPHICAL ANALYSIS'),el('h3','','Compare Multiple Logs on Common Axes'),el('p','propulsion-mapping-description','Choose common X and Y parameters. Toggle each log series independently and explore the plotted points.'));
+  graph.append(el('div','propulsion-step-label','STEP 05 · COMPARATIVE GRAPHICAL ANALYSIS'),el('h3','','Compare Multiple Logs on Common Axes'),el('p','propulsion-mapping-description','Select one common X-axis parameter and one common Y-axis parameter. All processed logs will be superimposed on the same graph using a distinct colour for each log. Use the slider to explore individual data points.'));
   const controls=el('div','propulsion-phase3-graph-controls');
   const makeGraphSelect=(label,id)=>{const wrap=el('label','propulsion-phase3-control',label),select=document.createElement('select');select.className='propulsion-column-select';select.id=id;wrap.append(select);controls.append(wrap);return select;};
-  const xSelect=makeGraphSelect('X AXIS','multiGraphXAxis'),ySelect=makeGraphSelect('PRIMARY Y AXIS','multiGraphYAxis'),y2Select=makeGraphSelect('SECONDARY Y AXIS (OPTIONAL)','multiGraphSecondaryYAxis');
-  const options=multiFieldOptions();const y2None=document.createElement('option');y2None.value='';y2None.textContent='No secondary axis';y2Select.append(y2None);
-  options.forEach(item=>{[xSelect,ySelect,y2Select].forEach(select=>{const option=document.createElement('option');option.value=item.key;option.textContent=item.label;select.append(option);});});
+  const xSelect=makeGraphSelect('X AXIS PARAMETER','multiGraphXAxis'),ySelect=makeGraphSelect('Y AXIS PARAMETER','multiGraphYAxis');
+  const options=multiFieldOptions();
+  options.forEach(item=>{[xSelect,ySelect].forEach(select=>{const option=document.createElement('option');option.value=item.key;option.textContent=item.label;select.append(option);});});
   xSelect.value=options.find(item=>item.key==='actualRpm')?'actualRpm':options[0]?.key||'';
   ySelect.value=options.find(item=>item.key==='thrust')?'thrust':options.find(item=>item.key==='torque')?'torque':options[1]?.key||'';
-  y2Select.value='';
-  const rangeStartWrap=el('label','propulsion-phase3-control','START X'),rangeStart=document.createElement('input');rangeStart.type='number';rangeStart.step='any';rangeStart.placeholder='Auto';rangeStartWrap.append(rangeStart);
-  const rangeEndWrap=el('label','propulsion-phase3-control','END X'),rangeEnd=document.createElement('input');rangeEnd.type='number';rangeEnd.step='any';rangeEnd.placeholder='Auto';rangeEndWrap.append(rangeEnd);controls.append(rangeStartWrap,rangeEndWrap);
-  const seriesControls=el('div','propulsion-phase3-series-controls');
-  multiSession.logs.forEach((log,index)=>{const label=el('label','propulsion-phase3-series-toggle'),check=document.createElement('input');check.type='checkbox';check.checked=true;check.dataset.series=log.id;label.append(check,el('span','','Log '+log.id+' · '+multiFiles[index].file.name));seriesControls.append(label);});
   const plotButton=el('button','btn','Plot Comparative Graph');plotButton.type='button';controls.append(plotButton);
   const status=el('p','propulsion-phase3-graph-status','Apply filtering and calculations to every log before plotting.');status.setAttribute('role','status');
   const plotHost=el('div','propulsion-phase3-plot-host');
   const explorer=el('div','propulsion-phase3-explorer');
-  const sliderLabel=el('label','propulsion-phase3-control','EXPLORE DATA POINT');const slider=document.createElement('input');slider.type='range';slider.min='0';slider.max='0';slider.value='0';slider.disabled=true;sliderLabel.append(slider);
-  const readout=el('p','propulsion-phase3-point-readout','No point selected.');explorer.append(sliderLabel,readout);
-  plotButton.addEventListener('click',()=>drawMultiComparison({xSelect,ySelect,y2Select,rangeStart,rangeEnd,seriesControls,plotHost,status,slider,readout}));
-  [xSelect,ySelect,y2Select].forEach(select=>select.addEventListener('change',()=>{rangeStart.value='';rangeEnd.value='';}));
-  graph.append(controls,seriesControls,status,plotHost,explorer);
+  const sliderLabel=el('label','propulsion-phase3-control','GRAPH NAVIGATION USING SLIDING BAR');const slider=document.createElement('input');slider.type='range';slider.min='0';slider.max='0';slider.value='0';slider.step='1';slider.disabled=true;slider.setAttribute('aria-label','Explore comparative graph data points');sliderLabel.append(slider);
+  const readout=el('p','propulsion-phase3-point-readout','No point selected.');readout.setAttribute('aria-live','polite');explorer.append(sliderLabel,readout);
+  plotButton.addEventListener('click',()=>drawMultiComparison({xSelect,ySelect,plotHost,status,slider,readout}));
+  graph.append(controls,status,plotHost,explorer);
   multiGraphCard=graph;
-  const multiSummaryCard=el('section','propulsion-statistics-card propulsion-step-card propulsion-step-card--green');multiSummaryCard.id='propulsionMultiParameterSummaryCard';multiSummaryCard.hidden=true;
+    const multiSummaryCard=el('section','propulsion-statistics-card propulsion-step-card propulsion-step-card--green');multiSummaryCard.id='propulsionMultiParameterSummaryCard';multiSummaryCard.hidden=true;
   multiSummaryCard.append(el('span','propulsion-step-label','STEP 04 · PARAMETER SUMMARY'),el('h3','','Comparative Parameter Summary'),el('p','propulsion-statistics-description','Review the maximum recorded value and corresponding timestamp for each mapped parameter in every processed log. All values are calculated from each log’s filtered and sorted dataset.'));
   const summaryValueNote=el('p','propulsion-subsection-description','MAXIMUM VALUES — Every numerical value shown in the Log columns is the maximum recorded value for that parameter in the respective log. The timestamp shown is when that maximum occurred.');summaryValueNote.setAttribute('role','note');
   const summaryWrap=el('div','propulsion-statistics-table-wrap'),summaryTable=document.createElement('table');summaryTable.className='propulsion-statistics-table propulsion-multi-summary-table';
@@ -1385,40 +1379,50 @@ const statsPage=el('section','propulsion-report-summary-page');
   if(status)status.textContent=ready?'All logs are processed. Select axes and plot the comparison.':'Apply filtering and calculations to every log before plotting.';
  }
  function drawMultiComparison(ui){
-  const {xSelect,ySelect,y2Select,rangeStart,rangeEnd,seriesControls,plotHost,status,slider,readout}=ui;
+  const {xSelect,ySelect,plotHost,status,slider,readout}=ui;
   if(!multiSession.logs.every(log=>log._phase3Ready)){status.textContent='Process every log before plotting.';return;}
-  const xKey=xSelect.value,yKey=ySelect.value,y2Key=y2Select?.value||'';
-  const enabled=[...seriesControls.querySelectorAll('input[data-series]:checked')].map(input=>Number(input.dataset.series));
-  const series=multiSession.logs.filter(log=>enabled.includes(Number(log.id))).map(log=>{
-   const points=log.calculatedRows.slice(1).map((item,rowIndex)=>({x:mappedValue(log,item.source,xKey,item),y:mappedValue(log,item.source,yKey,item),y2:y2Key?mappedValue(log,item.source,y2Key,item):NaN,row:rowIndex+1,logId:log.id})).filter(point=>Number.isFinite(point.x)&&Number.isFinite(point.y)&&(!y2Key||Number.isFinite(point.y2)));
-   let highest=-Infinity;const record=points.filter(point=>{if(point.x<highest)return false;highest=point.x;return true;});
-   return {log,points:record};
+  const xKey=xSelect.value,yKey=ySelect.value;
+  if(!xKey||!yKey||xKey===yKey){status.textContent='Select two different parameters: one for the X axis and one for the Y axis.';return;}
+  const options=multiFieldOptions(),xLabel=options.find(item=>item.key===xKey)?.label||xKey,yLabel=options.find(item=>item.key===yKey)?.label||yKey;
+  const series=multiSession.logs.map((log,index)=>{
+   const valid=log.calculatedRows.slice(1).map((item,rowIndex)=>({x:mappedValue(log,item.source,xKey,item),y:mappedValue(log,item.source,yKey,item),row:rowIndex+1,logId:log.id,file:log.fileName||multiFiles[index]?.file.name||('Log '+(index+1)),seriesIndex:index})).filter(point=>Number.isFinite(point.x)&&Number.isFinite(point.y));
+   let highest=-Infinity;
+   const points=valid.filter(point=>{if(point.x<highest)return false;highest=Math.max(highest,point.x);return true;});
+   return {log,points,index};
   });
-  let all=series.flatMap(item=>item.points);
-  if(rangeStart.value.trim()!==''){const min=Number(rangeStart.value);if(!Number.isFinite(min)){status.textContent='Enter a valid Start X value.';return;}all=all.filter(point=>point.x>=min);}
-  if(rangeEnd.value.trim()!==''){const max=Number(rangeEnd.value);if(!Number.isFinite(max)){status.textContent='Enter a valid End X value.';return;}all=all.filter(point=>point.x<=max);}
-  if(!all.length){status.textContent='No valid points fall within the selected X range.';return;}
+  const all=series.flatMap(item=>item.points);
+  if(!all.length){status.textContent='No valid numeric X/Y data pairs were found across the processed logs.';plotHost.replaceChildren();slider.disabled=true;slider.max='0';readout.textContent='No point selected.';return;}
   const bounds=values=>{let min=Math.min(...values),max=Math.max(...values);if(min===max){const pad=Math.abs(min)*.05||1;min-=pad;max+=pad;}return {min,max};};
-  const xr=bounds(all.map(point=>point.x)),yr=bounds(all.map(point=>point.y)),y2r=y2Key?bounds(all.map(point=>point.y2)):null;
-  const W=1040,H=520,L=100,R=y2r?110:35,T=30,B=78,pw=W-L-R,ph=H-T-B,sx=x=>L+(x-xr.min)/(xr.max-xr.min)*pw,sy=y=>T+ph-(y-yr.min)/(yr.max-yr.min)*ph,sy2=y=>y2r?T+ph-(y-y2r.min)/(y2r.max-y2r.min)*ph:NaN;
-  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 '+W+' '+H);svg.classList.add('propulsion-chart-svg');svg.setAttribute('role','img');svg.setAttribute('aria-label','Comparative plot of '+xKey+' versus '+yKey+(y2Key?' and '+y2Key:''));
-  const add=(tag,attrs,textValue)=>{const node=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs).forEach(([key,value])=>node.setAttribute(key,String(value)));if(textValue!==undefined)node.textContent=textValue;svg.append(node);return node;};
+  const xr=bounds(all.map(point=>point.x)),yr=bounds(all.map(point=>point.y));
+  const W=1040,H=520,L=105,R=35,T=30,B=82,pw=W-L-R,ph=H-T-B,sx=x=>L+(x-xr.min)/(xr.max-xr.min)*pw,sy=y=>T+ph-(y-yr.min)/(yr.max-yr.min)*ph;
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 '+W+' '+H);svg.classList.add('propulsion-chart-svg');svg.setAttribute('role','img');svg.setAttribute('aria-label','Comparative plot of '+xKey+' versus '+yKey+' with all '+series.length+' logs superimposed');
+  const add=(tag,attrs,textValue)=>{const node=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs||{}).forEach(([key,value])=>node.setAttribute(key,String(value)));if(textValue!==undefined)node.textContent=textValue;svg.append(node);return node;};
   const fmt=value=>new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(value);
-  for(let i=0;i<=5;i++){const x=L+pw*i/5,y=T+ph-ph*i/5;add('line',{x1:x,y1:T,x2:x,y2:T+ph,stroke:'#e3eaf1'});add('line',{x1:L,y1:y,x2:L+pw,y2:y,stroke:'#e3eaf1'});add('text',{x,y:T+ph+25,'text-anchor':'middle',fill:'#111827','font-size':13},fmt(xr.min+(xr.max-xr.min)*i/5));add('text',{x:L-12,y:y+4,'text-anchor':'end',fill:'#111827','font-size':13},fmt(yr.min+(yr.max-yr.min)*i/5));if(y2r)add('text',{x:L+pw+12,y:y+4,'text-anchor':'start',fill:'#111827','font-size':13},fmt(y2r.min+(y2r.max-y2r.min)*i/5));}
-  add('line',{x1:L,y1:T+ph,x2:L+pw,y2:T+ph,stroke:'#111827','stroke-width':2});add('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#111827','stroke-width':2});if(y2r)add('line',{x1:L+pw,y1:T,x2:L+pw,y2:T+ph,stroke:'#111827','stroke-width':2});
-  add('text',{x:L+pw/2,y:H-18,'text-anchor':'middle',fill:'#123b70','font-size':15,'font-weight':700},multiFieldOptions().find(item=>item.key===xKey)?.label||xKey);
-  const yLabel=add('text',{x:24,y:T+ph/2,'text-anchor':'middle',fill:'#123b70','font-size':15,'font-weight':700},multiFieldOptions().find(item=>item.key===yKey)?.label||yKey);yLabel.setAttribute('transform','rotate(-90 24 '+(T+ph/2)+')');
-  if(y2r){const y2Label=add('text',{x:W-18,y:T+ph/2,'text-anchor':'middle',fill:'#b45309','font-size':15,'font-weight':700},multiFieldOptions().find(item=>item.key===y2Key)?.label||y2Key);y2Label.setAttribute('transform','rotate(90 '+(W-18)+' '+(T+ph/2)+')');}
+  for(let i=0;i<=5;i++){const x=L+pw*i/5,y=T+ph-ph*i/5;add('line',{x1:x,y1:T,x2:x,y2:T+ph,stroke:'#e3eaf1','stroke-width':1});add('line',{x1:L,y1:y,x2:L+pw,y2:y,stroke:'#e3eaf1','stroke-width':1});add('text',{x,y:T+ph+25,'text-anchor':'middle',fill:'#111827','font-size':13},fmt(xr.min+(xr.max-xr.min)*i/5));add('text',{x:L-12,y:y+4,'text-anchor':'end',fill:'#111827','font-size':13},fmt(yr.min+(yr.max-yr.min)*i/5));}
+  add('line',{x1:L,y1:T+ph,x2:L+pw,y2:T+ph,stroke:'#111827','stroke-width':2});add('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#111827','stroke-width':2});
+  add('text',{x:L+pw/2,y:H-18,'text-anchor':'middle',fill:'#123b70','font-size':15,'font-weight':700},xLabel);
+  const yAxisLabel=add('text',{x:25,y:T+ph/2,'text-anchor':'middle',fill:'#123b70','font-size':15,'font-weight':700},yLabel);yAxisLabel.setAttribute('transform','rotate(-90 25 '+(T+ph/2)+')');
   const flat=[];
-  series.forEach((item,index)=>{const color=multiColors[index%multiColors.length],points=item.points.filter(point=>point.x>=xr.min&&point.x<=xr.max);if(!points.length)return;const d=points.map((point,j)=>(j?'L':'M')+sx(point.x)+','+sy(point.y)).join(' ');add('path',{d,fill:'none',stroke:color,'stroke-width':2.7,'stroke-linejoin':'round'});points.forEach(point=>{add('circle',{cx:sx(point.x),cy:sy(point.y),r:4,fill:color});flat.push({...point,sx:sx(point.x),sy:sy(point.y),file:item.log.fileName,color,axis:'Primary'});});
-   if(y2r){const d2=points.map((point,j)=>(j?'L':'M')+sx(point.x)+','+sy2(point.y2)).join(' ');add('path',{d:d2,fill:'none',stroke:color,'stroke-width':2.2,'stroke-dasharray':'7 5','stroke-linejoin':'round'});points.forEach(point=>{add('circle',{cx:sx(point.x),cy:sy2(point.y2),r:3.5,fill:'#fff',stroke:color,'stroke-width':2});flat.push({...point,sx:sx(point.x),sy:sy2(point.y2),file:item.log.fileName,color,axis:'Secondary'});});}
+  series.forEach(item=>{
+   const color=multiColors[item.index%multiColors.length],points=item.points;
+   if(!points.length)return;
+   const path=points.map((point,index)=>(index?'L':'M')+sx(point.x)+','+sy(point.y)).join(' ');
+   add('path',{d:path,fill:'none',stroke:color,'stroke-width':2.7,'stroke-linejoin':'round','stroke-linecap':'round'});
+   points.forEach(point=>{add('circle',{cx:sx(point.x),cy:sy(point.y),r:3.5,fill:color,stroke:'#fff','stroke-width':.8});flat.push({...point,sx:sx(point.x),sy:sy(point.y),color});});
   });
+  let legendX=L;
+  series.forEach(item=>{const color=multiColors[item.index%multiColors.length],name='LOG '+(item.index+1);add('line',{x1:legendX,y1:18,x2:legendX+24,y2:18,stroke:color,'stroke-width':4,'stroke-linecap':'round'});add('text',{x:legendX+30,y:22,fill:'#334155','font-size':12,'font-weight':700},name);legendX+=95;});
   plotHost.replaceChildren(svg);
   const guide=add('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#d97706','stroke-width':1.5,'stroke-dasharray':'5 4'});
   const marker=add('circle',{cx:L,cy:T,r:7,fill:'#fff',stroke:'#d97706','stroke-width':3});
-  const updatePoint=index=>{if(!flat.length)return;const point=flat[Math.max(0,Math.min(flat.length-1,index))];slider.value=String(Math.max(0,Math.min(flat.length-1,index)));guide.setAttribute('x1',point.sx);guide.setAttribute('x2',point.sx);marker.setAttribute('cx',point.sx);marker.setAttribute('cy',point.sy);readout.textContent='Log '+point.logId+' · '+point.file+' · Data row '+point.row+' · X: '+fmt(point.x)+' · '+(point.axis==='Secondary'?'Secondary Y: '+fmt(point.y2):'Primary Y: '+fmt(point.y))+(y2Key?' · '+(point.axis==='Secondary'?'Primary Y: '+fmt(point.y):'Secondary Y: '+fmt(point.y2)):'');};
+  const updatePoint=index=>{
+   if(!flat.length)return;
+   const position=Math.max(0,Math.min(flat.length-1,index)),point=flat[position];
+   slider.value=String(position);guide.setAttribute('x1',point.sx);guide.setAttribute('x2',point.sx);marker.setAttribute('cx',point.sx);marker.setAttribute('cy',point.sy);marker.setAttribute('stroke',point.color);
+   readout.textContent='Log '+(point.seriesIndex+1)+' · '+point.file+' · Data row '+point.row+' · X ('+xLabel+'): '+fmt(point.x)+' · Y ('+yLabel+'): '+fmt(point.y)+' · Point '+(position+1)+' of '+flat.length;
+  };
   slider.min='0';slider.max=String(Math.max(0,flat.length-1));slider.value='0';slider.disabled=flat.length===0;slider.oninput=()=>updatePoint(Number(slider.value));if(flat.length)updatePoint(0);
-  status.textContent=flat.length.toLocaleString()+' plotted data series points across '+series.filter(item=>item.points.length).length+' logs'+(y2Key?' · Primary and secondary Y axes active.':' · Primary Y axis active.');
+  status.textContent=flat.length.toLocaleString()+' plotted data points across '+series.filter(item=>item.points.length).length+' logs. All log curves are superimposed on the same X and Y axes.';
  }
 
  function identifyAllMultiLogs(){if(!commonEngine)throw new Error('The common analysis engine did not load.');const count=Number(logCountSelect.value);multiSession=commonEngine.createSession(count,multiLogType);multiSession.logs.forEach((log,index)=>{const source=multiFiles[index];commonEngine.setLogData(log,{fileName:source.file.name,headers:source.headers,rows:[source.headers,...source.data]});log._headerIndex=source.headerIndex;log._dataRows=source.data;});renderMultiMappings();multiMappingHost.scrollIntoView({behavior:'smooth',block:'start'});}
