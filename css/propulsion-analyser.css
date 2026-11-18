@@ -1064,3 +1064,16 @@
   .propulsion-step-card > .propulsion-step-label + h3,
   .propulsion-mapping-top .propulsion-step-label + h3{font-size:1.12rem}
 }
+
+/* Comparative graph navigation: show every log's selected values in a structured table. */
+.propulsion-phase3-point-readout{min-width:0}
+.propulsion-phase3-common-x-readout{display:block;margin:0 0 10px;color:#173b60;font-size:.82rem;font-weight:850}
+.propulsion-phase3-readout-table-wrap{width:100%;max-width:100%;overflow-x:auto;border:1px solid #d8e2ed;border-radius:9px;background:#fff}
+.propulsion-phase3-readout-table{width:100%;min-width:620px;border-collapse:collapse;table-layout:auto;font-size:.76rem}
+.propulsion-phase3-readout-table th,.propulsion-phase3-readout-table td{padding:10px 12px;border-bottom:1px solid #e2e8f0;text-align:left;vertical-align:middle;white-space:nowrap}
+.propulsion-phase3-readout-table thead th{background:#eef4fa;color:#24476b;font-size:.68rem;font-weight:850;letter-spacing:.045em}
+.propulsion-phase3-readout-table tbody th{color:#173b60;font-weight:850;background:#f8fafc}
+.propulsion-phase3-readout-table tbody tr:last-child th,.propulsion-phase3-readout-table tbody tr:last-child td{border-bottom:0}
+.propulsion-phase3-readout-table tbody tr:nth-child(even){background:#f8fafc}
+.propulsion-phase3-readout-table .propulsion-phase3-readout-filename{white-space:normal;overflow-wrap:anywhere;min-width:180px;max-width:320px}
+@media(max-width:680px){.propulsion-phase3-readout-table{font-size:.7rem}.propulsion-phase3-readout-table th,.propulsion-phase3-readout-table td{padding:8px}}
