@@ -983,3 +983,33 @@
 .propulsion-multi-mapping-unified .propulsion-column-select{min-width:170px}
 .propulsion-multi-mapping-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}
 @media(max-width:680px){.propulsion-multi-mapping-summary-grid{grid-template-columns:1fr}}
+
+
+/* Keep the unified parameter-identification table within the page width. */
+.propulsion-multi-mapping-table-wrap{
+  width:100%;max-width:100%;min-width:0;overflow-x:hidden;
+}
+.propulsion-multi-mapping-table.propulsion-multi-mapping-unified{
+  width:100%;min-width:0;max-width:100%;table-layout:fixed;
+}
+.propulsion-multi-mapping-unified th,
+.propulsion-multi-mapping-unified td{
+  min-width:0;padding:9px 8px;white-space:normal;overflow-wrap:anywhere;word-break:normal;
+}
+.propulsion-multi-mapping-unified thead th{
+  white-space:normal;line-height:1.3;letter-spacing:.025em;text-align:center;
+}
+.propulsion-multi-mapping-unified .propulsion-multi-mapping-group{width:14%;white-space:normal;}
+.propulsion-multi-mapping-unified .propulsion-multi-mapping-parameter{width:22%;white-space:normal;}
+.propulsion-multi-mapping-unified .propulsion-column-select{
+  display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;
+  padding:7px 5px;font-size:clamp(.62rem,1.1vw,.76rem);
+}
+@media(max-width:680px){
+  .propulsion-multi-mapping-table-wrap{margin-inline:0;}
+  .propulsion-multi-mapping-unified th,
+  .propulsion-multi-mapping-unified td{padding:7px 4px;font-size:.68rem;}
+  .propulsion-multi-mapping-unified .propulsion-multi-mapping-group{width:15%;}
+  .propulsion-multi-mapping-unified .propulsion-multi-mapping-parameter{width:22%;}
+  .propulsion-multi-mapping-unified .propulsion-column-select{padding:7px 2px;font-size:.62rem;}
+}
