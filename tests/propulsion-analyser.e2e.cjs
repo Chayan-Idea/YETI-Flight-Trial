@@ -43,7 +43,7 @@ const server = http.createServer((req,res)=>{
   await derivedChecks.nth(2).check();
   await applyButtons.nth(1).click();
   const resultSummaries=page.locator('.propulsion-phase3-result');
-  if(!(await resultSummaries.nth(0).innerText()).includes('2 data rows retained')||!(await resultSummaries.nth(1).innerText()).includes('2 rows retained'))throw new Error('Independent RPM filtering did not retain the expected two data rows per log.');
+  if(!(await resultSummaries.nth(0).innerText()).includes('2 data rows retained')||!(await resultSummaries.nth(1).innerText()).includes('2 data rows retained'))throw new Error('Independent RPM filtering did not retain the expected two data rows per log.');
   await page.locator('#multiGraphSecondaryYAxis').selectOption('commandRpm');
   await page.locator('.propulsion-phase3-graph-card button').filter({hasText:'Plot Comparative Graph'}).click();
   await page.locator('.propulsion-phase3-plot-host svg').waitFor({state:'visible'});
