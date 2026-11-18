@@ -1081,10 +1081,21 @@
 /* Align comparative slider endpoints with the graph's actual plotted X-axis limits. */
 .propulsion-phase3-explorer{grid-template-columns:minmax(0,1fr);gap:12px}
 .propulsion-phase3-explorer .propulsion-phase3-control{width:100%;box-sizing:border-box}
+.propulsion-phase3-plot-host .propulsion-chart-svg{min-width:0;width:100%}
 .propulsion-phase3-explorer .propulsion-phase3-control input[type=range]{
-  display:block;box-sizing:border-box;width:86.53846%;max-width:none;margin:9px 0 0 10.09615%;
+  -webkit-appearance:none;appearance:none;display:block;box-sizing:border-box;
+  width:calc(86.53846% + 20px);max-width:none;margin:9px 0 0 calc(10.09615% - 10px);
+  height:20px;padding:0;background:transparent;accent-color:#0878ed;cursor:pointer;
 }
-@media(max-width:760px){
-  .propulsion-phase3-explorer{grid-template-columns:minmax(0,1fr)}
-  .propulsion-phase3-explorer .propulsion-phase3-control input[type=range]{width:86.53846%;margin-left:10.09615%}
+.propulsion-phase3-explorer .propulsion-phase3-control input[type=range]::-webkit-slider-runnable-track{
+  height:4px;border-radius:99px;background:#cbd5e1;
+}
+.propulsion-phase3-explorer .propulsion-phase3-control input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:20px;height:20px;margin-top:-8px;border:0;border-radius:50%;background:#0878ed;
+}
+.propulsion-phase3-explorer .propulsion-phase3-control input[type=range]::-moz-range-track{
+  height:4px;border-radius:99px;background:#cbd5e1;
+}
+.propulsion-phase3-explorer .propulsion-phase3-control input[type=range]::-moz-range-thumb{
+  width:20px;height:20px;border:0;border-radius:50%;background:#0878ed;
 }
