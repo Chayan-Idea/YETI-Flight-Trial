@@ -1425,7 +1425,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    const tableWrap=el('div','propulsion-phase3-readout-table-wrap');
    const table=document.createElement('table');table.className='propulsion-phase3-readout-table';
    const thead=document.createElement('thead'),headRow=document.createElement('tr');
-   ['LOG','FILE NAME','X AXIS · '+xLabel,'Y AXIS · '+yLabel,'DATA ROW'].forEach(label=>headRow.append(el('th','',label)));
+   ['LOG','FILE NAME','X AXIS · '+xLabel,'Y AXIS · '+yLabel].forEach(label=>headRow.append(el('th','',label)));
    thead.append(headRow);table.append(thead);
    const tbody=document.createElement('tbody');
    series.forEach(item=>{
@@ -1437,10 +1437,10 @@ const statsPage=el('section','propulsion-report-summary-page');
     const fileCell=el('td','',item.log.fileName||multiFiles[item.index]?.file.name||('Log '+(item.index+1)));fileCell.className='propulsion-phase3-readout-filename';row.append(fileCell);
     if(nearest){
      marker.setAttribute('cx',sx(nearest.x));marker.setAttribute('cy',sy(nearest.y));marker.setAttribute('visibility','visible');
-     row.append(el('td','',fmt(nearest.x)),el('td','',fmt(nearest.y)),el('td','',String(nearest.row)));
+     row.append(el('td','',fmt(nearest.x)),el('td','',fmt(nearest.y)));
     }else{
      marker.setAttribute('visibility','hidden');
-     const unavailable=el('td','','No valid plotted point');unavailable.colSpan=3;row.append(unavailable);
+     const unavailable=el('td','','No valid plotted point');unavailable.colSpan=2;row.append(unavailable);
     }
     tbody.append(row);
    });
