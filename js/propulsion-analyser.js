@@ -1198,33 +1198,13 @@ const statsPage=el('section','propulsion-report-summary-page');
   csvStatus.setAttribute('role','status');csvStatus.setAttribute('aria-live','polite');
   const csvActions=el('div','propulsion-actions propulsion-csv-actions');
   const csvExportButton=el('button','btn','Generate Filtered & Sorted CSV');csvExportButton.type='button';csvExportButton.hidden=true;
-  const csvPreviewToggle=el('button','btn alt','Show Generated CSV Preview');csvPreviewToggle.type='button';csvPreviewToggle.hidden=true;csvPreviewToggle.setAttribute('aria-expanded','false');
-  const csvDownloadButton=el('button','btn alt','Download Filtered & Sorted CSV');csvDownloadButton.type='button';csvDownloadButton.hidden=true;
-  csvActions.append(csvExportButton,csvPreviewToggle,csvDownloadButton);
-  const csvPreview=el('section','propulsion-csv-preview-card propulsion-step-card propulsion-step-card--green propulsion-generated-csv-preview');csvPreview.hidden=true;csvPreview.setAttribute('aria-labelledby','multiGeneratedCsvPreviewHeading');
-  csvPreview.append(el('div','propulsion-step-label','CSV FILE PREVIEW'));
-  const csvPreviewTitle=el('h3','','Filtered & Sorted Multi-Log CSV File');csvPreviewTitle.id='multiGeneratedCsvPreviewHeading';
-  const csvPreviewInfo=el('p','propulsion-csv-preview-meta','');
-  const csvPreviewViewport=el('div','propulsion-csv-preview-viewport');csvPreviewViewport.setAttribute('role','region');csvPreviewViewport.setAttribute('aria-label','Generated consolidated filtered and sorted CSV preview');csvPreviewViewport.tabIndex=0;
-  const csvPreviewTable=document.createElement('table');csvPreviewTable.className='propulsion-csv-preview-table';
-  const csvPreviewHead=document.createElement('thead'),csvPreviewHeadRow=document.createElement('tr'),csvPreviewBody=document.createElement('tbody');
-  csvPreviewTable.append(csvPreviewHead,csvPreviewBody);csvPreviewViewport.append(csvPreviewTable);
-  csvPreview.append(csvPreviewTitle,csvPreviewInfo,csvPreviewViewport);
-  let generatedMultiCsv='',generatedMultiPreviewRows=[],generatedMultiPreviewVirtual=null;
-  const updateMultiCsvPreviewFreeze=()=>{
-   const header=csvPreviewHeadRow.getBoundingClientRect(),first=csvPreviewBody.rows[0]?.getBoundingClientRect(),firstColumn=csvPreviewHeadRow.cells[0]?.getBoundingClientRect().width;
-   if(header.height)csvPreviewViewport.style.setProperty('--csv-header-height',header.height+'px');
-   if(first?.height)csvPreviewViewport.style.setProperty('--csv-row1-height',first.height+'px');
-   if(firstColumn)csvPreviewViewport.style.setProperty('--csv-first-col-width',firstColumn+'px');
-  };
-  csvPreviewToggle.addEventListener('click',()=>{
-   const show=csvPreview.hidden;csvPreview.hidden=!show;csvPreviewToggle.textContent=show?'Hide Filtered & Sorted CSV File':'Show Generated CSV Preview';csvPreviewToggle.setAttribute('aria-expanded',String(show));
-   if(show){requestAnimationFrame(updateMultiCsvPreviewFreeze);csvPreview.scrollIntoView({behavior:'smooth',block:'nearest'});}
-  });
+  csvActions.append(csvExportButton);
+  const generatedCsvFilesHost=el('div','propulsion-multi-csv-files');
+  let generatedMultiCsvFiles=[];
   const updateMultiCsvGate=()=>{
    const allDerived=(commonEngine.DERIVED_BY_TEST[multiLogType]||[]).every(key=>sharedDerivedAdded.has(key));
    const ready=allDerived&&derivedReadyCheckbox.checked&&filteringReadyCheckbox.checked;
-   csvExportButton.hidden=!(ready&&!generatedMultiCsv);
+   csvExportButton.hidden=!(ready&&!generatedMultiCsvFiles.length);
    if(derivedReadyCheckbox.checked&&!allDerived)csvStatus.textContent='Not ready: calculate every required derived parameter above and wait for the success status on each one.';
   };
   [derivedReadyCheckbox,filteringReadyCheckbox].forEach(input=>input.addEventListener('change',updateMultiCsvGate));
@@ -1233,6 +1213,8 @@ const statsPage=el('section','propulsion-report-summary-page');
     const requiredKeys=commonEngine.DERIVED_BY_TEST[multiLogType]||[];
     const incomplete=requiredKeys.filter(key=>!sharedDerivedAdded.has(key));
     if(incomplete.length)throw new Error('Calculate all required derived parameters before generating the CSV.');
+    const labels={mechanicalPower:'Mechanical Power (W)',electricalPower:'Electrical Power (W)',specificThrust:'Specific Thrust (N/W)'};
+    const escapeCsv=value=>{const text=String(value??'');return /[",\\r\\n]/.test(text)?'"'+text.replace(/"/g,'""')+'"':text;};
     const prepared=multiSession.logs.map(log=>{
      if(!log._phase3Filtered){commonEngine.filterLog(log,{actualRpmIndex:log.mapping.actualRpm});log._phase3Filtered=true;}
      const header=(log.filteredRows[0]||log.headers||[]).slice();
@@ -1244,39 +1226,46 @@ const statsPage=el('section','propulsion-report-summary-page');
       log.filteredRows=[header,...body.map(item=>item.row)];
      }
      commonEngine.calculateLog(log,multiLogType,requiredKeys);log._derivedKeys=requiredKeys.slice();log._phase3Ready=true;
-     return {log,header};
+     const columns=header.slice();requiredKeys.forEach(key=>{const label=labels[key];if(!columns.includes(label))columns.push(label);});
+     const rows=[columns];
+     log.calculatedRows.slice(1).forEach(item=>{
+      const row=columns.map((name,index)=>{const derivedKey=requiredKeys.find(key=>labels[key]===name);return derivedKey?Number.isFinite(item.derived[derivedKey])?item.derived[derivedKey]:'':item.source[index]??'';});
+      rows.push(row);
+     });
+     const csv='\\uFEFF'+rows.map(row=>row.map(escapeCsv).join(',')).join('\\r\\n');
+     const originalName=log.fileName||multiFiles[multiSession.logs.indexOf(log)]?.file?.name||('Log_'+log.id+'.csv');
+     const base=originalName.replace(/\\.csv$/i,'');
+     return {log,name:base+'_filtered_sorted.csv',csv,rows,columns,originalName,timestampSorted:timestampIndex!==undefined};
     });
-    const labels={mechanicalPower:'Mechanical Power (W)',electricalPower:'Electrical Power (W)',specificThrust:'Specific Thrust (N/W)'},columns=['Log File'],seen=new Set(columns);
-    prepared.forEach(({header})=>header.forEach(name=>{const value=String(name??'').trim();if(value&&!seen.has(value)){seen.add(value);columns.push(value);}}));
-    requiredKeys.forEach(key=>{const value=labels[key];if(!seen.has(value)){seen.add(value);columns.push(value);}});
-    const escapeCsv=value=>{const text=String(value??'');return /[",\\r\\n]/.test(text)?'"'+text.replace(/"/g,'""')+'"':text;};
-    const rows=[columns];
-    prepared.forEach(({log,header})=>log.calculatedRows.slice(1).forEach(item=>{
-     const row=Array(columns.length).fill('');row[0]=log.fileName;
-     header.forEach((name,index)=>{const column=columns.indexOf(String(name??'').trim());if(column>0)row[column]=item.source[index]??'';});
-     requiredKeys.forEach(key=>{row[columns.indexOf(labels[key])]=Number.isFinite(item.derived[key])?item.derived[key]:'';});rows.push(row);
-    }));
-    generatedMultiCsv='\\uFEFF'+rows.map(row=>row.map(escapeCsv).join(',')).join('\\r\\n');
-    generatedMultiPreviewRows=rows;
-    csvPreviewHeadRow.replaceChildren();csvPreviewHeadRow.append(el('th','','ROW'));
-    columns.forEach((_,index)=>{const th=el('th','','COLUMN '+(index+1));th.scope='col';csvPreviewHeadRow.append(th);});
-    csvPreviewHead.replaceChildren(csvPreviewHeadRow);csvPreviewBody.replaceChildren();
-    if(generatedMultiPreviewVirtual)generatedMultiPreviewVirtual.setRows(generatedMultiPreviewRows);else generatedMultiPreviewVirtual=createVirtualCsvRows(csvPreviewViewport,csvPreviewBody,generatedMultiPreviewRows,columns.length);
-    csvPreviewInfo.textContent=rows.length.toLocaleString()+' CSV rows (including header) · '+columns.length.toLocaleString()+' columns · consolidated from '+prepared.length+' logs · Actual RPM zero/negative values removed · timestamps sorted chronologically where available.';
-    requestAnimationFrame(updateMultiCsvPreviewFreeze);
-    csvPreview.hidden=true;csvPreviewToggle.hidden=false;csvPreviewToggle.textContent='Show Generated CSV Preview';csvPreviewToggle.setAttribute('aria-expanded','false');
+    generatedMultiCsvFiles=prepared;
+    generatedCsvFilesHost.replaceChildren();
+    prepared.forEach((file,index)=>{
+     const card=el('section','propulsion-csv-preview-card propulsion-step-card propulsion-step-card--green propulsion-generated-csv-preview');
+     card.append(el('div','propulsion-step-label','GENERATED CSV · LOG '+(index+1)));
+     const title=el('h3','',file.name),info=el('p','propulsion-csv-preview-meta',file.rows.length.toLocaleString()+' CSV rows (including header) · '+file.columns.length.toLocaleString()+' columns · '+(file.rows.length-1).toLocaleString()+' filtered data rows · Actual RPM zero/negative values removed · '+(file.timestampSorted?'chronologically sorted by timestamp':'original row order retained; no timestamp column identified'));
+     const actions=el('div','propulsion-actions propulsion-csv-actions');
+     const previewToggle=el('button','btn alt','Show CSV Preview');previewToggle.type='button';previewToggle.setAttribute('aria-expanded','false');
+     const download=el('button','btn','Download CSV');download.type='button';
+     actions.append(previewToggle,download);
+     const preview=el('div','propulsion-generated-csv-preview');preview.hidden=true;
+     const viewport=el('div','propulsion-csv-preview-viewport');viewport.setAttribute('role','region');viewport.setAttribute('aria-label','CSV preview for '+file.originalName);viewport.tabIndex=0;
+     const table=document.createElement('table');table.className='propulsion-csv-preview-table';
+     const thead=document.createElement('thead'),headRow=document.createElement('tr'),tbody=document.createElement('tbody');
+     headRow.append(el('th','','ROW'));file.columns.forEach((_,column)=>{const th=el('th','','COLUMN '+(column+1));th.scope='col';headRow.append(th);});
+     thead.append(headRow);table.append(thead,tbody);viewport.append(table);preview.append(viewport);
+     let virtual=null;
+     const freeze=()=>{const header=headRow.getBoundingClientRect(),first=tbody.rows[0]?.getBoundingClientRect(),firstColumn=headRow.cells[0]?.getBoundingClientRect().width;if(header.height)viewport.style.setProperty('--csv-header-height',header.height+'px');if(first?.height)viewport.style.setProperty('--csv-row1-height',first.height+'px');if(firstColumn)viewport.style.setProperty('--csv-first-col-width',firstColumn+'px');};
+     previewToggle.addEventListener('click',()=>{const show=preview.hidden;preview.hidden=!show;previewToggle.textContent=show?'Hide CSV Preview':'Show CSV Preview';previewToggle.setAttribute('aria-expanded',String(show));if(show){requestAnimationFrame(freeze);preview.scrollIntoView({behavior:'smooth',block:'nearest'});}});
+     virtual=createVirtualCsvRows(viewport,tbody,file.rows,file.columns.length);
+     download.addEventListener('click',()=>{const blob=new Blob([file.csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=file.name;document.body.append(link);link.click();link.remove();URL.revokeObjectURL(url);csvStatus.textContent='Downloaded '+file.name+'.';});
+     card.append(title,info,actions,preview);generatedCsvFilesHost.append(card);
+    });
     multiSession.logs.forEach(log=>{log._phase3Ready=true;});updateMultiReadiness();
-    csvDownloadButton.hidden=false;csvExportButton.hidden=true;
-    csvStatus.textContent='Consolidated CSV prepared successfully: '+(rows.length-1).toLocaleString()+' data rows from '+prepared.length+' logs, with '+requiredKeys.length+' derived parameter columns. Open the preview to inspect or download it.';
-   }catch(error){csvStatus.textContent='CSV generation failed: '+(error.message||'Unable to prepare the consolidated CSV.');csvStatus.setAttribute('role','alert');}
+    csvExportButton.hidden=true;
+    csvStatus.textContent='Successfully generated '+prepared.length+' separate CSV files. Each log has its own preview and download buttons.';
+   }catch(error){csvStatus.textContent='CSV generation failed: '+(error.message||'Unable to prepare the individual CSV files.');csvStatus.setAttribute('role','alert');}
   });
-  csvDownloadButton.addEventListener('click',()=>{
-   if(!generatedMultiCsv)return;
-   const blob=new Blob([generatedMultiCsv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),link=document.createElement('a');
-   link.href=url;link.download='YETI_Multi_Log_Filtered_Sorted_Analysis.csv';document.body.append(link);link.click();link.remove();URL.revokeObjectURL(url);
-   csvStatus.textContent='Consolidated filtered and sorted CSV downloaded.';
-  });
-  csvSection.append(csvConfirmation,csvStatus,csvActions,csvPreview);
+  csvSection.append(csvConfirmation,csvStatus,csvActions,generatedCsvFilesHost);
   multiAnalysisCard.append(sharedDerivedSection,csvSection);
   const graph=el('section','propulsion-phase3-graph-card propulsion-step-card propulsion-step-card--blue');graph.id='propulsionPhase4GraphCard';
   graph.append(el('div','propulsion-step-label','STEP 04 · COMPARATIVE GRAPHICAL ANALYSIS'),el('h3','','Compare Multiple Logs on Common Axes'),el('p','propulsion-mapping-description','Choose common X and Y parameters. Toggle each log series independently and explore the plotted points.'));
