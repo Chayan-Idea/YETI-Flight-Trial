@@ -1096,11 +1096,19 @@ const statsPage=el('section','propulsion-report-summary-page');
   if(!multiMappingConfirmed||!multiSession||!multiMappingHost)return;
   multiAnalysisCard?.remove();multiGraphCard?.remove();multiReportCard?.remove();
   multiAnalysisCard=el('section','propulsion-phase3-card propulsion-step-card propulsion-step-card--orange');multiAnalysisCard.id='propulsionPhase3AnalysisCard';
-  multiAnalysisCard.append(el('div','propulsion-step-label','STEP 03 · DATA FILTERING & DERIVED PARAMETER CALCULATION'),el('h3','','Data Filtering & Derived Parameter Calculation'),el('p','propulsion-mapping-description','Choose derived parameters once for the complete test session. The same selections and formulas are applied consistently to every uploaded log; filtering and sorting remain independently configurable for each log.'));
+  multiAnalysisCard.append(el('div','propulsion-step-label','STEP 03 · DATA FILTERING & DERIVED PARAMETER CALCULATION'),el('h3','','Data Filtering & Derived Parameter Calculation'),el('p','propulsion-mapping-description','Select derived parameters once for the complete test session. Apply the Actual RPM validity filter independently to each log, then calculate and add each selected parameter to every filtered log.'));
   const sharedDerivedSection=el('section','propulsion-step-subsection propulsion-step-subsection--derived');
-  sharedDerivedSection.append(el('h4','','Derived Parameter Identification & Calculation'),el('p','propulsion-subsection-description','Select each required parameter once. Your selection will be used for all logs in this comparative analysis.'));
+  sharedDerivedSection.append(el('h4','','Derived Parameter Identification & Calculation'),el('p','propulsion-subsection-description','Check a parameter and use its Calculate and Add to Log File action, just like the Single-Log Analyser. The calculation is applied to every uploaded log using that log’s confirmed Step 02 mappings.'));
   const sharedDerivedCards=el('div','propulsion-calculated-parameters');
-  const sharedDerivedChecks={};
+  const sharedDerivedChecks={},sharedDerivedAdded=new Set(),sharedDerivedActions={};
+  const updateMultiReadiness=()=>{
+   const allFiltered=multiSession.logs.every(log=>log._phase3Filtered);
+   const selected=Object.keys(sharedDerivedChecks).filter(key=>sharedDerivedChecks[key].checked);
+   const allCalculated=selected.every(key=>sharedDerivedAdded.has(key));
+   const ready=allFiltered&&allCalculated;
+   multiSession.logs.forEach(log=>{log._phase3Ready=ready;});
+   updateMultiGraphAvailability();
+  };
   (commonEngine.DERIVED_BY_TEST[multiLogType]||[]).forEach(key=>{
    const parameterName=key==='mechanicalPower'?'Mechanical Power':key==='electricalPower'?'Electrical Power':'Specific Thrust';
    const card=el('div','propulsion-calculated-parameter');card.dataset.parameterKey=key;
@@ -1113,39 +1121,60 @@ const statsPage=el('section','propulsion-report-summary-page');
    }else if(key==='electricalPower')formula.textContent='Electrical Power (W) = DC Voltage (V) × DC Current (A)';
    else{const equation=el('span','propulsion-formula-equation','Specific Thrust (N/W) = '),fraction=el('span','propulsion-formula-fraction');fraction.setAttribute('role','math');fraction.append(el('span','propulsion-formula-numerator','Thrust (N)'),el('span','propulsion-formula-denominator','Electrical Power (W)'));formula.append(equation,fraction);}
    const note=el('div','propulsion-calculated-mapping-note','Inputs are taken from each log’s confirmed Step 02 parameter mapping.');
-   details.append(label,formulaLabel,formula,note);card.append(details);sharedDerivedCards.append(card);sharedDerivedChecks[key]=check;
-   check.addEventListener('change',()=>{multiSession.logs.forEach(log=>{log._phase3Ready=false;});multiSession.logs.forEach(log=>{const status=log._phase3Card?.querySelector('.propulsion-phase3-result');if(status)status.textContent='Shared derived-parameter selection changed. Apply Filtering & Calculate again for every log.';});updateMultiGraphAvailability();});
+   details.append(label,formulaLabel,formula,note);
+   const calculate=el('button','btn alt propulsion-calculated-action','Calculate and Add to Log file');calculate.type='button';calculate.disabled=true;
+   calculate.title='Check the parameter and apply filtering to every log to enable this calculation.';
+   const addedStatus=el('span','propulsion-calculated-added-status','✓ Added to Log file');addedStatus.hidden=true;
+   const retry=el('button','btn alt propulsion-calculated-retry','Retry');retry.type='button';retry.hidden=true;
+   sharedDerivedChecks[key]=check;sharedDerivedActions[key]={calculate,addedStatus,retry};
+   const updateAction=()=>{calculate.disabled=!check.checked||!multiSession.logs.every(log=>log._phase3Filtered)||sharedDerivedAdded.has(key);};
+   check.addEventListener('change',()=>{
+    if(!check.checked){sharedDerivedAdded.delete(key);addedStatus.hidden=true;retry.hidden=true;calculate.hidden=false;calculate.textContent='Calculate and Add to Log file';card.classList.remove('is-added-to-graph');}
+    multiSession.logs.forEach(log=>{log._phase3Ready=false;log._derivedKeys=[...sharedDerivedAdded];if(log._phase3Filtered)commonEngine.calculateLog(log,multiLogType,log._derivedKeys);if(log._phase3Card)renderMultiLogPreview(log,log._phase3Card._phase3Controls.tableHost,log._derivedKeys);});
+    updateAction();updateMultiReadiness();
+   });
+   calculate.addEventListener('click',()=>{
+    const unfiltered=multiSession.logs.filter(log=>!log._phase3Filtered);
+    if(unfiltered.length){note.textContent='Apply Data Filtering to every log before calculating derived parameters.';return;}
+    try{
+     const required=key==='mechanicalPower'?['torque','actualRpm']:key==='electricalPower'?['voltage','current']:['thrust','voltage','current'];
+     for(const log of multiSession.logs){const missing=required.filter(name=>!Number.isInteger(log.mapping[name]));if(missing.length)throw new Error('Log '+log.id+' is missing required mappings: '+missing.join(', '));}
+     sharedDerivedAdded.add(key);
+     multiSession.logs.forEach(log=>{log._derivedKeys=[...sharedDerivedAdded];commonEngine.calculateLog(log,multiLogType,log._derivedKeys);if(log._phase3Card){const host=log._phase3Card._phase3Controls.tableHost;renderMultiLogPreview(log,host,log._derivedKeys);const status=log._phase3Card._phase3Controls.summary;status.textContent='Filtered data rows retained · '+log._derivedKeys.length+' derived parameter(s) calculated and added to this log file.';}});
+     calculate.hidden=true;addedStatus.hidden=false;retry.hidden=false;check.disabled=true;card.classList.add('is-added-to-graph');
+     retry.addEventListener('click',()=>{
+      sharedDerivedAdded.delete(key);check.disabled=false;check.checked=false;calculate.hidden=false;calculate.disabled=true;calculate.textContent='Calculate and Add to Log file';addedStatus.hidden=true;retry.hidden=true;card.classList.remove('is-added-to-graph');
+      multiSession.logs.forEach(log=>{log._phase3Ready=false;log._derivedKeys=[...sharedDerivedAdded];if(log._phase3Filtered)commonEngine.calculateLog(log,multiLogType,log._derivedKeys);if(log._phase3Card){renderMultiLogPreview(log,log._phase3Card._phase3Controls.tableHost,log._derivedKeys);log._phase3Card._phase3Controls.summary.textContent='Derived parameter reset. Recalculate the selected parameters for this log.';}});
+      Object.entries(sharedDerivedActions).forEach(([otherKey,action])=>{if(otherKey!==key)action.calculate.disabled=!sharedDerivedChecks[otherKey].checked||!multiSession.logs.every(log=>log._phase3Filtered)||sharedDerivedAdded.has(otherKey);});
+      updateMultiReadiness();
+     });
+     note.textContent='Calculated for every filtered log using its own confirmed parameter mapping.';
+     updateMultiReadiness();
+    }catch(error){note.textContent=error.message||'Unable to calculate this parameter for every log.';}
+   });
+   card.append(details,calculate,addedStatus,retry);sharedDerivedCards.append(card);
   });
   sharedDerivedSection.append(sharedDerivedCards);
   const logCards=el('div','propulsion-phase3-log-grid');
   multiSession.logs.forEach((log,index)=>{
    const source=multiFiles[index],card=el('section','propulsion-phase3-log-card'),heading=el('div','propulsion-phase3-log-heading');
    heading.append(el('span','propulsion-step-label','LOG '+log.id),el('h4','',source.file.name));card.append(heading);
-   const filterRow=el('div','propulsion-phase3-filter-row');
-   const sortLabel=el('label','propulsion-phase3-control','SORT BY');
-   const sortSelect=document.createElement('select');sortSelect.className='propulsion-column-select';
-   const noSort=document.createElement('option');noSort.value='';noSort.textContent='Original row order';sortSelect.append(noSort);
-   multiActiveSpecs().forEach(spec=>{const option=document.createElement('option');option.value=String(log.mapping[spec.key]);option.textContent=spec.label;sortSelect.append(option)});
-   const direction=document.createElement('select');direction.className='propulsion-column-select';direction.innerHTML='<option value="asc">Ascending</option><option value="desc">Descending</option>';
-   sortLabel.append(sortSelect);const directionLabel=el('label','propulsion-phase3-control','ORDER');directionLabel.append(direction);filterRow.append(sortLabel,directionLabel);card.append(filterRow);
-
-   const action=el('button','btn','Apply Filtering & Calculate');action.type='button';
-   const summary=el('p','propulsion-phase3-result','Filtering and calculations not yet applied.');summary.setAttribute('role','status');
+   const action=el('button','btn','Apply Data Filtering');action.type='button';
+   const summary=el('p','propulsion-phase3-result','Data filtering has not yet been applied.');summary.setAttribute('role','status');
    const tableHost=el('div','propulsion-phase3-preview');
    action.addEventListener('click',()=>{
     try{
-     const sortIndex=sortSelect.value===''?-1:Number(sortSelect.value);
-     commonEngine.filterLog(log,{actualRpmIndex:log.mapping.actualRpm,sortIndex,sortDirection:direction.value});
-     const selected=Object.keys(sharedDerivedChecks).filter(key=>sharedDerivedChecks[key].checked);
-     commonEngine.calculateLog(log,multiLogType,selected);
-     log._phase3Ready=true;log._derivedKeys=selected;
+     commonEngine.filterLog(log,{actualRpmIndex:log.mapping.actualRpm});
+     log._phase3Filtered=true;log._phase3Ready=false;log._derivedKeys=[...sharedDerivedAdded];
+     if(log._derivedKeys.length)commonEngine.calculateLog(log,multiLogType,log._derivedKeys);
      const removed=log.sourceRows.length-log.filteredRows.length;
-     summary.textContent=Math.max(0,log.filteredRows.length-1).toLocaleString()+' data rows retained · '+removed.toLocaleString()+' data rows removed (Actual RPM ≤ 0) · '+selected.length+' derived parameter(s) calculated.';
-     renderMultiLogPreview(log,tableHost,selected);
-     updateMultiGraphAvailability();
-    }catch(error){summary.textContent=error.message||'Unable to process this log.';log._phase3Ready=false;updateMultiGraphAvailability();}
+     summary.textContent=Math.max(0,log.filteredRows.length-1).toLocaleString()+' data rows retained · '+removed.toLocaleString()+' data rows removed (Actual RPM ≤ 0) · '+log._derivedKeys.length+' derived parameter(s) added.';
+     renderMultiLogPreview(log,tableHost,log._derivedKeys);
+     Object.entries(sharedDerivedActions).forEach(([key,controls])=>{controls.calculate.disabled=!sharedDerivedChecks[key].checked||!multiSession.logs.every(item=>item._phase3Filtered)||sharedDerivedAdded.has(key);});
+     updateMultiReadiness();
+    }catch(error){summary.textContent=error.message||'Unable to filter this log.';log._phase3Filtered=false;updateMultiReadiness();}
    });
-   card.append(action,summary,tableHost);card._phase3Controls={sortSelect,direction,derivedChecks:sharedDerivedChecks,summary,tableHost};logCards.append(card);log._phase3Card=card;
+   card.append(action,summary,tableHost);card._phase3Controls={summary,tableHost};logCards.append(card);log._phase3Card=card;
   });
   multiAnalysisCard.append(sharedDerivedSection,logCards);
   const graph=el('section','propulsion-phase3-graph-card propulsion-step-card propulsion-step-card--blue');graph.id='propulsionPhase4GraphCard';
