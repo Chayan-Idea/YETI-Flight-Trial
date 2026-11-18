@@ -696,7 +696,7 @@
 .propulsion-log-type-icon{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border-radius:11px;background:#edf4fb;color:#285b89;font-size:25px;font-weight:700}
 .propulsion-log-type-copy{display:flex;flex:1;flex-direction:column;gap:4px}.propulsion-log-type-copy strong{color:#183b5d;font-size:15px}.propulsion-log-type-copy small{color:#64778b;font-size:11px;line-height:1.4}
 .propulsion-log-type-check{display:grid;place-items:center;width:23px;height:23px;border:1.5px solid #c6d3df;border-radius:50%;color:transparent;font-size:13px}
-.propulsion-log-type-option.is-selected{border-color:#1769aa;background:#1769aa;box-shadow:0 0 0 3px rgba(23,105,170,.16)}.propulsion-log-type-option.is-selected .propulsion-log-type-icon{background:rgba(255,255,255,.18);color:#fff}.propulsion-log-type-option.is-selected .propulsion-log-type-copy strong,.propulsion-log-type-option.is-selected .propulsion-log-type-copy small{color:#fff}.propulsion-log-type-option.is-selected .propulsion-log-type-check{border-color:#fff;background:#fff;color:#1769aa}
+#propulsionMultiLogTypePicker .propulsion-log-type-option.is-selected{border-color:#1769aa!important;background-color:#1769aa!important;background-image:none!important;box-shadow:0 0 0 3px rgba(23,105,170,.16)}.propulsion-log-type-option.is-selected .propulsion-log-type-icon{background:rgba(255,255,255,.18);color:#fff}.propulsion-log-type-option.is-selected .propulsion-log-type-copy strong,.propulsion-log-type-option.is-selected .propulsion-log-type-copy small{color:#fff}.propulsion-log-type-option.is-selected .propulsion-log-type-check{border-color:#fff;background:#fff;color:#1769aa}
 .propulsion-log-type-option:focus-within{outline:3px solid rgba(38,115,184,.2);outline-offset:2px}
 .propulsion-log-upload-area{margin-top:4px;padding:18px;border:1px solid #cbdbea;border-radius:14px;background:#fbfdff}.propulsion-log-upload-heading{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}.propulsion-log-upload-kicker{color:#39719f;font-size:10px;font-weight:800;letter-spacing:.13em}.propulsion-log-upload-heading strong{color:#173b60;font-size:17px}.propulsion-log-upload-heading>span:last-child{color:#64778b;font-size:12px;line-height:1.5}
 .propulsion-log-upload-area[hidden]{display:none!important}
@@ -959,3 +959,27 @@
 .propulsion-phase4-report-table th{background:#eef4fa;color:#24476b}
 .propulsion-phase4-report-graph svg{width:100%;height:auto}
 @media(max-width:680px){.propulsion-phase4-report-form{grid-template-columns:1fr}.propulsion-phase4-field--wide{grid-column:auto}.propulsion-phase4-report-preview{padding:12px}}
+
+
+/* Multi-log parameter identification: consolidated, responsive table layout. */
+.propulsion-multi-mapping-table-wrap{width:100%;max-width:100%;overflow-x:auto;margin:14px 0 18px;border:1px solid #d8e2ed;border-radius:12px;background:#fff}
+.propulsion-multi-mapping-table{width:100%;min-width:680px;border-collapse:separate;border-spacing:0;font-size:.78rem}
+.propulsion-multi-mapping-table th,.propulsion-multi-mapping-table td{padding:12px 14px;border-bottom:1px solid #e2e8f0;text-align:left;vertical-align:middle}
+.propulsion-multi-mapping-table thead th{background:#eaf1f8;color:#24476b;font-size:.7rem;font-weight:850;letter-spacing:.055em;white-space:nowrap}
+.propulsion-multi-mapping-table tbody tr:last-child th,.propulsion-multi-mapping-table tbody tr:last-child td{border-bottom:0}
+.propulsion-multi-mapping-table tbody tr:nth-child(even){background:#f8fafc}
+.propulsion-multi-mapping-table .propulsion-multi-mapping-group{width:17%;color:#526276;font-weight:750;white-space:nowrap}
+.propulsion-multi-mapping-table .propulsion-multi-mapping-parameter{width:25%;color:#17365d;font-weight:800}
+.propulsion-multi-mapping-status{color:#17633a;font-size:.74rem}
+.propulsion-multi-mapping-status.is-warning{color:#a45b13}
+.propulsion-multi-mapping-table .propulsion-column-select{width:100%;min-width:190px;min-height:40px;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#172b4d;font:inherit}
+@media(max-width:680px){.propulsion-multi-mapping-table-wrap{margin-inline:-2px}.propulsion-multi-mapping-table th,.propulsion-multi-mapping-table td{padding:10px}}
+
+
+/* Unified cross-log parameter identification table. */
+.propulsion-multi-mapping-unified{min-width:980px}
+.propulsion-multi-mapping-unified thead tr:first-child th{text-align:center;background:#dfeaf5;color:#173b60}
+.propulsion-multi-mapping-unified thead tr:nth-child(2) th{background:#eef4fa;font-size:.66rem}
+.propulsion-multi-mapping-unified .propulsion-column-select{min-width:170px}
+.propulsion-multi-mapping-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}
+@media(max-width:680px){.propulsion-multi-mapping-summary-grid{grid-template-columns:1fr}}
