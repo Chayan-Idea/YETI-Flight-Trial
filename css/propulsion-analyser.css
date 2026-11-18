@@ -889,3 +889,23 @@
   line-height:0;
   pointer-events:none;
 }
+
+
+/* Common analysis Phase 2: multi-log selection, uploads and independent mappings. */
+.propulsion-mode-card,.propulsion-multi-setup-card,.propulsion-multi-mapping-intro,.propulsion-multi-log-mapping{margin-bottom:18px}
+.propulsion-mode-count-label{display:block;font-size:.76rem;font-weight:800;letter-spacing:.08em;color:#475569}
+.propulsion-log-count-select{display:block;width:min(100%,420px);min-height:44px;margin-top:8px;padding:10px 12px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:#172b4d;font:inherit}
+.propulsion-multi-upload-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}
+.propulsion-multi-upload-slot{display:flex;flex-direction:column;gap:8px;padding:16px;border:1px dashed #9aaec5;border-radius:12px;background:#f8fbff;min-width:0}
+.propulsion-multi-upload-slot strong{color:#17365d;font-size:.88rem}
+.propulsion-multi-upload-hint,.propulsion-multi-file-status{font-size:.78rem;color:#64748b;overflow-wrap:anywhere}
+.propulsion-multi-upload-slot input{width:100%;font-size:.8rem}
+.propulsion-multi-actions{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:18px}
+.propulsion-multi-status,.propulsion-multi-confirm-status{font-size:.84rem;color:#526276;margin:0}
+.propulsion-multi-confirm-status{padding:12px;border-radius:10px;background:#f1f5f9}
+.propulsion-multi-confirm-status.is-valid{background:#eaf7ef;color:#17633a}
+.propulsion-multi-confirm-actions{margin-top:18px}
+.propulsion-multi-log-mapping{padding:20px}
+.propulsion-multi-log-mapping .propulsion-mapping-top{margin-bottom:14px}
+.propulsion-multi-log-type-picker{margin-top:18px}
+@media(max-width:680px){.propulsion-multi-upload-grid{grid-template-columns:1fr}.propulsion-multi-actions>*{width:100%}.propulsion-multi-log-mapping{padding:14px}}
