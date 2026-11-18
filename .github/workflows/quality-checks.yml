@@ -23,3 +23,5 @@ jobs:
           node-version: 22
       - name: Validate application structure and syntax
         run: node scripts/validate-app.mjs
+      - name: Test common propulsion analysis engine
+        run: node tests/propulsion-analysis-engine.test.js
