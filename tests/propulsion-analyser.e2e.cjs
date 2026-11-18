@@ -103,7 +103,8 @@ const server = http.createServer((req,res)=>{
   if(await step3Card.evaluate(el=>el.parentElement)!==await step4Card.evaluate(el=>el.parentElement)||await step4Card.evaluate(el=>el.parentElement)!==await step5Card.evaluate(el=>el.parentElement))throw new Error('Steps 03, 04 and 05 must be separate sibling cards in the workflow.');
 
   const applyButtons=page.locator('.propulsion-phase3-log-card button');
-  if(await applyButtons.count()!==2)throw new Error('Expected one independent processing action per log.');
+  if(await applyButtons.count()!==2)throw new Error('Expected one independent filtering action per log.');
+  if(await step3Card.getByText('SORT BY',{exact:true}).count()!==0||await step3Card.getByText('ORDER',{exact:true}).count()!==0)throw new Error('Sort By and Order controls must be removed from multi-log Step 03.');
   const sharedDerivedCards=step3Card.locator('.propulsion-step-subsection--derived .propulsion-calculated-parameter');
   if(await sharedDerivedCards.count()!==2)throw new Error('Thrust multi-log mode must show exactly one shared Electrical Power and Specific Thrust selection.');
   if(await page.locator('.propulsion-phase3-log-card .propulsion-phase3-derived-option').count()!==0)throw new Error('Derived parameter controls must not be repeated inside individual log cards.');
@@ -111,8 +112,14 @@ const server = http.createServer((req,res)=>{
   const sharedSpecific=sharedDerivedCards.nth(1).locator('input[type="checkbox"]');
   await sharedElectrical.check();
   await sharedSpecific.check();
+  const calculateElectrical=sharedDerivedCards.nth(0).locator('button').filter({hasText:'Calculate and Add to Log file'});
+  const calculateSpecific=sharedDerivedCards.nth(1).locator('button').filter({hasText:'Calculate and Add to Log file'});
+  if(await calculateElectrical.count()!==1||await calculateSpecific.count()!==1)throw new Error('Each shared derived parameter must retain the Single-Log Calculate and Add to Log File action.');
   await applyButtons.nth(0).click();
   await applyButtons.nth(1).click();
+  if(await calculateElectrical.isDisabled()||await calculateSpecific.isDisabled())throw new Error('Derived calculation actions should enable after every log has been filtered.');
+  await calculateElectrical.click();
+  await calculateSpecific.click();
   const resultSummaries=page.locator('.propulsion-phase3-result');
   if(!(await resultSummaries.nth(0).innerText()).includes('2 data rows retained')||!(await resultSummaries.nth(1).innerText()).includes('2 data rows retained'))throw new Error('Independent RPM filtering did not retain the expected two data rows per log.');
   if(!(await resultSummaries.nth(0).innerText()).includes('2 derived parameter(s) calculated')||!(await resultSummaries.nth(1).innerText()).includes('2 derived parameter(s) calculated'))throw new Error('The shared derived-parameter selection was not applied consistently to every log.');
