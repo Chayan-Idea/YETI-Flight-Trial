@@ -1039,7 +1039,7 @@ const statsPage=el('section','propulsion-report-summary-page');
 
  function buildMultiLogReportCard(){
   const card=el('section','propulsion-phase4-report-card propulsion-step-card propulsion-step-card--green');card.id='propulsionPhase4ReportCard';
-  card.append(el('div','propulsion-step-label','STEP 05 · MULTI-LOG REPORT GENERATION'),el('h3','','Generate Comparative Test Validation Report'),el('p','propulsion-mapping-description','Create a consolidated A4 report containing test identification, per-log processing results, derived-parameter statistics and the comparative graph.'));
+  card.append(el('div','propulsion-step-label','STEP 06 · MULTI-LOG REPORT GENERATION'),el('h3','','Generate Comparative Test Validation Report'),el('p','propulsion-mapping-description','Create a consolidated A4 report containing test identification, per-log processing results, derived-parameter statistics and the comparative graph.'));
   const form=el('div','propulsion-phase4-report-form');
   const fields={};
   const addField=(key,label,type='text',required=true)=>{const wrap=el('label','propulsion-phase4-field');wrap.append(el('span','',label+(required?' *':'')));const input=document.createElement('input');input.type=type;input.required=required;input.id='multiReport_'+key;wrap.append(input);form.append(wrap);fields[key]=input;};
@@ -1274,7 +1274,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   const multiProceedReport=el('button','btn alt','Proceed with Report Generation');multiProceedReport.type='button';multiProceedReport.hidden=true;
   multiProceedActions.hidden=true;multiProceedActions.append(multiProceedInApp,multiProceedReport);
   const graph=el('section','propulsion-phase3-graph-card propulsion-step-card propulsion-step-card--blue');graph.id='propulsionPhase4GraphCard';
-  graph.append(el('div','propulsion-step-label','STEP 04 · COMPARATIVE GRAPHICAL ANALYSIS'),el('h3','','Compare Multiple Logs on Common Axes'),el('p','propulsion-mapping-description','Choose common X and Y parameters. Toggle each log series independently and explore the plotted points.'));
+  graph.append(el('div','propulsion-step-label','STEP 05 · COMPARATIVE GRAPHICAL ANALYSIS'),el('h3','','Compare Multiple Logs on Common Axes'),el('p','propulsion-mapping-description','Choose common X and Y parameters. Toggle each log series independently and explore the plotted points.'));
   const controls=el('div','propulsion-phase3-graph-controls');
   const makeGraphSelect=(label,id)=>{const wrap=el('label','propulsion-phase3-control',label),select=document.createElement('select');select.className='propulsion-column-select';select.id=id;wrap.append(select);controls.append(wrap);return select;};
   const xSelect=makeGraphSelect('X AXIS','multiGraphXAxis'),ySelect=makeGraphSelect('PRIMARY Y AXIS','multiGraphYAxis'),y2Select=makeGraphSelect('SECONDARY Y AXIS (OPTIONAL)','multiGraphSecondaryYAxis');
@@ -1297,16 +1297,52 @@ const statsPage=el('section','propulsion-report-summary-page');
   [xSelect,ySelect,y2Select].forEach(select=>select.addEventListener('change',()=>{rangeStart.value='';rangeEnd.value='';}));
   graph.append(controls,seriesControls,status,plotHost,explorer);
   multiGraphCard=graph;
-  multiMappingHost.append(multiAnalysisCard,multiProceedActions,multiGraphCard);
-  multiGraphCard.hidden=true;
+  const multiSummaryCard=el('section','propulsion-statistics-card propulsion-step-card propulsion-step-card--green');multiSummaryCard.id='propulsionMultiParameterSummaryCard';multiSummaryCard.hidden=true;
+  multiSummaryCard.append(el('span','propulsion-step-label','STEP 04 · PARAMETER SUMMARY'),el('h3','','Comparative Parameter Summary'),el('p','propulsion-statistics-description','Review the maximum recorded value and corresponding timestamp for each mapped parameter in every processed log. All values are calculated from each log’s filtered and sorted dataset.'));
+  const summaryWrap=el('div','propulsion-statistics-table-wrap'),summaryTable=document.createElement('table');summaryTable.className='propulsion-statistics-table';
+  const summaryHead=document.createElement('thead'),summaryHeadRow=document.createElement('tr');
+  ['LOG','PARAMETER','MAXIMUM','TIMESTAMP'].forEach(label=>summaryHeadRow.append(el('th','',label)));summaryHead.append(summaryHeadRow);summaryTable.append(summaryHead);
+  const summaryBody=document.createElement('tbody');summaryTable.append(summaryBody);summaryWrap.append(summaryTable);multiSummaryCard.append(summaryWrap);
+  const summaryActions=el('div','propulsion-actions'),summaryNext=el('button','btn','Proceed to Graphical Analysis');summaryNext.type='button';summaryActions.append(summaryNext);multiSummaryCard.append(summaryActions);
+  multiMappingHost.append(multiAnalysisCard,multiProceedActions,multiSummaryCard,multiGraphCard);
+  multiSummaryCard.hidden=true;multiGraphCard.hidden=true;
   buildMultiLogReportCard();
   multiReportCard.hidden=true;
+  const reportNextActions=el('div','propulsion-actions'),reportNext=el('button','btn','Proceed to Generate Report');reportNext.type='button';reportNext.id='proceedToMultiGenerateReportBtn';
+  reportNextActions.append(reportNext);multiGraphCard.append(reportNextActions);
   multiProceedInApp.addEventListener('click',()=>{
-   multiGraphCard.hidden=false;
+   if(!multiSession.logs.every(log=>log._phase3Ready)){return;}
+   summaryBody.replaceChildren();
+   const timestampAliases=['timestamp','time_stamp','datetime','date_time','date time','time','utc_time','local_time','sample_time','logged_at','date'];
+   multiSession.logs.forEach((log,index)=>{
+    const rows=log.calculatedRows||[],header=log.filteredRows?.[0]||log.headers||[];
+    const timestampIndex=header.map((name,i)=>({index:i,score:scoreHeader(name,timestampAliases)})).filter(item=>item.score>=65).sort((a,b)=>b.score-a.score)[0]?.index;
+    const specsForLog=multiActiveSpecs().map(spec=>({key:spec.key,label:spec.label,index:log.mapping[spec.key]})).filter(item=>Number.isInteger(item.index));
+    (log._derivedKeys||[]).forEach(key=>specsForLog.push({key,label:key==='mechanicalPower'?'Mechanical Power (W)':key==='electricalPower'?'Electrical Power (W)':'Specific Thrust (N/W)',derived:true}));
+    specsForLog.forEach(spec=>{
+     let maximum=-Infinity,maximumRow=null;
+     rows.slice(1).forEach(item=>{
+      const value=spec.derived?item.derived?.[spec.key]:Number(String(item.source?.[spec.index]??'').trim());
+      if(Number.isFinite(value)&&value>maximum){maximum=value;maximumRow=item;}
+     });
+     const timestamp=maximumRow?(timestampIndex===undefined?'Timestamp column not found':String(maximumRow.source?.[timestampIndex]??'').trim()||'Timestamp unavailable'):(timestampIndex===undefined?'Timestamp column not found':'No numeric data');
+     const tr=document.createElement('tr');
+     [ 'LOG '+(index+1)+' · '+(log.fileName||multiFiles[index]?.file?.name||''),spec.label,Number.isFinite(maximum)?new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(maximum):'—',timestamp].forEach(value=>tr.append(el('td','',String(value))));
+     summaryBody.append(tr);
+    });
+   });
+   multiSummaryCard.hidden=false;multiGraphCard.hidden=true;multiSummaryCard.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+  summaryNext.addEventListener('click',()=>{
+   multiGraphCard.hidden=false;summaryNext.disabled=true;summaryNext.textContent='Graphical Analysis Selected';
    multiGraphCard.scrollIntoView({behavior:'smooth',block:'start'});
   });
+  reportNext.addEventListener('click',()=>{
+   multiReportCard.hidden=false;reportNext.disabled=true;reportNext.textContent='Report Generation Selected';
+   multiReportCard.scrollIntoView({behavior:'smooth',block:'start'});
+  });
   multiProceedReport.addEventListener('click',()=>{
-   multiReportCard.hidden=false;
+   multiReportCard.hidden=false;multiSummaryCard.hidden=true;multiGraphCard.hidden=true;
    multiReportCard.scrollIntoView({behavior:'smooth',block:'start'});
   });
   updateMultiGraphAvailability();
