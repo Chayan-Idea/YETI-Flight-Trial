@@ -1413,15 +1413,42 @@ const statsPage=el('section','propulsion-report-summary-page');
   let legendX=L;
   series.forEach(item=>{const color=multiColors[item.index%multiColors.length],name='LOG '+(item.index+1);add('line',{x1:legendX,y1:18,x2:legendX+24,y2:18,stroke:color,'stroke-width':4,'stroke-linecap':'round'});add('text',{x:legendX+30,y:22,fill:'#334155','font-size':12,'font-weight':700},name);legendX+=95;});
   plotHost.replaceChildren(svg);
-  const guide=add('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#d97706','stroke-width':1.5,'stroke-dasharray':'5 4'});
-  const marker=add('circle',{cx:L,cy:T,r:7,fill:'#fff',stroke:'#d97706','stroke-width':3});
+  const guide=add('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#d97706','stroke-width':1.5,'stroke-dasharray':'5 4','pointer-events':'none'});
+  const marker=add('circle',{cx:L,cy:T,r:7,fill:'#fff',stroke:'#d97706','stroke-width':3,'pointer-events':'none'});
   const updatePoint=index=>{
    if(!flat.length)return;
-   const position=Math.max(0,Math.min(flat.length-1,index)),point=flat[position];
+   const position=Math.max(0,Math.min(flat.length-1,Number(index)||0)),point=flat[position];
    slider.value=String(position);guide.setAttribute('x1',point.sx);guide.setAttribute('x2',point.sx);marker.setAttribute('cx',point.sx);marker.setAttribute('cy',point.sy);marker.setAttribute('stroke',point.color);
    readout.textContent='Log '+(point.seriesIndex+1)+' · '+point.file+' · Data row '+point.row+' · X ('+xLabel+'): '+fmt(point.x)+' · Y ('+yLabel+'): '+fmt(point.y)+' · Point '+(position+1)+' of '+flat.length;
   };
   slider.min='0';slider.max=String(Math.max(0,flat.length-1));slider.value='0';slider.disabled=flat.length===0;slider.oninput=()=>updatePoint(Number(slider.value));if(flat.length)updatePoint(0);
+  // Direct graph interaction mirrors the Single-Log Analyser: touch, pen or mouse
+  // input moves the vertical guide and selected point to the nearest plotted X position.
+  const interactionLayer=add('rect',{x:L,y:T,width:pw,height:ph,fill:'transparent',cursor:'crosshair','pointer-events':'all','aria-label':'Touch or drag over the graph to move the selected data point'});
+  interactionLayer.style.touchAction='pan-y';
+  let activePointerId=null;
+  const selectPointAtClientX=clientX=>{
+   const bounds=svg.getBoundingClientRect();if(!bounds.width)return;
+   const viewX=(clientX-bounds.left)*(W/bounds.width);
+   const graphX=Math.max(L,Math.min(L+pw,viewX));
+   const targetX=xr.min+(graphX-L)/pw*(xr.max-xr.min);
+   let best=0,distance=Infinity;
+   flat.forEach((point,index)=>{const delta=Math.abs(point.x-targetX);if(delta<distance){distance=delta;best=index;}});
+   updatePoint(best);
+  };
+  interactionLayer.addEventListener('pointerdown',event=>{
+   if(event.pointerType==='mouse'&&event.button!==0)return;
+   activePointerId=event.pointerId;
+   try{interactionLayer.setPointerCapture(event.pointerId)}catch(_){}
+   selectPointAtClientX(event.clientX);event.preventDefault();
+  });
+  interactionLayer.addEventListener('pointermove',event=>{
+   if(activePointerId!==event.pointerId)return;
+   selectPointAtClientX(event.clientX);event.preventDefault();
+  });
+  const endPointer=event=>{if(activePointerId===event.pointerId){activePointerId=null;try{interactionLayer.releasePointerCapture(event.pointerId)}catch(_){}}};
+  interactionLayer.addEventListener('pointerup',endPointer);
+  interactionLayer.addEventListener('pointercancel',endPointer);
   status.textContent=flat.length.toLocaleString()+' plotted data points across '+series.filter(item=>item.points.length).length+' logs. All log curves are superimposed on the same X and Y axes.';
  }
 
