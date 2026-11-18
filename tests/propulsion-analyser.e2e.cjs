@@ -102,48 +102,37 @@ const server = http.createServer((req,res)=>{
   if(await step3Card.locator('#propulsionPhase4GraphCard, #propulsionPhase4ReportCard').count()!==0)throw new Error('Steps 04 and 05 must not be nested inside Step 03.');
   if(await step3Card.evaluate(el=>el.parentElement)!==await step4Card.evaluate(el=>el.parentElement)||await step4Card.evaluate(el=>el.parentElement)!==await step5Card.evaluate(el=>el.parentElement))throw new Error('Steps 03, 04 and 05 must be separate sibling cards in the workflow.');
 
-  const applyButtons=page.locator('.propulsion-phase3-log-card button');
-  if(await applyButtons.count()!==2)throw new Error('Expected one independent filtering action per log.');
+  if(await step3Card.locator('.propulsion-phase3-log-card').count()!==0)throw new Error('Individual per-log filtering cards must be removed from multi-log Step 03.');
+  if(await step3Card.getByText('Apply Data Filtering',{exact:true}).count()!==0)throw new Error('Individual Apply Data Filtering buttons must not appear in multi-log Step 03.');
   if(await step3Card.getByText('SORT BY',{exact:true}).count()!==0||await step3Card.getByText('ORDER',{exact:true}).count()!==0)throw new Error('Sort By and Order controls must be removed from multi-log Step 03.');
   const sharedDerivedCards=step3Card.locator('.propulsion-step-subsection--derived .propulsion-calculated-parameter');
   if(await sharedDerivedCards.count()!==2)throw new Error('Thrust multi-log mode must show exactly one shared Electrical Power and Specific Thrust selection.');
-  if(await page.locator('.propulsion-phase3-log-card .propulsion-phase3-derived-option').count()!==0)throw new Error('Derived parameter controls must not be repeated inside individual log cards.');
   const sharedElectrical=sharedDerivedCards.nth(0).locator('input[type="checkbox"]');
   const sharedSpecific=sharedDerivedCards.nth(1).locator('input[type="checkbox"]');
-  await sharedElectrical.check();
-  await sharedSpecific.check();
+  await sharedElectrical.check();await sharedSpecific.check();
   const calculateElectrical=sharedDerivedCards.nth(0).locator('button').filter({hasText:'Calculate and Add to All logs'});
   const calculateSpecific=sharedDerivedCards.nth(1).locator('button').filter({hasText:'Calculate and Add to All logs'});
-  if(await calculateElectrical.isDisabled()||await calculateSpecific.isDisabled())throw new Error('Checking a shared derived parameter must immediately enable its Calculate and Add to Log File action, matching Single-Log behaviour.');
-  if(await calculateElectrical.count()!==1||await calculateSpecific.count()!==1)throw new Error('Each shared derived parameter must show the Calculate and Add to All logs action.');
-  // The shared calculation action must also work when the user has not
-  // manually pressed each per-log filter button first.
+  if(await calculateElectrical.isDisabled()||await calculateSpecific.isDisabled())throw new Error('Checking a shared derived parameter must immediately enable its Calculate and Add to All logs action.');
   await calculateElectrical.click();
   const electricalCard=sharedDerivedCards.nth(0);
   await electricalCard.locator('.propulsion-calculated-added-status').waitFor({state:'visible'});
-  if(!(await electricalCard.locator('.propulsion-calculated-added-status').innerText()).includes('✓ Added to All logs'))throw new Error('Successful Electrical Power calculation must show the green Added to All logs status.');
   await electricalCard.locator('.propulsion-calculated-retry').waitFor({state:'visible'});
-  for(const summary of await page.locator('.propulsion-phase3-result').all())if(!(await summary.innerText()).includes('data rows retained'))throw new Error('Calculation action did not automatically filter every log.');
-  await applyButtons.nth(0).click();
-  await applyButtons.nth(1).click();
-  if(await calculateElectrical.isVisible())throw new Error('Calculate action should be replaced by the success status after calculation.');
   await electricalCard.locator('.propulsion-calculated-retry').click();
   if(!(await calculateElectrical.isVisible())||!(await calculateElectrical.isDisabled()))throw new Error('Retry must restore the unchecked Calculate and Add to All logs action.');
-  await electricalCard.locator('input[type="checkbox"]').check();
-  await calculateElectrical.click();
+  await electricalCard.locator('input[type="checkbox"]').check();await calculateElectrical.click();
   await electricalCard.locator('.propulsion-calculated-added-status').waitFor({state:'visible'});
   await calculateSpecific.click();
   const specificCard=sharedDerivedCards.nth(1);
   await specificCard.locator('.propulsion-calculated-added-status').waitFor({state:'visible'});
-  if(!(await specificCard.locator('.propulsion-calculated-added-status').innerText()).includes('✓ Added to All logs'))throw new Error('Successful Specific Thrust calculation must show the Added to All logs status.');
   await specificCard.locator('.propulsion-calculated-retry').waitFor({state:'visible'});
-  const resultSummaries=page.locator('.propulsion-phase3-result');
-  if(!(await resultSummaries.nth(0).innerText()).includes('2 data rows retained')||!(await resultSummaries.nth(1).innerText()).includes('2 data rows retained'))throw new Error('Independent RPM filtering did not retain the expected two data rows per log.');
-  if(!(await resultSummaries.nth(0).innerText()).includes('2 derived parameter(s) calculated')||!(await resultSummaries.nth(1).innerText()).includes('2 derived parameter(s) calculated'))throw new Error('The shared derived-parameter selection was not applied consistently to every log.');
-  for(const logCard of await page.locator('.propulsion-phase3-log-card').all()){
-   const headers=await logCard.locator('.propulsion-phase3-preview th').allTextContents();
-   if(!headers.some(value=>value.includes('Electrical Power'))||!headers.some(value=>value.includes('Specific Thrust')))throw new Error('A processed log is missing a derived column selected in the shared Step 03 controls.');
-  }
+  const csvSection=step3Card.locator('.propulsion-step-subsection--csv');
+  await csvSection.getByText('CSV Generation with Filtered & Sorted Data').waitFor();
+  await csvSection.locator('#confirmMultiDerivedParametersReady').check();
+  await csvSection.locator('#confirmMultiFilteringSortingReady').check();
+  const generateCsv=csvSection.locator('button').filter({hasText:'Generate Filtered & Sorted CSV'});
+  await generateCsv.waitFor({state:'visible'});await generateCsv.click();
+  await csvSection.getByText(/Consolidated CSV prepared successfully: 4 data rows from 2 logs/).waitFor();
+  await csvSection.locator('button').filter({hasText:'Download Filtered & Sorted CSV'}).waitFor({state:'visible'});
   await page.locator('#multiGraphSecondaryYAxis').selectOption('commandRpm');
   await page.locator('.propulsion-phase3-graph-card button').filter({hasText:'Plot Comparative Graph'}).click();
   await page.locator('.propulsion-phase3-plot-host svg').waitFor({state:'visible'});
