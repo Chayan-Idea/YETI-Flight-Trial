@@ -35,6 +35,12 @@ const server = http.createServer((req,res)=>{
   if(await comparativeSummary.count()!==1)throw new Error('Comparative PDF must show one parameter-by-log executive summary table.');
   if(await comparativeSummary.locator('thead th').count()!==3)throw new Error('Executive summary table must contain a parameter column and one column for each log.');
   if(await comparativeSummary.locator('tbody tr').count()<6)throw new Error('Executive summary table must include all mapped comparative-summary parameters.');
+  const summaryPage=multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-multi-summary-page');
+  if(await summaryPage.count()!==1)throw new Error('All comparative executive summary parameters must fit on one A4 summary page.');
+  const summaryTableBox=await comparativeSummary.boundingBox();
+  const summaryPageBox=await summaryPage.boundingBox();
+  if(!summaryTableBox||!summaryPageBox||summaryTableBox.height>summaryPageBox.height-55)throw new Error('Comparative executive summary table is too tall for its single-page A4 layout.');
+
   if(await comparativeSummary.locator('.propulsion-report-kpi-timestamp').count()!==await comparativeSummary.locator('tbody tr').count()*2)throw new Error('Every parameter/log table cell must include its maximum-value timestamp.');
   if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-page-kicker').filter({hasText:'PER-LOG ANALYSIS'}).count()!==0)throw new Error('PDF preview must omit the separate per-log processing and derived-statistics pages.');
   if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-comparative-cell-value').filter({hasText:/\\d/}).count()===0)throw new Error('Comparative PDF summary should refresh with numeric values after each log is processed.');
