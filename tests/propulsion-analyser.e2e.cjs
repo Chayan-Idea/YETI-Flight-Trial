@@ -26,7 +26,7 @@ const server = http.createServer((req,res)=>{
   await page.locator('#propulsionLogCount').selectOption('1');
   await page.locator('#propulsionLogTypePicker input[value="thrust"]').evaluate(el=>{el.checked=true;el.dispatchEvent(new Event('change',{bubbles:true}));});
   await page.locator('#propulsionLogUploadArea').waitFor({state:'visible'});
-  const singleCsv='thrust,command_rpm,actual_rpm,dc_voltage_v,dc_current_a,motor_temperature_c,esc_temperature_c,acceleration_x,acceleration_y,acceleration_z\\n100,1000,980,50,10,40,35,0.1,0.2,0.3\\n110,1100,1080,50,11,41,36,0.2,0.3,0.4\\n90,900,0,50,10,39,34,0.0,0.1,0.2\\n';
+  const singleCsv='thrust,command_rpm,actual_rpm,dc_voltage_v,dc_current_a,motor_temperature_c,esc_temperature_c,acceleration_x,acceleration_y,acceleration_z\n100,1000,980,50,10,40,35,0.1,0.2,0.3\n110,1100,1080,50,11,41,36,0.2,0.3,0.4\n90,900,0,50,10,39,34,0.0,0.1,0.2\n';
   await page.locator('#propulsionCsvInput').setInputFiles({name:'single-thrust.csv',mimeType:'text/csv',buffer:Buffer.from(singleCsv)});
   await page.locator('#startPropulsionAnalysisBtn').click();
   await page.waitForTimeout(500);
