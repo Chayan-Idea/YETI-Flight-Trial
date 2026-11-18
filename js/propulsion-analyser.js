@@ -1270,12 +1270,14 @@ const statsPage=el('section','propulsion-report-summary-page');
    }catch(error){csvStatus.textContent='CSV generation failed: '+(error.message||'Unable to prepare the individual CSV files.');csvStatus.setAttribute('role','alert');}
   });
   csvSection.append(csvConfirmation,csvStatus,csvActions,generatedCsvFilesHost);
-  multiAnalysisCard.append(sharedDerivedSection,csvSection,multiProceedActions);
-  // Mirror the Single-Log choice shown after Step 03: continue to in-app analysis or go directly to report generation.
+  // Create the continuation controls before inserting them into Step 03.
+  // Referencing these const bindings earlier triggers a temporal-dead-zone error
+  // and aborts the entire workspace render after Step 02 mapping confirmation.
   const multiProceedActions=el('div','propulsion-actions propulsion-next-step-actions');
   const multiProceedInApp=el('button','btn','Proceed with In App Analysis');multiProceedInApp.type='button';multiProceedInApp.hidden=true;
   const multiProceedReport=el('button','btn alt','Proceed with Report Generation');multiProceedReport.type='button';multiProceedReport.hidden=true;
   multiProceedActions.hidden=true;multiProceedActions.append(multiProceedInApp,multiProceedReport);
+  multiAnalysisCard.append(sharedDerivedSection,csvSection,multiProceedActions);
   const graph=el('section','propulsion-phase3-graph-card propulsion-step-card propulsion-step-card--blue');graph.id='propulsionPhase4GraphCard';
   graph.append(el('div','propulsion-step-label','STEP 05 · COMPARATIVE GRAPHICAL ANALYSIS'),el('h3','','Compare Multiple Logs on Common Axes'),el('p','propulsion-mapping-description','Select one common X-axis parameter and one common Y-axis parameter. All processed logs will be superimposed on the same graph using a distinct colour for each log. Use the slider to explore individual data points.'));
   const controls=el('div','propulsion-phase3-graph-controls');
