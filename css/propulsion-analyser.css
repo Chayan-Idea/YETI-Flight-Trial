@@ -1077,3 +1077,14 @@
 .propulsion-phase3-readout-table tbody tr:nth-child(even){background:#f8fafc}
 .propulsion-phase3-readout-table .propulsion-phase3-readout-filename{white-space:normal;overflow-wrap:anywhere;min-width:180px;max-width:320px}
 @media(max-width:680px){.propulsion-phase3-readout-table{font-size:.7rem}.propulsion-phase3-readout-table th,.propulsion-phase3-readout-table td{padding:8px}}
+
+/* Align comparative slider endpoints with the graph's actual plotted X-axis limits. */
+.propulsion-phase3-explorer{grid-template-columns:minmax(0,1fr);gap:12px}
+.propulsion-phase3-explorer .propulsion-phase3-control{width:100%;box-sizing:border-box}
+.propulsion-phase3-explorer .propulsion-phase3-control input[type=range]{
+  display:block;box-sizing:border-box;width:86.53846%;max-width:none;margin:9px 0 0 10.09615%;
+}
+@media(max-width:760px){
+  .propulsion-phase3-explorer{grid-template-columns:minmax(0,1fr)}
+  .propulsion-phase3-explorer .propulsion-phase3-control input[type=range]{width:86.53846%;margin-left:10.09615%}
+}
