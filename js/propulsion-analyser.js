@@ -1164,24 +1164,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    resultPage.append(el('p','propulsion-report-small-note','Values are maximum recorded values from each log’s filtered and sorted dataset. The timestamp identifies when each maximum occurred. Records with Actual RPM = 0 are excluded.'));
    resultPage.append(el('p','propulsion-report-footer','COMPARATIVE SUMMARY  /  ALL LOGS'));
    preview.append(resultPage);
-   multiSession.logs.forEach((log,index)=>{
-    const reportPage=el('article','propulsion-report-page');
-    reportPage.append(el('div','propulsion-report-page-kicker','PER-LOG ANALYSIS  /  LOG '+log.id),el('h2','','Log '+log.id+' — '+log.fileName));
-    const rows=log.calculatedRows||[],count=Math.max(0,log.filteredRows.length-1),removed=log.sourceRows.length-log.filteredRows.length;
-    const summary=document.createElement('table');summary.className='propulsion-report-stats-table';
-    const summaryBody=document.createElement('tbody');
-    [['Rows retained',String(count)],['Rows removed by Actual RPM filter',String(removed)],['Derived parameters',(log._derivedKeys||[]).join(', ')||'None']].forEach(pair=>{const row=document.createElement('tr');row.append(el('th','',pair[0]),el('td','',pair[1]));summaryBody.append(row);});
-    summary.append(summaryBody);reportPage.append(summary);
-    if(log._derivedKeys?.length){
-     const stats=document.createElement('table');stats.className='propulsion-report-stats-table';
-     const head=document.createElement('thead'),hr=document.createElement('tr');['DERIVED PARAMETER','MINIMUM','MAXIMUM','AVERAGE'].forEach(value=>hr.append(el('th','',value)));head.append(hr);stats.append(head);
-     const statBody=document.createElement('tbody');
-     log._derivedKeys.forEach(key=>{const vals=rows.slice(1).map(item=>item.derived[key]).filter(Number.isFinite),avg=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:NaN,label=key==='mechanicalPower'?'Mechanical Power (W)':key==='electricalPower'?'Electrical Power (W)':'Specific Thrust (N/W)',row=document.createElement('tr');[label,vals.length?Math.min(...vals).toFixed(4):'—',vals.length?Math.max(...vals).toFixed(4):'—',Number.isFinite(avg)?avg.toFixed(4):'—'].forEach(value=>row.append(el('td','',String(value))));statBody.append(row);});
-     stats.append(statBody);reportPage.append(el('h3','','Derived Parameter Statistics'),stats);
-    }
-    reportPage.append(el('p','propulsion-report-footer','LOG '+log.id+'  /  '+log.fileName));
-    preview.append(reportPage);
-   });
+   // Per-log processing/derived-statistics detail pages are intentionally omitted from the PDF preview.
    const currentSvg=multiGraphCard?.querySelector('.propulsion-phase3-plot-host svg');
    if(currentSvg){const graphPage=el('article','propulsion-report-page');graphPage.append(el('div','propulsion-report-page-kicker','COMPARATIVE GRAPHICAL ANALYSIS'),el('h2','','Comparative Propulsion Graph'));const graph=el('div','propulsion-report-preview-graph');const clone=currentSvg.cloneNode(true);clone.removeAttribute('style');graph.append(clone);graphPage.append(graph);preview.append(graphPage);}
   }
