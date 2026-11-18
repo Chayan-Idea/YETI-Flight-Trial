@@ -114,6 +114,7 @@ const server = http.createServer((req,res)=>{
   await sharedSpecific.check();
   const calculateElectrical=sharedDerivedCards.nth(0).locator('button').filter({hasText:'Calculate and Add to Log file'});
   const calculateSpecific=sharedDerivedCards.nth(1).locator('button').filter({hasText:'Calculate and Add to Log file'});
+  if(await calculateElectrical.isDisabled()||await calculateSpecific.isDisabled())throw new Error('Checking a shared derived parameter must immediately enable its Calculate and Add to Log File action, matching Single-Log behaviour.');
   if(await calculateElectrical.count()!==1||await calculateSpecific.count()!==1)throw new Error('Each shared derived parameter must retain the Single-Log Calculate and Add to Log File action.');
   await applyButtons.nth(0).click();
   await applyButtons.nth(1).click();
