@@ -1263,11 +1263,14 @@ const statsPage=el('section','propulsion-report-summary-page');
     multiSession.logs.forEach(log=>{log._phase3Ready=true;});updateMultiReadiness();
     csvExportButton.hidden=true;
     csvStatus.textContent='Successfully generated '+prepared.length+' separate CSV files. Each log has its own preview and download buttons.';
+    // Keep the continuation actions inside Step 03 and explicitly expose the action container and both choices.
+    multiAnalysisCard.append(multiProceedActions);
     multiProceedActions.hidden=false;multiProceedInApp.hidden=false;multiProceedReport.hidden=false;
+    multiProceedActions.scrollIntoView({behavior:'smooth',block:'nearest'});
    }catch(error){csvStatus.textContent='CSV generation failed: '+(error.message||'Unable to prepare the individual CSV files.');csvStatus.setAttribute('role','alert');}
   });
   csvSection.append(csvConfirmation,csvStatus,csvActions,generatedCsvFilesHost);
-  multiAnalysisCard.append(sharedDerivedSection,csvSection);
+  multiAnalysisCard.append(sharedDerivedSection,csvSection,multiProceedActions);
   // Mirror the Single-Log choice shown after Step 03: continue to in-app analysis or go directly to report generation.
   const multiProceedActions=el('div','propulsion-actions propulsion-next-step-actions');
   const multiProceedInApp=el('button','btn','Proceed with In App Analysis');multiProceedInApp.type='button';multiProceedInApp.hidden=true;
@@ -1312,7 +1315,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   ['PARAMETER',...multiSession.logs.map((_,index)=>'LOG '+(index+1))].forEach(label=>summaryHeadRow.append(el('th','',label)));summaryHead.append(summaryHeadRow);summaryTable.append(summaryHead);
   const summaryBody=document.createElement('tbody');summaryTable.append(summaryBody);summaryWrap.append(summaryTable);multiSummaryCard.append(summaryValueNote,summaryWrap);
   const summaryActions=el('div','propulsion-actions'),summaryNext=el('button','btn','Proceed to Graphical Analysis');summaryNext.type='button';summaryActions.append(summaryNext);multiSummaryCard.append(summaryActions);
-  multiMappingHost.append(multiAnalysisCard,multiProceedActions,multiSummaryCard,multiGraphCard);
+  multiMappingHost.append(multiAnalysisCard,multiSummaryCard,multiGraphCard);
   multiSummaryCard.hidden=true;multiGraphCard.hidden=true;
   buildMultiLogReportCard();
   multiReportCard.hidden=true;
