@@ -106,6 +106,34 @@ const server = http.createServer((req,res)=>{
   await report.waitForLoadState('domcontentloaded');
   await report.getByText('YETI Propulsion Comparative Validation Report').waitFor();
   await report.getByText('run-a.csv').waitFor();await report.getByText('run-b.csv').waitFor();
+
+  // Verify the same unified mapping-table layout for 3-log and 4-log analysis.
+  for (const count of [3,4]) {
+   await page.locator('#propulsionLogCount').selectOption(String(count));
+   await Promise.all([page.waitForNavigation({waitUntil:'networkidle'}),page.locator('#confirmCommonSetupBtn').click()]);
+   await page.locator('#propulsionMultiSetupCard').waitFor({state:'visible'});
+   await page.locator('#propulsionMultiLogTypePicker input[value="thrust"]').evaluate(el=>{el.checked=true;el.dispatchEvent(new Event('change',{bubbles:true}));});
+   const multiUploads=page.locator('#propulsionMultiUploadGrid input[type="file"]');
+   if(await multiUploads.count()!==count)throw new Error(count+'-log mode did not render the requested number of CSV upload slots.');
+   for(let index=0;index<count;index++){
+    const csv='thrust,command_rpm,actual_rpm,dc_voltage_v,dc_current_a\n'+(100+index*10)+',1000,980,50,10\n'+(110+index*10)+',1100,1080,50,11\n';
+    await multiUploads.nth(index).setInputFiles({name:'run-'+count+'-'+(index+1)+'.csv',mimeType:'text/csv',buffer:Buffer.from(csv)});
+   }
+   await page.locator('#identifyMultipleLogsBtn').waitFor({state:'visible'});
+   await page.locator('#identifyMultipleLogsBtn').click();
+   await page.locator('#confirmAllMultiLogMappingsBtn').waitFor({state:'visible'});
+   const unified=page.locator('.propulsion-multi-mapping-unified');
+   if(await unified.count()!==1)throw new Error(count+'-log mode must render exactly one unified parameter-identification table.');
+   if(await unified.locator('thead tr:first-child th').count()!==count+2)throw new Error(count+'-log table must contain Parameter Group, Parameter and one grouped header per log.');
+   if(await unified.locator('thead tr:nth-child(2) th').count()!==count)throw new Error(count+'-log table must contain exactly one CSV mapping column per log.');
+   if(await unified.locator('tbody tr').count()!==10)throw new Error(count+'-log Thrust table must contain all 10 applicable parameter rows.');
+   if(await unified.locator('tbody tr:first-child td, tbody tr:first-child th').count()!==count+2)throw new Error(count+'-log parameter rows must contain two parameter cells plus one mapping cell per log.');
+   for(let index=0;index<count;index++){
+    if(await unified.locator('select[data-log-index="'+index+'"]').count()!==10)throw new Error(count+'-log table is missing independent selectors for Log '+(index+1)+'.');
+   }
+   if(await unified.locator('.propulsion-multi-mapping-status').count()!==0)throw new Error(count+'-log table must not show the removed auto-detection status column.');
+   if(await page.locator('#confirmAllMultiLogMappingsBtn').isDisabled())throw new Error(count+'-log default mappings did not validate.');
+  }
   await page.locator('#propulsionAnalyzerTab').click();
   await page.locator('#flightPreparationTab').click();
   await page.locator('#flightPreparationPanel').waitFor({state:'visible'});
