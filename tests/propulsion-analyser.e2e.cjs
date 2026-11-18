@@ -225,6 +225,10 @@ const server = http.createServer((req,res)=>{
    const multiStep3=page.locator('#propulsionPhase3AnalysisCard');await multiStep3.waitFor({state:'visible'});
    if(await multiStep3.locator('.propulsion-phase3-log-card, button:has-text("Apply Data Filtering")').count()!==0)throw new Error(count+'-log mode must not render individual filtering cards or buttons.');
    await multiStep3.locator('.propulsion-step-subsection--csv').getByText('CSV Generation with Filtered & Sorted Data').waitFor();
+   const step3Actions=multiStep3.locator('.propulsion-next-step-actions');
+   if(await step3Actions.count()!==1)throw new Error(count+'-log Step 03 must contain its continuation action area.');
+   if(await step3Actions.isVisible())throw new Error(count+'-log continuation buttons must remain hidden until CSV generation succeeds.');
+
   }
   await page.locator('#propulsionAnalyzerTab').click();
   await page.locator('#flightPreparationTab').click();
