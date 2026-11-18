@@ -1299,9 +1299,9 @@ const statsPage=el('section','propulsion-report-summary-page');
   multiGraphCard=graph;
   const multiSummaryCard=el('section','propulsion-statistics-card propulsion-step-card propulsion-step-card--green');multiSummaryCard.id='propulsionMultiParameterSummaryCard';multiSummaryCard.hidden=true;
   multiSummaryCard.append(el('span','propulsion-step-label','STEP 04 · PARAMETER SUMMARY'),el('h3','','Comparative Parameter Summary'),el('p','propulsion-statistics-description','Review the maximum recorded value and corresponding timestamp for each mapped parameter in every processed log. All values are calculated from each log’s filtered and sorted dataset.'));
-  const summaryWrap=el('div','propulsion-statistics-table-wrap'),summaryTable=document.createElement('table');summaryTable.className='propulsion-statistics-table';
+  const summaryWrap=el('div','propulsion-statistics-table-wrap'),summaryTable=document.createElement('table');summaryTable.className='propulsion-statistics-table propulsion-multi-summary-table';
   const summaryHead=document.createElement('thead'),summaryHeadRow=document.createElement('tr');
-  ['LOG','PARAMETER','MAXIMUM','TIMESTAMP'].forEach(label=>summaryHeadRow.append(el('th','',label)));summaryHead.append(summaryHeadRow);summaryTable.append(summaryHead);
+  ['PARAMETER',...multiSession.logs.map((_,index)=>'LOG '+(index+1))].forEach(label=>summaryHeadRow.append(el('th','',label)));summaryHead.append(summaryHeadRow);summaryTable.append(summaryHead);
   const summaryBody=document.createElement('tbody');summaryTable.append(summaryBody);summaryWrap.append(summaryTable);multiSummaryCard.append(summaryWrap);
   const summaryActions=el('div','propulsion-actions'),summaryNext=el('button','btn','Proceed to Graphical Analysis');summaryNext.type='button';summaryActions.append(summaryNext);multiSummaryCard.append(summaryActions);
   multiMappingHost.append(multiAnalysisCard,multiProceedActions,multiSummaryCard,multiGraphCard);
@@ -1314,10 +1314,18 @@ const statsPage=el('section','propulsion-report-summary-page');
    if(!multiSession.logs.every(log=>log._phase3Ready)){return;}
    summaryBody.replaceChildren();
    const timestampAliases=['timestamp','time_stamp','datetime','date_time','date time','time','utc_time','local_time','sample_time','logged_at','date'];
-   multiSession.logs.forEach((log,index)=>{
+   const parameterMap=new Map();
+   // Build one shared parameter list so a parameter always occupies the same row across all logs.
+   multiSession.logs.forEach(log=>{
+    const specsForLog=multiActiveSpecs().map(spec=>({key:spec.key,label:spec.label,index:log.mapping[spec.key]})).filter(item=>Number.isInteger(item.index));
+    (log._derivedKeys||[]).forEach(key=>specsForLog.push({key,label:key==='mechanicalPower'?'Mechanical Power (W)':key==='electricalPower'?'Electrical Power (W)':'Specific Thrust (N/W)',derived:true}));
+    specsForLog.forEach(spec=>{if(!parameterMap.has(spec.key))parameterMap.set(spec.key,{key:spec.key,label:spec.label,derived:!!spec.derived});});
+   });
+   const summaries=multiSession.logs.map(log=>{
     const rows=log.calculatedRows||[],header=log.filteredRows?.[0]||log.headers||[];
     const timestampIndex=header.map((name,i)=>({index:i,score:scoreHeader(name,timestampAliases)})).filter(item=>item.score>=65).sort((a,b)=>b.score-a.score)[0]?.index;
-    const specsForLog=multiActiveSpecs().map(spec=>({key:spec.key,label:spec.label,index:log.mapping[spec.key]})).filter(item=>Number.isInteger(item.index));
+    const values=new Map();
+    const specsForLog=multiActiveSpecs().map(spec=>({key:spec.key,label:spec.label,index:log.mapping[spec.key],derived:false})).filter(item=>Number.isInteger(item.index));
     (log._derivedKeys||[]).forEach(key=>specsForLog.push({key,label:key==='mechanicalPower'?'Mechanical Power (W)':key==='electricalPower'?'Electrical Power (W)':'Specific Thrust (N/W)',derived:true}));
     specsForLog.forEach(spec=>{
      let maximum=-Infinity,maximumRow=null;
@@ -1326,10 +1334,21 @@ const statsPage=el('section','propulsion-report-summary-page');
       if(Number.isFinite(value)&&value>maximum){maximum=value;maximumRow=item;}
      });
      const timestamp=maximumRow?(timestampIndex===undefined?'Timestamp column not found':String(maximumRow.source?.[timestampIndex]??'').trim()||'Timestamp unavailable'):(timestampIndex===undefined?'Timestamp column not found':'No numeric data');
-     const tr=document.createElement('tr');
-     [ 'LOG '+(index+1)+' · '+(log.fileName||multiFiles[index]?.file?.name||''),spec.label,Number.isFinite(maximum)?new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(maximum):'—',timestamp].forEach(value=>tr.append(el('td','',String(value))));
-     summaryBody.append(tr);
+     values.set(spec.key,{maximum:Number.isFinite(maximum)?new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(maximum):'—',timestamp});
     });
+    return values;
+   });
+   parameterMap.forEach(parameter=>{
+    const tr=document.createElement('tr');tr.append(el('th','',parameter.label));
+    summaries.forEach(values=>{
+     const td=document.createElement('td'),entry=values.get(parameter.key);
+     if(entry){
+      td.append(el('strong','propulsion-multi-summary-maximum',entry.maximum));
+      td.append(el('span','propulsion-multi-summary-timestamp',entry.timestamp));
+     }else td.textContent='—';
+     tr.append(td);
+    });
+    summaryBody.append(tr);
    });
    multiSummaryCard.hidden=false;multiGraphCard.hidden=true;multiSummaryCard.scrollIntoView({behavior:'smooth',block:'start'});
   });
