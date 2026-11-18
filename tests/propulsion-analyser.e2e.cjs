@@ -97,6 +97,9 @@ const server = http.createServer((req,res)=>{
   if(await page.locator('.propulsion-multi-log-mapping').count()!==0)throw new Error('Separate vertically stacked per-log mapping cards should not be rendered.');
   if(await page.locator('#confirmAllMultiLogMappingsBtn').isDisabled())throw new Error('Default parameter mapping did not validate for both sample logs.');
   await page.locator('#confirmAllMultiLogMappingsBtn').click();
+  await page.locator('#propulsionPhase3AnalysisCard').waitFor({state:'visible'});
+  if(await page.locator('#propulsionPhase3AnalysisCard .propulsion-next-step-actions').count()!==1)throw new Error('Step 03 must render its continuation actions after mapping confirmation.');
+
   const step3Card=page.locator('#propulsionPhase3AnalysisCard'),step4Card=page.locator('#propulsionPhase4GraphCard'),step5Card=page.locator('#propulsionPhase4ReportCard');
   await step3Card.waitFor({state:'visible'});
   if(await step4Card.isVisible()||await step5Card.isVisible())throw new Error('Comparative summary, graph and report steps must remain hidden until the user proceeds from the preceding step.');
