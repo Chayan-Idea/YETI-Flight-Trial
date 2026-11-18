@@ -1096,7 +1096,27 @@ const statsPage=el('section','propulsion-report-summary-page');
   if(!multiMappingConfirmed||!multiSession||!multiMappingHost)return;
   multiAnalysisCard?.remove();multiGraphCard?.remove();multiReportCard?.remove();
   multiAnalysisCard=el('section','propulsion-phase3-card propulsion-step-card propulsion-step-card--orange');multiAnalysisCard.id='propulsionPhase3AnalysisCard';
-  multiAnalysisCard.append(el('div','propulsion-step-label','STEP 03 · INDEPENDENT FILTERING & CALCULATION'),el('h3','','Filter, Sort & Calculate Each Log Independently'),el('p','propulsion-mapping-description','Each log is filtered and sorted separately. Select derived parameters per log; calculations are appended only to that log’s analysis data.'));
+  multiAnalysisCard.append(el('div','propulsion-step-label','STEP 03 · DATA FILTERING & DERIVED PARAMETER CALCULATION'),el('h3','','Data Filtering & Derived Parameter Calculation'),el('p','propulsion-mapping-description','Choose derived parameters once for the complete test session. The same selections and formulas are applied consistently to every uploaded log; filtering and sorting remain independently configurable for each log.'));
+  const sharedDerivedSection=el('section','propulsion-step-subsection propulsion-step-subsection--derived');
+  sharedDerivedSection.append(el('h4','','Derived Parameter Identification & Calculation'),el('p','propulsion-subsection-description','Select each required parameter once. Your selection will be used for all logs in this comparative analysis.'));
+  const sharedDerivedCards=el('div','propulsion-calculated-parameters');
+  const sharedDerivedChecks={};
+  (commonEngine.DERIVED_BY_TEST[multiLogType]||[]).forEach(key=>{
+   const parameterName=key==='mechanicalPower'?'Mechanical Power':key==='electricalPower'?'Electrical Power':'Specific Thrust';
+   const card=el('div','propulsion-calculated-parameter');card.dataset.parameterKey=key;
+   const details=el('div','propulsion-calculated-parameter-details'),label=el('label','propulsion-calculated-parameter-label'),check=document.createElement('input');check.type='checkbox';check.value=key;check.setAttribute('aria-label','Calculate '+parameterName+' for all logs');
+   label.append(check,el('strong','',parameterName));
+   const formulaLabel=el('span','propulsion-calculated-formula-label','FORMULA'),formula=el('div','propulsion-calculated-formula');
+   if(key==='mechanicalPower'){
+    formula.append(el('span','propulsion-formula-equation','Mechanical Power (W) = Torque (N·m) × Actual Motor Speed (RPM) × '));
+    const fraction=el('span','propulsion-formula-fraction propulsion-formula-conversion');fraction.setAttribute('role','math');fraction.append(el('span','propulsion-formula-numerator','2π'),el('span','propulsion-formula-denominator','60'));formula.append(fraction);
+   }else if(key==='electricalPower')formula.textContent='Electrical Power (W) = DC Voltage (V) × DC Current (A)';
+   else{const equation=el('span','propulsion-formula-equation','Specific Thrust (N/W) = '),fraction=el('span','propulsion-formula-fraction');fraction.setAttribute('role','math');fraction.append(el('span','propulsion-formula-numerator','Thrust (N)'),el('span','propulsion-formula-denominator','Electrical Power (W)'));formula.append(equation,fraction);}
+   const note=el('div','propulsion-calculated-mapping-note','Inputs are taken from each log’s confirmed Step 02 parameter mapping.');
+   details.append(label,formulaLabel,formula,note);card.append(details);sharedDerivedCards.append(card);sharedDerivedChecks[key]=check;
+   check.addEventListener('change',()=>{multiSession.logs.forEach(log=>{log._phase3Ready=false;});multiSession.logs.forEach(log=>{const status=log._phase3Card?.querySelector('.propulsion-phase3-result');if(status)status.textContent='Shared derived-parameter selection changed. Apply Filtering & Calculate again for every log.';});updateMultiGraphAvailability();});
+  });
+  sharedDerivedSection.append(sharedDerivedCards);
   const logCards=el('div','propulsion-phase3-log-grid');
   multiSession.logs.forEach((log,index)=>{
    const source=multiFiles[index],card=el('section','propulsion-phase3-log-card'),heading=el('div','propulsion-phase3-log-heading');
@@ -1108,16 +1128,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    multiActiveSpecs().forEach(spec=>{const option=document.createElement('option');option.value=String(log.mapping[spec.key]);option.textContent=spec.label;sortSelect.append(option)});
    const direction=document.createElement('select');direction.className='propulsion-column-select';direction.innerHTML='<option value="asc">Ascending</option><option value="desc">Descending</option>';
    sortLabel.append(sortSelect);const directionLabel=el('label','propulsion-phase3-control','ORDER');directionLabel.append(direction);filterRow.append(sortLabel,directionLabel);card.append(filterRow);
-   const derivedTitle=el('h5','propulsion-phase3-subheading','DERIVED PARAMETERS');
-   const derivedWrap=el('div','propulsion-phase3-derived-list');
-   const derivedChecks={};
-   (commonEngine.DERIVED_BY_TEST[multiLogType]||[]).forEach(key=>{
-    const label=el('label','propulsion-phase3-derived-option'),check=document.createElement('input');check.type='checkbox';check.value=key;
-    const name=key==='mechanicalPower'?'Mechanical Power':key==='electricalPower'?'Electrical Power':'Specific Thrust';
-    const formula=key==='mechanicalPower'?'Torque × Actual RPM × 2π / 60 (W)':key==='electricalPower'?'DC Voltage × DC Current (W)':'Thrust / Electrical Power (N/W)';
-    label.append(check,el('span','',name+' — '+formula));derivedWrap.append(label);derivedChecks[key]=check;
-   });
-   card.append(derivedTitle,derivedWrap);
+
    const action=el('button','btn','Apply Filtering & Calculate');action.type='button';
    const summary=el('p','propulsion-phase3-result','Filtering and calculations not yet applied.');summary.setAttribute('role','status');
    const tableHost=el('div','propulsion-phase3-preview');
@@ -1125,7 +1136,7 @@ const statsPage=el('section','propulsion-report-summary-page');
     try{
      const sortIndex=sortSelect.value===''?-1:Number(sortSelect.value);
      commonEngine.filterLog(log,{actualRpmIndex:log.mapping.actualRpm,sortIndex,sortDirection:direction.value});
-     const selected=Object.keys(derivedChecks).filter(key=>derivedChecks[key].checked);
+     const selected=Object.keys(sharedDerivedChecks).filter(key=>sharedDerivedChecks[key].checked);
      commonEngine.calculateLog(log,multiLogType,selected);
      log._phase3Ready=true;log._derivedKeys=selected;
      const removed=log.sourceRows.length-log.filteredRows.length;
@@ -1134,9 +1145,9 @@ const statsPage=el('section','propulsion-report-summary-page');
      updateMultiGraphAvailability();
     }catch(error){summary.textContent=error.message||'Unable to process this log.';log._phase3Ready=false;updateMultiGraphAvailability();}
    });
-   card.append(action,summary,tableHost);card._phase3Controls={sortSelect,direction,derivedChecks,summary,tableHost};logCards.append(card);log._phase3Card=card;
+   card.append(action,summary,tableHost);card._phase3Controls={sortSelect,direction,derivedChecks:sharedDerivedChecks,summary,tableHost};logCards.append(card);log._phase3Card=card;
   });
-  multiAnalysisCard.append(logCards);
+  multiAnalysisCard.append(sharedDerivedSection,logCards);
   const graph=el('section','propulsion-phase3-graph-card propulsion-step-card propulsion-step-card--blue');graph.id='propulsionPhase4GraphCard';
   graph.append(el('div','propulsion-step-label','STEP 04 · COMPARATIVE GRAPHICAL ANALYSIS'),el('h3','','Compare Multiple Logs on Common Axes'),el('p','propulsion-mapping-description','Choose common X and Y parameters. Toggle each log series independently and explore the plotted points.'));
   const controls=el('div','propulsion-phase3-graph-controls');
