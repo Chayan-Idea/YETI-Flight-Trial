@@ -1131,3 +1131,28 @@
 @media(max-width:420px){
   .propulsion-phase3-range-panel .propulsion-x-range-fields{grid-template-columns:minmax(0,1fr)!important}
 }
+
+/* Multi-log report: independent identification values per log, shared objective, A4 live preview. */
+.propulsion-phase4-report-form--multi{display:block;width:100%;min-width:0}
+.propulsion-phase4-report-input-table-wrap{width:100%;max-width:100%;overflow-x:auto;border:1px solid #d8e2eb;border-radius:10px;background:#fff}
+.propulsion-phase4-report-input-table{width:100%;min-width:760px;border-collapse:collapse;table-layout:fixed}
+.propulsion-phase4-report-input-table th,.propulsion-phase4-report-input-table td{padding:10px 12px;border-bottom:1px solid #e2e8f0;text-align:left;vertical-align:middle}
+.propulsion-phase4-report-input-table thead th{background:#edf4fa;color:#24476b;font-size:.75rem;font-weight:850}
+.propulsion-phase4-report-input-table tbody th{width:190px;background:#f8fafc;color:#334b63;font-size:.78rem}
+.propulsion-phase4-report-input-table input,.propulsion-phase4-report-input-table select{width:100%;min-width:0;box-sizing:border-box;padding:9px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;color:#172b4d;font:inherit}
+.propulsion-phase4-common-objective{margin-top:18px;padding:16px;border:1px solid #d8e2eb;border-radius:10px;background:#f8fbfe}
+.propulsion-phase4-common-objective h4{margin:0 0 12px;color:#174f7d}
+.propulsion-phase4-common-objective textarea{width:100%;box-sizing:border-box;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font:inherit;resize:vertical}
+.propulsion-phase4-live-preview-panel{margin-top:20px}
+.propulsion-phase4-live-preview-panel>h3{color:#17365d}
+#multiPropulsionReportLivePreview .propulsion-report-page{box-sizing:border-box;width:210mm;height:297mm;min-height:297mm;max-height:297mm;padding:12mm 13mm;overflow:hidden;background:#fff;color:#172b3d}
+#multiPropulsionReportLivePreview .propulsion-report-page h1{font-size:23pt;color:#123b70;margin:12mm 0 8mm}
+#multiPropulsionReportLivePreview .propulsion-report-page h2{font-size:15pt;color:#123b70;margin:8mm 0 5mm}
+#multiPropulsionReportLivePreview .propulsion-report-stats-table{width:100%;border-collapse:collapse;font-size:9pt;margin:5mm 0}
+#multiPropulsionReportLivePreview .propulsion-report-stats-table th,#multiPropulsionReportLivePreview .propulsion-report-stats-table td{padding:3mm;border:1px solid #d8e2eb;text-align:left;vertical-align:top;overflow-wrap:anywhere}
+#multiPropulsionReportLivePreview .propulsion-report-stats-table th{background:#eaf3fa;color:#174f7d}
+#multiPropulsionReportLivePreview .propulsion-report-objective{margin-top:10mm;white-space:pre-wrap;line-height:1.5}
+#multiPropulsionReportLivePreview .propulsion-report-footer{margin-top:auto;padding-top:12mm;color:#758697;font-size:8pt}
+#multiPropulsionReportLivePreview .propulsion-report-preview-graph svg{display:block;width:100%;height:auto;max-height:165mm}
+@media(max-width:760px){.propulsion-phase4-report-input-table{min-width:760px}.propulsion-phase4-common-objective{padding:12px}}
+@media print{@page{size:A4 portrait;margin:0}#multiPropulsionReportLivePreview .propulsion-report-page{width:210mm!important;height:297mm!important;min-height:297mm!important;max-height:297mm!important;margin:0!important;break-after:page;page-break-after:always;box-shadow:none!important}#multiPropulsionReportLivePreview .propulsion-report-page:last-child{break-after:auto;page-break-after:auto}}
