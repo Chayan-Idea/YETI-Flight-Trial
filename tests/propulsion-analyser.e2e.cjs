@@ -98,7 +98,8 @@ const server = http.createServer((req,res)=>{
   if(await page.locator('#confirmAllMultiLogMappingsBtn').isDisabled())throw new Error('Default parameter mapping did not validate for both sample logs.');
   await page.locator('#confirmAllMultiLogMappingsBtn').click();
   const step3Card=page.locator('#propulsionPhase3AnalysisCard'),step4Card=page.locator('#propulsionPhase4GraphCard'),step5Card=page.locator('#propulsionPhase4ReportCard');
-  await step5Card.waitFor({state:'visible'});
+  await step3Card.waitFor({state:'visible'});
+  if(await step4Card.isVisible()||await step5Card.isVisible())throw new Error('Comparative summary, graph and report steps must remain hidden until the user proceeds from the preceding step.');
   if(await step3Card.locator('#propulsionPhase4GraphCard, #propulsionPhase4ReportCard').count()!==0)throw new Error('Steps 04 and 05 must not be nested inside Step 03.');
   if(await step3Card.evaluate(el=>el.parentElement)!==await step4Card.evaluate(el=>el.parentElement)||await step4Card.evaluate(el=>el.parentElement)!==await step5Card.evaluate(el=>el.parentElement))throw new Error('Steps 03, 04 and 05 must be separate sibling cards in the workflow.');
 
