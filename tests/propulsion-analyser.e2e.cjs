@@ -163,7 +163,7 @@ const server = http.createServer((req,res)=>{
   if(await readoutTable.count()!==1||await readoutTable.locator('tbody tr').count()!==2)throw new Error('Common X-axis slider must show every log in a structured table.');
   if(await readoutTable.locator('thead th').count()!==4)throw new Error('Per-log readout table must show only Log, File Name, X and Y columns.');
   const sliderStyle=await commonSlider.evaluate(el=>({width:getComputedStyle(el).width,marginLeft:getComputedStyle(el).marginLeft,appearance:getComputedStyle(el).appearance}));
-  if(sliderStyle.appearance!=='none')throw new Error('Comparative slider must use the custom endpoint-aligned track styling.');
+  if(sliderStyle.appearance!=='auto')throw new Error('Comparative slider must use the shared native slider appearance.');
   const xyRange=page.locator('.propulsion-phase3-range-panel');
   if(await xyRange.count()!==1)throw new Error('Comparative graph must provide the X-Y range selector.');
   for(const id of ['multiGraphXRangeStart','multiGraphXRangeEnd','multiGraphYRangeStart','multiGraphYRangeEnd'])if(await page.locator('#'+id).count()!==1)throw new Error('Missing comparative X-Y range input: '+id);
