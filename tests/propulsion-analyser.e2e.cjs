@@ -22,7 +22,14 @@ const server = http.createServer((req,res)=>{
   // Verify the original single-log workflow before testing multi-log mode.
   await page.locator('#flightPreparationTab').click();
   await page.locator('#flightPreparationPanel').waitFor({state:'visible'});
-  await page.locator('#propulsionAnalyzerTab').click();
+  const multiReport=page.locator('#propulsionPhase4ReportCard');
+  await multiReport.waitFor({state:'attached'});
+  const reportInputTable=multiReport.locator('.propulsion-phase4-report-input-table');
+  if(await reportInputTable.locator('thead th').count()!==3)throw new Error('Two-log report identification table must have one parameter column and one column per log.');
+  if(await reportInputTable.locator('tbody tr').count()!==8)throw new Error('Comparative report must retain all eight existing identification fields for each log.');
+  if(await multiReport.locator('#multiReport_commonObjective').count()!==1)throw new Error('Comparative report must have exactly one shared objective/manual entry field.');
+  if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-page').count()<3)throw new Error('Comparative report must render the live A4 preview pages for cover, per-log results and graph when plotted.');
+    await page.locator('#propulsionAnalyzerTab').click();
   await page.locator('#propulsionLogCount').selectOption('1');
   await page.locator('#propulsionLogTypePicker input[value="thrust"]').evaluate(el=>{el.checked=true;el.dispatchEvent(new Event('change',{bubbles:true}));});
   await page.locator('#propulsionLogUploadArea').waitFor({state:'visible'});
