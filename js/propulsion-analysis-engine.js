@@ -96,9 +96,24 @@
     const opts = options || {};
     const rpmIndex = Number.isInteger(opts.actualRpmIndex) ? opts.actualRpmIndex : log.mapping.actualRpm;
     const rows = cloneRows(log.sourceRows);
-    log.filteredRows = rpmIndex === undefined
+    let filtered = rpmIndex === undefined
       ? rows
       : rows.filter((row, index) => index === 0 || numericCell(row, rpmIndex) > 0 || !Number.isFinite(numericCell(row, rpmIndex)));
+    const sortIndex = Number.isInteger(opts.sortIndex) ? opts.sortIndex : -1;
+    const direction = opts.sortDirection === 'desc' ? -1 : 1;
+    if (sortIndex >= 0 && filtered.length > 2) {
+      const header = filtered[0];
+      const body = filtered.slice(1).map((row, index) => ({ row, index }));
+      body.sort((a, b) => {
+        const av = numericCell(a.row, sortIndex), bv = numericCell(b.row, sortIndex);
+        const aNum = Number.isFinite(av), bNum = Number.isFinite(bv);
+        let order = aNum && bNum ? av - bv : String(a.row[sortIndex] ?? '').localeCompare(String(b.row[sortIndex] ?? ''), undefined, { numeric: true });
+        return order === 0 ? a.index - b.index : order * direction;
+      });
+      filtered = [header, ...body.map(item => item.row)];
+    }
+    log.filteredRows = filtered;
+    log.sortOptions = { sortIndex, sortDirection: direction === 1 ? 'asc' : 'desc' };
     log.calculatedRows = [];
     log.calculatedParameterKeys = [];
     return log.filteredRows;
