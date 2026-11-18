@@ -1422,25 +1422,29 @@ const statsPage=el('section','propulsion-report-summary-page');
    readout.replaceChildren();
    const heading=el('strong','propulsion-phase3-common-x-readout','COMMON X AXIS · '+xLabel+': '+fmt(targetX));
    readout.append(heading);
+   const tableWrap=el('div','propulsion-phase3-readout-table-wrap');
+   const table=document.createElement('table');table.className='propulsion-phase3-readout-table';
+   const thead=document.createElement('thead'),headRow=document.createElement('tr');
+   ['LOG','FILE NAME','X AXIS · '+xLabel,'Y AXIS · '+yLabel,'DATA ROW'].forEach(label=>headRow.append(el('th','',label)));
+   thead.append(headRow);table.append(thead);
+   const tbody=document.createElement('tbody');
    series.forEach(item=>{
     const points=item.points,color=multiColors[item.index%multiColors.length],marker=selectedMarkers[item.index];
     let nearest=null,distance=Infinity;
     points.forEach(point=>{const delta=Math.abs(point.x-targetX);if(delta<distance){distance=delta;nearest=point;}});
-    const row=el('div','propulsion-phase3-log-point-readout');
-    const logHeading=el('strong','', 'LOG '+(item.index+1)+' · '+(item.log.fileName||multiFiles[item.index]?.file.name||('Log '+(item.index+1))));
-    row.append(logHeading);
+    const row=document.createElement('tr');
+    const logCell=el('th','','LOG '+(item.index+1));logCell.scope='row';logCell.style.borderLeft='4px solid '+color;row.append(logCell);
+    const fileCell=el('td','',item.log.fileName||multiFiles[item.index]?.file.name||('Log '+(item.index+1)));fileCell.className='propulsion-phase3-readout-filename';row.append(fileCell);
     if(nearest){
      marker.setAttribute('cx',sx(nearest.x));marker.setAttribute('cy',sy(nearest.y));marker.setAttribute('visibility','visible');
-     row.append(el('span','', 'X ('+xLabel+'): '+fmt(nearest.x)));
-     row.append(el('span','', 'Y ('+yLabel+'): '+fmt(nearest.y)));
-     row.append(el('span','', 'Data row: '+nearest.row));
+     row.append(el('td','',fmt(nearest.x)),el('td','',fmt(nearest.y)),el('td','',String(nearest.row)));
     }else{
      marker.setAttribute('visibility','hidden');
-     row.append(el('span','', 'No valid plotted point available for this log.'));
+     const unavailable=el('td','','No valid plotted point');unavailable.colSpan=3;row.append(unavailable);
     }
-    row.style.borderLeft='4px solid '+color;row.style.padding='6px 10px';row.style.marginTop='6px';
-    readout.append(row);
+    tbody.append(row);
    });
+   table.append(tbody);tableWrap.append(table);readout.append(tableWrap);
   };
   slider.min='0';slider.max=String(sliderSteps);slider.step='1';slider.value='0';slider.disabled=false;
   slider.setAttribute('aria-valuetext','Common X-axis position');
