@@ -55,6 +55,9 @@ const server = http.createServer((req,res)=>{
   await singleGraph.locator('svg').waitFor({state:'visible'});
   // Switch to the common multi-log workflow after the single-log regression passes.
   await page.locator('#propulsionLogCount').selectOption('2');
+  await Promise.all([page.waitForNavigation({waitUntil:'networkidle'}),page.locator('#confirmCommonSetupBtn').click()]);
+  if(new URL(page.url()).searchParams.get('logCount')!=='2')throw new Error('Common Analysis Setup selection was not retained after the full page refresh.');
+  await page.locator('#propulsionMultiSetupCard').waitFor({state:'visible'});
   await page.locator('#propulsionMultiLogTypePicker input[value="thrust"]').evaluate(el=>{el.checked=true;el.dispatchEvent(new Event('change',{bubbles:true}));});
   const csvA='thrust,command_rpm,actual_rpm,dc_voltage_v,dc_current_a\n100,1000,980,50,10\n110,1100,1080,50,11\n90,900,0,50,10\n';
   const csvB='thrust,command_rpm,actual_rpm,dc_voltage_v,dc_current_a\n200,1500,1480,60,12\n210,1600,1580,60,13\n190,1400,-10,60,12\n';

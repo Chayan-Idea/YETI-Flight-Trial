@@ -952,6 +952,9 @@ const statsPage=el('section','propulsion-report-summary-page');
 
  // Phase 2: independent multi-log upload and parameter mapping.
  const commonEngine=window.PropulsionAnalysisEngine,logCountSelect=$id('propulsionLogCount'),multiSetupCard=$id('propulsionMultiSetupCard'),multiUploadGrid=$id('propulsionMultiUploadGrid'),multiUploadStatus=$id('propulsionMultiUploadStatus'),identifyMultipleLogsBtn=$id('identifyMultipleLogsBtn'),multiMappingHost=$id('propulsionMultiMappingHost');
+ // Restore only the selected setup mode from the URL so the confirmation action can perform a full page reload.
+ const requestedLogCount=new URLSearchParams(window.location.search).get('logCount');
+ if(logCountSelect&&['1','2','3','4'].includes(requestedLogCount||''))logCountSelect.value=requestedLogCount;
  let multiSession=null,multiFiles=[],multiLogType='',multiMappingConfirmed=false;
  function resetMultiSetup(){multiSession=null;multiFiles=[];multiMappingConfirmed=false;multiMappingHost?.replaceChildren();multiUploadGrid?.replaceChildren();if(identifyMultipleLogsBtn)identifyMultipleLogsBtn.disabled=true;if(multiUploadStatus)multiUploadStatus.textContent='Select the common test type and upload every requested CSV file.';renderMultiUploadSlots();}
  function renderMultiUploadSlots(){
@@ -1194,7 +1197,15 @@ const statsPage=el('section','propulsion-report-summary-page');
  }
 
  function identifyAllMultiLogs(){if(!commonEngine)throw new Error('The common analysis engine did not load.');const count=Number(logCountSelect.value);multiSession=commonEngine.createSession(count,multiLogType);multiSession.logs.forEach((log,index)=>{const source=multiFiles[index];commonEngine.setLogData(log,{fileName:source.file.name,headers:source.headers,rows:[source.headers,...source.data]});log._headerIndex=source.headerIndex;log._dataRows=source.data;});renderMultiMappings();multiMappingHost.scrollIntoView({behavior:'smooth',block:'start'});}
- logCountSelect?.addEventListener('change',()=>{if(logCountSelect.value==='1'&&multiSession&&!confirm('Switching to Single Log Analyser will clear the current multi-log uploads and mappings. Continue?')){logCountSelect.value=String(multiSession.logs.length);return;}setMultiMode();});
+ const confirmCommonSetupBtn=$id('confirmCommonSetupBtn');
+ confirmCommonSetupBtn?.addEventListener('click',()=>{
+  const selectedCount=String(logCountSelect?.value||'');
+  if(!['1','2','3','4'].includes(selectedCount))return;
+  const nextUrl=new URL(window.location.href);
+  nextUrl.searchParams.set('logCount',selectedCount);
+  // A full navigation reloads the entire application; the URL carries the chosen setup into the fresh page.
+  window.location.assign(nextUrl.toString());
+ });
  $id('propulsionMultiLogTypePicker')?.querySelectorAll('input[name="propulsionMultiLogType"]').forEach(radio=>radio.addEventListener('change',()=>{multiLogType=radio.value;resetMultiSetup();updateMultiUploadGate();}));
  identifyMultipleLogsBtn?.addEventListener('click',()=>{try{identifyAllMultiLogs();}catch(error){if(multiUploadStatus)multiUploadStatus.textContent=error.message||'Unable to identify the uploaded logs.';}});
  setMultiMode();
