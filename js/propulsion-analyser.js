@@ -1148,9 +1148,8 @@ const statsPage=el('section','propulsion-report-summary-page');
      });
      const required=key==='mechanicalPower'?['torque','actualRpm']:key==='electricalPower'?['voltage','current']:['thrust','voltage','current'];
      for(const log of multiSession.logs){
-      // Refresh the engine mapping from that log's confirmed Step 02 selection
-      // immediately before calculation, preventing stale mapping state.
-      engineSetMapping(log,log._uiMapping||{});
+      // The engine already holds this log's confirmed Step 02 mapping.
+      // Do not call setMapping here: it intentionally clears filteredRows.
       if(!Array.isArray(log.filteredRows)||!log.filteredRows.length)throw new Error('Log '+log.id+' has no filtered rows. Re-upload or re-identify this log.');
       const missing=required.filter(name=>!Number.isInteger(log.mapping?.[name]));
       if(missing.length)throw new Error('Log '+log.id+' is missing required mappings: '+missing.join(', '));
