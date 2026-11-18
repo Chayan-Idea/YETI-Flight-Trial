@@ -1078,28 +1078,13 @@
 .propulsion-phase3-readout-table .propulsion-phase3-readout-filename{white-space:normal;overflow-wrap:anywhere;min-width:180px;max-width:320px}
 @media(max-width:680px){.propulsion-phase3-readout-table{font-size:.7rem}.propulsion-phase3-readout-table th,.propulsion-phase3-readout-table td{padding:8px}}
 
-/* Align comparative slider endpoints with the graph's actual plotted X-axis limits. */
-.propulsion-phase3-explorer{grid-template-columns:minmax(0,1fr);gap:12px}
-.propulsion-phase3-explorer .propulsion-phase3-control{width:100%;box-sizing:border-box}
-.propulsion-phase3-plot-host .propulsion-chart-svg{min-width:0;width:100%}
-.propulsion-phase3-explorer .propulsion-phase3-control input[type=range]{
-  -webkit-appearance:none;appearance:none;display:block;box-sizing:border-box;
-  width:calc(86.53846% + 20px);max-width:none;margin:9px 0 0 calc(10.09615% - 10px);
-  height:20px;padding:0;background:transparent;accent-color:#0878ed;cursor:pointer;
+/* Use the same native blue progress-track slider design in every analyzer tab. */
+.propulsion-point-slider-label input[type=range],
+.propulsion-phase3-explorer input[type=range]{
+  -webkit-appearance:auto;appearance:auto;display:block;
+  box-sizing:border-box;width:100%;max-width:none;margin:9px 0 0;
+  height:auto;padding:0;background:initial;accent-color:#287fbd;cursor:pointer;
 }
-.propulsion-phase3-explorer .propulsion-phase3-control input[type=range]::-webkit-slider-runnable-track{
-  height:4px;border-radius:99px;background:#cbd5e1;
-}
-.propulsion-phase3-explorer .propulsion-phase3-control input[type=range]::-webkit-slider-thumb{
-  -webkit-appearance:none;width:20px;height:20px;margin-top:-8px;border:0;border-radius:50%;background:#0878ed;
-}
-.propulsion-phase3-explorer .propulsion-phase3-control input[type=range]::-moz-range-track{
-  height:4px;border-radius:99px;background:#cbd5e1;
-}
-.propulsion-phase3-explorer .propulsion-phase3-control input[type=range]::-moz-range-thumb{
-  width:20px;height:20px;border:0;border-radius:50%;background:#0878ed;
-}
-
 /* Multi-log X-Y range selector mirrors the single-log graph controls. */
 .propulsion-phase3-range-panel{width:100%;box-sizing:border-box;margin:0 0 12px}
 .propulsion-phase3-range-panel .propulsion-x-range-fields{grid-template-columns:repeat(4,minmax(0,1fr))}
@@ -1107,3 +1092,11 @@
 .propulsion-phase3-range-panel input{width:100%;min-width:0;box-sizing:border-box}
 @media(max-width:760px){.propulsion-phase3-range-panel .propulsion-x-range-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:420px){.propulsion-phase3-range-panel .propulsion-x-range-fields{grid-template-columns:1fr}}
+
+/* Keep the same native slider appearance consistently across single- and multi-log views. */
+.propulsion-point-slider-label input[type=range],
+.propulsion-phase3-explorer input[type=range]{
+  -webkit-appearance:auto!important;appearance:auto!important;
+  width:100%!important;margin:9px 0 0!important;height:auto!important;
+  background:initial!important;accent-color:#287fbd!important;
+}
