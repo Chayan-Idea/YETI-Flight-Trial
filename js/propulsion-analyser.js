@@ -1132,7 +1132,8 @@ const statsPage=el('section','propulsion-report-summary-page');
    check.addEventListener('change',()=>{
     if(!check.checked){sharedDerivedAdded.delete(key);addedStatus.hidden=true;retry.hidden=true;calculate.hidden=false;calculate.textContent='Calculate and Add to Log file';card.classList.remove('is-added-to-graph');}
     multiSession.logs.forEach(log=>{log._phase3Ready=false;log._derivedKeys=[...sharedDerivedAdded];if(log._phase3Filtered)commonEngine.calculateLog(log,multiLogType,log._derivedKeys);if(log._phase3Card)renderMultiLogPreview(log,log._phase3Card._phase3Controls.tableHost,log._derivedKeys);});
-    updateAction();updateMultiReadiness();
+    if(!check.checked){derivedReadyCheckbox.checked=false;filteringReadyCheckbox.checked=false;generatedMultiCsv='';csvDownloadButton.hidden=true;csvExportButton.disabled=false;}
+    updateAction();updateMultiReadiness();updateMultiCsvGate();
    });
    calculate.addEventListener('click',()=>{
     try{
