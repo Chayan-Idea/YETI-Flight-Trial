@@ -154,6 +154,17 @@ const server = http.createServer((req,res)=>{
   const graphBox=await graphPointerLayer.boundingBox();if(!graphBox)throw new Error('Graph interaction area has no measurable bounds.');
   await page.mouse.move(graphBox.x+graphBox.width*.7,graphBox.y+graphBox.height*.5);await page.mouse.down();await page.mouse.move(graphBox.x+graphBox.width*.8,graphBox.y+graphBox.height*.5);await page.mouse.up();
   if(!(await page.locator('.propulsion-phase3-explorer input[type=range]').inputValue()).length)throw new Error('Direct graph movement did not synchronize the point slider.');
+  const commonSlider=page.locator('.propulsion-phase3-explorer input[type=range]');
+  if(await commonSlider.getAttribute('max')!=='1000')throw new Error('Comparative slider must use one normalized common X-axis scale, not concatenated log point counts.');
+  await commonSlider.fill('500');
+  const perLogReadouts=page.locator('.propulsion-phase3-point-readout .propulsion-phase3-log-point-readout');
+  if(await perLogReadouts.count()!==2)throw new Error('Common X-axis slider must show a separate readout for every log.');
+  for(let index=0;index<2;index++){
+   const entry=perLogReadouts.nth(index);
+   if(!(await entry.innerText()).includes('X (')||!(await entry.innerText()).includes('Y ('))throw new Error('Each log readout must show its own X and Y values.');
+  }
+  if(!(await page.locator('.propulsion-phase3-common-x-readout').innerText()).includes('COMMON X AXIS'))throw new Error('Comparative slider readout must identify the shared X-axis position.');
+
   for(const [key,value] of Object.entries({motor:'Test Motor',esc:'Test ESC',propeller:'Test Propeller',date:'2026-11-18'}))await page.locator('#multiReport_'+key).fill(value);
   const exportButton=page.locator('#propulsionPhase4ReportCard button').filter({hasText:'Export Comparative Report as PDF'});
   if(await exportButton.isDisabled())throw new Error('Report export did not unlock after both logs were processed and required metadata was entered.');
