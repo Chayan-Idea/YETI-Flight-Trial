@@ -1094,7 +1094,7 @@ const statsPage=el('section','propulsion-report-summary-page');
 
  function renderMultiAnalysisWorkspace(){
   if(!multiMappingConfirmed||!multiSession||!multiMappingHost)return;
-  multiAnalysisCard?.remove();
+  multiAnalysisCard?.remove();multiGraphCard?.remove();multiReportCard?.remove();
   multiAnalysisCard=el('section','propulsion-phase3-card propulsion-step-card propulsion-step-card--orange');multiAnalysisCard.id='propulsionPhase3AnalysisCard';
   multiAnalysisCard.append(el('div','propulsion-step-label','STEP 03 · INDEPENDENT FILTERING & CALCULATION'),el('h3','','Filter, Sort & Calculate Each Log Independently'),el('p','propulsion-mapping-description','Each log is filtered and sorted separately. Select derived parameters per log; calculations are appended only to that log’s analysis data.'));
   const logCards=el('div','propulsion-phase3-log-grid');
@@ -1160,9 +1160,9 @@ const statsPage=el('section','propulsion-report-summary-page');
   plotButton.addEventListener('click',()=>drawMultiComparison({xSelect,ySelect,y2Select,rangeStart,rangeEnd,seriesControls,plotHost,status,slider,readout}));
   [xSelect,ySelect,y2Select].forEach(select=>select.addEventListener('change',()=>{rangeStart.value='';rangeEnd.value='';}));
   graph.append(controls,seriesControls,status,plotHost,explorer);
-  multiAnalysisCard.append(graph);
+  multiGraphCard=graph;
+  multiMappingHost.append(multiAnalysisCard,multiGraphCard);
   buildMultiLogReportCard();
-  multiMappingHost.append(multiAnalysisCard);
   updateMultiGraphAvailability();
  }
  function renderMultiLogPreview(log,host,derivedKeys){
