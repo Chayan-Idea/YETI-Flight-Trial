@@ -1194,3 +1194,17 @@
  #multiPropulsionReportLivePreview .propulsion-report-page{width:210mm!important;height:297mm!important;min-height:297mm!important;max-height:297mm!important;margin:0!important;padding:16mm 15mm!important;box-shadow:none!important;break-after:page!important;page-break-after:always!important;print-color-adjust:exact!important;-webkit-print-color-adjust:exact!important}
  #multiPropulsionReportLivePreview .propulsion-report-page:last-child{break-after:auto!important;page-break-after:auto!important}
 }
+
+/* Comparative executive summary: one A4 KPI-card page per log, mirroring the Single-Log tiles. */
+#multiPropulsionReportLivePreview .propulsion-report-multi-summary-page{display:flex;flex-direction:column;justify-content:flex-start}
+#multiPropulsionReportLivePreview .propulsion-report-multi-summary-page .propulsion-report-page-kicker{margin:0 0 3mm}
+#multiPropulsionReportLivePreview .propulsion-report-multi-summary-page h2{margin:0 0 5mm}
+#multiPropulsionReportLivePreview .propulsion-report-log-heading{margin:0 0 4mm;color:#174f7d;font-size:10pt;line-height:1.25;overflow-wrap:anywhere}
+#multiPropulsionReportLivePreview .propulsion-report-comparative-kpi-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3mm;width:100%;margin:0}
+#multiPropulsionReportLivePreview .propulsion-report-comparative-kpi{min-height:24mm;box-sizing:border-box;padding:3mm;border:1px solid #d5e1eb;border-top:2px solid #8cc63e;border-radius:2mm;background:#f7fafc;display:flex;flex-direction:column;gap:1.5mm;min-width:0}
+#multiPropulsionReportLivePreview .propulsion-report-comparative-kpi span{font-size:6.8pt;line-height:1.2;letter-spacing:.25px;font-weight:800;color:#52677b}
+#multiPropulsionReportLivePreview .propulsion-report-comparative-kpi strong{font-size:13pt;line-height:1.2;font-weight:800;color:#123b70;overflow-wrap:anywhere}
+#multiPropulsionReportLivePreview .propulsion-report-kpi-timestamp{font-size:6.5pt;line-height:1.25;color:#65788a;overflow-wrap:anywhere}
+#multiPropulsionReportLivePreview .propulsion-report-multi-summary-page .propulsion-report-small-note{margin-top:5mm!important;font-size:7pt;line-height:1.3}
+@media(max-width:760px){#multiPropulsionReportLivePreview .propulsion-report-comparative-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media print{#multiPropulsionReportLivePreview .propulsion-report-comparative-kpi-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
