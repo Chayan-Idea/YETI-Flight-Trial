@@ -1099,3 +1099,11 @@
 .propulsion-phase3-explorer .propulsion-phase3-control input[type=range]::-moz-range-thumb{
   width:20px;height:20px;border:0;border-radius:50%;background:#0878ed;
 }
+
+/* Multi-log X-Y range selector mirrors the single-log graph controls. */
+.propulsion-phase3-range-panel{width:100%;box-sizing:border-box;margin:0 0 12px}
+.propulsion-phase3-range-panel .propulsion-x-range-fields{grid-template-columns:repeat(4,minmax(0,1fr))}
+.propulsion-phase3-range-panel .propulsion-graph-field{min-width:0}
+.propulsion-phase3-range-panel input{width:100%;min-width:0;box-sizing:border-box}
+@media(max-width:760px){.propulsion-phase3-range-panel .propulsion-x-range-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:420px){.propulsion-phase3-range-panel .propulsion-x-range-fields{grid-template-columns:1fr}}
