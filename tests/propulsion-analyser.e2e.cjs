@@ -62,6 +62,9 @@ const server = http.createServer((req,res)=>{
   if(await page.locator('#propulsionMultiUploadControls').isVisible())throw new Error('Multi-log upload controls must remain hidden until a test type is selected.');
   await page.locator('#propulsionMultiLogTypePicker input[value="thrust"]').evaluate(el=>{el.checked=true;el.dispatchEvent(new Event('change',{bubbles:true}));});
   await page.locator('#propulsionMultiUploadControls').waitFor({state:'visible'});
+  const selectedTypeCard=page.locator('#propulsionMultiLogTypePicker .propulsion-log-type-option').filter({has:page.locator('input[value="thrust"]')});
+  if(!(await selectedTypeCard.evaluate(el=>el.classList.contains('is-selected'))))throw new Error('Selected Thrust Log option did not receive its full selected state.');
+  if(await selectedTypeCard.evaluate(el=>getComputedStyle(el).backgroundColor)!=='rgb(23, 105, 170)')throw new Error('Selected Thrust Log option is not fully filled blue.');
   await page.locator('#identifyMultipleLogsBtn').waitFor({state:'hidden'});
   const csvA='thrust,command_rpm,actual_rpm,dc_voltage_v,dc_current_a\n100,1000,980,50,10\n110,1100,1080,50,11\n90,900,0,50,10\n';
   const csvB='thrust,command_rpm,actual_rpm,dc_voltage_v,dc_current_a\n200,1500,1480,60,12\n210,1600,1580,60,13\n190,1400,-10,60,12\n';
