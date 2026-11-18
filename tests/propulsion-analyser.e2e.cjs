@@ -164,7 +164,11 @@ const server = http.createServer((req,res)=>{
   if(await readoutTable.locator('thead th').count()!==4)throw new Error('Per-log readout table must show only Log, File Name, X and Y columns.');
   const sliderStyle=await commonSlider.evaluate(el=>({width:getComputedStyle(el).width,marginLeft:getComputedStyle(el).marginLeft,appearance:getComputedStyle(el).appearance}));
   if(sliderStyle.appearance!=='none')throw new Error('Comparative slider must use the custom endpoint-aligned track styling.');
-  const graphSvg=page.locator('.propulsion-phase3-plot-host svg');
+  const xyRange=page.locator('.propulsion-phase3-range-panel');
+  if(await xyRange.count()!==1)throw new Error('Comparative graph must provide the X-Y range selector.');
+  for(const id of ['multiGraphXRangeStart','multiGraphXRangeEnd','multiGraphYRangeStart','multiGraphYRangeEnd'])if(await page.locator('#'+id).count()!==1)throw new Error('Missing comparative X-Y range input: '+id);
+  if(await page.getByRole('button',{name:'Apply',exact:true}).count()<1||await page.getByRole('button',{name:'Reset Full Range'}).count()<1)throw new Error('Comparative X-Y range selector must provide Apply and Reset Full Range actions.');
+    const graphSvg=page.locator('.propulsion-phase3-plot-host svg');
   const svgStyle=await graphSvg.evaluate(el=>({width:getComputedStyle(el).width,minWidth:getComputedStyle(el).minWidth}));
   if(svgStyle.minWidth!=='0px')throw new Error('Comparative graph must fit its viewport so the slider and graph share visible endpoints.');
 
