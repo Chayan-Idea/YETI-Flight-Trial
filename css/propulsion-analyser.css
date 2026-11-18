@@ -968,7 +968,7 @@
 .propulsion-multi-mapping-table thead th{background:#eaf1f8;color:#24476b;font-size:.7rem;font-weight:850;letter-spacing:.055em;white-space:nowrap}
 .propulsion-multi-mapping-table tbody tr:last-child th,.propulsion-multi-mapping-table tbody tr:last-child td{border-bottom:0}
 .propulsion-multi-mapping-table tbody tr:nth-child(even){background:#f8fafc}
-.propulsion-multi-mapping-table .propulsion-multi-mapping-group{width:17%;color:#526276;font-weight:750;white-space:nowrap}
+.propulsion-multi-mapping-table .propulsion-multi-mapping-group{width:17%;color:#526276;font-weight:800;white-space:normal;vertical-align:middle;text-align:center;background:#f1f5f9;border-right:2px solid #cbd5e1}
 .propulsion-multi-mapping-table .propulsion-multi-mapping-parameter{width:25%;color:#17365d;font-weight:800}
 .propulsion-multi-mapping-status{color:#17633a;font-size:.74rem}
 .propulsion-multi-mapping-status.is-warning{color:#a45b13}
@@ -1013,3 +1013,9 @@
   .propulsion-multi-mapping-unified .propulsion-multi-mapping-parameter{width:22%;}
   .propulsion-multi-mapping-unified .propulsion-column-select{padding:7px 2px;font-size:.62rem;}
 }
+
+
+/* Parameter groups are represented once and span their associated rows. */
+.propulsion-multi-mapping-unified .propulsion-multi-mapping-group{vertical-align:middle;text-align:center;font-weight:800;letter-spacing:.035em;line-height:1.35;background:#f1f5f9;border-right:2px solid #cbd5e1;}
+.propulsion-multi-mapping-unified tbody tr:has(.propulsion-multi-mapping-group) td,
+.propulsion-multi-mapping-unified tbody tr:has(.propulsion-multi-mapping-group) th{border-top:2px solid #cbd5e1;}
