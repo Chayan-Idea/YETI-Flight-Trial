@@ -1,0 +1,96 @@
+const { chromium } = require('playwright');
+const http = require('node:http');
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '..');
+const mime = { '.html':'text/html', '.js':'text/javascript', '.css':'text/css', '.svg':'image/svg+xml', '.png':'image/png', '.webmanifest':'application/manifest+json' };
+const server = http.createServer((req,res)=>{
+  const pathname = decodeURIComponent(new URL(req.url, 'http://127.0.0.1').pathname);
+  const target = path.resolve(root, pathname === '/' ? './index.html' : '.' + pathname);
+  if (!target.startsWith(root) || !fs.existsSync(target) || fs.statSync(target).isDirectory()) { res.writeHead(404);res.end('Not found');return; }
+  res.writeHead(200, {'content-type':mime[path.extname(target)]||'application/octet-stream','cache-control':'no-store'});
+  fs.createReadStream(target).pipe(res);
+});
+(async()=>{
+ let browser;
+ try {
+  await new Promise(resolve=>server.listen(4173,'127.0.0.1',resolve));
+  browser=await chromium.launch({headless:true,args:['--no-sandbox']});
+  const page=await browser.newPage();
+  const pageErrors=[];page.on('pageerror',error=>pageErrors.push(error.message));
+  await page.goto('http://127.0.0.1:4173/',{waitUntil:'networkidle'});
+  // Verify the original single-log workflow before testing multi-log mode.
+  await page.locator('#flightPreparationTab').click();
+  await page.locator('#flightPreparationPanel').waitFor({state:'visible'});
+  await page.locator('#propulsionAnalyzerTab').click();
+  await page.locator('#propulsionLogCount').selectOption('1');
+  await page.locator('#propulsionLogTypePicker input[value="thrust"]').evaluate(el=>{el.checked=true;el.dispatchEvent(new Event('change',{bubbles:true}));});
+  await page.locator('#propulsionLogUploadArea').waitFor({state:'visible'});
+  const singleCsv='thrust,command_rpm,actual_rpm,dc_voltage_v,dc_current_a,motor_temperature_c,esc_temperature_c,acceleration_x,acceleration_y,acceleration_z\n100,1000,980,50,10,40,35,0.1,0.2,0.3\n110,1100,1080,50,11,41,36,0.2,0.3,0.4\n90,900,0,50,10,39,34,0.0,0.1,0.2\n';
+  await page.locator('#propulsionCsvInput').setInputFiles({name:'single-thrust.csv',mimeType:'text/csv',buffer:Buffer.from(singleCsv)});
+  await page.locator('#startPropulsionAnalysisBtn').click();
+  await page.waitForTimeout(500);
+  if(await page.locator('#confirmPropulsionMappingBtn').count()===0){const detail=await page.locator('.propulsion-mapping-card').last().innerText().catch(()=>'(no mapping card)');const upload=await page.locator('#propulsionUploadStatus').innerText().catch(()=>'(no upload status)');throw new Error('Single-log mapping panel was not created. Upload status: '+upload+'; panel: '+detail+'; page errors: '+pageErrors.join(' | '));}
+  await page.locator('#confirmPropulsionMappingBtn').waitFor({state:'visible'});
+  if(await page.locator('#confirmPropulsionMappingBtn').isDisabled())throw new Error('Single-log parameter mapping did not validate.');
+  await page.locator('#confirmPropulsionMappingBtn').click();
+  const electrical=page.locator('.propulsion-calculated-parameter[data-parameter-key="electricalPower"]');
+  await electrical.locator('input[type="checkbox"]').check();
+  await electrical.locator('button').filter({hasText:'Calculate and Add to Log file'}).click();
+  const specific=page.locator('.propulsion-calculated-parameter[data-parameter-key="overallEfficiency"]');
+  await specific.locator('input[type="checkbox"]').check();
+  await specific.locator('button').filter({hasText:'Calculate and Add to Log file'}).click();
+  await page.locator('#confirmDerivedParametersReady').check();
+  await page.locator('#confirmFilteringSortingReady').check();
+  const csvGenerate=page.locator('#propulsionDataFilteringCard button').filter({hasText:'Generate Filtered & Sorted CSV'});
+  await csvGenerate.waitFor({state:'visible'});
+  await csvGenerate.click();
+  await page.locator('#proceedToParameterSummaryBtn').click();
+  await page.locator('#proceedToGraphicalAnalysisBtn').click();
+  await page.locator('#propulsionGraphicalAnalysisCard').waitFor({state:'visible'});
+  const singleGraph=page.locator('#propulsionGraphicalAnalysisCard');
+  await singleGraph.locator('select').nth(0).selectOption('2');
+  await singleGraph.locator('select').nth(1).selectOption('0');
+  await singleGraph.locator('button').filter({hasText:'Plot Graph'}).click();
+  await singleGraph.locator('svg').waitFor({state:'visible'});
+  // Switch to the common multi-log workflow after the single-log regression passes.
+  await page.locator('#propulsionLogCount').selectOption('2');
+  await page.locator('#propulsionMultiLogTypePicker input[value="thrust"]').evaluate(el=>{el.checked=true;el.dispatchEvent(new Event('change',{bubbles:true}));});
+  const csvA='thrust,command_rpm,actual_rpm,dc_voltage_v,dc_current_a\n100,1000,980,50,10\n110,1100,1080,50,11\n90,900,0,50,10\n';
+  const csvB='thrust,command_rpm,actual_rpm,dc_voltage_v,dc_current_a\n200,1500,1480,60,12\n210,1600,1580,60,13\n190,1400,-10,60,12\n';
+  const uploads=page.locator('#propulsionMultiUploadGrid input[type="file"]');
+  await uploads.nth(0).setInputFiles({name:'run-a.csv',mimeType:'text/csv',buffer:Buffer.from(csvA)});
+  await uploads.nth(1).setInputFiles({name:'run-b.csv',mimeType:'text/csv',buffer:Buffer.from(csvB)});
+  await page.locator('#identifyMultipleLogsBtn').click();
+  await page.locator('#confirmAllMultiLogMappingsBtn').waitFor({state:'visible'});
+  if(await page.locator('#confirmAllMultiLogMappingsBtn').isDisabled())throw new Error('Default parameter mapping did not validate for both sample logs.');
+  await page.locator('#confirmAllMultiLogMappingsBtn').click();
+  const applyButtons=page.locator('.propulsion-phase3-log-card button');
+  if(await applyButtons.count()!==2)throw new Error('Expected one independent processing action per log.');
+  const derivedChecks=page.locator('.propulsion-phase3-log-card .propulsion-phase3-derived-option input');
+  await derivedChecks.nth(0).check();
+  await applyButtons.nth(0).click();
+  await derivedChecks.nth(2).check();
+  await applyButtons.nth(1).click();
+  const resultSummaries=page.locator('.propulsion-phase3-result');
+  if(!(await resultSummaries.nth(0).innerText()).includes('2 data rows retained')||!(await resultSummaries.nth(1).innerText()).includes('2 data rows retained'))throw new Error('Independent RPM filtering did not retain the expected two data rows per log.');
+  await page.locator('#multiGraphSecondaryYAxis').selectOption('commandRpm');
+  await page.locator('.propulsion-phase3-graph-card button').filter({hasText:'Plot Comparative Graph'}).click();
+  await page.locator('.propulsion-phase3-plot-host svg').waitFor({state:'visible'});
+  const graphAria=await page.locator('.propulsion-phase3-plot-host svg').getAttribute('aria-label');
+  if(!graphAria.includes('and commandRpm'))throw new Error('Secondary Y-axis was not applied to the comparative graph.');
+  for(const [key,value] of Object.entries({motor:'Test Motor',esc:'Test ESC',propeller:'Test Propeller',date:'2026-11-18'}))await page.locator('#multiReport_'+key).fill(value);
+  const exportButton=page.locator('#propulsionPhase4ReportCard button').filter({hasText:'Export Comparative Report as PDF'});
+  if(await exportButton.isDisabled())throw new Error('Report export did not unlock after both logs were processed and required metadata was entered.');
+  const popupPromise=page.waitForEvent('popup');await exportButton.click();const report=await popupPromise;
+  await report.waitForLoadState('domcontentloaded');
+  await report.getByText('YETI Propulsion Comparative Validation Report').waitFor();
+  await report.getByText('run-a.csv').waitFor();await report.getByText('run-b.csv').waitFor();
+  await page.locator('#propulsionAnalyzerTab').click();
+  await page.locator('#flightPreparationTab').click();
+  await page.locator('#flightPreparationPanel').waitFor({state:'visible'});
+  if(pageErrors.length)throw new Error('Browser runtime errors: '+pageErrors.join(' | '));
+  console.log('Propulsion analyzer browser E2E passed: 2-log upload, independent mapping, RPM filtering, comparative graph with secondary Y axis, report generation and PDF print view.');
+ } catch(error) { console.error(error);process.exitCode=1; }
+ finally { if(browser)await browser.close();await new Promise(resolve=>server.close(resolve)); }
+})();

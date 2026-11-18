@@ -889,3 +889,73 @@
   line-height:0;
   pointer-events:none;
 }
+
+
+/* Common analysis Phase 2: multi-log selection, uploads and independent mappings. */
+.propulsion-mode-card,.propulsion-multi-setup-card,.propulsion-multi-mapping-intro,.propulsion-multi-log-mapping{margin-bottom:18px}
+.propulsion-mode-count-label{display:block;font-size:.76rem;font-weight:800;letter-spacing:.08em;color:#475569}
+.propulsion-log-count-select{display:block;width:min(100%,420px);min-height:44px;margin-top:8px;padding:10px 12px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:#172b4d;font:inherit}
+.propulsion-multi-upload-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}
+.propulsion-multi-upload-slot{display:flex;flex-direction:column;gap:8px;padding:16px;border:1px dashed #9aaec5;border-radius:12px;background:#f8fbff;min-width:0}
+.propulsion-multi-upload-slot strong{color:#17365d;font-size:.88rem}
+.propulsion-multi-upload-hint,.propulsion-multi-file-status{font-size:.78rem;color:#64748b;overflow-wrap:anywhere}
+.propulsion-multi-upload-slot input{width:100%;font-size:.8rem}
+.propulsion-multi-actions{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:18px}
+.propulsion-multi-status,.propulsion-multi-confirm-status{font-size:.84rem;color:#526276;margin:0}
+.propulsion-multi-confirm-status{padding:12px;border-radius:10px;background:#f1f5f9}
+.propulsion-multi-confirm-status.is-valid{background:#eaf7ef;color:#17633a}
+.propulsion-multi-confirm-actions{margin-top:18px}
+.propulsion-multi-log-mapping{padding:20px}
+.propulsion-multi-log-mapping .propulsion-mapping-top{margin-bottom:14px}
+.propulsion-multi-log-type-picker{margin-top:18px}
+@media(max-width:680px){.propulsion-multi-upload-grid{grid-template-columns:1fr}.propulsion-multi-actions>*{width:100%}.propulsion-multi-log-mapping{padding:14px}}
+
+
+/* Common analysis Phase 3: per-log filtering, calculations and comparative graph. */
+.propulsion-phase3-card{margin-top:22px}
+.propulsion-phase3-log-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:18px}
+.propulsion-phase3-log-card{min-width:0;padding:18px;border:1px solid #d9e2ec;border-radius:14px;background:#fff;box-shadow:0 5px 18px rgba(24,49,79,.06)}
+.propulsion-phase3-log-heading{margin-bottom:14px}
+.propulsion-phase3-log-heading h4{margin:6px 0 0;color:#17365d;font-size:1rem;overflow-wrap:anywhere}
+.propulsion-phase3-filter-row,.propulsion-phase3-graph-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0}
+.propulsion-phase3-control{display:flex;flex-direction:column;gap:6px;min-width:0;font-size:.72rem;font-weight:800;letter-spacing:.06em;color:#526276}
+.propulsion-phase3-control input,.propulsion-phase3-control select{width:100%;min-width:0;min-height:40px;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#172b4d;font:inherit;letter-spacing:normal}
+.propulsion-phase3-subheading{margin:18px 0 10px;color:#24476b;font-size:.78rem;letter-spacing:.07em}
+.propulsion-phase3-derived-list{display:grid;gap:8px}
+.propulsion-phase3-derived-option{display:flex;align-items:flex-start;gap:9px;padding:10px;border-radius:9px;background:#f4f8fc;color:#34465b;font-size:.78rem;line-height:1.45}
+.propulsion-phase3-derived-option input{margin-top:2px;flex:0 0 auto}
+.propulsion-phase3-log-card>button{margin-top:14px}
+.propulsion-phase3-result,.propulsion-phase3-graph-status{margin:12px 0;padding:10px 12px;border-radius:9px;background:#f1f5f9;color:#475569;font-size:.8rem;line-height:1.5}
+.propulsion-phase3-preview{max-width:100%;overflow:auto;margin-top:12px}
+.propulsion-phase3-table{width:100%;border-collapse:collapse;font-size:.72rem;white-space:nowrap}
+.propulsion-phase3-table th,.propulsion-phase3-table td{padding:7px 9px;border:1px solid #dce4ed;text-align:right}
+.propulsion-phase3-table th{background:#eef4fa;color:#24476b;text-align:left}
+.propulsion-phase3-preview-note{margin:7px 0 0;color:#778597;font-size:.7rem}
+.propulsion-phase3-graph-card{margin-top:22px;padding:20px;border:1px solid #cbdcf0;border-radius:14px;background:#f9fbfe}
+.propulsion-phase3-series-controls{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+.propulsion-phase3-series-toggle{display:flex;align-items:center;gap:7px;padding:8px 11px;border:1px solid #d6e0eb;border-radius:9px;background:#fff;color:#34465b;font-size:.76rem}
+.propulsion-phase3-series-toggle input{margin:0}
+.propulsion-phase3-plot-host{width:100%;overflow:auto;border:1px solid #e0e7ef;border-radius:12px;background:#fff}
+.propulsion-phase3-plot-host .propulsion-chart-svg{display:block;width:100%;min-width:620px;height:auto}
+.propulsion-phase3-explorer{display:grid;grid-template-columns:minmax(220px,1fr) minmax(0,2fr);gap:14px;align-items:center;margin-top:14px;padding:13px;border:1px solid #dce5ef;border-radius:10px;background:#fff}
+.propulsion-phase3-explorer input{width:100%}
+.propulsion-phase3-point-readout{margin:0;color:#34465b;font-size:.8rem;line-height:1.5}
+@media(max-width:760px){.propulsion-phase3-log-grid{grid-template-columns:1fr}.propulsion-phase3-graph-controls{grid-template-columns:1fr}.propulsion-phase3-explorer{grid-template-columns:1fr}.propulsion-phase3-log-card,.propulsion-phase3-graph-card{padding:14px}}
+
+
+/* Phase 4 consolidated multi-log report builder. */
+.propulsion-phase4-report-card{margin-top:24px}
+.propulsion-phase4-report-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0}
+.propulsion-phase4-field{display:flex;flex-direction:column;gap:6px;min-width:0;color:#526276;font-size:.76rem;font-weight:800}
+.propulsion-phase4-field input,.propulsion-phase4-field textarea{width:100%;min-width:0;padding:10px 12px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;color:#172b4d;font:inherit;font-weight:500}
+.propulsion-phase4-field--wide{grid-column:1/-1}
+.propulsion-phase4-report-status{padding:11px 13px;border-radius:9px;background:#f1f5f9;color:#475569;font-size:.82rem;line-height:1.5}
+.propulsion-phase4-report-preview{margin-top:16px;padding:18px;border:1px solid #dce5ef;border-radius:12px;background:#fff}
+.propulsion-phase4-report-preview h4{margin:0 0 10px;color:#17365d}
+.propulsion-phase4-report-preview p{font-size:.8rem;line-height:1.55;color:#475569}
+.propulsion-phase4-log-summary{margin-top:14px;padding:12px;border:1px solid #e0e7ef;border-radius:10px}
+.propulsion-phase4-report-table{width:100%;border-collapse:collapse;font-size:.75rem}
+.propulsion-phase4-report-table th,.propulsion-phase4-report-table td{padding:8px;border:1px solid #dce4ed;text-align:left}
+.propulsion-phase4-report-table th{background:#eef4fa;color:#24476b}
+.propulsion-phase4-report-graph svg{width:100%;height:auto}
+@media(max-width:680px){.propulsion-phase4-report-form{grid-template-columns:1fr}.propulsion-phase4-field--wide{grid-column:auto}.propulsion-phase4-report-preview{padding:12px}}
