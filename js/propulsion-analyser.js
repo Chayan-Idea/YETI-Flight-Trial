@@ -1263,7 +1263,7 @@ const statsPage=el('section','propulsion-report-summary-page');
     multiSession.logs.forEach(log=>{log._phase3Ready=true;});updateMultiReadiness();
     csvExportButton.hidden=true;
     csvStatus.textContent='Successfully generated '+prepared.length+' separate CSV files. Each log has its own preview and download buttons.';
-    multiProceedActions.hidden=false;
+    multiProceedActions.hidden=false;multiProceedInApp.hidden=false;multiProceedReport.hidden=false;
    }catch(error){csvStatus.textContent='CSV generation failed: '+(error.message||'Unable to prepare the individual CSV files.');csvStatus.setAttribute('role','alert');}
   });
   csvSection.append(csvConfirmation,csvStatus,csvActions,generatedCsvFilesHost);
