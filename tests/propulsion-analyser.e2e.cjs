@@ -116,7 +116,7 @@ const server = http.createServer((req,res)=>{
    const multiUploads=page.locator('#propulsionMultiUploadGrid input[type="file"]');
    if(await multiUploads.count()!==count)throw new Error(count+'-log mode did not render the requested number of CSV upload slots.');
    for(let index=0;index<count;index++){
-    const csv='thrust,command_rpm,actual_rpm,dc_voltage_v,dc_current_a\\n'+(100+index*10)+',1000,980,50,10\\n'+(110+index*10)+',1100,1080,50,11\\n';
+    const csv='thrust,command_rpm,actual_rpm,dc_voltage_v,dc_current_a\n'+(100+index*10)+',1000,980,50,10\n'+(110+index*10)+',1100,1080,50,11\n';
     await multiUploads.nth(index).setInputFiles({name:'run-'+count+'-'+(index+1)+'.csv',mimeType:'text/csv',buffer:Buffer.from(csv)});
    }
    await page.locator('#identifyMultipleLogsBtn').waitFor({state:'visible'});
