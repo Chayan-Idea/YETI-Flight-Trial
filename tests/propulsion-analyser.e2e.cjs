@@ -97,6 +97,11 @@ const server = http.createServer((req,res)=>{
   if(await page.locator('.propulsion-multi-log-mapping').count()!==0)throw new Error('Separate vertically stacked per-log mapping cards should not be rendered.');
   if(await page.locator('#confirmAllMultiLogMappingsBtn').isDisabled())throw new Error('Default parameter mapping did not validate for both sample logs.');
   await page.locator('#confirmAllMultiLogMappingsBtn').click();
+  const step3Card=page.locator('#propulsionPhase3AnalysisCard'),step4Card=page.locator('#propulsionPhase4GraphCard'),step5Card=page.locator('#propulsionPhase4ReportCard');
+  await step5Card.waitFor({state:'visible'});
+  if(await step3Card.locator('#propulsionPhase4GraphCard, #propulsionPhase4ReportCard').count()!==0)throw new Error('Steps 04 and 05 must not be nested inside Step 03.');
+  if(await step3Card.evaluate(el=>el.parentElement)!==await step4Card.evaluate(el=>el.parentElement)||await step4Card.evaluate(el=>el.parentElement)!==await step5Card.evaluate(el=>el.parentElement))throw new Error('Steps 03, 04 and 05 must be separate sibling cards in the workflow.');
+
   const applyButtons=page.locator('.propulsion-phase3-log-card button');
   if(await applyButtons.count()!==2)throw new Error('Expected one independent processing action per log.');
   const derivedChecks=page.locator('.propulsion-phase3-log-card .propulsion-phase3-derived-option input');
