@@ -49,8 +49,8 @@ const server = http.createServer((req,res)=>{
   await page.locator('#proceedToGraphicalAnalysisBtn').click();
   await page.locator('#propulsionGraphicalAnalysisCard').waitFor({state:'visible'});
   const singleGraph=page.locator('#propulsionGraphicalAnalysisCard');
-  await singleGraph.locator('select').nth(0).selectOption({label:'Actual RPM'});
-  await singleGraph.locator('select').nth(1).selectOption({label:'Thrust'});
+  await singleGraph.locator('select').nth(0).selectOption('2');
+  await singleGraph.locator('select').nth(1).selectOption('0');
   await singleGraph.locator('button').filter({hasText:'Plot Graph'}).click();
   await singleGraph.locator('svg').waitFor({state:'visible'});
   // Switch to the common multi-log workflow after the single-log regression passes.
