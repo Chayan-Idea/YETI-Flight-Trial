@@ -1286,7 +1286,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   const status=el('p','propulsion-phase3-graph-status','Apply filtering and calculations to every log before plotting.');status.setAttribute('role','status');
   const plotHost=el('div','propulsion-phase3-plot-host');
   const explorer=el('div','propulsion-phase3-explorer');
-  const rangePanel=el('section','propulsion-x-range-panel propulsion-phase3-range-panel');
+  const rangePanel=el('section','propulsion-x-range-panel propulsion-phase3-range-panel');rangePanel.hidden=true;
   rangePanel.append(el('strong','propulsion-x-range-title','X-Y RANGE SELECTOR'));
   const rangeFields=el('div','propulsion-x-range-fields');
   const makeMultiRangeField=(label,id)=>{const wrap=el('label','propulsion-graph-field',label),field=document.createElement('input');field.type='number';field.step='any';field.id=id;field.placeholder='Full graph range';field.className='propulsion-column-select';wrap.append(field);rangeFields.append(wrap);return field;};
@@ -1301,7 +1301,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   plotButton.addEventListener('click',()=>drawMultiComparison({xSelect,ySelect,plotHost,status,slider,readout,rangePanel,rangeXStart,rangeXEnd,rangeYStart,rangeYEnd,resetRange}));
   applyRange.addEventListener('click',()=>drawMultiComparison({xSelect,ySelect,plotHost,status,slider,readout,rangePanel,rangeXStart,rangeXEnd,rangeYStart,rangeYEnd,resetRange}));
   resetRange.addEventListener('click',()=>{rangeXStart.value='';rangeXEnd.value='';rangeYStart.value='';rangeYEnd.value='';drawMultiComparison({xSelect,ySelect,plotHost,status,slider,readout,rangePanel,rangeXStart,rangeXEnd,rangeYStart,rangeYEnd,resetRange});});
-  explorer.append(rangePanel,sliderLabel,readout);
+  explorer.append(sliderLabel,readout,rangePanel);
   graph.append(controls,status,plotHost,explorer);
   multiGraphCard=graph;
     const multiSummaryCard=el('section','propulsion-statistics-card propulsion-step-card propulsion-step-card--green');multiSummaryCard.id='propulsionMultiParameterSummaryCard';multiSummaryCard.hidden=true;
@@ -1411,7 +1411,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   if(rangeYStart.value===''||rangeYEnd.value===''){rangeYStart.value=String(fullY.min);rangeYEnd.value=String(fullY.max);}
   const xMin=Number(rangeXStart.value),xMax=Number(rangeXEnd.value),yMin=Number(rangeYStart.value),yMax=Number(rangeYEnd.value);
   if(![xMin,xMax,yMin,yMax].every(Number.isFinite)||xMin>=xMax||yMin>=yMax||xMin<fullX.min||xMax>fullX.max||yMin<fullY.min||yMax>fullY.max){
-   status.textContent='Enter valid X and Y ranges within the full graph limits. Start values must be lower than End values. The previous valid graph is retained.';rangePanel.hidden=false;return;
+   status.textContent='Enter valid X and Y ranges within the full graph limits. Start values must be lower than End values. The previous valid graph is retained.';return;
   }
   const visibleSeries=series.map(item=>({...item,points:item.points.filter(point=>point.x>=xMin&&point.x<=xMax&&point.y>=yMin&&point.y<=yMax)}));
   const visibleAll=visibleSeries.flatMap(item=>item.points);
