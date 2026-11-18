@@ -53,4 +53,13 @@ const sortedRows = engine.filterLog(sortable, { sortIndex: 0, sortDirection: 'as
 assert.deepEqual(sortedRows.slice(1).map(row => row[0]), [10, 20, 30], 'filtering removes RPM <= 0 and sorting is independent');
 assert.equal(sortable.sortOptions.sortDirection, 'asc');
 
+
+assert.deepEqual(engine.validateSession(session), { valid: true, errors: [] }, 'session validates only after each log has its own data and RPM mapping');
+const independentA = session.logs[0].filteredRows.map(row => row.slice());
+const independentB = session.logs[1].filteredRows.map(row => row.slice());
+assert.notDeepEqual(independentA, independentB, 'per-log filtered rows remain isolated');
+const descendingRows = engine.filterLog(sortable, { sortIndex: 0, sortDirection: 'desc' });
+assert.deepEqual(descendingRows.slice(1).map(row => row[0]), [30, 20, 10], 'descending sorting is supported');
+assert.equal(engine.calculateLog(sortable, 'thrust', ['electricalPower']).length, 4, 'derived columns are calculated for each retained row including the header-aligned record');
+
 console.log('Propulsion common analysis engine tests passed.');
