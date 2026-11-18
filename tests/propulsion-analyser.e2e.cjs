@@ -75,6 +75,10 @@ const server = http.createServer((req,res)=>{
   await page.locator('#identifyMultipleLogsBtn').waitFor({state:'visible'});
   await page.locator('#identifyMultipleLogsBtn').click();
   await page.locator('#confirmAllMultiLogMappingsBtn').waitFor({state:'visible'});
+  const mappingTables=page.locator('.propulsion-multi-log-mapping .propulsion-multi-mapping-table');
+  if(await mappingTables.count()!==2)throw new Error('Each uploaded log should show one consolidated parameter-identification table.');
+  if(await mappingTables.first().locator('tbody tr').count()!==10)throw new Error('The Thrust mapping table should contain all 10 applicable parameter rows.');
+  if(await mappingTables.first().locator('thead th').count()!==4)throw new Error('The parameter-identification table should expose four aligned columns.');
   if(await page.locator('#confirmAllMultiLogMappingsBtn').isDisabled())throw new Error('Default parameter mapping did not validate for both sample logs.');
   await page.locator('#confirmAllMultiLogMappingsBtn').click();
   const applyButtons=page.locator('.propulsion-phase3-log-card button');
