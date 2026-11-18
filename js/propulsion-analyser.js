@@ -1147,7 +1147,7 @@ const statsPage=el('section','propulsion-report-summary-page');
      const header=log.filteredRows?.[0]||log.headers||[];
      const timestampIndex=header.map((name,i)=>({index:i,score:scoreHeader(name,timestampAliases)})).filter(item=>item.score>=65).sort((a,b)=>b.score-a.score)[0]?.index;
      let maximum=-Infinity,maximumRow=null;
-     if(available)(log.calculatedRows||[]).slice(1).forEach(item=>{
+     if(available)(log.calculatedRows||[]).forEach(item=>{
       const raw=specIsDerived?'':String(item.source?.[sourceIndex]??'').trim();
       const value=specIsDerived?item.derived?.[parameter.key]:(raw===''?NaN:Number(raw));
       if(Number.isFinite(value)&&value>maximum){maximum=value;maximumRow=item;}
@@ -1180,7 +1180,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    win.document.open();win.document.write('<!doctype html><html><head><meta charset="utf-8"><title>YETI Comparative Propulsion Report</title>'+printCss+'</head><body>'+markup.outerHTML+'</body></html>');win.document.close();win.focus();setTimeout(()=>win.print(),350);
    status.textContent='Print dialog opened. Select “Save as PDF” to create the comparative report.';
   });
-  card.append(form,status,exportButton,previewPanel);previewPanel.append(preview);multiMappingHost.append(card);multiReportCard=card;refresh();
+  card.append(form,status,exportButton,previewPanel);previewPanel.append(preview);multiMappingHost.append(card);multiReportCard=card;card.refreshPreview=refresh;refresh();
  }
 
  function renderMultiAnalysisWorkspace(){
@@ -1462,11 +1462,11 @@ const statsPage=el('section','propulsion-report-summary-page');
    multiGraphCard.scrollIntoView({behavior:'smooth',block:'start'});
   });
   reportNext.addEventListener('click',()=>{
-   multiReportCard.hidden=false;reportNext.disabled=true;reportNext.textContent='Report Generation Selected';
+   multiReportCard.refreshPreview?.();multiReportCard.hidden=false;reportNext.disabled=true;reportNext.textContent='Report Generation Selected';
    multiReportCard.scrollIntoView({behavior:'smooth',block:'start'});
   });
   multiProceedReport.addEventListener('click',()=>{
-   multiReportCard.hidden=false;multiSummaryCard.hidden=true;multiGraphCard.hidden=true;
+   multiReportCard.refreshPreview?.();multiReportCard.hidden=false;multiSummaryCard.hidden=true;multiGraphCard.hidden=true;
    multiReportCard.scrollIntoView({behavior:'smooth',block:'start'});
   });
   updateMultiGraphAvailability();
