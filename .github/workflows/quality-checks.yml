@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   validate:
-    name: Static application validation
+    name: Static and engine validation
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -25,3 +25,20 @@ jobs:
         run: node scripts/validate-app.mjs
       - name: Test common propulsion analysis engine
         run: node tests/propulsion-analysis-engine.test.js
+
+  browser-e2e:
+    name: Propulsion analyzer browser regression
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: npm install --no-save playwright
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run propulsion analyzer browser workflow
+        run: node tests/propulsion-analyser.e2e.cjs
