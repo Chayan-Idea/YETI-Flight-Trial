@@ -1120,6 +1120,42 @@ const statsPage=el('section','propulsion-report-summary-page');
    const coverMeta=el('div','propulsion-report-cover-meta');coverMeta.append(el('span','','COMPARATIVE DATASET · '+multiSession.logs.length+' LOGS'),el('span','','FILTERED AND SORTED DATA'));page.append(coverMeta);
    page.append(el('p','propulsion-report-footer','YETI FLIGHT TRIAL  /  PROPULSION VALIDATION  /  ENGINEERING MANAGEMENT REVIEW'));
    preview.append(page);
+   // Reproduce the Step 04 comparative summary for every log in branded KPI tiles.
+   // Keep the same parameter union, maximum-value rule and maximum timestamp as the in-app summary.
+   const timestampAliases=['timestamp','time_stamp','datetime','date_time','date time','time','utc_time','local_time','sample_time','logged_at','date'];
+   const reportParameters=new Map();
+   multiSession.logs.forEach(log=>{
+    const specs=multiActiveSpecs().map(spec=>({key:spec.key,label:spec.label,index:log.mapping[spec.key],derived:false})).filter(item=>Number.isInteger(item.index));
+    (log._derivedKeys||[]).forEach(key=>specs.push({key,label:key==='mechanicalPower'?'Mechanical Power (W)':key==='electricalPower'?'Electrical Power (W)':'Specific Thrust (N/W)',derived:true}));
+    specs.forEach(spec=>{if(!reportParameters.has(spec.key))reportParameters.set(spec.key,{key:spec.key,label:spec.label,derived:spec.derived});});
+   });
+   multiSession.logs.forEach((log,logIndex)=>{
+    const resultPage=el('article','propulsion-report-page propulsion-report-summary-page propulsion-report-multi-summary-page');
+    resultPage.append(el('div','propulsion-report-page-kicker','01  /  TEST RESULTS'),el('h2','','EXECUTIVE PERFORMANCE SUMMARY'),el('h3','propulsion-report-log-heading','LOG '+(logIndex+1)+'  /  '+log.fileName));
+    const header=log.filteredRows?.[0]||log.headers||[];
+    const timestampIndex=header.map((name,i)=>({index:i,score:scoreHeader(name,timestampAliases)})).filter(item=>item.score>=65).sort((a,b)=>b.score-a.score)[0]?.index;
+    const rows=log.calculatedRows||[];
+    const grid=el('div','propulsion-report-kpi-grid propulsion-report-all-parameters propulsion-report-comparative-kpi-grid');
+    reportParameters.forEach(parameter=>{
+     const specIsDerived=parameter.key==='mechanicalPower'||parameter.key==='electricalPower'||parameter.key==='specificThrust';
+     const sourceIndex=log.mapping[parameter.key];
+     const available=specIsDerived?(log._derivedKeys||[]).includes(parameter.key):Number.isInteger(sourceIndex);
+     let maximum=-Infinity,maximumRow=null;
+     if(available)rows.slice(1).forEach(item=>{
+      const raw=specIsDerived?'':String(item.source?.[sourceIndex]??'').trim();
+      const value=specIsDerived?item.derived?.[parameter.key]:(raw===''?NaN:Number(raw));
+      if(Number.isFinite(value)&&value>maximum){maximum=value;maximumRow=item;}
+     });
+     const valueText=Number.isFinite(maximum)?new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(maximum):'—';
+     const timestamp=maximumRow?(timestampIndex===undefined?'Timestamp column not found':String(maximumRow.source?.[timestampIndex]??'').trim()||'Timestamp unavailable'):(timestampIndex===undefined?'Timestamp column not found':'No numeric data');
+     const tile=el('div','propulsion-report-kpi propulsion-report-comparative-kpi');
+     tile.append(el('span','',('MAXIMUM '+parameter.label).toUpperCase()),el('strong','',valueText),el('small','propulsion-report-kpi-timestamp',timestamp));
+     grid.append(tile);
+    });
+    resultPage.append(grid,el('p','propulsion-report-small-note','Values are maximum recorded values from this log’s filtered and sorted dataset. The timestamp identifies when each maximum occurred. Records with Actual RPM = 0 are excluded.'));
+    resultPage.append(el('p','propulsion-report-footer','LOG '+(logIndex+1)+'  /  '+log.fileName));
+    preview.append(resultPage);
+   });
    multiSession.logs.forEach((log,index)=>{
     const reportPage=el('article','propulsion-report-page');
     reportPage.append(el('div','propulsion-report-page-kicker','PER-LOG ANALYSIS  /  LOG '+log.id),el('h2','','Log '+log.id+' — '+log.fileName));
