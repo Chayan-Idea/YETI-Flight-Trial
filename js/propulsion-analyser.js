@@ -993,9 +993,143 @@ const statsPage=el('section','propulsion-report-summary-page');
    card.append(el('div','propulsion-mapping-summary is-warning','Review the suggested mappings.'));card.lastElementChild.dataset.mappingSummary=log.id;log._uiMapping=mapping;multiMappingHost.append(card);engineSetMapping(log,mapping);
   });
   const actions=el('div','propulsion-actions propulsion-multi-confirm-actions'),confirmButton=el('button','btn','Confirm All Log Mappings'),result=el('p','propulsion-multi-confirm-status','All logs must have valid, unique numeric column mappings before confirmation.');confirmButton.type='button';confirmButton.id='confirmAllMultiLogMappingsBtn';confirmButton.disabled=true;result.id='multiMappingConfirmStatus';actions.append(confirmButton);multiMappingHost.append(actions,result);
-  confirmButton.addEventListener('click',()=>{if(!validateMultiMappingCards().valid)return;multiSession.logs.forEach(log=>engineSetMapping(log,log._uiMapping));multiMappingConfirmed=true;result.className='propulsion-multi-confirm-status is-valid';result.textContent='All '+multiSession.logs.length+' log mappings confirmed independently. Phase 2 setup is complete; filtering and analysis will follow in Phase 3.';confirmButton.disabled=true;confirmButton.textContent='All Mappings Confirmed';});
+  confirmButton.addEventListener('click',()=>{if(!validateMultiMappingCards().valid)return;multiSession.logs.forEach(log=>engineSetMapping(log,log._uiMapping));multiMappingConfirmed=true;result.className='propulsion-multi-confirm-status is-valid';result.textContent='All '+multiSession.logs.length+' log mappings confirmed independently. Continue to independent filtering, derived calculations and comparative graph analysis below.';confirmButton.disabled=true;confirmButton.textContent='All Mappings Confirmed';renderMultiAnalysisWorkspace();});
   validateMultiMappingCards();
  }
+
+ // Phase 3: independent per-log filtering/calculation and comparative graphing.
+ let multiAnalysisCard=null,multiGraphState={points:[],series:[],xKey:'',yKey:'',xMin:null,xMax:null};
+ const multiColors=['#287fbd','#dc8123','#26966f','#8b5fc7'];
+ function multiFieldOptions(){
+  const raw=multiActiveSpecs().map(spec=>({key:spec.key,label:spec.label,derived:false}));
+  const derived=(commonEngine.DERIVED_BY_TEST[multiLogType]||[]).map(key=>({key,label:key==='mechanicalPower'?'Mechanical Power (W)':key==='electricalPower'?'Electrical Power (W)':'Specific Thrust (N/W)',derived:true}));
+  return [...raw,...derived];
+ }
+ function mappedValue(log,row,key,derivedRow){
+  if(key==='mechanicalPower'||key==='electricalPower'||key==='specificThrust')return derivedRow?.derived?.[key];
+  const index=log.mapping[key];if(!Number.isInteger(index))return NaN;
+  const value=String(row?.[index]??'').trim();if(!value)return NaN;
+  const number=Number(value.replace(/,/g,''));return Number.isFinite(number)?number:NaN;
+ }
+ function renderMultiAnalysisWorkspace(){
+  if(!multiMappingConfirmed||!multiSession||!multiMappingHost)return;
+  multiAnalysisCard?.remove();
+  multiAnalysisCard=el('section','propulsion-phase3-card propulsion-step-card propulsion-step-card--orange');multiAnalysisCard.id='propulsionPhase3AnalysisCard';
+  multiAnalysisCard.append(el('div','propulsion-step-label','STEP 03 · INDEPENDENT FILTERING & CALCULATION'),el('h3','','Filter, Sort & Calculate Each Log Independently'),el('p','propulsion-mapping-description','Each log is filtered and sorted separately. Select derived parameters per log; calculations are appended only to that log’s analysis data.'));
+  const logCards=el('div','propulsion-phase3-log-grid');
+  multiSession.logs.forEach((log,index)=>{
+   const source=multiFiles[index],card=el('section','propulsion-phase3-log-card'),heading=el('div','propulsion-phase3-log-heading');
+   heading.append(el('span','propulsion-step-label','LOG '+log.id),el('h4','',source.file.name));card.append(heading);
+   const filterRow=el('div','propulsion-phase3-filter-row');
+   const sortLabel=el('label','propulsion-phase3-control','SORT BY');
+   const sortSelect=document.createElement('select');sortSelect.className='propulsion-column-select';
+   const noSort=document.createElement('option');noSort.value='';noSort.textContent='Original row order';sortSelect.append(noSort);
+   multiActiveSpecs().forEach(spec=>{const option=document.createElement('option');option.value=String(log.mapping[spec.key]);option.textContent=spec.label;sortSelect.append(option)});
+   const direction=document.createElement('select');direction.className='propulsion-column-select';direction.innerHTML='<option value="asc">Ascending</option><option value="desc">Descending</option>';
+   sortLabel.append(sortSelect);const directionLabel=el('label','propulsion-phase3-control','ORDER');directionLabel.append(direction);filterRow.append(sortLabel,directionLabel);card.append(filterRow);
+   const derivedTitle=el('h5','propulsion-phase3-subheading','DERIVED PARAMETERS');
+   const derivedWrap=el('div','propulsion-phase3-derived-list');
+   const derivedChecks={};
+   (commonEngine.DERIVED_BY_TEST[multiLogType]||[]).forEach(key=>{
+    const label=el('label','propulsion-phase3-derived-option'),check=document.createElement('input');check.type='checkbox';check.value=key;
+    const name=key==='mechanicalPower'?'Mechanical Power':key==='electricalPower'?'Electrical Power':'Specific Thrust';
+    const formula=key==='mechanicalPower'?'Torque × Actual RPM × 2π / 60 (W)':key==='electricalPower'?'DC Voltage × DC Current (W)':'Thrust / Electrical Power (N/W)';
+    label.append(check,el('span','',name+' — '+formula));derivedWrap.append(label);derivedChecks[key]=check;
+   });
+   card.append(derivedTitle,derivedWrap);
+   const action=el('button','btn','Apply Filtering & Calculate');action.type='button';
+   const summary=el('p','propulsion-phase3-result','Filtering and calculations not yet applied.');summary.setAttribute('role','status');
+   const tableHost=el('div','propulsion-phase3-preview');
+   action.addEventListener('click',()=>{
+    try{
+     const sortIndex=sortSelect.value===''?-1:Number(sortSelect.value);
+     commonEngine.filterLog(log,{actualRpmIndex:log.mapping.actualRpm,sortIndex,sortDirection:direction.value});
+     const selected=Object.keys(derivedChecks).filter(key=>derivedChecks[key].checked);
+     commonEngine.calculateLog(log,multiLogType,selected);
+     log._phase3Ready=true;log._derivedKeys=selected;
+     const removed=log.sourceRows.length-log.filteredRows.length;
+     summary.textContent=log.filteredRows.length.toLocaleString()+' rows retained · '+removed.toLocaleString()+' rows removed (Actual RPM ≤ 0) · '+selected.length+' derived parameter(s) calculated.';
+     renderMultiLogPreview(log,tableHost,selected);
+     updateMultiGraphAvailability();
+    }catch(error){summary.textContent=error.message||'Unable to process this log.';log._phase3Ready=false;updateMultiGraphAvailability();}
+   });
+   card.append(action,summary,tableHost);card._phase3Controls={sortSelect,direction,derivedChecks,summary,tableHost};logCards.append(card);log._phase3Card=card;
+  });
+  multiAnalysisCard.append(logCards);
+  const graph=el('section','propulsion-phase3-graph-card');
+  graph.append(el('div','propulsion-step-label','STEP 04 · COMPARATIVE GRAPHICAL ANALYSIS'),el('h3','','Compare Multiple Logs on Common Axes'),el('p','propulsion-mapping-description','Choose common X and Y parameters. Toggle each log series independently and explore the plotted points.'));
+  const controls=el('div','propulsion-phase3-graph-controls');
+  const makeGraphSelect=(label,id)=>{const wrap=el('label','propulsion-phase3-control',label),select=document.createElement('select');select.className='propulsion-column-select';select.id=id;wrap.append(select);controls.append(wrap);return select;};
+  const xSelect=makeGraphSelect('X AXIS','multiGraphXAxis'),ySelect=makeGraphSelect('Y AXIS','multiGraphYAxis');
+  const options=multiFieldOptions();options.forEach(item=>{[xSelect,ySelect].forEach(select=>{const option=document.createElement('option');option.value=item.key;option.textContent=item.label;select.append(option);});});
+  xSelect.value=options.find(item=>item.key==='actualRpm')?'actualRpm':options[0]?.key||'';
+  ySelect.value=options.find(item=>item.key==='thrust')?'thrust':options.find(item=>item.key==='torque')?'torque':options[1]?.key||'';
+  const rangeStartWrap=el('label','propulsion-phase3-control','START X'),rangeStart=document.createElement('input');rangeStart.type='number';rangeStart.step='any';rangeStart.placeholder='Auto';rangeStartWrap.append(rangeStart);
+  const rangeEndWrap=el('label','propulsion-phase3-control','END X'),rangeEnd=document.createElement('input');rangeEnd.type='number';rangeEnd.step='any';rangeEnd.placeholder='Auto';rangeEndWrap.append(rangeEnd);controls.append(rangeStartWrap,rangeEndWrap);
+  const seriesControls=el('div','propulsion-phase3-series-controls');
+  multiSession.logs.forEach((log,index)=>{const label=el('label','propulsion-phase3-series-toggle'),check=document.createElement('input');check.type='checkbox';check.checked=true;check.dataset.series=log.id;label.append(check,el('span','','Log '+log.id+' · '+multiFiles[index].file.name));seriesControls.append(label);});
+  const plotButton=el('button','btn','Plot Comparative Graph');plotButton.type='button';controls.append(plotButton);
+  const status=el('p','propulsion-phase3-graph-status','Apply filtering and calculations to every log before plotting.');status.setAttribute('role','status');
+  const plotHost=el('div','propulsion-phase3-plot-host');
+  const explorer=el('div','propulsion-phase3-explorer');
+  const sliderLabel=el('label','propulsion-phase3-control','EXPLORE DATA POINT');const slider=document.createElement('input');slider.type='range';slider.min='0';slider.max='0';slider.value='0';slider.disabled=true;sliderLabel.append(slider);
+  const readout=el('p','propulsion-phase3-point-readout','No point selected.');explorer.append(sliderLabel,readout);
+  plotButton.addEventListener('click',()=>drawMultiComparison({xSelect,ySelect,rangeStart,rangeEnd,seriesControls,plotHost,status,slider,readout}));
+  [xSelect,ySelect].forEach(select=>select.addEventListener('change',()=>{rangeStart.value='';rangeEnd.value='';}));
+  graph.append(controls,seriesControls,status,plotHost,explorer);
+  multiAnalysisCard.append(graph);
+  multiMappingHost.append(multiAnalysisCard);
+  updateMultiGraphAvailability();
+ }
+ function renderMultiLogPreview(log,host,derivedKeys){
+  host.replaceChildren();const rows=log.calculatedRows;if(!rows?.length)return;
+  const table=document.createElement('table');table.className='propulsion-phase3-table';
+  const columns=multiActiveSpecs().map(spec=>({key:spec.key,label:spec.label,index:log.mapping[spec.key]})).filter(col=>Number.isInteger(col.index));
+  derivedKeys.forEach(key=>columns.push({key,label:key==='mechanicalPower'?'Mechanical Power (W)':key==='electricalPower'?'Electrical Power (W)':'Specific Thrust (N/W)',derived:true}));
+  const thead=document.createElement('thead'),headRow=document.createElement('tr');columns.forEach(col=>{const th=el('th','',col.label);headRow.append(th);});thead.append(headRow);table.append(thead);
+  const tbody=document.createElement('tbody');rows.slice(1,Math.min(rows.length,9)).forEach(item=>{const tr=document.createElement('tr');columns.forEach(col=>{const value=col.derived?item.derived[col.key]:item.source[col.index];const td=el('td','',col.derived&&Number.isFinite(value)?value.toFixed(4):String(value??''));tr.append(td);});tbody.append(tr);});table.append(tbody);host.append(table);
+  host.append(el('p','propulsion-phase3-preview-note','Preview: first '+Math.min(8,Math.max(0,rows.length-1))+' data rows after filtering and sorting.'));
+ }
+ function updateMultiGraphAvailability(){
+  const ready=!!multiSession&&multiSession.logs.every(log=>log._phase3Ready);
+  const button=multiAnalysisCard?.querySelector('.propulsion-phase3-graph-controls button');
+  if(button)button.disabled=!ready;
+  const status=multiAnalysisCard?.querySelector('.propulsion-phase3-graph-status');
+  if(status)status.textContent=ready?'All logs are processed. Select axes and plot the comparison.':'Apply filtering and calculations to every log before plotting.';
+ }
+ function drawMultiComparison(ui){
+  const {xSelect,ySelect,rangeStart,rangeEnd,seriesControls,plotHost,status,slider,readout}=ui;
+  if(!multiSession.logs.every(log=>log._phase3Ready)){status.textContent='Process every log before plotting.';return;}
+  const xKey=xSelect.value,yKey=ySelect.value;
+  const enabled=[...seriesControls.querySelectorAll('input[data-series]:checked')].map(input=>Number(input.dataset.series));
+  const series=multiSession.logs.filter(log=>enabled.includes(Number(log.id))).map((log,index)=>{
+   const points=log.calculatedRows.slice(1).map((item,rowIndex)=>({x:mappedValue(log,item.source,xKey,item),y:mappedValue(log,item.source,yKey,item),row:rowIndex+1,logId:log.id})).filter(point=>Number.isFinite(point.x)&&Number.isFinite(point.y));
+   let highest=-Infinity;const record=points.filter(point=>{if(point.x<highest)return false;highest=point.x;return true;});
+   return {log,points:record};
+  });
+  let all=series.flatMap(item=>item.points);
+  if(rangeStart.value.trim()!==''){const min=Number(rangeStart.value);if(!Number.isFinite(min)){status.textContent='Enter a valid Start X value.';return;}all=all.filter(point=>point.x>=min);}
+  if(rangeEnd.value.trim()!==''){const max=Number(rangeEnd.value);if(!Number.isFinite(max)){status.textContent='Enter a valid End X value.';return;}all=all.filter(point=>point.x<=max);}
+  if(!all.length){status.textContent='No valid points fall within the selected X range.';return;}
+  const xmin=Math.min(...all.map(p=>p.x)),xmax=Math.max(...all.map(p=>p.x),xmin+1),ymin=Math.min(...all.map(p=>p.y)),ymax=Math.max(...all.map(p=>p.y),ymin+1);
+  const W=1000,H=500,L=90,R=30,T=28,B=72,pw=W-L-R,ph=H-T-B,sx=x=>L+(x-xmin)/(xmax-xmin)*pw,sy=y=>T+ph-(y-ymin)/(ymax-ymin)*ph;
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 '+W+' '+H);svg.classList.add('propulsion-chart-svg');svg.setAttribute('role','img');svg.setAttribute('aria-label','Comparative plot of '+xKey+' versus '+yKey);
+  const add=(tag,attrs,textValue)=>{const node=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs).forEach(([key,value])=>node.setAttribute(key,String(value)));if(textValue!==undefined)node.textContent=textValue;svg.append(node);return node;};
+  const fmt=value=>new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(value);
+  for(let i=0;i<=5;i++){const x=L+pw*i/5,y=T+ph-ph*i/5;add('line',{x1:x,y1:T,x2:x,y2:T+ph,stroke:'#e3eaf1'});add('line',{x1:L,y1:y,x2:L+pw,y2:y,stroke:'#e3eaf1'});add('text',{x,y:T+ph+25,'text-anchor':'middle',fill:'#111827','font-size':13},fmt(xmin+(xmax-xmin)*i/5));add('text',{x:L-12,y:y+4,'text-anchor':'end',fill:'#111827','font-size':13},fmt(ymin+(ymax-ymin)*i/5));}
+  add('line',{x1:L,y1:T+ph,x2:L+pw,y2:T+ph,stroke:'#111827','stroke-width':2});add('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#111827','stroke-width':2});
+  add('text',{x:L+pw/2,y:H-18,'text-anchor':'middle',fill:'#123b70','font-size':15,'font-weight':700},multiFieldOptions().find(item=>item.key===xKey)?.label||xKey);
+  const yLabel=add('text',{x:24,y:T+ph/2,'text-anchor':'middle',fill:'#123b70','font-size':15,'font-weight':700},multiFieldOptions().find(item=>item.key===yKey)?.label||yKey);yLabel.setAttribute('transform','rotate(-90 24 '+(T+ph/2)+')');
+  const flat=[];
+  series.forEach((item,index)=>{const color=multiColors[index%multiColors.length],points=item.points.filter(point=>point.x>=xmin&&point.x<=xmax);if(points.length<1)return;const d=points.map((point,j)=>(j?'L':'M')+sx(point.x)+','+sy(point.y)).join(' ');add('path',{d,fill:'none',stroke:color,'stroke-width':2.7,'stroke-linejoin':'round'});points.forEach(point=>{add('circle',{cx:sx(point.x),cy:sy(point.y),r:4,fill:color});flat.push({...point,sx:sx(point.x),sy:sy(point.y),file:item.log.fileName,color});});});
+  plotHost.replaceChildren(svg);
+  const guide=add('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#d97706','stroke-width':1.5,'stroke-dasharray':'5 4'});
+  const marker=add('circle',{cx:L,cy:T,r:7,fill:'#fff',stroke:'#d97706','stroke-width':3});
+  const updatePoint=index=>{if(!flat.length)return;const point=flat[Math.max(0,Math.min(flat.length-1,index))];slider.value=String(Math.max(0,Math.min(flat.length-1,index)));guide.setAttribute('x1',point.sx);guide.setAttribute('x2',point.sx);marker.setAttribute('cx',point.sx);marker.setAttribute('cy',point.sy);readout.textContent='Log '+point.logId+' · '+point.file+' · Data row '+point.row+' · X: '+fmt(point.x)+' · Y: '+fmt(point.y);};
+  slider.min='0';slider.max=String(Math.max(0,flat.length-1));slider.value='0';slider.disabled=flat.length===0;slider.oninput=()=>updatePoint(Number(slider.value));if(flat.length)updatePoint(0);
+  status.textContent=flat.length.toLocaleString()+' plotted points across '+series.filter(item=>item.points.length).length+' log series. Each series remains independently processed.';
+ }
+
  function identifyAllMultiLogs(){if(!commonEngine)throw new Error('The common analysis engine did not load.');const count=Number(logCountSelect.value);multiSession=commonEngine.createSession(count,multiLogType);multiSession.logs.forEach((log,index)=>{const source=multiFiles[index];commonEngine.setLogData(log,{fileName:source.file.name,headers:source.headers,rows:[source.headers,...source.data]});log._headerIndex=source.headerIndex;log._dataRows=source.data;});renderMultiMappings();multiMappingHost.scrollIntoView({behavior:'smooth',block:'start'});}
  logCountSelect?.addEventListener('change',()=>{if(logCountSelect.value==='1'&&multiSession&&!confirm('Switching to Single Log Analyser will clear the current multi-log uploads and mappings. Continue?')){logCountSelect.value=String(multiSession.logs.length);return;}setMultiMode();});
  $id('propulsionMultiLogTypePicker')?.querySelectorAll('input[name="propulsionMultiLogType"]').forEach(radio=>radio.addEventListener('change',()=>{multiLogType=radio.value;resetMultiSetup();updateMultiUploadGate();}));
