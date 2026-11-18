@@ -104,13 +104,22 @@ const server = http.createServer((req,res)=>{
 
   const applyButtons=page.locator('.propulsion-phase3-log-card button');
   if(await applyButtons.count()!==2)throw new Error('Expected one independent processing action per log.');
-  const derivedChecks=page.locator('.propulsion-phase3-log-card .propulsion-phase3-derived-option input');
-  await derivedChecks.nth(0).check();
+  const sharedDerivedCards=step3Card.locator('.propulsion-phase3-subsection--derived .propulsion-calculated-parameter');
+  if(await sharedDerivedCards.count()!==2)throw new Error('Thrust multi-log mode must show exactly one shared Electrical Power and Specific Thrust selection.');
+  if(await page.locator('.propulsion-phase3-log-card .propulsion-phase3-derived-option').count()!==0)throw new Error('Derived parameter controls must not be repeated inside individual log cards.');
+  const sharedElectrical=sharedDerivedCards.nth(0).locator('input[type="checkbox"]');
+  const sharedSpecific=sharedDerivedCards.nth(1).locator('input[type="checkbox"]');
+  await sharedElectrical.check();
+  await sharedSpecific.check();
   await applyButtons.nth(0).click();
-  await derivedChecks.nth(2).check();
   await applyButtons.nth(1).click();
   const resultSummaries=page.locator('.propulsion-phase3-result');
   if(!(await resultSummaries.nth(0).innerText()).includes('2 data rows retained')||!(await resultSummaries.nth(1).innerText()).includes('2 data rows retained'))throw new Error('Independent RPM filtering did not retain the expected two data rows per log.');
+  if(!(await resultSummaries.nth(0).innerText()).includes('2 derived parameter(s) calculated')||!(await resultSummaries.nth(1).innerText()).includes('2 derived parameter(s) calculated'))throw new Error('The shared derived-parameter selection was not applied consistently to every log.');
+  for(const logCard of await page.locator('.propulsion-phase3-log-card').all()){
+   const headers=await logCard.locator('.propulsion-phase3-preview th').allTextContents();
+   if(!headers.some(value=>value.includes('Electrical Power'))||!headers.some(value=>value.includes('Specific Thrust')))throw new Error('A processed log is missing a derived column selected in the shared Step 03 controls.');
+  }
   await page.locator('#multiGraphSecondaryYAxis').selectOption('commandRpm');
   await page.locator('.propulsion-phase3-graph-card button').filter({hasText:'Plot Comparative Graph'}).click();
   await page.locator('.propulsion-phase3-plot-host svg').waitFor({state:'visible'});
