@@ -74,7 +74,7 @@ const server = http.createServer((req,res)=>{
   await page.locator('#identifyMultipleLogsBtn').waitFor({state:'visible'});
   await page.locator('#identifyMultipleLogsBtn').click();
   await page.locator('#confirmAllMultiLogMappingsBtn').waitFor({state:'visible'});
-  const mappingTables=page.locator('.propulsion-multi-mapping-table-unified');
+  const mappingTables=page.locator('.propulsion-multi-mapping-unified');
   if(await mappingTables.count()!==1)throw new Error('All uploaded logs must be represented in one unified parameter-identification table.');
   if(await mappingTables.locator('tbody tr').count()!==10)throw new Error('The unified Thrust table should contain all 10 applicable parameter rows exactly once.');
   if(await mappingTables.locator('thead tr:first-child th').count()!==4)throw new Error('The unified table should show Parameter Group, Parameter and one grouped header per uploaded log.');
