@@ -997,17 +997,22 @@ const statsPage=el('section','propulsion-report-summary-page');
   logs.forEach((log,index)=>{const th=el('th','','LOG '+(index+1)+' · '+multiFiles[index].file.name);th.colSpan=1;th.scope='colgroup';groupHead.append(th);const mapping=el('th','','CSV COLUMN MAPPING');mapping.scope='col';subHead.append(mapping);});
   thead.append(groupHead,subHead);table.append(thead);
   const tbody=document.createElement('tbody'),activeKeys=new Set(multiActiveSpecs().map(spec=>spec.key));
-  groups.forEach(group=>group.keys.filter(key=>activeKeys.has(key)).forEach(key=>{
-   const spec=specs.find(item=>item.key===key),row=document.createElement('tr'),groupCell=el('td','propulsion-multi-mapping-group',group.title),parameterCell=el('th','propulsion-multi-mapping-parameter',spec.label);parameterCell.scope='row';row.append(groupCell,parameterCell);
-   logs.forEach((log,index)=>{
-    const source=multiFiles[index],mapping=mappings[index],candidate=mapping[key],mappingCell=document.createElement('td'),select=el('select','propulsion-column-select');
-    select.dataset.parameter=key;select.dataset.logIndex=String(index);select.setAttribute('aria-label','Log '+(index+1)+' '+spec.label+' CSV column');const empty=document.createElement('option');empty.value='';empty.textContent='Not detected — select a column';select.append(empty);
-    source.headers.forEach((name,col)=>{const option=document.createElement('option');option.value=String(col);option.textContent=name;select.append(option);});select.value=candidate.selected===''?'':String(candidate.selected);
-    select.addEventListener('change',()=>{candidate.selected=select.value===''?'':Number(select.value);engineSetMapping(log,mapping);validateMultiMappingCards();});
-    mappingCell.append(select);row.append(mappingCell);
+  groups.forEach(group=>{
+   const groupKeys=group.keys.filter(key=>activeKeys.has(key));
+   groupKeys.forEach((key,index)=>{
+    const spec=specs.find(item=>item.key===key),row=document.createElement('tr'),parameterCell=el('th','propulsion-multi-mapping-parameter',spec.label);
+    if(index===0){const groupCell=el('td','propulsion-multi-mapping-group',group.title);groupCell.rowSpan=groupKeys.length;groupCell.scope='rowgroup';row.append(groupCell);}
+    parameterCell.scope='row';row.append(parameterCell);
+    logs.forEach((log,logIndex)=>{
+     const source=multiFiles[logIndex],mapping=mappings[logIndex],candidate=mapping[key],mappingCell=document.createElement('td'),select=el('select','propulsion-column-select');
+     select.dataset.parameter=key;select.dataset.logIndex=String(logIndex);select.setAttribute('aria-label','Log '+(logIndex+1)+' '+spec.label+' CSV column');const empty=document.createElement('option');empty.value='';empty.textContent='Not detected — select a column';select.append(empty);
+     source.headers.forEach((name,col)=>{const option=document.createElement('option');option.value=String(col);option.textContent=name;select.append(option);});select.value=candidate.selected===''?'':String(candidate.selected);
+     select.addEventListener('change',()=>{candidate.selected=select.value===''?'':Number(select.value);engineSetMapping(log,mapping);validateMultiMappingCards();});
+     mappingCell.append(select);row.append(mappingCell);
+    });
+    tbody.append(row);
    });
-   tbody.append(row);
-  }));
+  });
   table.append(tbody);tableWrap.append(table);multiMappingHost.append(tableWrap);
   const summaries=el('div','propulsion-multi-mapping-summary-grid');
   logs.forEach((log,index)=>{const summary=el('div','propulsion-mapping-summary is-warning','Review the suggested mappings for Log '+(index+1)+'.');summary.dataset.mappingSummary=log.id;summaries.append(summary);});
