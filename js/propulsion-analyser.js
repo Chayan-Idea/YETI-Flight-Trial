@@ -1129,33 +1129,41 @@ const statsPage=el('section','propulsion-report-summary-page');
     (log._derivedKeys||[]).forEach(key=>specs.push({key,label:key==='mechanicalPower'?'Mechanical Power (W)':key==='electricalPower'?'Electrical Power (W)':'Specific Thrust (N/W)',derived:true}));
     specs.forEach(spec=>{if(!reportParameters.has(spec.key))reportParameters.set(spec.key,{key:spec.key,label:spec.label,derived:spec.derived});});
    });
-   multiSession.logs.forEach((log,logIndex)=>{
-    const resultPage=el('article','propulsion-report-page propulsion-report-summary-page propulsion-report-multi-summary-page');
-    resultPage.append(el('div','propulsion-report-page-kicker','01  /  TEST RESULTS'),el('h2','','EXECUTIVE PERFORMANCE SUMMARY'),el('h3','propulsion-report-log-heading','LOG '+(logIndex+1)+'  /  '+log.fileName));
-    const header=log.filteredRows?.[0]||log.headers||[];
-    const timestampIndex=header.map((name,i)=>({index:i,score:scoreHeader(name,timestampAliases)})).filter(item=>item.score>=65).sort((a,b)=>b.score-a.score)[0]?.index;
-    const rows=log.calculatedRows||[];
-    const grid=el('div','propulsion-report-kpi-grid propulsion-report-all-parameters propulsion-report-comparative-kpi-grid');
-    reportParameters.forEach(parameter=>{
+   const resultPage=el('article','propulsion-report-page propulsion-report-summary-page propulsion-report-multi-summary-page');
+   resultPage.append(el('div','propulsion-report-page-kicker','01  /  TEST RESULTS'),el('h2','','EXECUTIVE PERFORMANCE SUMMARY'));
+   const summaryTable=document.createElement('table');summaryTable.className='propulsion-report-stats-table propulsion-report-comparative-summary-table';
+   const summaryHead=document.createElement('thead'),summaryHeadRow=document.createElement('tr');
+   summaryHeadRow.append(el('th','','PARAMETER'));
+   multiSession.logs.forEach((log,index)=>summaryHeadRow.append(el('th','','LOG '+(index+1)+' · '+log.fileName)));
+   summaryHead.append(summaryHeadRow);summaryTable.append(summaryHead);
+   const summaryBody=document.createElement('tbody');
+   reportParameters.forEach(parameter=>{
+    const row=document.createElement('tr');row.append(el('th','propulsion-report-summary-parameter',parameter.label));
+    multiSession.logs.forEach(log=>{
+     const cell=document.createElement('td');
      const specIsDerived=parameter.key==='mechanicalPower'||parameter.key==='electricalPower'||parameter.key==='specificThrust';
      const sourceIndex=log.mapping[parameter.key];
      const available=specIsDerived?(log._derivedKeys||[]).includes(parameter.key):Number.isInteger(sourceIndex);
+     const header=log.filteredRows?.[0]||log.headers||[];
+     const timestampIndex=header.map((name,i)=>({index:i,score:scoreHeader(name,timestampAliases)})).filter(item=>item.score>=65).sort((a,b)=>b.score-a.score)[0]?.index;
      let maximum=-Infinity,maximumRow=null;
-     if(available)rows.slice(1).forEach(item=>{
+     if(available)(log.calculatedRows||[]).slice(1).forEach(item=>{
       const raw=specIsDerived?'':String(item.source?.[sourceIndex]??'').trim();
       const value=specIsDerived?item.derived?.[parameter.key]:(raw===''?NaN:Number(raw));
       if(Number.isFinite(value)&&value>maximum){maximum=value;maximumRow=item;}
      });
      const valueText=Number.isFinite(maximum)?new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(maximum):'—';
      const timestamp=maximumRow?(timestampIndex===undefined?'Timestamp column not found':String(maximumRow.source?.[timestampIndex]??'').trim()||'Timestamp unavailable'):(timestampIndex===undefined?'Timestamp column not found':'No numeric data');
-     const tile=el('div','propulsion-report-kpi propulsion-report-comparative-kpi');
-     tile.append(el('span','',('MAXIMUM '+parameter.label).toUpperCase()),el('strong','',valueText),el('small','propulsion-report-kpi-timestamp',timestamp));
-     grid.append(tile);
+     const tile=el('div','propulsion-report-comparative-cell');
+     tile.append(el('strong','propulsion-report-comparative-cell-value',valueText),el('small','propulsion-report-kpi-timestamp',timestamp));
+     cell.append(tile);row.append(cell);
     });
-    resultPage.append(grid,el('p','propulsion-report-small-note','Values are maximum recorded values from this log’s filtered and sorted dataset. The timestamp identifies when each maximum occurred. Records with Actual RPM = 0 are excluded.'));
-    resultPage.append(el('p','propulsion-report-footer','LOG '+(logIndex+1)+'  /  '+log.fileName));
-    preview.append(resultPage);
+    summaryBody.append(row);
    });
+   summaryTable.append(summaryBody);resultPage.append(summaryTable);
+   resultPage.append(el('p','propulsion-report-small-note','Values are maximum recorded values from each log’s filtered and sorted dataset. The timestamp identifies when each maximum occurred. Records with Actual RPM = 0 are excluded.'));
+   resultPage.append(el('p','propulsion-report-footer','COMPARATIVE SUMMARY  /  ALL LOGS'));
+   preview.append(resultPage);
    multiSession.logs.forEach((log,index)=>{
     const reportPage=el('article','propulsion-report-page');
     reportPage.append(el('div','propulsion-report-page-kicker','PER-LOG ANALYSIS  /  LOG '+log.id),el('h2','','Log '+log.id+' — '+log.fileName));
