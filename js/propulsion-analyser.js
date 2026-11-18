@@ -1122,9 +1122,10 @@ const statsPage=el('section','propulsion-report-summary-page');
    else{const equation=el('span','propulsion-formula-equation','Specific Thrust (N/W) = '),fraction=el('span','propulsion-formula-fraction');fraction.setAttribute('role','math');fraction.append(el('span','propulsion-formula-numerator','Thrust (N)'),el('span','propulsion-formula-denominator','Electrical Power (W)'));formula.append(equation,fraction);}
    const note=el('div','propulsion-calculated-mapping-note','Inputs are taken from each log’s confirmed Step 02 parameter mapping.');
    details.append(label,formulaLabel,formula,note);
-   const calculate=el('button','btn alt propulsion-calculated-action','Calculate and Add to Log file');calculate.type='button';calculate.disabled=true;
-   calculate.title='Check the parameter and apply filtering to every log to enable this calculation.';
-   const addedStatus=el('span','propulsion-calculated-added-status','✓ Added to Log file');addedStatus.hidden=true;
+   const calculate=el('button','btn alt propulsion-calculated-action','Calculate and Add to All logs');calculate.type='button';calculate.disabled=true;
+   calculate.title='Select the parameter and apply filtering to every log before calculating.';
+   const addedStatus=el('span','propulsion-calculated-added-status','✓ Added to All logs');addedStatus.hidden=true;
+   addedStatus.setAttribute('role','status');addedStatus.setAttribute('aria-live','polite');
    const retry=el('button','btn alt propulsion-calculated-retry','Retry');retry.type='button';retry.hidden=true;
    sharedDerivedChecks[key]=check;sharedDerivedActions[key]={calculate,addedStatus,retry};
    const updateAction=()=>{calculate.disabled=!check.checked||sharedDerivedAdded.has(key);calculate.title=check.checked?'Calculate this parameter for every filtered log.':'Select the checkbox to enable this calculation.';};
@@ -1137,20 +1138,29 @@ const statsPage=el('section','propulsion-report-summary-page');
     const unfiltered=multiSession.logs.filter(log=>!log._phase3Filtered);
     if(unfiltered.length){note.textContent='Apply Data Filtering to every log before calculating derived parameters.';return;}
     try{
-     const required=key==='mechanicalPower'?['torque','actualRpm']:key==='electricalPower'?['voltage','current']:['thrust','voltage','current'];
-     for(const log of multiSession.logs){const missing=required.filter(name=>!Number.isInteger(log.mapping[name]));if(missing.length)throw new Error('Log '+log.id+' is missing required mappings: '+missing.join(', '));}
+     const required=commonEngine.REQUIRED_BY_DERIVED?.[key]|| (key==='mechanicalPower'?['torque','actualRpm']:key==='electricalPower'?['voltage','current']:['thrust','voltage','current']);
+     for(const log of multiSession.logs){
+      if(!Array.isArray(log.filteredRows)||!log.filteredRows.length)throw new Error('Log '+log.id+' has no filtered rows. Apply Data Filtering again.');
+      const missing=required.filter(name=>!Number.isInteger(log.mapping?.[name]));
+      if(missing.length)throw new Error('Log '+log.id+' is missing required mappings: '+missing.join(', '));
+     }
+     // Calculate against every log first. Only publish the shared selection and success UI
+     // after every calculation succeeds, preventing partial "added to all logs" states.
+     const nextKeys=[...sharedDerivedAdded,key];
+     const results=multiSession.logs.map(log=>({log,keys:nextKeys.slice(),rows:commonEngine.calculateLog(log,multiLogType,nextKeys)}));
+     results.forEach(({log,keys})=>{log._derivedKeys=keys;if(log._phase3Card){const host=log._phase3Card._phase3Controls.tableHost;renderMultiLogPreview(log,host,keys);const status=log._phase3Card._phase3Controls.summary;status.textContent=Math.max(0,log.filteredRows.length-1).toLocaleString()+' data rows retained · '+Math.max(0,log.sourceRows.length-log.filteredRows.length).toLocaleString()+' data rows removed (Actual RPM ≤ 0) · '+keys.length+' derived parameter(s) calculated and added to this log file.';}});
      sharedDerivedAdded.add(key);
-     multiSession.logs.forEach(log=>{log._derivedKeys=[...sharedDerivedAdded];commonEngine.calculateLog(log,multiLogType,log._derivedKeys);if(log._phase3Card){const host=log._phase3Card._phase3Controls.tableHost;renderMultiLogPreview(log,host,log._derivedKeys);const status=log._phase3Card._phase3Controls.summary;status.textContent=Math.max(0,log.filteredRows.length-1).toLocaleString()+' data rows retained · '+Math.max(0,log.sourceRows.length-log.filteredRows.length).toLocaleString()+' data rows removed (Actual RPM ≤ 0) · '+log._derivedKeys.length+' derived parameter(s) calculated and added to this log file.';}});
      calculate.hidden=true;addedStatus.hidden=false;retry.hidden=false;check.disabled=true;card.classList.add('is-added-to-graph');
-     retry.addEventListener('click',()=>{
-      sharedDerivedAdded.delete(key);check.disabled=false;check.checked=false;calculate.hidden=false;calculate.disabled=true;calculate.textContent='Calculate and Add to Log file';addedStatus.hidden=true;retry.hidden=true;card.classList.remove('is-added-to-graph');
-      multiSession.logs.forEach(log=>{log._phase3Ready=false;log._derivedKeys=[...sharedDerivedAdded];if(log._phase3Filtered)commonEngine.calculateLog(log,multiLogType,log._derivedKeys);if(log._phase3Card){renderMultiLogPreview(log,log._phase3Card._phase3Controls.tableHost,log._derivedKeys);log._phase3Card._phase3Controls.summary.textContent='Derived parameter reset. Recalculate the selected parameters for this log.';}});
-      Object.entries(sharedDerivedActions).forEach(([otherKey,action])=>{if(otherKey!==key)action.calculate.disabled=!sharedDerivedChecks[otherKey].checked||sharedDerivedAdded.has(otherKey);});
-      updateMultiReadiness();
-     });
-     note.textContent='Calculated for every filtered log using its own confirmed parameter mapping.';
+     note.textContent='Successfully calculated and added '+parameterName+' to all '+multiSession.logs.length+' logs using each log’s confirmed Step 02 mappings.';
      updateMultiReadiness();
-    }catch(error){note.textContent=error.message||'Unable to calculate this parameter for every log.';}
+    }catch(error){note.textContent=error.message||'Unable to calculate this parameter for every log. No success status was applied.';}
+   });
+   retry.addEventListener('click',()=>{
+    sharedDerivedAdded.delete(key);check.disabled=false;check.checked=false;calculate.hidden=false;calculate.disabled=true;calculate.textContent='Calculate and Add to All logs';calculate.title='Select the parameter and apply filtering to every log before calculating.';addedStatus.hidden=true;retry.hidden=true;card.classList.remove('is-added-to-graph');
+    multiSession.logs.forEach(log=>{log._phase3Ready=false;log._derivedKeys=[...sharedDerivedAdded];if(log._phase3Filtered)commonEngine.calculateLog(log,multiLogType,log._derivedKeys);if(log._phase3Card){renderMultiLogPreview(log,log._phase3Card._phase3Controls.tableHost,log._derivedKeys);log._phase3Card._phase3Controls.summary.textContent='Derived parameter reset. Recalculate the selected parameters for all logs.';}});
+    Object.entries(sharedDerivedActions).forEach(([otherKey,action])=>{if(otherKey!==key)action.calculate.disabled=!sharedDerivedChecks[otherKey].checked||sharedDerivedAdded.has(otherKey);});
+    note.textContent='Calculation reset. Select the parameter and calculate it again for all logs.';
+    updateMultiReadiness();
    });
    card.append(details,calculate,addedStatus,retry);sharedDerivedCards.append(card);
   });
