@@ -36,6 +36,9 @@ const server = http.createServer((req,res)=>{
   if(await comparativeSummary.locator('thead th').count()!==3)throw new Error('Executive summary table must contain a parameter column and one column for each log.');
   if(await comparativeSummary.locator('tbody tr').count()<6)throw new Error('Executive summary table must include all mapped comparative-summary parameters.');
   if(await comparativeSummary.locator('.propulsion-report-kpi-timestamp').count()!==await comparativeSummary.locator('tbody tr').count()*2)throw new Error('Every parameter/log table cell must include its maximum-value timestamp.');
+  if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-page-kicker').filter({hasText:'PER-LOG ANALYSIS'}).count()!==0)throw new Error('PDF preview must omit the separate per-log processing and derived-statistics pages.');
+  if(await multiReport.locator('#multiPropulsionReportLivePreview').getByText('Rows retained',{exact:true}).count()!==0)throw new Error('PDF preview must omit per-log row-retention statistics.');
+
 
   if(!(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-inline-title').innerText()).includes('YETI Propulsion Bench Data Validation Report'))throw new Error('Comparative cover title must match the Single-Log report design.');
 
