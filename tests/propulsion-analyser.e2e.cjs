@@ -75,10 +75,14 @@ const server = http.createServer((req,res)=>{
   await page.locator('#identifyMultipleLogsBtn').waitFor({state:'visible'});
   await page.locator('#identifyMultipleLogsBtn').click();
   await page.locator('#confirmAllMultiLogMappingsBtn').waitFor({state:'visible'});
-  const mappingTables=page.locator('.propulsion-multi-log-mapping .propulsion-multi-mapping-table');
-  if(await mappingTables.count()!==2)throw new Error('Each uploaded log should show one consolidated parameter-identification table.');
-  if(await mappingTables.first().locator('tbody tr').count()!==10)throw new Error('The Thrust mapping table should contain all 10 applicable parameter rows.');
-  if(await mappingTables.first().locator('thead th').count()!==4)throw new Error('The parameter-identification table should expose four aligned columns.');
+  const mappingTables=page.locator('.propulsion-multi-mapping-table-unified');
+  if(await mappingTables.count()!==1)throw new Error('All uploaded logs must be represented in one unified parameter-identification table.');
+  if(await mappingTables.locator('tbody tr').count()!==10)throw new Error('The unified Thrust table should contain all 10 applicable parameter rows exactly once.');
+  if(await mappingTables.locator('thead tr:first-child th').count()!==4)throw new Error('The unified table should show Parameter Group, Parameter and one grouped header per uploaded log.');
+  if(await mappingTables.locator('thead tr:nth-child(2) th').count()!==4)throw new Error('Each uploaded log should have separate status and CSV mapping sub-columns.');
+  if(await mappingTables.locator('tbody tr:first-child td, tbody tr:first-child th').count()!==6)throw new Error('Each parameter row should contain the two parameter columns plus status/mapping pairs for both logs.');
+  if(await mappingTables.locator('select[data-log-index="0"]').count()!==10||await mappingTables.locator('select[data-log-index="1"]').count()!==10)throw new Error('Every parameter should have an independent CSV mapping selector for each uploaded log.');
+  if(await page.locator('.propulsion-multi-log-mapping').count()!==0)throw new Error('Separate vertically stacked per-log mapping cards should not be rendered.');
   if(await page.locator('#confirmAllMultiLogMappingsBtn').isDisabled())throw new Error('Default parameter mapping did not validate for both sample logs.');
   await page.locator('#confirmAllMultiLogMappingsBtn').click();
   const applyButtons=page.locator('.propulsion-phase3-log-card button');
