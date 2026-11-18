@@ -1019,3 +1019,12 @@
 .propulsion-multi-mapping-unified .propulsion-multi-mapping-group{vertical-align:middle;text-align:center;font-weight:800;letter-spacing:.035em;line-height:1.35;background:#f1f5f9;border-right:2px solid #cbd5e1;}
 .propulsion-multi-mapping-unified tbody tr:has(.propulsion-multi-mapping-group) td,
 .propulsion-multi-mapping-unified tbody tr:has(.propulsion-multi-mapping-group) th{border-top:2px solid #cbd5e1;}
+
+
+/* Multi-log workflow: Steps 03, 04 and 05 are sibling cards, never nested. */
+#propulsionPhase3AnalysisCard,
+#propulsionPhase4GraphCard,
+#propulsionPhase4ReportCard{display:block;width:100%;box-sizing:border-box;margin:22px 0 0;}
+#propulsionPhase4GraphCard{padding:20px;border:1px solid var(--step-border);border-radius:14px;background:var(--step-tint);}
+#propulsionPhase4GraphCard .propulsion-step-label{color:var(--step-accent);}
+#propulsionPhase4GraphCard h3{margin:0;color:#123b70;font-size:18px;}
