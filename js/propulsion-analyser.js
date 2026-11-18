@@ -1402,54 +1402,74 @@ const statsPage=el('section','propulsion-report-summary-page');
   add('line',{x1:L,y1:T+ph,x2:L+pw,y2:T+ph,stroke:'#111827','stroke-width':2});add('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#111827','stroke-width':2});
   add('text',{x:L+pw/2,y:H-18,'text-anchor':'middle',fill:'#123b70','font-size':15,'font-weight':700},xLabel);
   const yAxisLabel=add('text',{x:25,y:T+ph/2,'text-anchor':'middle',fill:'#123b70','font-size':15,'font-weight':700},yLabel);yAxisLabel.setAttribute('transform','rotate(-90 25 '+(T+ph/2)+')');
-  const flat=[];
   series.forEach(item=>{
    const color=multiColors[item.index%multiColors.length],points=item.points;
    if(!points.length)return;
    const path=points.map((point,index)=>(index?'L':'M')+sx(point.x)+','+sy(point.y)).join(' ');
    add('path',{d:path,fill:'none',stroke:color,'stroke-width':2.7,'stroke-linejoin':'round','stroke-linecap':'round'});
-   points.forEach(point=>{add('circle',{cx:sx(point.x),cy:sy(point.y),r:3.5,fill:color,stroke:'#fff','stroke-width':.8});flat.push({...point,sx:sx(point.x),sy:sy(point.y),color});});
+   points.forEach(point=>add('circle',{cx:sx(point.x),cy:sy(point.y),r:3.5,fill:color,stroke:'#fff','stroke-width':.8}));
   });
   let legendX=L;
   series.forEach(item=>{const color=multiColors[item.index%multiColors.length],name='LOG '+(item.index+1);add('line',{x1:legendX,y1:18,x2:legendX+24,y2:18,stroke:color,'stroke-width':4,'stroke-linecap':'round'});add('text',{x:legendX+30,y:22,fill:'#334155','font-size':12,'font-weight':700},name);legendX+=95;});
   plotHost.replaceChildren(svg);
   const guide=add('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#d97706','stroke-width':1.5,'stroke-dasharray':'5 4','pointer-events':'none'});
-  const marker=add('circle',{cx:L,cy:T,r:7,fill:'#fff',stroke:'#d97706','stroke-width':3,'pointer-events':'none'});
-  const updatePoint=index=>{
-   if(!flat.length)return;
-   const position=Math.max(0,Math.min(flat.length-1,Number(index)||0)),point=flat[position];
-   slider.value=String(position);guide.setAttribute('x1',point.sx);guide.setAttribute('x2',point.sx);marker.setAttribute('cx',point.sx);marker.setAttribute('cy',point.sy);marker.setAttribute('stroke',point.color);
-   readout.textContent='Log '+(point.seriesIndex+1)+' · '+point.file+' · Data row '+point.row+' · X ('+xLabel+'): '+fmt(point.x)+' · Y ('+yLabel+'): '+fmt(point.y)+' · Point '+(position+1)+' of '+flat.length;
+  const selectedMarkers=series.map(item=>add('circle',{cx:L,cy:T,r:7,fill:'#fff',stroke:multiColors[item.index%multiColors.length],'stroke-width':3,'pointer-events':'none',visibility:'hidden'}));
+  const sliderSteps=1000;
+  const updateAtCommonX=position=>{
+   const fraction=Math.max(0,Math.min(sliderSteps,Number(position)||0))/sliderSteps;
+   const targetX=xr.min+fraction*(xr.max-xr.min),guideX=sx(targetX);
+   slider.value=String(Math.round(fraction*sliderSteps));guide.setAttribute('x1',guideX);guide.setAttribute('x2',guideX);
+   readout.replaceChildren();
+   const heading=el('strong','propulsion-phase3-common-x-readout','COMMON X AXIS · '+xLabel+': '+fmt(targetX));
+   readout.append(heading);
+   series.forEach(item=>{
+    const points=item.points,color=multiColors[item.index%multiColors.length],marker=selectedMarkers[item.index];
+    let nearest=null,distance=Infinity;
+    points.forEach(point=>{const delta=Math.abs(point.x-targetX);if(delta<distance){distance=delta;nearest=point;}});
+    const row=el('div','propulsion-phase3-log-point-readout');
+    const logHeading=el('strong','', 'LOG '+(item.index+1)+' · '+(item.log.fileName||multiFiles[item.index]?.file.name||('Log '+(item.index+1))));
+    row.append(logHeading);
+    if(nearest){
+     marker.setAttribute('cx',sx(nearest.x));marker.setAttribute('cy',sy(nearest.y));marker.setAttribute('visibility','visible');
+     row.append(el('span','', 'X ('+xLabel+'): '+fmt(nearest.x)));
+     row.append(el('span','', 'Y ('+yLabel+'): '+fmt(nearest.y)));
+     row.append(el('span','', 'Data row: '+nearest.row));
+    }else{
+     marker.setAttribute('visibility','hidden');
+     row.append(el('span','', 'No valid plotted point available for this log.'));
+    }
+    row.style.borderLeft='4px solid '+color;row.style.padding='6px 10px';row.style.marginTop='6px';
+    readout.append(row);
+   });
   };
-  slider.min='0';slider.max=String(Math.max(0,flat.length-1));slider.value='0';slider.disabled=flat.length===0;slider.oninput=()=>updatePoint(Number(slider.value));if(flat.length)updatePoint(0);
-  // Direct graph interaction mirrors the Single-Log Analyser: touch, pen or mouse
-  // input moves the vertical guide and selected point to the nearest plotted X position.
-  const interactionLayer=add('rect',{x:L,y:T,width:pw,height:ph,fill:'transparent',cursor:'crosshair','pointer-events':'all','aria-label':'Touch or drag over the graph to move the selected data point'});
+  slider.min='0';slider.max=String(sliderSteps);slider.step='1';slider.value='0';slider.disabled=false;
+  slider.setAttribute('aria-valuetext','Common X-axis position');
+  slider.oninput=()=>updateAtCommonX(Number(slider.value));updateAtCommonX(0);
+  // Slider and direct graph gestures share one common X-axis scale across every log.
+  const interactionLayer=add('rect',{x:L,y:T,width:pw,height:ph,fill:'transparent',cursor:'crosshair','pointer-events':'all','aria-label':'Touch or drag over the graph to move the common X-axis position for every log'});
   interactionLayer.style.touchAction='pan-y';
   let activePointerId=null;
-  const selectPointAtClientX=clientX=>{
+  const selectCommonXAtClientX=clientX=>{
    const bounds=svg.getBoundingClientRect();if(!bounds.width)return;
    const viewX=(clientX-bounds.left)*(W/bounds.width);
    const graphX=Math.max(L,Math.min(L+pw,viewX));
-   const targetX=xr.min+(graphX-L)/pw*(xr.max-xr.min);
-   let best=0,distance=Infinity;
-   flat.forEach((point,index)=>{const delta=Math.abs(point.x-targetX);if(delta<distance){distance=delta;best=index;}});
-   updatePoint(best);
+   const fraction=(graphX-L)/pw;
+   updateAtCommonX(fraction*sliderSteps);
   };
   interactionLayer.addEventListener('pointerdown',event=>{
    if(event.pointerType==='mouse'&&event.button!==0)return;
    activePointerId=event.pointerId;
    try{interactionLayer.setPointerCapture(event.pointerId)}catch(_){}
-   selectPointAtClientX(event.clientX);event.preventDefault();
+   selectCommonXAtClientX(event.clientX);event.preventDefault();
   });
   interactionLayer.addEventListener('pointermove',event=>{
    if(activePointerId!==event.pointerId)return;
-   selectPointAtClientX(event.clientX);event.preventDefault();
+   selectCommonXAtClientX(event.clientX);event.preventDefault();
   });
   const endPointer=event=>{if(activePointerId===event.pointerId){activePointerId=null;try{interactionLayer.releasePointerCapture(event.pointerId)}catch(_){}}};
   interactionLayer.addEventListener('pointerup',endPointer);
   interactionLayer.addEventListener('pointercancel',endPointer);
-  status.textContent=flat.length.toLocaleString()+' plotted data points across '+series.filter(item=>item.points.length).length+' logs. All log curves are superimposed on the same X and Y axes.';
+  status.textContent=all.length.toLocaleString()+' plotted data points across '+series.filter(item=>item.points.length).length+' logs. The navigation slider spans the common X-axis range; each log displays its nearest X and Y values at the selected position.';
  }
 
  function identifyAllMultiLogs(){if(!commonEngine)throw new Error('The common analysis engine did not load.');const count=Number(logCountSelect.value);multiSession=commonEngine.createSession(count,multiLogType);multiSession.logs.forEach((log,index)=>{const source=multiFiles[index];commonEngine.setLogData(log,{fileName:source.file.name,headers:source.headers,rows:[source.headers,...source.data]});log._headerIndex=source.headerIndex;log._dataRows=source.data;});renderMultiMappings();multiMappingHost.scrollIntoView({behavior:'smooth',block:'start'});}
