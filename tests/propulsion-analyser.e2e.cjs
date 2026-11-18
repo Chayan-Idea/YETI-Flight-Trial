@@ -104,7 +104,7 @@ const server = http.createServer((req,res)=>{
 
   const applyButtons=page.locator('.propulsion-phase3-log-card button');
   if(await applyButtons.count()!==2)throw new Error('Expected one independent processing action per log.');
-  const sharedDerivedCards=step3Card.locator('.propulsion-phase3-subsection--derived .propulsion-calculated-parameter');
+  const sharedDerivedCards=step3Card.locator('.propulsion-step-subsection--derived .propulsion-calculated-parameter');
   if(await sharedDerivedCards.count()!==2)throw new Error('Thrust multi-log mode must show exactly one shared Electrical Power and Specific Thrust selection.');
   if(await page.locator('.propulsion-phase3-log-card .propulsion-phase3-derived-option').count()!==0)throw new Error('Derived parameter controls must not be repeated inside individual log cards.');
   const sharedElectrical=sharedDerivedCards.nth(0).locator('input[type="checkbox"]');
