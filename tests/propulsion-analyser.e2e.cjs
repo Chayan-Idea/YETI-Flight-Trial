@@ -166,6 +166,12 @@ const server = http.createServer((req,res)=>{
   if(sliderStyle.appearance!=='auto')throw new Error('Comparative slider must use the shared native slider appearance.');
   const xyRange=page.locator('.propulsion-phase3-range-panel');
   if(await xyRange.count()!==1)throw new Error('Comparative graph must provide the X-Y range selector.');
+  if(await xyRange.isVisible())throw new Error('Comparative X-Y range selector must remain hidden before a graph is plotted.');
+  await page.getByRole('button',{name:'Plot Comparative Graph'}).click();
+  if(!(await xyRange.isVisible()))throw new Error('Comparative X-Y range selector must appear after graph plotting.');
+  const explorerOrder=await page.locator('.propulsion-phase3-explorer').evaluate(el=>Array.from(el.children).map(child=>child.className));
+  if(explorerOrder.indexOf('propulsion-phase3-range-panel')<explorerOrder.indexOf('propulsion-phase3-point-readout'))throw new Error('Comparative X-Y range selector must appear below graph slider and readout.');
+
   for(const id of ['multiGraphXRangeStart','multiGraphXRangeEnd','multiGraphYRangeStart','multiGraphYRangeEnd'])if(await page.locator('#'+id).count()!==1)throw new Error('Missing comparative X-Y range input: '+id);
   if(await page.getByRole('button',{name:'Apply',exact:true}).count()<1||await page.getByRole('button',{name:'Reset Full Range'}).count()<1)throw new Error('Comparative X-Y range selector must provide Apply and Reset Full Range actions.');
     const graphSvg=page.locator('.propulsion-phase3-plot-host svg');
