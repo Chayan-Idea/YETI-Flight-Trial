@@ -149,6 +149,11 @@ const server = http.createServer((req,res)=>{
   const graphAria=await page.locator('.propulsion-phase3-plot-host svg').getAttribute('aria-label');
   if(!graphAria.includes('actualRpm')||!graphAria.includes('thrust')||!graphAria.includes('2 logs superimposed'))throw new Error('Comparative graph did not superimpose all logs on the selected common X/Y axes.');
   if(await page.locator('.propulsion-phase3-explorer input[type=range]').count()!==1||await page.locator('.propulsion-phase3-explorer input[type=range]').isDisabled())throw new Error('Comparative graph slider did not enable for exploring plotted data points.');
+  const graphPointerLayer=page.locator('.propulsion-phase3-plot-host svg rect[aria-label*="Touch or drag"]');
+  if(await graphPointerLayer.count()!==1)throw new Error('Direct touch/mouse graph interaction layer was not rendered.');
+  const graphBox=await graphPointerLayer.boundingBox();if(!graphBox)throw new Error('Graph interaction area has no measurable bounds.');
+  await page.mouse.move(graphBox.x+graphBox.width*.7,graphBox.y+graphBox.height*.5);await page.mouse.down();await page.mouse.move(graphBox.x+graphBox.width*.8,graphBox.y+graphBox.height*.5);await page.mouse.up();
+  if(!(await page.locator('.propulsion-phase3-explorer input[type=range]').inputValue()).length)throw new Error('Direct graph movement did not synchronize the point slider.');
   for(const [key,value] of Object.entries({motor:'Test Motor',esc:'Test ESC',propeller:'Test Propeller',date:'2026-11-18'}))await page.locator('#multiReport_'+key).fill(value);
   const exportButton=page.locator('#propulsionPhase4ReportCard button').filter({hasText:'Export Comparative Report as PDF'});
   if(await exportButton.isDisabled())throw new Error('Report export did not unlock after both logs were processed and required metadata was entered.');
