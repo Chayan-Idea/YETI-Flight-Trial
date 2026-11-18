@@ -1127,7 +1127,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    const addedStatus=el('span','propulsion-calculated-added-status','✓ Added to Log file');addedStatus.hidden=true;
    const retry=el('button','btn alt propulsion-calculated-retry','Retry');retry.type='button';retry.hidden=true;
    sharedDerivedChecks[key]=check;sharedDerivedActions[key]={calculate,addedStatus,retry};
-   const updateAction=()=>{calculate.disabled=!check.checked||!multiSession.logs.every(log=>log._phase3Filtered)||sharedDerivedAdded.has(key);};
+   const updateAction=()=>{calculate.disabled=!check.checked||sharedDerivedAdded.has(key);calculate.title=check.checked?'Calculate this parameter for every filtered log.':'Select the checkbox to enable this calculation.';};
    check.addEventListener('change',()=>{
     if(!check.checked){sharedDerivedAdded.delete(key);addedStatus.hidden=true;retry.hidden=true;calculate.hidden=false;calculate.textContent='Calculate and Add to Log file';card.classList.remove('is-added-to-graph');}
     multiSession.logs.forEach(log=>{log._phase3Ready=false;log._derivedKeys=[...sharedDerivedAdded];if(log._phase3Filtered)commonEngine.calculateLog(log,multiLogType,log._derivedKeys);if(log._phase3Card)renderMultiLogPreview(log,log._phase3Card._phase3Controls.tableHost,log._derivedKeys);});
@@ -1145,7 +1145,7 @@ const statsPage=el('section','propulsion-report-summary-page');
      retry.addEventListener('click',()=>{
       sharedDerivedAdded.delete(key);check.disabled=false;check.checked=false;calculate.hidden=false;calculate.disabled=true;calculate.textContent='Calculate and Add to Log file';addedStatus.hidden=true;retry.hidden=true;card.classList.remove('is-added-to-graph');
       multiSession.logs.forEach(log=>{log._phase3Ready=false;log._derivedKeys=[...sharedDerivedAdded];if(log._phase3Filtered)commonEngine.calculateLog(log,multiLogType,log._derivedKeys);if(log._phase3Card){renderMultiLogPreview(log,log._phase3Card._phase3Controls.tableHost,log._derivedKeys);log._phase3Card._phase3Controls.summary.textContent='Derived parameter reset. Recalculate the selected parameters for this log.';}});
-      Object.entries(sharedDerivedActions).forEach(([otherKey,action])=>{if(otherKey!==key)action.calculate.disabled=!sharedDerivedChecks[otherKey].checked||!multiSession.logs.every(log=>log._phase3Filtered)||sharedDerivedAdded.has(otherKey);});
+      Object.entries(sharedDerivedActions).forEach(([otherKey,action])=>{if(otherKey!==key)action.calculate.disabled=!sharedDerivedChecks[otherKey].checked||sharedDerivedAdded.has(otherKey);});
       updateMultiReadiness();
      });
      note.textContent='Calculated for every filtered log using its own confirmed parameter mapping.';
@@ -1170,7 +1170,7 @@ const statsPage=el('section','propulsion-report-summary-page');
      const removed=log.sourceRows.length-log.filteredRows.length;
      summary.textContent=Math.max(0,log.filteredRows.length-1).toLocaleString()+' data rows retained · '+removed.toLocaleString()+' data rows removed (Actual RPM ≤ 0) · '+log._derivedKeys.length+' derived parameter(s) added.';
      renderMultiLogPreview(log,tableHost,log._derivedKeys);
-     Object.entries(sharedDerivedActions).forEach(([key,controls])=>{controls.calculate.disabled=!sharedDerivedChecks[key].checked||!multiSession.logs.every(item=>item._phase3Filtered)||sharedDerivedAdded.has(key);});
+     Object.entries(sharedDerivedActions).forEach(([key,controls])=>{controls.calculate.disabled=!sharedDerivedChecks[key].checked||sharedDerivedAdded.has(key);});
      updateMultiReadiness();
     }catch(error){summary.textContent=error.message||'Unable to filter this log.';log._phase3Filtered=false;updateMultiReadiness();}
    });
