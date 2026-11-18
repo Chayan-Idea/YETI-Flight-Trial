@@ -1100,3 +1100,7 @@
   width:100%!important;margin:9px 0 0!important;height:auto!important;
   background:initial!important;accent-color:#287fbd!important;
 }
+
+/* Workflow visibility is controlled with the HTML hidden attribute.
+   Keep it authoritative over component display rules such as .propulsion-actions{display:flex}. */
+[hidden]{display:none!important}
