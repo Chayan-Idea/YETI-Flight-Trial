@@ -1104,7 +1104,7 @@ const statsPage=el('section','propulsion-report-summary-page');
      commonEngine.calculateLog(log,multiLogType,selected);
      log._phase3Ready=true;log._derivedKeys=selected;
      const removed=log.sourceRows.length-log.filteredRows.length;
-     summary.textContent=log.filteredRows.length.toLocaleString()+' rows retained · '+removed.toLocaleString()+' rows removed (Actual RPM ≤ 0) · '+selected.length+' derived parameter(s) calculated.';
+     summary.textContent=Math.max(0,log.filteredRows.length-1).toLocaleString()+' data rows retained · '+removed.toLocaleString()+' data rows removed (Actual RPM ≤ 0) · '+selected.length+' derived parameter(s) calculated.';
      renderMultiLogPreview(log,tableHost,selected);
      updateMultiGraphAvailability();
     }catch(error){summary.textContent=error.message||'Unable to process this log.';log._phase3Ready=false;updateMultiGraphAvailability();}
