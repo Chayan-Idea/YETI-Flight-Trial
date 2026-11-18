@@ -1263,10 +1263,17 @@ const statsPage=el('section','propulsion-report-summary-page');
     multiSession.logs.forEach(log=>{log._phase3Ready=true;});updateMultiReadiness();
     csvExportButton.hidden=true;
     csvStatus.textContent='Successfully generated '+prepared.length+' separate CSV files. Each log has its own preview and download buttons.';
+    multiProceedActions.hidden=false;
    }catch(error){csvStatus.textContent='CSV generation failed: '+(error.message||'Unable to prepare the individual CSV files.');csvStatus.setAttribute('role','alert');}
   });
   csvSection.append(csvConfirmation,csvStatus,csvActions,generatedCsvFilesHost);
   multiAnalysisCard.append(sharedDerivedSection,csvSection);
+  // Mirror the Single-Log choice shown after Step 03: continue to in-app analysis or go directly to report generation.
+  const multiProceedActions=el('div','propulsion-actions propulsion-next-step-actions');
+  const multiProceedInApp=el('button','btn','Proceed with In App Analysis');multiProceedInApp.type='button';multiProceedInApp.hidden=true;
+  const multiProceedReport=el('button','btn alt','Proceed with Report Generation');multiProceedReport.type='button';multiProceedReport.hidden=true;
+  multiProceedActions.hidden=true;multiProceedActions.append(multiProceedInApp,multiProceedReport);
+  multiAnalysisCard.insertAdjacentElement('afterend',multiProceedActions);
   const graph=el('section','propulsion-phase3-graph-card propulsion-step-card propulsion-step-card--blue');graph.id='propulsionPhase4GraphCard';
   graph.append(el('div','propulsion-step-label','STEP 04 · COMPARATIVE GRAPHICAL ANALYSIS'),el('h3','','Compare Multiple Logs on Common Axes'),el('p','propulsion-mapping-description','Choose common X and Y parameters. Toggle each log series independently and explore the plotted points.'));
   const controls=el('div','propulsion-phase3-graph-controls');
@@ -1292,7 +1299,17 @@ const statsPage=el('section','propulsion-report-summary-page');
   graph.append(controls,seriesControls,status,plotHost,explorer);
   multiGraphCard=graph;
   multiMappingHost.append(multiAnalysisCard,multiGraphCard);
+  multiGraphCard.hidden=true;
   buildMultiLogReportCard();
+  multiReportCard.hidden=true;
+  multiProceedInApp.addEventListener('click',()=>{
+   multiGraphCard.hidden=false;
+   multiGraphCard.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+  multiProceedReport.addEventListener('click',()=>{
+   multiReportCard.hidden=false;
+   multiReportCard.scrollIntoView({behavior:'smooth',block:'start'});
+  });
   updateMultiGraphAvailability();
  }
  function renderMultiLogPreview(log,host,derivedKeys){
