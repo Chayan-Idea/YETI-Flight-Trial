@@ -41,4 +41,16 @@ engine.filterLog(torque.logs[0]);
 const torqueRows = engine.calculateLog(torque.logs[0], 'torque', ['mechanicalPower', 'electricalPower']);
 assert.ok(Math.abs(torqueRows[1].derived.mechanicalPower - (2 * 3000 * 2 * Math.PI / 60)) < 1e-10);
 assert.equal(torqueRows[1].derived.electricalPower, 240);
+
+const sortable = engine.createSession(1, 'thrust').logs[0];
+engine.setLogData(sortable, {
+  fileName: 'sort.csv',
+  headers: ['Thrust', 'RPM', 'Voltage', 'Current'],
+  rows: [['Thrust', 'RPM', 'Voltage', 'Current'], [30, 300, 48, 5], [10, 100, 48, 5], [20, 200, 48, 5], [5, 0, 48, 5]]
+});
+engine.setMapping(sortable, { thrust: 0, actualRpm: 1, voltage: 2, current: 3 });
+const sortedRows = engine.filterLog(sortable, { sortIndex: 0, sortDirection: 'asc' });
+assert.deepEqual(sortedRows.slice(1).map(row => row[0]), [10, 20, 30], 'filtering removes RPM <= 0 and sorting is independent');
+assert.equal(sortable.sortOptions.sortDirection, 'asc');
+
 console.log('Propulsion common analysis engine tests passed.');
