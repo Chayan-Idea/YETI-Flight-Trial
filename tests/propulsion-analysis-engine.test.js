@@ -34,13 +34,29 @@ const torque = engine.createSession(1, 'torque');
 engine.setLogData(torque.logs[0], {
   fileName: 'torque.csv',
   headers: ['Torque', 'RPM', 'Voltage', 'Current'],
-  rows: [['Torque', 'RPM', 'Voltage', 'Current'], [2, 3000, 48, 5]]
+  rows: [['Torque', 'RPM', 'Voltage', 'Current'], [2, 3000, 48, 5], [-2, 3000, 48, 5], [0, 3000, 48, 5]]
 });
 engine.setMapping(torque.logs[0], { torque: 0, actualRpm: 1, voltage: 2, current: 3 });
 engine.filterLog(torque.logs[0]);
 const torqueRows = engine.calculateLog(torque.logs[0], 'torque', ['mechanicalPower', 'electricalPower']);
 assert.ok(Math.abs(torqueRows[1].derived.mechanicalPower - (2 * 3000 * 2 * Math.PI / 60)) < 1e-10);
 assert.equal(torqueRows[1].derived.electricalPower, 240);
+assert.ok(Math.abs(torqueRows[1].derived.mechanicalPower - 628.3185307179587) < 1e-10, 'mechanical power follows signed torque × RPM × 2π/60');
+assert.ok(Math.abs(torqueRows[2].derived.mechanicalPower - (-628.3185307179587)) < 1e-10, 'negative torque preserves its sign instead of being silently converted to magnitude');
+assert.equal(torqueRows[3].derived.mechanicalPower, 0, 'zero torque produces zero mechanical power');
+assert.equal(engine.calculateDerivedValue('electricalPower', ['48', '5'], { voltage: 0, current: 1 }), 240);
+assert.equal(engine.calculateDerivedValue('specificThrust', ['1250', '48', '5'], { thrust: 0, voltage: 1, current: 2 }), 5.208333333333333);
+assert.ok(Number.isNaN(engine.calculateDerivedValue('specificThrust', ['1250', '0', '5'], { thrust: 0, voltage: 1, current: 2 })), 'zero electrical power cannot produce a finite specific thrust');
+assert.ok(Number.isNaN(engine.calculateDerivedValue('specificThrust', ['1250', '48', '-5'], { thrust: 0, voltage: 1, current: 2 })), 'negative electrical power cannot produce a positive-power specific thrust');
+assert.ok(Number.isNaN(engine.calculateDerivedValue('mechanicalPower', ['1e308', '1e308'], { torque: 0, actualRpm: 1 })), 'overflowing mechanical power is rejected as non-finite');
+assert.ok(Number.isNaN(engine.calculateDerivedValue('electricalPower', ['1e308', '1e308'], { voltage: 0, current: 1 })), 'overflowing electrical power is rejected as non-finite');
+assert.throws(() => engine.calculateDerivedValue('unsupported', [1], {}), /Unsupported derived parameter/);
+assert.throws(() => engine.calculateDerivedValue('electricalPower', [48, 5], null), /numeric parameter mapping/);
+assert.throws(() => engine.calculateLog(torque.logs[0], 'torque', ['mechanicalPower']), /missing mappings/);
+
+const fourLogSession = engine.createSession(4, 'thrust');
+assert.equal(fourLogSession.logs.length, 4, 'the maximum supported four-log session is accepted');
+assert.equal(new Set(fourLogSession.logs.map(log => log.mapping)).size, 4, 'each of four logs owns an independent mapping object');
 
 const sortable = engine.createSession(1, 'thrust').logs[0];
 engine.setLogData(sortable, {
