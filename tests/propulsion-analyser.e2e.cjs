@@ -51,6 +51,14 @@ const server = http.createServer((req,res)=>{
   await multiReport.locator('#addMultiReportGraphBtn').click();
   if(await multiReport.locator('#multiReportGraphList .propulsion-report-graph-item').count()!==1)throw new Error('Adding a comparative report graph must create one removable graph entry.');
   if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-graph-page .propulsion-report-graph-svg').count()!==1)throw new Error('The selected comparative report graph must appear in the live PDF preview.');
+  const reportSvg=multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-graph-page .propulsion-report-graph-svg').first();
+  const legendLabels=reportSvg.locator('text').filter({hasText:/^LOG [12] ·/});
+  if(await legendLabels.count()!==2)throw new Error('Comparative report graph must show one legend label for each log.');
+  const legendRects=reportSvg.locator('rect[rx="4"]');
+  if(await legendRects.count()!==2)throw new Error('Comparative graph legend labels must have separate readable background areas placed by the blank-space layout algorithm.');
+  const firstLegendBox=await legendRects.nth(0).boundingBox(),secondLegendBox=await legendRects.nth(1).boundingBox();
+  if(firstLegendBox&&secondLegendBox&&firstLegendBox.x<secondLegendBox.x+secondLegendBox.width&&firstLegendBox.x+firstLegendBox.width>secondLegendBox.x&&firstLegendBox.y<secondLegendBox.y+secondLegendBox.height&&firstLegendBox.y+firstLegendBox.height>secondLegendBox.y)throw new Error('Comparative graph legend labels must not overlap one another.');
+
   if(await multiReport.locator('#multiReportGraphCount').innerText()!=='1 of 5 graphs added')throw new Error('Comparative report graph counter must update after adding a graph.');
   await multiReport.locator('#multiReportGraphList button[aria-label="Remove report graph 1"]').click();
   if(await multiReport.locator('#multiReportGraphList .propulsion-report-graph-item').count()!==0||await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-graph-page').count()!==0)throw new Error('Removing a comparative report graph must also remove it from the live PDF preview.');
