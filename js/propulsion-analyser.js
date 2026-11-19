@@ -919,7 +919,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   if(!/\.csv$/i.test(file.name)){input.value='';setUploadState(false,'Invalid file — please select a .csv file');return}
   if(file.size===0){input.value='';setUploadState(false,'The selected CSV file is empty');return}
   selectedFile=file;if(filePicker)filePicker.hidden=true;setUploadState(true,'CSV selected — ready for parameter identification');
-  meta.hidden=false;meta.textContent=file.name+' · '+(file.size/1024).toFixed(1)+' KB';reset.hidden=false;start.disabled=false;start.textContent='Identify Parameters';identifyActions.hidden=false;file.text().then(text=>{parseCSVText=text;renderCsvPreview(text);saveState()}).catch(()=>{setUploadState(false,'Unable to read the selected CSV file')});
+  meta.hidden=false;meta.textContent=file.name+' · '+(file.size/1024).toFixed(1)+' KB';reset.hidden=false;start.disabled=false;start.textContent='Identify Parameters';file.text().then(text=>{parseCSVText=text;renderCsvPreview(text);saveState()}).catch(()=>{setUploadState(false,'Unable to read the selected CSV file')});
  });
  reset.addEventListener('click',async()=>{input.value='';resetAnalysis();if(filePicker)filePicker.hidden=false;reset.textContent='Choose another log file';setUploadState(false,'No file selected');try{const db=await openStateDB();await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).delete(DB_KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}catch(error){console.warn('Could not clear saved propulsion session:',error)}});
  start.addEventListener('click',async()=>{
