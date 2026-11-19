@@ -1,0 +1,106 @@
+/* YETI visual refinement layer
+   Presentation-only overrides. Keep application structure, IDs, workflow state,
+   event bindings, data tables, chart geometry and print/report styles unchanged. */
+:root{
+  --yeti-navy:#102f57;
+  --yeti-blue:#1769aa;
+  --yeti-blue-strong:#125b98;
+  --yeti-ice:#eaf3fb;
+  --yeti-ink:#263747;
+  --yeti-muted:#687b8f;
+  --yeti-line:#d7e3ed;
+  --yeti-surface:#ffffff;
+  --yeti-canvas:#f2f6fa;
+  --yeti-green:#21815d;
+  --yeti-shadow:0 8px 24px rgba(16,47,87,.065);
+}
+@media screen{
+  body{background:var(--yeti-canvas);color:var(--yeti-ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+  main{max-width:1240px;padding-right:clamp(16px,2.5vw,30px);padding-left:clamp(16px,2.5vw,30px);margin-top:26px}
+  .top{position:relative;background:linear-gradient(116deg,#0d294b 0%,#123b70 58%,#1769aa 100%);border-bottom:3px solid #77b8e6;padding-top:20px;padding-bottom:20px;box-shadow:0 5px 20px rgba(10,35,65,.14)}
+  .top:after{content:"";position:absolute;inset:auto 0 0;height:1px;background:rgba(255,255,255,.22)}
+  .brand-logo-wrap{border:1px solid rgba(255,255,255,.55);border-radius:12px;box-shadow:0 5px 18px rgba(0,0,0,.13)}
+  .brand-eyebrow{letter-spacing:.19em;color:#c5e3fb}
+  .top h1{font-weight:780;letter-spacing:-.025em}
+  .top p{color:#d8e8f6}
+  .module-nav-heading{margin:10px 2px 15px}
+  .module-nav-heading .nav-kicker,.subnav-heading .nav-kicker{color:var(--yeti-blue);font-size:10px;letter-spacing:.2em}
+  .module-nav-heading h2,.subnav-heading h2{color:var(--yeti-navy);font-size:clamp(20px,2vw,24px);font-weight:780;letter-spacing:-.025em}
+  .module-nav-heading p,.subnav-heading p{color:var(--yeti-muted);font-size:13px}
+  .module-tabs{gap:14px;margin-bottom:24px}
+  .module-tab{position:relative;min-height:94px;padding:17px 18px;border:1px solid #d2e0ec;border-radius:15px;background:linear-gradient(145deg,#fff 0%,#f7faff 100%);box-shadow:0 4px 14px rgba(16,47,87,.045);transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease}
+  .module-tab:hover{border-color:#9fc5e3;box-shadow:0 8px 20px rgba(16,47,87,.09);transform:translateY(-1px)}
+  .module-tab.active{background:linear-gradient(116deg,#102f57 0%,#1769aa 100%);border-color:#1769aa;box-shadow:0 9px 22px rgba(18,59,112,.2)}
+  .module-index{border-radius:10px;background:#e8f2fa;color:#145f9b}
+  .module-tab-copy strong{font-size:14px;font-weight:780;letter-spacing:-.01em}
+  .module-tab-copy small{font-size:11px;line-height:1.45}
+  .module-arrow{font-size:28px;font-weight:400}
+  .flight-preparation-content,.sop-module-content{padding:clamp(14px,2vw,22px);border:1px solid #d6e2ec;border-radius:17px;background:linear-gradient(145deg,#fff 0%,#fbfdff 100%);box-shadow:var(--yeti-shadow)}
+  .subnav-heading{margin-bottom:17px}
+  .subnav-heading h2{font-size:20px}
+  .hierarchy-tag{border-color:#cfe0ed;border-radius:8px;background:#f2f7fc;color:#3f607b}
+  .submodule-layout{gap:17px}
+  .checklist-tabs{border-color:#d7e3ed;border-radius:13px;background:#f1f6fa;box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+  .checklist-tabs .sidebar-toggle{border-color:#cbddea;border-radius:9px;background:#e7f1f9;color:#174f7d;transition:background .16s ease,border-color .16s ease}
+  .checklist-tabs .sidebar-toggle:hover{background:#dcecf8;border-color:#9fc5e3}
+  .checklist-tabs .checklist-tab{border-color:transparent;border-radius:10px;transition:background .16s ease,border-color .16s ease,box-shadow .16s ease}
+  .checklist-tabs .checklist-tab:not(.active):hover{background:#fff;border-color:#d7e5f0}
+  .checklist-tabs .checklist-tab.active{background:linear-gradient(115deg,#123b70,#1769aa);border-color:#1769aa;box-shadow:0 5px 13px rgba(23,105,170,.18)}
+  .subtab-number{border-radius:9px}
+  .submodule-content{min-width:0}
+  .submodule-content .checklist-tab-panel,.submodule-content>.card{border-radius:13px}
+  .card,.section,.stat{border-color:var(--yeti-line);border-radius:13px;box-shadow:0 3px 12px rgba(16,47,87,.035)}
+  .card{padding:clamp(15px,2vw,22px)}
+  .section{overflow:hidden}
+  .section summary{background:linear-gradient(100deg,#f5f9fc,#fff);color:var(--yeti-navy)}
+  .section[open] summary{background:#edf5fb}
+  .item{border-top-color:#e8eef4}
+  .item:focus-within{background:#f5faff}
+  .subsection{border-color:#d8e5ef;border-radius:11px}
+  .subsection-heading{background:linear-gradient(90deg,#eaf3fb,#f7faff);border-left-color:#287fbd;color:#174f7d}
+  .btn{border-color:var(--yeti-blue);border-radius:9px;background:linear-gradient(135deg,#1769aa,#125b98);box-shadow:0 2px 6px rgba(23,105,170,.12);transition:background .16s ease,border-color .16s ease,box-shadow .16s ease,transform .16s ease}
+  .btn:hover:not(:disabled){background:linear-gradient(135deg,#125b98,#0e4e84);border-color:#125b98;box-shadow:0 5px 12px rgba(23,105,170,.18);transform:translateY(-1px)}
+  .btn:active:not(:disabled){transform:translateY(0)}
+  .btn:disabled{box-shadow:none}
+  .btn.alt{background:#fff;color:#145f9b;border-color:#c5d9e9;box-shadow:none}
+  .btn.alt:hover:not(:disabled){background:#f0f7fc;border-color:#8db9db;color:#104f83}
+  button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid rgba(40,127,189,.35);outline-offset:2px}
+  input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{border-color:#cbd9e5;border-radius:9px}
+  input:not([type=checkbox]):not([type=radio]):not([type=range]):focus,select:focus,textarea:focus{border-color:#6da7d2;box-shadow:0 0 0 3px rgba(40,127,189,.11)}
+  .preview-panel{border-color:#d7e3ed;border-radius:14px;box-shadow:var(--yeti-shadow)}
+  .notice{border-radius:11px}
+  footer{color:#7b8b9b}
+  /* Analyzer cards retain their existing display, hidden-state and step logic. */
+  .propulsion-page-content>.subnav-heading{border-bottom-color:#d9e5ef}
+  .propulsion-upload-card,.propulsion-mapping-card,.propulsion-statistics-card,.propulsion-step-card,.propulsion-graphical-card,.propulsion-report-card,.propulsion-progress-card{border-radius:16px;box-shadow:0 6px 20px rgba(16,47,87,.055)}
+  .propulsion-upload-card,.propulsion-mapping-card,.propulsion-statistics-card,.propulsion-step-card{transition:border-color .18s ease,box-shadow .18s ease}
+  .propulsion-upload-card:focus-within,.propulsion-mapping-card:focus-within,.propulsion-statistics-card:focus-within,.propulsion-step-card:focus-within{box-shadow:0 9px 25px rgba(16,47,87,.095)}
+  .propulsion-step-label{letter-spacing:.16em}
+  .propulsion-upload-card h3,.propulsion-mapping-card h3,.propulsion-statistics-card h3,.propulsion-step-card h3{letter-spacing:-.02em}
+  .propulsion-file-picker{border-radius:12px;border-color:#a9c9e2;background:linear-gradient(145deg,#f8fbff,#eef6fc);transition:border-color .18s ease,background .18s ease,box-shadow .18s ease}
+  .propulsion-file-picker:hover{border-color:#5d9dce;background:#edf6fd;box-shadow:inset 0 0 0 1px rgba(40,127,189,.08)}
+  .propulsion-upload-status,.propulsion-mapping-summary,.propulsion-next-step{border-radius:10px}
+  .propulsion-mapping-row{border-color:#dce6ef;border-radius:10px;background:#fcfdff}
+  .propulsion-column-select,.propulsion-graph-field select{border-radius:9px}
+  .propulsion-statistics-table-wrap,.propulsion-multi-mapping-table-wrap,.propulsion-chart-host{border-color:#d8e4ee;border-radius:12px;box-shadow:0 3px 12px rgba(16,47,87,.035)}
+  .propulsion-statistics-table thead th{background:#eaf2f9;color:#163e68}
+  .propulsion-statistics-table tbody tr:hover{background:#f6faff}
+  .propulsion-point-explorer{border-color:#cfe0ed;border-radius:12px;background:#f5f9fd}
+  .propulsion-point-value{border-color:#d7e3ed;border-radius:10px;box-shadow:0 2px 7px rgba(16,47,87,.025)}
+  .propulsion-point-value-label{letter-spacing:.07em}
+  .propulsion-csv-preview-card{border-color:#d5e2ed;border-radius:14px;box-shadow:0 5px 16px rgba(16,47,87,.05)}
+  .propulsion-generated-csv-preview{border-radius:12px}
+  .propulsion-progress-track{border-radius:20px}
+  .propulsion-report-card,.propulsion-report-preview-card{border-color:#d5e2ed;border-radius:15px}
+  /* Do not restyle report pages, print documents, table geometry or chart SVGs. */
+  .propulsion-chart-svg,.propulsion-phase3-plot-host svg{filter:none}
+}
+@media screen and (max-width:760px){
+  main{margin-top:17px}
+  .module-tab{min-height:76px;padding:13px}
+  .flight-preparation-content,.sop-module-content{padding:12px}
+  .propulsion-upload-card,.propulsion-mapping-card,.propulsion-statistics-card,.propulsion-step-card{border-radius:13px}
+}
+@media (prefers-reduced-motion:reduce){
+  .module-tab,.btn,.checklist-tab,.propulsion-upload-card,.propulsion-mapping-card,.propulsion-statistics-card,.propulsion-step-card,.propulsion-file-picker{transition:none!important}
+}
