@@ -1093,7 +1093,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   const renderComparativeReportGraph=(xKey,yKey)=>{
    const options=multiFieldOptions(),xLabel=options.find(item=>item.key===xKey)?.label||xKey,yLabel=options.find(item=>item.key===yKey)?.label||yKey;
    const series=multiSession.logs.map((log,index)=>{
-    const valid=(log.calculatedRows||[]).slice(1).map((item,rowIndex)=>({x:mappedValue(log,item.source,xKey,item),y:mappedValue(log,item.source,yKey,item),row:rowIndex+1})).filter(point=>Number.isFinite(point.x)&&Number.isFinite(point.y));
+    const valid=(log.calculatedRows||[]).filter(item=>item&&Array.isArray(item.source)).map((item,rowIndex)=>({x:mappedValue(log,item.source,xKey,item),y:mappedValue(log,item.source,yKey,item),row:rowIndex+1})).filter(point=>Number.isFinite(point.x)&&Number.isFinite(point.y));
     let highest=-Infinity;const points=valid.filter(point=>{if(point.x<highest)return false;highest=point.x;return true;});
     return {log,index,points};
    });
@@ -1132,7 +1132,20 @@ const statsPage=el('section','propulsion-report-summary-page');
   };
   const refreshReportGraphCount=()=>{reportGraphCount.textContent=reportGraphs.length+' of 5 graphs added';addReportGraph.disabled=reportGraphs.length>=5;};
   const renderReportGraphList=()=>{reportGraphList.replaceChildren();reportGraphs.forEach((item,index)=>{const entry=el('div','propulsion-report-graph-item');const heading=el('strong','',String(index+1).padStart(2,'0')+' · '+item.title);const remove=el('button','btn alt','Remove');remove.type='button';remove.setAttribute('aria-label','Remove report graph '+(index+1));remove.addEventListener('click',()=>{reportGraphs.splice(index,1);renderReportGraphList();refreshReportGraphCount();refresh()});entry.append(heading,remove,item.svg.cloneNode(true));reportGraphList.append(entry)});};
-  addReportGraph.addEventListener('click',()=>{if(reportGraphs.length>=5){refreshReportGraphCount();return;}if(!reportGraphX.value||!reportGraphY.value){status.textContent='Select both X and Y parameters before adding a report graph.';return;}if(reportGraphX.value===reportGraphY.value){status.textContent='Choose two different parameters for the report graph.';return;}const result=renderComparativeReportGraph(reportGraphX.value,reportGraphY.value);if(result.error){status.textContent=result.error;return;}reportGraphs.push(result);renderReportGraphList();refreshReportGraphCount();refresh();status.textContent='Graph added to comparative report. '+reportGraphs.length+' of 5 graphs selected.';});
+  addReportGraph.addEventListener('click',()=>{
+   try{
+    if(reportGraphs.length>=5){refreshReportGraphCount();status.textContent='Maximum of five report graphs reached. Remove a graph before adding another.';return;}
+    if(!multiSession.logs.every(log=>log._phase3Ready)){status.textContent='Process every log in Step 03 before adding a comparative report graph.';return;}
+    if(!reportGraphX.value||!reportGraphY.value){status.textContent='Select both X and Y parameters before adding a report graph.';return;}
+    if(reportGraphX.value===reportGraphY.value){status.textContent='Choose two different parameters for the report graph.';return;}
+    const available=multiFieldOptions().map(option=>option.key);
+    if(!available.includes(reportGraphX.value)||!available.includes(reportGraphY.value)){status.textContent='The selected graph parameter is not available. Please reselect both axes.';return;}
+    const result=renderComparativeReportGraph(reportGraphX.value,reportGraphY.value);
+    if(result.error){status.textContent=result.error;return;}
+    reportGraphs.push(result);renderReportGraphList();refreshReportGraphCount();refresh();
+    status.textContent='Graph added to comparative report. '+reportGraphs.length+' of 5 graphs selected.';
+   }catch(error){status.textContent='Unable to add graph: '+(error?.message||'Unexpected graph generation error.');status.setAttribute('role','alert');}
+  });
   reportGraphX.addEventListener('change',()=>{status.textContent='Report graph X-axis selection updated. These controls do not change Step 05 Graphical Analysis.';});
   reportGraphY.addEventListener('change',()=>{status.textContent='Report graph Y-axis selection updated. These controls do not change Step 05 Graphical Analysis.';});
   const previewPanel=el('section','propulsion-phase4-live-preview-panel');
