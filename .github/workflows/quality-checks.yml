@@ -18,6 +18,8 @@ jobs:
   six-layer-quality:
     name: Six layers — one quality check
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.65.1-noble
     timeout-minutes: 2
     steps:
       - name: Check out the candidate commit
@@ -43,9 +45,8 @@ jobs:
         with:
           path: |
             ~/.npm
-            ~/.cache/ms-playwright
             node_modules
-          key: yeti-six-layer-v1-${{ runner.os }}-node22-pw1.65.1-pixelmatch5.3.0-png6.0.0-axe4.11.0
+          key: yeti-six-layer-v2-${{ runner.os }}-node22-pw1.65.1-pixelmatch5.3.0-png6.0.0-axe4.11.0
           restore-keys: |
             yeti-full-v1-${{ runner.os }}-node22-playwright1.65.1-
             yeti-quick-v1-${{ runner.os }}-node22-playwright1.65.1-
@@ -56,14 +57,8 @@ jobs:
             npm install --no-save --no-package-lock playwright@1.65.1 pixelmatch@5.3.0 pngjs@6.0.0 axe-core@4.11.0
           fi
 
-      - name: Install browser engines on a cold cache
-        if: steps.quality-cache.outputs.cache-hit != 'true'
-        run: |
-          for browser in chromium firefox webkit; do
-            if ! find "$HOME/.cache/ms-playwright" -maxdepth 1 -type d -name "$browser-*" 2>/dev/null | grep -q .; then
-              npx playwright install "$browser"
-            fi
-          done
+      - name: Verify preinstalled Chromium, Firefox and WebKit engines
+        run: npx playwright --version && test -d /ms-playwright
 
       - name: Run all six quality layers with a strict execution budget
         env:
