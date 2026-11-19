@@ -93,3 +93,4 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "**OVERALL: PASS — all quick quality checks completed.**" >> "$GITHUB_STEP_SUMMARY"
           echo "YETI QUICK QUALITY CHECK PASSED."
+        shell: bash
