@@ -99,16 +99,12 @@
     let filtered = rows;
     if (rpmIndex !== undefined) {
       filtered = [];
-      let returnTailRemaining = -1;
       rows.forEach((row, index) => {
+        // Preserve the CSV header. Exclude every data row whose Actual RPM is
+        // zero or negative; do not truncate or otherwise alter the return tail.
         if (index === 0) { filtered.push(row); return; }
-        if (returnTailRemaining === 0) return;
-        if (returnTailRemaining > 0) { filtered.push(row); returnTailRemaining--; return; }
         const rpm = numericCell(row, rpmIndex);
-        if (!Number.isFinite(rpm) || rpm > 0) { filtered.push(row); return; }
-        if (rpm < 0) return;
-        filtered.push(row);
-        returnTailRemaining = 5;
+        if (!Number.isFinite(rpm) || rpm > 0) filtered.push(row);
       });
     }
     const sortIndex = Number.isInteger(opts.sortIndex) ? opts.sortIndex : -1;
