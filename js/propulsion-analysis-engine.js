@@ -106,6 +106,7 @@
         if (returnTailRemaining > 0) { filtered.push(row); returnTailRemaining--; return; }
         const rpm = numericCell(row, rpmIndex);
         if (!Number.isFinite(rpm) || rpm > 0) { filtered.push(row); return; }
+        if (rpm < 0) return;
         filtered.push(row);
         returnTailRemaining = 5;
       });
