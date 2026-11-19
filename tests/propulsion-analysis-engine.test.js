@@ -52,7 +52,11 @@ assert.ok(Number.isNaN(engine.calculateDerivedValue('mechanicalPower', ['1e308',
 assert.ok(Number.isNaN(engine.calculateDerivedValue('electricalPower', ['1e308', '1e308'], { voltage: 0, current: 1 })), 'overflowing electrical power is rejected as non-finite');
 assert.throws(() => engine.calculateDerivedValue('unsupported', [1], {}), /Unsupported derived parameter/);
 assert.throws(() => engine.calculateDerivedValue('electricalPower', [48, 5], null), /numeric parameter mapping/);
-assert.throws(() => engine.calculateLog(torque.logs[0], 'torque', ['mechanicalPower']), /missing mappings/);
+const missingTorqueMapping = engine.createSession(1, 'torque').logs[0];
+engine.setLogData(missingTorqueMapping, { fileName: 'missing-rpm.csv', headers: ['Torque'], rows: [['Torque'], [2]] });
+engine.setMapping(missingTorqueMapping, { torque: 0 });
+engine.filterLog(missingTorqueMapping);
+assert.throws(() => engine.calculateLog(missingTorqueMapping, 'torque', ['mechanicalPower']), /missing mappings for: actualRpm/);
 
 const fourLogSession = engine.createSession(4, 'thrust');
 assert.equal(fourLogSession.logs.length, 4, 'the maximum supported four-log session is accepted');
