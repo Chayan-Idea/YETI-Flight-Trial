@@ -132,21 +132,33 @@
     if (key === 'mechanicalPower') {
       const torque = value('torque');
       const rpm = value('actualRpm');
-      return Number.isFinite(torque) && Number.isFinite(rpm) ? Math.abs(torque) * rpm * (2 * Math.PI / 60) : NaN;
+      const power = torque * rpm * (2 * Math.PI / 60);
+      return Number.isFinite(power) ? power : NaN;
     }
     if (key === 'electricalPower') {
       const voltage = value('voltage');
       const current = value('current');
-      return Number.isFinite(voltage) && Number.isFinite(current) ? voltage * current : NaN;
+      const power = voltage * current;
+      return Number.isFinite(power) ? power : NaN;
     }
     if (key === 'specificThrust') {
       const thrust = value('thrust');
       const voltage = value('voltage');
       const current = value('current');
       const power = voltage * current;
-      return Number.isFinite(thrust) && Number.isFinite(power) && power > 0 ? thrust / power : NaN;
+      const specificThrust = thrust / power;
+      return Number.isFinite(thrust) && Number.isFinite(power) && power > 0 && Number.isFinite(specificThrust) ? specificThrust : NaN;
     }
     throw new RangeError('Unsupported derived parameter: ' + key);
+  }
+
+  function calculateDerivedValue(key, row, mapping) {
+    const supported = TEST_TYPES.some(testType => DERIVED_BY_TEST[testType].includes(key));
+    if (!supported) throw new RangeError('Unsupported derived parameter: ' + key);
+    if (!mapping || typeof mapping !== 'object' || Array.isArray(mapping)) {
+      throw new TypeError('A numeric parameter mapping object is required.');
+    }
+    return calculateValue(key, row, mapping);
   }
 
   function calculateLog(log, testType, parameterKeys) {
@@ -192,6 +204,7 @@
     setMapping,
     filterLog,
     calculateLog,
+    calculateDerivedValue,
     validateSession
   });
 });
