@@ -117,6 +117,8 @@
   csvPreviewPanel.append(heading,title,info,searchBar,viewport);
   csvPreviewPanel.hidden=true;
   csvPreviewPanel.insertAdjacentElement('afterend',identifyActions);
+  // The Identify Parameters action belongs to this preview instance; reveal it only after the CSV preview is ready.
+  identifyActions.hidden=false;
   const setFreezeOffsets=()=>{const header=headRow.getBoundingClientRect(),first=tbody.rows[0]?.getBoundingClientRect(),rowIndexWidth=headRow.cells[0]?.getBoundingClientRect().width;if(header.height)viewport.style.setProperty('--csv-header-height',header.height+'px');if(first?.height)viewport.style.setProperty('--csv-row1-height',first.height+'px');if(rowIndexWidth)viewport.style.setProperty('--csv-first-col-width',rowIndexWidth+'px');};
   requestAnimationFrame(setFreezeOffsets);
   if(typeof ResizeObserver!=='undefined'){const freezeObserver=new ResizeObserver(()=>{virtualPreview?.refresh();setFreezeOffsets()});freezeObserver.observe(viewport);freezeObserver.observe(table);}
