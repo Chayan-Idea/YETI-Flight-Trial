@@ -11,8 +11,8 @@ permissions:
   contents: read
 
 jobs:
-  validate:
-    name: Static and engine validation
+  static-validation:
+    name: Layer 1 — Static and structural validation
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -21,14 +21,26 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Validate application structure and syntax
+      - name: Validate application structure, assets, and syntax
         run: node scripts/validate-app.mjs
+
+  engine-unit-tests:
+    name: Layer 2 — Propulsion calculation unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - name: Test common propulsion analysis engine
         run: node tests/propulsion-analysis-engine.test.js
 
-  browser-e2e:
-    name: Propulsion analyzer browser regression
+  browser-smoke:
+    name: Layer 3A — Browser smoke and navigation regression
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -40,5 +52,31 @@ jobs:
         run: npm install --no-save playwright
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-      - name: Run propulsion analyzer browser workflow
+      - name: Test application startup and core navigation
+        run: node tests/browser-smoke.cjs
+
+  browser-workflow:
+    name: Layer 3B and 4 — Analyzer workflow and end-to-end regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: npm install --no-save playwright
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run propulsion analyzer workflow regression
         run: node tests/propulsion-analyser.e2e.cjs
+      - name: Upload browser failure diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: yeti-browser-regression-diagnostics
+          path: /tmp/yeti-browser-failure.png
+          if-no-files-found: ignore
+          retention-days: 7
