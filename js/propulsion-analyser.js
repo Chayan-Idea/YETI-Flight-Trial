@@ -1655,7 +1655,7 @@ const statsPage=el('section','propulsion-report-summary-page');
 
  function identifyAllMultiLogs(){if(!commonEngine)throw new Error('The common analysis engine did not load.');const count=Number(logCountSelect.value);multiSession=commonEngine.createSession(count,multiLogType);multiSession.logs.forEach((log,index)=>{const source=multiFiles[index];commonEngine.setLogData(log,{fileName:source.file.name,headers:source.headers,rows:[source.headers,...source.data]});log._headerIndex=source.headerIndex;log._dataRows=source.data;});renderMultiMappings();multiMappingHost.scrollIntoView({behavior:'smooth',block:'start'});}
  const confirmCommonSetupBtn=$id('confirmCommonSetupBtn');
- confirmCommonSetupBtn?.addEventListener('click',()=>{
+ confirmCommonSetupBtn?.addEventListener('click',async()=>{
   const selectedCount=String(logCountSelect?.value||'');
   if(!['1','2','3','4'].includes(selectedCount)){
    logCountSelect?.focus();
@@ -1663,14 +1663,27 @@ const statsPage=el('section','propulsion-report-summary-page');
    if(status)status.textContent='Please select the number of test logs before proceeding.';
    return;
   }
+  // A changed workflow selection starts a completely new page session.
+  // Remove persisted CSV/mapping/graph/report data before reloading so none of
+  // the previous analysis can be restored into the newly selected workflow.
   const status=$id('propulsionCommonSetupStatus');
-  if(status)status.textContent=selectedCount==='1'?'Single-log setup selected. Step 01 is ready.':'Comparative setup selected for '+selectedCount+' logs. Step 01 is ready.';
-  const commonSetup=$id('propulsionCommonSetupCard');
-  // Keep the Configure Test Logs card visible after Step 01 is revealed so users
-  // can always see and review the selected workflow configuration.
-  if(commonSetup)commonSetup.hidden=false;
-  setMultiMode();
-  (selectedCount==='1'?uploadCard:multiSetupCard)?.scrollIntoView({behavior:'smooth',block:'start'});
+  if(status)status.textContent='Applying the new test-log configuration and clearing the previous session…';
+  confirmCommonSetupBtn.disabled=true;
+  confirmCommonSetupBtn.textContent='Refreshing…';
+  try{
+   await sessionTools.clear();
+  }catch(error){
+   console.error('Could not clear the previous propulsion session:',error);
+   confirmCommonSetupBtn.disabled=false;
+   confirmCommonSetupBtn.textContent='Proceed';
+   if(status)status.textContent='Previous session could not be cleared. Please retry before proceeding.';
+   return;
+  }
+  // Clear any transient browser form state too; the page-show initializer
+  // restores the original unselected Configure Test Logs state after reload.
+  if(logCountSelect){logCountSelect.selectedIndex=0;logCountSelect.value='';}
+  input.value='';
+  window.location.reload();
  });
  const multiLogTypePicker=$id('propulsionMultiLogTypePicker');
  function syncMultiLogTypeSelection(){multiLogTypePicker?.querySelectorAll('.propulsion-log-type-option').forEach(option=>{const selected=!!option.querySelector('input')?.checked;option.classList.toggle('is-selected',selected);if(selected){option.style.setProperty('background-color','#1769aa','important');option.style.setProperty('border-color','#1769aa','important');}else{option.style.removeProperty('background-color');option.style.removeProperty('border-color');}});}
