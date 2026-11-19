@@ -43,6 +43,18 @@ const server = http.createServer((req,res)=>{
 
   if(await comparativeSummary.locator('.propulsion-report-kpi-timestamp').count()!==await comparativeSummary.locator('tbody tr').count()*2)throw new Error('Every parameter/log table cell must include its maximum-value timestamp.');
   if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-page-kicker').filter({hasText:'PER-LOG ANALYSIS'}).count()!==0)throw new Error('PDF preview must omit the separate per-log processing and derived-statistics pages.');
+  const reportGraphX=multiReport.locator('#multiReportGraphXAxis'),reportGraphY=multiReport.locator('#multiReportGraphYAxis');
+  if(await reportGraphX.count()!==1||await reportGraphY.count()!==1)throw new Error('Comparative report must have independent X/Y graph selectors.');
+  if(await multiReport.locator('#addMultiReportGraphBtn').count()!==1)throw new Error('Comparative report must provide Add Graph to Report.');
+  if(await multiReport.locator('#multiReportGraphCount').innerText()!=='0 of 5 graphs added')throw new Error('Comparative report graph counter must start at zero of five.');
+  await reportGraphX.selectOption('actualRpm');await reportGraphY.selectOption('thrust');
+  await multiReport.locator('#addMultiReportGraphBtn').click();
+  if(await multiReport.locator('#multiReportGraphList .propulsion-report-graph-item').count()!==1)throw new Error('Adding a comparative report graph must create one removable graph entry.');
+  if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-graph-page .propulsion-report-graph-svg').count()!==1)throw new Error('The selected comparative report graph must appear in the live PDF preview.');
+  if(await multiReport.locator('#multiReportGraphCount').innerText()!=='1 of 5 graphs added')throw new Error('Comparative report graph counter must update after adding a graph.');
+  await multiReport.locator('#multiReportGraphList button[aria-label="Remove report graph 1"]').click();
+  if(await multiReport.locator('#multiReportGraphList .propulsion-report-graph-item').count()!==0||await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-graph-page').count()!==0)throw new Error('Removing a comparative report graph must also remove it from the live PDF preview.');
+
   if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-comparative-cell-value').filter({hasText:/\\d/}).count()===0)throw new Error('Comparative PDF summary should refresh with numeric values after each log is processed.');
 
   if(await multiReport.locator('#multiPropulsionReportLivePreview').getByText('Rows retained',{exact:true}).count()!==0)throw new Error('PDF preview must omit per-log row-retention statistics.');
