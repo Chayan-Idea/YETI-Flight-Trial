@@ -32,7 +32,7 @@ async function preparePage(page, url) {
   if (!response || !response.ok()) throw new Error('UI baseline page failed to load: '+url);
   await page.locator('#flightPreparationPanel').waitFor({state:'visible'});
   await page.addStyleTag({content:'*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important;scroll-behavior:auto!important}'});
-  await page.addStyleTag({content:'.nav-kicker{color:#287fbd!important}.module-nav-heading p,.subnav-heading p,.subtab-copy small{color:#6b7c8e!important}.subtab-number{color:#287fbd!important}.flight-trial-reading-footer{color:#718296!important}body>footer{color:#7b899a!important}'});
+  await page.addStyleTag({content:'.nav-kicker{color:#287fbd!important}.module-nav-heading p,.subnav-heading p,.subtab-copy small{color:#6b7c8e!important}.subtab-number{color:#287fbd!important}.flight-trial-reading-footer{color:#718296!important}body>footer{color:#7b899a!important}:root{--muted:#6b7c8e!important}.print-empty-note{color:#777!important}'});
   await page.evaluate(async()=>{await document.fonts.ready;await Promise.all([...document.images].map(img=>img.decode?.().catch(()=>{})))});
 }
 
