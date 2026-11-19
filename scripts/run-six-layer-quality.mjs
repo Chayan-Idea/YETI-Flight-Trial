@@ -50,11 +50,11 @@ const deadline = setTimeout(() => {
   stopAll();
 }, BUDGET_MS);
 
-function run(command, layer) {
+function run(command, layer, extraEnv = {}) {
   return new Promise(resolve => {
     const child = spawn(process.execPath, command, {
       stdio: 'inherit',
-      env: process.env,
+      env: { ...process.env, ...extraEnv },
       detached: process.platform !== 'win32'
     });
     active.add(child);
@@ -110,7 +110,7 @@ async function main() {
       'browser-workflow': { result: 'success' },
       'application-assurance': { result: 'success' }
     };
-    const certification = await run(['scripts/phase5-release-certification.mjs'], 'phase5-certification');
+    const certification = await run(['scripts/phase5-release-certification.mjs'], 'phase5-certification', { QUALITY_RESULTS: JSON.stringify(qualityResults) });
     results.set('phase5-certification', {
       result: certification === 0 ? 'success' : 'failure',
       durationMs: Date.now() - startedAt,
