@@ -62,4 +62,43 @@ const descendingRows = engine.filterLog(sortable, { sortIndex: 0, sortDirection:
 assert.deepEqual(descendingRows.slice(1).map(row => row[0]), [30, 20, 10], 'descending sorting is supported');
 assert.equal(engine.calculateLog(sortable, 'thrust', ['electricalPower']).length, 4, 'derived columns are calculated for each retained row including the header-aligned record');
 
+// Additional edge-case and isolation checks for the pure calculation layer.
+const edgeLog = engine.createSession(1, 'thrust').logs[0];
+const edgeSource = [
+  ['Thrust', 'RPM', 'Voltage', 'Current'],
+  ['1,250', '1,500', '48', '5'],
+  ['not-a-number', '900', '48', '5'],
+  ['100', '', '48', '5'],
+  ['200', '0', '48', '5'],
+  ['300', '-1', '48', '5']
+];
+engine.setLogData(edgeLog, { fileName: 'edge.csv', headers: edgeSource[0], rows: edgeSource });
+engine.setMapping(edgeLog, { thrust: 0, actualRpm: 1, voltage: 2, current: 3 });
+const originalEdgeSource = edgeLog.sourceRows.map(row => row.slice());
+const edgeFiltered = engine.filterLog(edgeLog);
+assert.equal(edgeFiltered.length, 4, 'header, valid RPM rows, and rows with unparseable RPM are retained; RPM <= 0 is removed');
+assert.deepEqual(edgeLog.sourceRows, originalEdgeSource, 'filtering never mutates uploaded source rows');
+const edgeCalculated = engine.calculateLog(edgeLog, 'thrust', ['electricalPower', 'specificThrust']);
+assert.equal(edgeCalculated[1].derived.electricalPower, 240);
+assert.equal(edgeCalculated[1].derived.specificThrust, 1250 / 240, 'comma-formatted numeric CSV cells are parsed');
+assert.ok(Number.isNaN(edgeCalculated[2].derived.specificThrust), 'invalid numeric source values produce NaN rather than fabricated results');
+assert.ok(Number.isNaN(edgeCalculated[3].derived.specificThrust), 'blank source values produce NaN rather than fabricated results');
+assert.throws(() => engine.calculateLog(edgeLog, 'thrust', ['mechanicalPower']), /not available for thrust/);
+assert.throws(() => engine.calculateLog(edgeLog, 'thrust', ['unsupportedParameter']), /not available for thrust/);
+
+const incomplete = engine.createSession(1, 'thrust');
+assert.deepEqual(engine.validateSession(incomplete), {
+  valid: false,
+  errors: ['Log 1 has no uploaded CSV data.', 'Log 1 has no Actual RPM mapping.']
+}, 'incomplete sessions report actionable validation errors');
+const invalidSession = engine.validateSession({ testType: 'unknown', logs: [edgeLog] });
+assert.equal(invalidSession.valid, false, 'invalid test types are rejected by session validation');
+assert.match(invalidSession.errors[0], /thrust.*torque/);
+
+const remapped = edgeLog.mapping;
+engine.setMapping(edgeLog, { thrust: 0, actualRpm: 1 });
+assert.deepEqual(edgeLog.calculatedRows, [], 'changing a mapping invalidates stale derived calculations');
+assert.deepEqual(edgeLog.calculatedParameterKeys, [], 'changing a mapping clears derived-parameter selections');
+assert.notEqual(edgeLog.mapping, remapped, 'mapping updates replace rather than mutate the previous mapping object');
+
 console.log('Propulsion common analysis engine tests passed.');
