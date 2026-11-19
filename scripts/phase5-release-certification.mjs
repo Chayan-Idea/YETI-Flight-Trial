@@ -40,8 +40,11 @@ try {
   fail('The quality branch is not based on the current origin/main. Refresh the isolated branch and rerun certification.');
 }
 
-try { execFileSync('git',['diff','--check','origin/main...HEAD'],{stdio:'ignore'}); }
-catch { fail('Git whitespace and patch-integrity validation failed.'); }
+try { execFileSync('git',['diff','--check','origin/main...HEAD'],{encoding:'utf8',stdio:['ignore','pipe','pipe']}); }
+catch(error) {
+  const detail=String(error.stdout||'')+String(error.stderr||'');
+  fail('Git whitespace and patch-integrity validation failed. '+(detail.trim()||('git diff --check exited with code '+error.status+'.')));
+}
 
 const workingTree = git(['status','--porcelain']);
 if (workingTree) fail('The certification checkout is not clean: '+workingTree);
