@@ -96,9 +96,20 @@
     const opts = options || {};
     const rpmIndex = Number.isInteger(opts.actualRpmIndex) ? opts.actualRpmIndex : log.mapping.actualRpm;
     const rows = cloneRows(log.sourceRows);
-    let filtered = rpmIndex === undefined
-      ? rows
-      : rows.filter((row, index) => index === 0 || numericCell(row, rpmIndex) > 0 || !Number.isFinite(numericCell(row, rpmIndex)));
+    let filtered = rows;
+    if (rpmIndex !== undefined) {
+      filtered = [];
+      let returnTailRemaining = -1;
+      rows.forEach((row, index) => {
+        if (index === 0) { filtered.push(row); return; }
+        if (returnTailRemaining === 0) return;
+        if (returnTailRemaining > 0) { filtered.push(row); returnTailRemaining--; return; }
+        const rpm = numericCell(row, rpmIndex);
+        if (!Number.isFinite(rpm) || rpm > 0) { filtered.push(row); return; }
+        filtered.push(row);
+        returnTailRemaining = 5;
+      });
+    }
     const sortIndex = Number.isInteger(opts.sortIndex) ? opts.sortIndex : -1;
     const direction = opts.sortDirection === 'desc' ? -1 : 1;
     if (sortIndex >= 0 && filtered.length > 2) {
