@@ -95,6 +95,8 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
 
     const dailyStatus = page.locator('#list select[data-k="status"]').first();
     const dailyItemId = await dailyStatus.getAttribute('data-id');
+    const dailySection = dailyStatus.locator('xpath=ancestor::details[contains(@class,"section")]');
+    await dailySection.locator('summary').click();
     await dailyStatus.selectOption({label:'Pass'});
     const dailyRemark = page.locator('#list input[data-id="'+dailyItemId+'"][data-k="remarks"]');
     await dailyRemark.fill('Phase 3 automated verification remark.');
@@ -152,6 +154,8 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
 
     const loadingStatus = page.locator('#loadingList select[data-load-k="status"]').first();
     const loadingItemId = await loadingStatus.getAttribute('data-load-id');
+    const loadingSection = loadingStatus.locator('xpath=ancestor::details[contains(@class,"loading-accordion")]');
+    await loadingSection.locator('summary').click();
     await loadingStatus.selectOption({label:'Pass'});
     await page.locator('#loadingList input[data-load-id="'+loadingItemId+'"][data-load-k="remark"]').fill('Loading workflow QA remark.');
 
