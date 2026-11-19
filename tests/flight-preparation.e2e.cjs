@@ -86,7 +86,10 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
     // Daily Airworthiness workflow.
     await page.locator('#dailyTabBtn').click();
     await page.locator('#dailyChecklistTabPanel').waitFor({state:'visible'});
-    await page.locator('#list .section').first().waitFor({state:'visible'});
+    const firstDailySection = page.locator('#list details.section').first();
+    await firstDailySection.waitFor({state:'visible'});
+    await firstDailySection.locator('summary').click();
+    await firstDailySection.locator('.item').first().waitFor({state:'visible'});
     await page.locator('#uavNameId').fill('YETI-PHASE3-QA');
     await page.locator('#trialPhase').fill('Phase 3 UI Assurance');
     await page.locator('#trialStage').fill('Regression');
@@ -103,8 +106,6 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
     const overallRemarks = page.locator('#list textarea[data-id="9.0"][data-k="remarks"]');
     await overallRemarks.locator('xpath=ancestor::details[contains(@class,"section")]').locator('summary').click();
     await overallRemarks.fill('YETI daily checklist workflow verified.');
-    await page.locator('#list .item').first().waitFor();
-
     const firstDailyTitle = await page.locator('#list .item .title').first().innerText();
     const searchTerm = firstDailyTitle.trim().split(/\s+/)[0];
     await page.locator('#search').fill(searchTerm);
