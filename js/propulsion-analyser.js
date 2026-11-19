@@ -2,6 +2,39 @@
 (()=>{
  'use strict';
  const $id=id=>document.getElementById(id);
+ function printReportMarkup(markup,rootId,title,onStatus){
+  const html=markup.outerHTML;
+  const stylesheetUrl=new URL('./css/propulsion-analyser.css?v=62',window.location.href).href;
+  const printOverrides='<style>html,body{margin:0!important;padding:0!important;width:210mm!important;min-height:297mm!important;background:#fff!important;color:#172b3d!important;font:10pt Arial,sans-serif!important}body{display:block!important}#'+rootId+'{display:block!important;position:static!important;left:auto!important;top:auto!important;width:210mm!important;max-width:none!important;max-height:none!important;height:auto!important;overflow:visible!important;padding:0!important;margin:0!important;background:#fff!important;visibility:visible!important}#'+rootId+' *{visibility:visible!important}#'+rootId+' .propulsion-report-page{box-sizing:border-box!important;width:210mm!important;height:297mm!important;min-height:297mm!important;max-height:297mm!important;margin:0!important;padding:12mm 13mm!important;overflow:hidden!important;box-shadow:none!important;break-after:page!important;page-break-after:always!important;visibility:visible!important}#'+rootId+' .propulsion-report-page:last-child{break-after:auto!important;page-break-after:auto!important}#'+rootId+' .propulsion-report-preview-graph svg{display:block!important;width:100%!important;height:auto!important;max-height:165mm!important}@media print{@page{size:A4 portrait;margin:0}html,body{width:210mm!important;margin:0!important;padding:0!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body *{visibility:visible!important}#'+rootId+'{position:static!important;display:block!important;visibility:visible!important}#'+rootId+' *{visibility:visible!important}}</style>';
+  const doc='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base href="'+new URL('./',window.location.href).href+'"><title>'+title+'</title><link rel="stylesheet" href="'+stylesheetUrl+'">'+printOverrides+'</head><body>'+html+'</body></html>';
+  const prepare=target=>{
+   target.document.open();target.document.write(doc);target.document.close();
+   const link=target.document.querySelector('link[rel="stylesheet"]');
+   const print=async()=>{
+    try{
+     if(target.closed)return;
+     await (target.document.fonts?.ready||Promise.resolve());
+     await Promise.all(Array.from(target.document.images).map(img=>img.complete?Promise.resolve():new Promise(resolve=>{img.addEventListener('load',resolve,{once:true});img.addEventListener('error',resolve,{once:true});})));
+     await new Promise(resolve=>target.requestAnimationFrame(()=>target.requestAnimationFrame(resolve)));
+     const root=target.document.getElementById(rootId);
+     if(!root||!root.querySelector('.propulsion-report-page')||!root.textContent.trim())throw new Error('The generated report contains no printable content.');
+     if(root.querySelectorAll('.propulsion-report-page').length<1)throw new Error('No report pages were generated.');
+     onStatus('Report is ready. In the print dialog, choose “Save as PDF”.');
+     target.focus();target.print();
+    }catch(error){onStatus('PDF export preparation failed: '+(error.message||'Please regenerate the report and retry.'));try{target.close()}catch(_){}}
+   };
+   if(!link){print();return}
+   if(link.sheet){print();return}
+   link.addEventListener('load',print,{once:true});
+   link.addEventListener('error',()=>onStatus('Unable to load report styling. Check your connection and retry.'),{once:true});
+  };
+  const popup=window.open('','_blank');
+  if(popup){prepare(popup);return}
+  const frame=document.createElement('iframe');frame.title='YETI PDF print view';frame.setAttribute('aria-hidden','true');frame.style.cssText='position:fixed;left:-12000px;top:0;width:210mm;height:297mm;border:0;opacity:.01;pointer-events:none';
+  frame.onload=()=>{try{if(!frame.contentWindow)throw new Error('Print frame is unavailable');prepare(frame.contentWindow)}catch(error){onStatus('Unable to prepare PDF: '+(error.message||'Please retry.'));frame.remove()}};
+  frame.srcdoc=doc;document.body.append(frame);
+ }
+
  const logTypePicker=$id('propulsionLogTypePicker'),logUploadArea=$id('propulsionLogUploadArea');let logType='';const input=$id('propulsionCsvInput'),filePicker=input?.closest('.propulsion-file-picker'),status=$id('propulsionUploadStatus'),meta=$id('propulsionFileMeta'),start=$id('startPropulsionAnalysisBtn'),reset=$id('resetPropulsionUploadBtn'),workspace=document.querySelector('.propulsion-analyser-workspace');
  if(reset)reset.textContent='Choose another log file';
  if(!input||!status||!start||!workspace)return;
@@ -700,41 +733,8 @@
   const reportPreviewPanel=el('div','propulsion-report-preview-panel');reportPreviewPanel.append(el('h3','','Live A4 PDF Preview'));
   const reportPreview=el('div','propulsion-report-preview-pages');reportPreview.id='propulsionReportLivePreview';
   const exportActions=el('div','propulsion-actions');const exportPdf=el('button','btn propulsion-report-export-btn','Export Report as PDF');exportPdf.type='button';exportPdf.addEventListener('click',()=>{const missing=reportTools.missingRequiredFields(Object.fromEntries(Object.entries(reportFields).map(([key,field])=>[key,field.value])));if(missing.length){reportForm.querySelector('#report_'+missing[0]).focus();reportPreviewPanel.querySelector('.propulsion-report-validation').textContent='Complete all mandatory fields before exporting.';return}
-   // Print an isolated copy of the exact live A4 preview. The main app stylesheet
-   // contains unrelated landscape @page rules for other modules, which can override
-   // this report's portrait layout in the browser print pipeline.
-   const printWindow=window.open('','_blank');if(!printWindow){reportPreviewPanel.querySelector('.propulsion-report-validation').textContent='Allow pop-ups for this site to export the report PDF.';return}
    const printMarkup=reportPreview.cloneNode(true);printMarkup.id='propulsionReportLivePreview';
-   const printDoc='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Propulsion Validation Report</title><style>html,body{margin:0!important;padding:0!important;width:210mm!important;background:#fff!important}body{display:block!important}#propulsionReportLivePreview{display:block!important;width:210mm!important;max-height:none!important;overflow:visible!important;padding:0!important;margin:0!important;background:#fff!important}#propulsionReportLivePreview .propulsion-report-page{box-sizing:border-box!important;width:210mm!important;height:297mm!important;min-height:297mm!important;max-height:297mm!important;margin:0!important;padding:12mm 13mm!important;overflow:hidden!important;box-shadow:none!important}#propulsionReportLivePreview .propulsion-report-preview-graph svg{display:block!important;width:100%!important;height:auto!important;max-height:102mm!important}@media print{@page{size:A4 portrait;margin:0}html,body{width:210mm!important;margin:0!important;padding:0!important}#propulsionReportLivePreview .propulsion-report-page{break-after:page!important;page-break-after:always!important;print-color-adjust:exact!important;-webkit-print-color-adjust:exact!important}#propulsionReportLivePreview .propulsion-report-page:last-child{break-after:auto!important;page-break-after:auto!important}}</style></head><body>'+printMarkup.outerHTML+'</body></html>';
-   printWindow.document.open();printWindow.document.write(printDoc);printWindow.document.close();
-   // The print window starts at about:blank: a relative stylesheet URL there
-   // resolves against about:blank and silently leaves the report unstyled/blank.
-   // Resolve the app stylesheet against the live YETI page and wait for layout.
-   const printStyle=printWindow.document.createElement('link');
-   printStyle.rel='stylesheet';
-   printStyle.href=new URL('./css/propulsion-analyser.css?v=60',window.location.href).href;
-   printWindow.document.head.append(printStyle);
-   const triggerPrint=async()=>{
-    try{
-     await (printWindow.document.fonts?.ready||Promise.resolve());
-     await Promise.all(Array.from(printWindow.document.images).map(image=>image.complete?Promise.resolve():new Promise(resolve=>{image.addEventListener('load',resolve,{once:true});image.addEventListener('error',resolve,{once:true});})));
-     await new Promise(resolve=>printWindow.requestAnimationFrame(()=>printWindow.requestAnimationFrame(resolve)));
-     if(printWindow.closed)return;
-     const printable=printWindow.document.querySelector('#propulsionReportLivePreview');
-     if(!printable||!printable.querySelector('.propulsion-report-page')||!printable.textContent.trim()){
-      reportPreviewPanel.querySelector('.propulsion-report-validation').textContent='The report preview is empty. Please regenerate the preview and retry.';
-      printWindow.close();return;
-     }
-     printWindow.focus();printWindow.print();
-    }catch(error){
-     console.error('YETI PDF print preparation failed:',error);
-     reportPreviewPanel.querySelector('.propulsion-report-validation').textContent='Unable to prepare the report for PDF export. Please retry.';
-    }
-   };
-   printStyle.addEventListener('load',triggerPrint,{once:true});
-   printStyle.addEventListener('error',()=>{
-    reportPreviewPanel.querySelector('.propulsion-report-validation').textContent='Unable to load report print styling. Check your connection and retry.';
-   },{once:true});
+   printReportMarkup(printMarkup,'propulsionReportLivePreview','YETI Propulsion Validation Report',message=>{reportPreviewPanel.querySelector('.propulsion-report-validation').textContent=message;});
   });const validation=el('p','propulsion-report-validation','Complete the mandatory fields to enable a valid report export.');exportActions.append(exportPdf);reportPreviewPanel.append(reportPreview,validation,exportActions);
   reportBuilder.append(reportForm,reportGraphControls,reportPreviewPanel);step5.append(reportBuilder);
   function updateReportPreview(){
@@ -1207,61 +1207,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    if(!validate())return;
    buildPreview();
    const markup=preview.cloneNode(true);markup.id='multiPropulsionReportLivePreview';
-   // Match the proven Single-Log PDF pipeline: load the shared analyzer
-   // stylesheet first, then print only after its CSS is ready.
-   const printCss='<style>@page{size:A4 portrait;margin:0}html,body{margin:0!important;padding:0!important;width:210mm!important;background:#fff!important;color:#172b3d!important;font:10pt Arial,sans-serif!important}body{display:block!important}#multiPropulsionReportLivePreview{display:block!important;width:210mm!important;margin:0!important;padding:0!important;background:#fff!important}#multiPropulsionReportLivePreview .propulsion-report-page{box-sizing:border-box!important;width:210mm!important;height:297mm!important;min-height:297mm!important;max-height:297mm!important;margin:0!important;padding:10mm 12mm!important;overflow:hidden!important;box-shadow:none!important;break-after:page!important;page-break-after:always!important}#multiPropulsionReportLivePreview .propulsion-report-page:last-child{break-after:auto!important;page-break-after:auto!important}#multiPropulsionReportLivePreview .propulsion-report-stats-table{width:100%!important;border-collapse:collapse!important;font-size:7pt!important}#multiPropulsionReportLivePreview .propulsion-report-stats-table th,#multiPropulsionReportLivePreview .propulsion-report-stats-table td{border:1px solid #d8e2eb!important;padding:1.5mm!important;text-align:left!important;overflow-wrap:anywhere!important}#multiPropulsionReportLivePreview .propulsion-report-stats-table th{background:#eaf3fa!important;color:#174f7d!important}#multiPropulsionReportLivePreview .propulsion-report-preview-graph svg{display:block!important;width:100%!important;height:auto!important;max-height:165mm!important}@media print{html,body{width:210mm!important;margin:0!important;padding:0!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}</style>';
-   // about:blank has no usable relative base URL. Resolve the report CSS
-   // against the live GitHub Pages application URL before writing the print document.
-   const reportStylesheetUrl=new URL('./css/propulsion-analyser.css?v=24',window.location.href).href;
-   const printDoc='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base href="'+new URL('./',window.location.href).href+'"><title>YETI Comparative Propulsion Report</title><link rel="stylesheet" href="'+reportStylesheetUrl+'">'+printCss+'</head><body>'+markup.outerHTML+'</body></html>';
-   const printStatus=(message)=>{status.textContent=message;};
-   const preparePrintDocument=(targetWindow,successMessage)=>{
-    targetWindow.document.open();targetWindow.document.write(printDoc);targetWindow.document.close();
-    const triggerPrint=()=>{
-     if(targetWindow.closed){printStatus('The report print view was closed before printing. Click Export Comparative Report as PDF to try again.');return;}
-     printStatus(successMessage);
-     targetWindow.focus();
-     targetWindow.print();
-    };
-    const stylesheet=targetWindow.document.querySelector('link[rel="stylesheet"]');
-    if(!stylesheet){triggerPrint();return;}
-    if(stylesheet.sheet){triggerPrint();return;}
-    stylesheet.addEventListener('load',triggerPrint,{once:true});
-    stylesheet.addEventListener('error',()=>printStatus('Unable to load the report print styling. Check your connection and retry the PDF export.'),{once:true});
-   };
-   // Open synchronously in the click gesture, following the working 1-log flow.
-   const win=window.open('','_blank');
-   if(win){
-    try{preparePrintDocument(win,'Comparative report is ready. In the print dialog, choose “Save as PDF”.');}
-    catch(error){printStatus('Unable to prepare the comparative PDF: '+(error.message||'browser print error'));try{win.close();}catch(_){}}
-    return;
-   }
-   // Same-page fallback for browsers that block pop-ups; keep the iframe
-   // alive through the native print dialog rather than removing it prematurely.
-   const frame=document.createElement('iframe');
-   frame.title='YETI Comparative PDF print view';
-   frame.setAttribute('aria-hidden','true');
-   frame.dataset.yetiComparativePrint='true';
-   frame.style.cssText='position:fixed;left:-12000px;top:0;width:210mm;height:297mm;border:0;opacity:.01;pointer-events:none';
-   frame.onload=()=>{
-    try{
-     const printWindow=frame.contentWindow;
-     if(!printWindow)throw new Error('Print frame is unavailable');
-     const triggerPrint=()=>{
-      printStatus('Pop-up blocked. Comparative report is ready; choose “Save as PDF”.');
-      printWindow.focus();printWindow.print();
-     };
-     const stylesheet=printWindow.document.querySelector('link[rel="stylesheet"]');
-     if(!stylesheet||stylesheet.sheet)triggerPrint();
-     else{
-      stylesheet.addEventListener('load',triggerPrint,{once:true});
-      stylesheet.addEventListener('error',()=>printStatus('Unable to load report print styling. Check your connection and retry.'),{once:true});
-     }
-    }catch(error){printStatus('Unable to prepare the comparative PDF: '+(error.message||'browser print error'));frame.remove();}
-   };
-   frame.srcdoc=printDoc;
-   document.body.append(frame);
-   // Keep the same-origin print frame alive while the native print dialog is open.
+   printReportMarkup(markup,'multiPropulsionReportLivePreview','YETI Comparative Propulsion Report',printStatus=>{status.textContent=printStatus;});
   });
   card.append(form,reportGraphControls,status,exportButton,previewPanel);previewPanel.append(preview);multiMappingHost.append(card);multiReportCard=card;card.refreshPreview=refresh;refreshReportGraphCount();refresh();
  }
