@@ -37,7 +37,6 @@
  }
 
  function filterRowsWithReturnTail(rows,rpmIndex,headerCount=0){return csvProcessing.filterRowsWithReturnTail(rows,rpmIndex,headerCount);}
- function filterRowsWithReturnTail(rows,rpmIndex,headerCount=0){return csvProcessing.filterRowsWithReturnTail(rows,rpmIndex,headerCount);}
 
  function renderCsvPreview(text){
   if(csvPreviewPanel)csvPreviewPanel.remove();
