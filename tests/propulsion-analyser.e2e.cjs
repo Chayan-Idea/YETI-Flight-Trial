@@ -314,6 +314,16 @@ const server = http.createServer((req,res)=>{
   await report.getByText('YETI Propulsion Bench Data Validation Report',{exact:true}).waitFor();
   await report.getByText('run-a.csv').waitFor();await report.getByText('run-b.csv').waitFor();
   await report.waitForFunction(()=>{const link=document.querySelector('link[rel="stylesheet"]');return !!link&&!!link.sheet;});
+  await multiReport.locator('.propulsion-phase4-report-status').filter({hasText:'Verified'}).waitFor({timeout:10000});
+  // Produce a real PDF from the isolated print document and reject empty/one-page output.
+  const exportedPdf=await report.pdf({format:'A4',printBackground:true,preferCSSPageSize:true});
+  const pdfSignature=exportedPdf.subarray(0,5).toString('ascii');
+  const pdfSource=exportedPdf.toString('latin1');
+  const exportedPageCount=(pdfSource.match(/\\/Type\\s*\\/Page\\b/g)||[]).length;
+  const contentStreamCount=(pdfSource.match(/stream\\r?\\n/g)||[]).length;
+  if(pdfSignature!=='%PDF-'||exportedPdf.length<8000||exportedPageCount<2||contentStreamCount<exportedPageCount)throw new Error('Comparative PDF artifact is blank or incomplete: '+JSON.stringify({bytes:exportedPdf.length,pages:exportedPageCount,streams:contentStreamCount,signature:pdfSignature}));
+  if(!pdfSource.includes('FlateDecode'))throw new Error('Comparative PDF artifact contains no rendered content streams.');
+
 
   // The comparative PDF export must still work when the browser blocks pop-up windows.
   await page.evaluate(()=>{window.__yetiOriginalOpen=window.open;window.open=()=>null;});
@@ -327,6 +337,7 @@ const server = http.createServer((req,res)=>{
    const page=doc?.querySelector('#multiPropulsionReportLivePreview .propulsion-report-page');
    return !!doc&&doc.title==='YETI Comparative Propulsion Report'&&!!page&&page.textContent.trim().length>40&&!!css?.sheet&&new URL(css.href).origin===location.origin&&new URL(css.href).pathname.endsWith('/css/propulsion-analyser.css');
   });
+  await multiReport.locator('.propulsion-phase4-report-status').filter({hasText:'Verified'}).waitFor({timeout:10000});
   if(!(await multiReport.locator('.propulsion-phase4-report-status').innerText()).includes('Pop-up blocked'))throw new Error('Comparative PDF export must prepare the same-page print view and load its stylesheet when pop-ups are blocked.');
   await page.evaluate(()=>{window.open=window.__yetiOriginalOpen;delete window.__yetiOriginalOpen;});
   await printFrame.evaluate(el=>el.remove());
