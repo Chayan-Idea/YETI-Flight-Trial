@@ -218,8 +218,11 @@ const server = http.createServer((req,res)=>{
   if(svgStyle.minWidth!=='0px'||svgStyle.width>svgStyle.hostWidth+1||svgStyle.scrollWidth>svgStyle.hostWidth+1)throw new Error('Comparative graph must fit its viewport so the slider and graph share visible endpoints: '+JSON.stringify(svgStyle));
 
   for(let index=0;index<2;index++){
-   const entry=perLogReadouts.nth(index);
-   if(!(await entry.innerText()).includes('X (')||!(await entry.innerText()).includes('Y ('))throw new Error('Each log readout must show its own X and Y values.');
+   const row=readoutTable.locator('tbody tr').nth(index);
+   const cells=row.locator('td');
+   if(await cells.count()!==3)throw new Error('Each comparative readout row must contain file name, common X and per-log Y values.');
+   const rowText=await row.innerText();
+   if(!rowText.includes('run-'+(index===0?'a':'b')+'.csv')||!rowText.includes('X (')||!rowText.includes('Y ('))throw new Error('Each log readout table row must show its file name and corresponding X/Y values: '+rowText);
   }
   if(!(await page.locator('.propulsion-phase3-common-x-readout').innerText()).includes('COMMON X AXIS'))throw new Error('Comparative slider readout must identify the shared X-axis position.');
 
