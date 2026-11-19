@@ -149,6 +149,17 @@ const server = http.createServer((req,res)=>{
    const download=await downloadPromise;
    if(download.suggestedFilename()!=='run-'+(index===0?'a':'b')+'_filtered_sorted.csv')throw new Error('Generated CSV download filename does not match its source log.');
   }
+  // Follow the real Step 03 -> Step 04 -> Step 05 navigation before interacting with hidden controls.
+  const proceedInApp=csvSection.locator('button').filter({hasText:'Proceed with In App Analysis'});
+  await proceedInApp.waitFor({state:'visible'});
+  await proceedInApp.click();
+  const multiSummary=page.locator('#propulsionMultiParameterSummaryCard');
+  await multiSummary.waitFor({state:'visible'});
+  const proceedToGraph=multiSummary.locator('button').filter({hasText:'Proceed to Graphical Analysis'});
+  await proceedToGraph.waitFor({state:'visible'});
+  await proceedToGraph.click();
+  const multiGraph=page.locator('#propulsionPhase4GraphCard');
+  await multiGraph.waitFor({state:'visible'});
   if(await page.locator('#multiGraphSecondaryYAxis, .propulsion-phase3-series-controls, .propulsion-phase3-graph-controls input[type=number]').count()!==0)throw new Error('Comparative graph should expose only common X/Y selectors, not secondary axes, per-log toggles or manual range fields.');
   await page.locator('#multiGraphXAxis').selectOption('actualRpm');
   await page.locator('#multiGraphYAxis').selectOption('thrust');
