@@ -1388,3 +1388,42 @@
  min-width:0!important;
  max-width:none!important;
 }
+
+/* Final horizontal-scroll fix: stop preview cards/grid items from expanding
+   to the intrinsic width of the CSV table. The viewport owns both scroll axes. */
+.propulsion-csv-preview-card,
+.propulsion-csv-preview-card>*{
+ box-sizing:border-box!important;
+ min-width:0!important;
+ max-width:100%!important;
+}
+.propulsion-csv-preview-card{
+ display:block!important;
+ width:100%!important;
+ overflow:hidden!important;
+}
+.propulsion-csv-preview-card .propulsion-csv-preview-viewport{
+ display:block!important;
+ position:relative!important;
+ box-sizing:border-box!important;
+ width:100%!important;
+ min-width:0!important;
+ max-width:100%!important;
+ height:auto;
+ overflow-x:scroll!important;
+ overflow-y:auto!important;
+ contain:inline-size;
+}
+.propulsion-csv-preview-card .propulsion-csv-preview-table{
+ display:table!important;
+ width:max-content!important;
+ min-width:max-content!important;
+ max-width:none!important;
+ table-layout:auto!important;
+}
+.propulsion-csv-preview-card .propulsion-csv-preview-table th,
+.propulsion-csv-preview-card .propulsion-csv-preview-table td{
+ white-space:nowrap!important;
+ overflow-wrap:normal!important;
+ word-break:normal!important;
+}
