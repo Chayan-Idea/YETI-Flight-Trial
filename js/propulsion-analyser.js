@@ -745,7 +745,11 @@ const statsPage=el('section','propulsion-report-summary-page');
    reportPreview.append(cover);
 
    if(reportGraphs.length){for(const pageGraphs of reportTools.pairGraphPages(reportGraphs)){const graphPage=el('article','propulsion-report-page propulsion-report-graph-page');graphPage.append(el('div','propulsion-report-page-kicker','02  /  GRAPHICAL ANALYSIS'),el('h2','','PROPULSION PERFORMANCE PLOTS'));pageGraphs.forEach((item,index)=>{const wrap=el('div','propulsion-report-preview-graph');wrap.append(el('h3','',String(reportPreview.querySelectorAll('.propulsion-report-preview-graph').length+1).padStart(2,'0')+'  '+item.title),item.svg.cloneNode(true));graphPage.append(wrap)});reportPreview.append(graphPage)}}
-   const valid=reportTools.isReady(Object.fromEntries(Object.entries(reportFields).map(([key,field])=>[key,field.value])));validation.textContent=valid?'Mandatory identification fields complete. PDF export is ready.':'Complete Motor Name, ESC Name, Propeller Name, Test Date and Test Report Type before exporting.';
+   const valid=reportTools.isReady(Object.fromEntries(Object.entries(reportFields).map(([key,field])=>[key,field.value])));
+   // Keep PDF export unavailable until every mandatory identification field is valid.
+   exportPdf.disabled=!valid;
+   exportPdf.setAttribute('aria-disabled',String(!valid));
+   validation.textContent=valid?'Mandatory identification fields complete. PDF export is ready.':'Complete Motor Name, ESC Name, Propeller Name, Test Date and Test Report Type before exporting.';
   }
   updateReportPreview();
   const reportProceedActions=el('div','propulsion-actions');const reportProceed=el('button','btn','Proceed to Generate Report');reportProceed.type='button';reportProceed.id='proceedToGenerateReportBtn';const setReportSectionOpen=(open)=>{step5Visible=!!open;step5.hidden=!step5Visible;reportProceed.disabled=step5Visible;reportProceed.textContent=step5Visible?'Report Section Opened':'Proceed to Generate Report';};reportProceed.addEventListener('click',()=>{reportDirectVisible=false;setReportSectionOpen(true);saveState();step5.scrollIntoView({behavior:'smooth',block:'start'});});step4.append(reportProceedActions);reportProceedActions.append(reportProceed);
