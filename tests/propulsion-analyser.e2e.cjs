@@ -28,7 +28,7 @@ const server = http.createServer((req,res)=>{
   if(await reportInputTable.locator('thead th').count()!==3)throw new Error('Two-log report identification table must have one parameter column and one column per log.');
   if(await reportInputTable.locator('tbody tr').count()!==8)throw new Error('Comparative report must retain all eight existing identification fields for each log.');
   if(await multiReport.locator('#multiReport_commonObjective').count()!==1)throw new Error('Comparative report must have exactly one shared objective/manual entry field.');
-  if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-page').count()<3)throw new Error('Comparative report must render the live A4 preview pages for cover, per-log results and graph when plotted.');
+  if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-page').count()<2)throw new Error('Comparative report must render the live A4 cover and executive summary pages before optional report graphs are added.');
   if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-brand-lockup').count()!==1)throw new Error('Comparative A4 cover must use the Single-Log ideaForge brand lockup.');
   if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-accent-rule').count()!==1)throw new Error('Comparative A4 cover must use the Single-Log green and blue accent rule.');
   const comparativeSummary=multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-comparative-summary-table');
