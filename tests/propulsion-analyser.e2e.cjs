@@ -16,7 +16,8 @@ const server = http.createServer((req,res)=>{
  const pageErrors=[],consoleErrors=[],failedRequests=[],checkpoints=[];
  const checkpoint=name=>{checkpoints.push({name,url:page?.url()||'',time:new Date().toISOString()});console.log('[E2E CHECKPOINT] '+name);};
  try {
-  await new Promise(resolve=>server.listen(4173,'127.0.0.1',resolve));
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  const address=server.address();const baseUrl='http://127.0.0.1:'+address.port;
   browser=await chromium.launch({headless:true,args:['--no-sandbox']});
   context=await browser.newContext();
   await context.tracing.start({screenshots:true,snapshots:true,sources:true});traceStarted=true;
@@ -24,7 +25,7 @@ const server = http.createServer((req,res)=>{
   page.on('pageerror',error=>pageErrors.push(error.message));
   page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text());});
   page.on('requestfailed',request=>failedRequests.push({url:request.url(),error:request.failure()?.errorText||'request failed'}));
-  await page.goto('http://127.0.0.1:4173/',{waitUntil:'networkidle'});
+  await page.goto(baseUrl+'/',{waitUntil:'networkidle'});
   checkpoint('application shell loaded');
   // Exercise the single-log workflow first, then validate comparative report UI after multi-log data exists.
 
@@ -37,9 +38,7 @@ const server = http.createServer((req,res)=>{
   const singleCsv='thrust,command_rpm,actual_rpm,dc_voltage_v,dc_current_a,motor_temperature_c,esc_temperature_c,acceleration_x,acceleration_y,acceleration_z\n100,1000,980,50,10,40,35,0.1,0.2,0.3\n110,1100,1080,50,11,41,36,0.2,0.3,0.4\n90,900,0,50,10,39,34,0.0,0.1,0.2\n';
   await page.locator('#propulsionCsvInput').setInputFiles({name:'single-thrust.csv',mimeType:'text/csv',buffer:Buffer.from(singleCsv)});
   await page.locator('#startPropulsionAnalysisBtn').click();
-  await page.waitForTimeout(500);
-  if(await page.locator('#confirmPropulsionMappingBtn').count()===0){const detail=await page.locator('.propulsion-mapping-card').last().innerText().catch(()=>'(no mapping card)');const upload=await page.locator('#propulsionUploadStatus').innerText().catch(()=>'(no upload status)');throw new Error('Single-log mapping panel was not created. Upload status: '+upload+'; panel: '+detail+'; page errors: '+pageErrors.join(' | '));}
-  await page.locator('#confirmPropulsionMappingBtn').waitFor({state:'visible'});
+  try{await page.locator('#confirmPropulsionMappingBtn').waitFor({state:'visible',timeout:10000});}catch(waitError){const detail=await page.locator('.propulsion-mapping-card').last().innerText().catch(()=>'(no mapping card)');const upload=await page.locator('#propulsionUploadStatus').innerText().catch(()=>'(no upload status)');throw new Error('Single-log mapping panel was not created within 10 seconds. Upload status: '+upload+'; panel: '+detail+'; page errors: '+pageErrors.join(' | '));}
   if(await page.locator('#confirmPropulsionMappingBtn').isDisabled())throw new Error('Single-log parameter mapping did not validate.');
   await page.locator('#confirmPropulsionMappingBtn').click();
   checkpoint('single-log mapping confirmed');
