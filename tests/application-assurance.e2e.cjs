@@ -110,6 +110,9 @@ async function crossBrowserSmoke(browserType,name,baseUrl,runA11y=false) {
       await page.locator('#dailyTabBtn').click();
       await page.locator('#dailyChecklistTabPanel').waitFor({state:'visible'});
       await runAxe(page,'Daily Airworthiness');
+      await page.locator('#loadingTabBtn').click();
+      await page.locator('#loadingChecklistSection').waitFor({state:'visible'});
+      await runAxe(page,'Loading-Unloading');
       await page.locator('#propulsionAnalyzerTab').click();
       await page.locator('#propulsionAnalyzerPanel').waitFor({state:'visible'});
       await runAxe(page,'Propulsion Analyzer');
