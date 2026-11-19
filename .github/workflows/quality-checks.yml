@@ -146,3 +146,34 @@ jobs:
             /tmp/yeti-browser-trace.zip
           if-no-files-found: ignore
           retention-days: 7
+  phase5-certification:
+    name: Phase 5 — Final release certification (no merge or deployment)
+    needs:
+      - static-validation
+      - engine-unit-tests
+      - browser-smoke
+      - application-assurance
+      - browser-workflow
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out certified commit and full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Generate final quality certification
+        env:
+          QUALITY_RESULTS: ${{ toJSON(needs) }}
+        run: node scripts/phase5-release-certification.mjs
+      - name: Upload Phase 5 certification report
+        uses: actions/upload-artifact@v4
+        with:
+          name: yeti-phase5-release-certification
+          path: quality-evidence/
+          if-no-files-found: error
+          retention-days: 30
+
