@@ -189,9 +189,9 @@ const server = http.createServer((req,res)=>{
   await page.getByRole('button',{name:'Plot Comparative Graph'}).click();
   if(!(await xyRange.isVisible()))throw new Error('Comparative X-Y range selector must appear after graph plotting.');
   if(!(await xyRange.isVisible()))throw new Error('Comparative X-Y range selector must appear after graph plotting.');
-  const explorerOrder=await page.locator('.propulsion-phase3-explorer').evaluate(el=>Array.from(el.children).map(child=>child.classList));
-  const rangeOrderIndex=explorerOrder.findIndex(classes=>classes.contains('propulsion-phase3-range-panel'));
-  const readoutOrderIndex=explorerOrder.findIndex(classes=>classes.contains('propulsion-phase3-point-readout'));
+  const explorerOrder=await page.locator('.propulsion-phase3-explorer').evaluate(el=>Array.from(el.children).map(child=>Array.from(child.classList)));
+  const rangeOrderIndex=explorerOrder.findIndex(classes=>classes.includes('propulsion-phase3-range-panel'));
+  const readoutOrderIndex=explorerOrder.findIndex(classes=>classes.includes('propulsion-phase3-point-readout'));
   if(rangeOrderIndex<0||readoutOrderIndex<0||rangeOrderIndex<readoutOrderIndex)throw new Error('Comparative X-Y range selector must appear below graph slider and readout.');
 
   for(const id of ['multiGraphXRangeStart','multiGraphXRangeEnd','multiGraphYRangeStart','multiGraphYRangeEnd'])if(await page.locator('#'+id).count()!==1)throw new Error('Missing comparative X-Y range input: '+id);
