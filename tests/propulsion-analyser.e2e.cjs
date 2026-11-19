@@ -310,17 +310,24 @@ const server = http.createServer((req,res)=>{
   const exportButton=page.locator('#propulsionPhase4ReportCard button').filter({hasText:'Export Comparative Report as PDF'});
   if(await exportButton.isDisabled())throw new Error('Report export did not unlock after both logs were processed and required metadata was entered.');
   const popupPromise=page.waitForEvent('popup');await exportButton.click();const report=await popupPromise;
-  await report.waitForLoadState('domcontentloaded');
+  await report.waitForLoadState('load');
   await report.getByText('YETI Propulsion Bench Data Validation Report',{exact:true}).waitFor();
   await report.getByText('run-a.csv').waitFor();await report.getByText('run-b.csv').waitFor();
+  await report.waitForFunction(()=>{const link=document.querySelector('link[rel="stylesheet"]');return !!link&&!!link.sheet;});
 
   // The comparative PDF export must still work when the browser blocks pop-up windows.
   await page.evaluate(()=>{window.__yetiOriginalOpen=window.open;window.open=()=>null;});
   await exportButton.click();
-  await page.locator('iframe[data-yeti-comparative-print="true"]').waitFor({state:'attached'});
-  if(!(await multiReport.locator('.propulsion-phase4-report-status').innerText()).includes('Popup was blocked'))throw new Error('Comparative PDF export must provide a same-page print fallback when pop-ups are blocked.');
+  const printFrame=page.locator('iframe[data-yeti-comparative-print="true"]');
+  await printFrame.waitFor({state:'attached'});
+  await page.waitForFunction(()=>{
+   const frame=document.querySelector('iframe[data-yeti-comparative-print="true"]');
+   const doc=frame?.contentDocument;
+   return !!doc&&doc.title==='YETI Comparative Propulsion Report'&&!!doc.querySelector('#multiPropulsionReportLivePreview .propulsion-report-page')&&!!doc.querySelector('link[rel="stylesheet"]')?.sheet;
+  });
+  if(!(await multiReport.locator('.propulsion-phase4-report-status').innerText()).includes('Pop-up blocked'))throw new Error('Comparative PDF export must prepare the same-page print view and load its stylesheet when pop-ups are blocked.');
   await page.evaluate(()=>{window.open=window.__yetiOriginalOpen;delete window.__yetiOriginalOpen;});
-  await page.locator('iframe[data-yeti-comparative-print="true"]').evaluate(el=>el.remove());
+  await printFrame.evaluate(el=>el.remove());
 
 
   // Verify the same unified mapping-table layout for 3-log and 4-log analysis.
