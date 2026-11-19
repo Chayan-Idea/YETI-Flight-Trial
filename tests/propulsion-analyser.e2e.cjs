@@ -149,6 +149,10 @@ const server = http.createServer((req,res)=>{
    await fileCard.locator('.propulsion-csv-preview-viewport').waitFor({state:'visible'});
    if(await fileCard.locator('.propulsion-csv-preview-table tbody tr').count()===0)throw new Error('Generated individual CSV preview did not display its rows.');
   }
+  const proceedInApp=page.getByRole('button',{name:'Proceed with In App Analysis',exact:true});
+  await proceedInApp.waitFor({state:'visible'});
+  await proceedInApp.click();
+  await page.locator('#multiGraphXAxis').waitFor({state:'visible'});
   if(await page.locator('#multiGraphSecondaryYAxis, .propulsion-phase3-series-controls, .propulsion-phase3-graph-controls input[type=number]').count()!==0)throw new Error('Comparative graph should expose only common X/Y selectors, not secondary axes, per-log toggles or manual range fields.');
   await page.locator('#multiGraphXAxis').selectOption('actualRpm');
   await page.locator('#multiGraphYAxis').selectOption('thrust');
