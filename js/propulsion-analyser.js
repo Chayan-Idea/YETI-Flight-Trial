@@ -93,12 +93,12 @@
    title.textContent=viewName==='raw'?'Uploaded Raw CSV File':'Data Filtered CSV File';
    info.textContent=viewRows.length.toLocaleString()+' rows · '+maxColumns.toLocaleString()+' columns · Virtual preview; complete dataset retained · '+(viewName==='raw'?'Original uploaded file, unchanged':'Rows with Actual RPM equal to zero or below removed');
    viewport.setAttribute('aria-label',viewName==='raw'?'Uploaded raw CSV data preview':'Data filtered CSV preview');
-   activeView=viewName;csvPreviewPanel.hidden=false;identifyActions.hidden=false;
+   activeView=viewName;csvPreviewPanel.hidden=false;
    rawToggle.textContent=viewName==='raw'?'Hide Uploaded Raw CSV File':'Show Uploaded Raw CSV File';
    rawToggle.setAttribute('aria-expanded',String(viewName==='raw'));
    requestAnimationFrame(setFreezeOffsets);
   };
-  const hidePreview=()=>{csvPreviewPanel.hidden=true;identifyActions.hidden=true;activeView='';rawToggle.textContent='Show Uploaded Raw CSV File';rawToggle.setAttribute('aria-expanded','false')};
+  const hidePreview=()=>{csvPreviewPanel.hidden=true;activeView='';rawToggle.textContent='Show Uploaded Raw CSV File';rawToggle.setAttribute('aria-expanded','false')};
   rawToggle.addEventListener('click',()=>{if(activeView==='raw'&&!csvPreviewPanel.hidden)hidePreview();else renderRows(rows,'raw')});
   function graphStatusSafeMessage(){info.textContent='Filtered preview unavailable: Actual RPM column could not be identified in this CSV. Please verify the column header.';title.textContent='Data Filtered CSV File';csvPreviewPanel.hidden=false;identifyActions.hidden=true;activeView='filtered';}
   if(uploadCard){uploadCard.insertAdjacentElement('afterend',previewActions);previewActions.insertAdjacentElement('afterend',csvPreviewPanel);}
@@ -935,7 +935,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   if(!/\.csv$/i.test(file.name)){input.value='';setUploadState(false,'Invalid file — please select a .csv file');return}
   if(file.size===0){input.value='';setUploadState(false,'The selected CSV file is empty');return}
   selectedFile=file;if(filePicker)filePicker.hidden=true;setUploadState(true,'CSV selected — ready for parameter identification');
-  meta.hidden=false;meta.textContent=file.name+' · '+(file.size/1024).toFixed(1)+' KB';reset.hidden=false;start.disabled=false;start.textContent='Identify Parameters';file.text().then(text=>{parseCSVText=text;renderCsvPreview(text);saveState()}).catch(()=>{setUploadState(false,'Unable to read the selected CSV file')});
+  meta.hidden=false;meta.textContent=file.name+' · '+(file.size/1024).toFixed(1)+' KB';reset.hidden=false;start.disabled=false;start.textContent='Identify Parameters';identifyActions.hidden=false;file.text().then(text=>{parseCSVText=text;renderCsvPreview(text);saveState()}).catch(()=>{setUploadState(false,'Unable to read the selected CSV file')});
  });
  reset.addEventListener('click',async()=>{input.value='';resetAnalysis();if(filePicker)filePicker.hidden=false;reset.textContent='Choose another log file';setUploadState(false,'No file selected');try{const db=await openStateDB();await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).delete(DB_KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}catch(error){console.warn('Could not clear saved propulsion session:',error)}});
  start.addEventListener('click',async()=>{
