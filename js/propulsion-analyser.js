@@ -870,9 +870,8 @@ const statsPage=el('section','propulsion-report-summary-page');
 
  // Phase 2: independent multi-log upload and parameter mapping.
  const commonEngine=window.PropulsionAnalysisEngine,logCountSelect=$id('propulsionLogCount'),multiSetupCard=$id('propulsionMultiSetupCard'),multiUploadGrid=$id('propulsionMultiUploadGrid'),multiUploadStatus=$id('propulsionMultiUploadStatus'),identifyMultipleLogsBtn=$id('identifyMultipleLogsBtn'),multiMappingHost=$id('propulsionMultiMappingHost');
- // Restore only the selected setup mode from the URL so the confirmation action can perform a full page reload.
- const requestedLogCount=new URLSearchParams(window.location.search).get('logCount');
- if(logCountSelect&&['1','2','3','4'].includes(requestedLogCount||''))logCountSelect.value=requestedLogCount;
+ // Setup selection is intentionally session-local: every page load requires a fresh choice.
+ if(logCountSelect)logCountSelect.value='';
  let multiSession=null,multiFiles=[],multiLogType='',multiMappingConfirmed=false;
  function resetMultiSetup(){multiSession=null;multiFiles=[];multiMappingConfirmed=false;multiMappingHost?.replaceChildren();multiUploadGrid?.replaceChildren();if(identifyMultipleLogsBtn)identifyMultipleLogsBtn.disabled=true;if(multiUploadStatus)multiUploadStatus.textContent='Select the common test type and upload every requested CSV file.';renderMultiUploadSlots();}
  function renderMultiUploadSlots(){
@@ -892,7 +891,16 @@ const statsPage=el('section','propulsion-report-summary-page');
   }updateMultiUploadGate();
  }
  function updateMultiUploadGate(){if(!identifyMultipleLogsBtn||!logCountSelect)return;const count=Number(logCountSelect.value),typeSelected=multiLogType==='thrust'||multiLogType==='torque',ready=typeSelected&&multiFiles.length===count&&multiFiles.every(Boolean),uploadControls=$id('propulsionMultiUploadControls');if(uploadControls)uploadControls.hidden=!typeSelected;identifyMultipleLogsBtn.hidden=!ready;identifyMultipleLogsBtn.disabled=!ready;if(multiUploadStatus)multiUploadStatus.textContent=!typeSelected?'Select a common test type before uploading logs.':ready?'All '+count+' CSV files are ready for independent parameter identification.':multiFiles.filter(Boolean).length+' of '+count+' CSV files uploaded successfully.';}
- function setMultiMode(){const isMulti=Number(logCountSelect?.value||1)>1;if(uploadCard)uploadCard.hidden=isMulti;const progress=$id('propulsionProgressCard');if(progress&&isMulti)progress.hidden=true;const note=workspace.querySelector('.propulsion-local-note');if(note)note.hidden=isMulti;if(multiSetupCard)multiSetupCard.hidden=!isMulti;if(isMulti){multiLogType='';multiSession=null;multiMappingConfirmed=false;multiMappingHost?.replaceChildren();multiSetupCard.querySelectorAll('input[name="propulsionMultiLogType"]').forEach(r=>r.checked=false);resetMultiSetup();}else{multiSetupCard?.querySelectorAll('input[name="propulsionMultiLogType"]').forEach(r=>r.checked=false);resetMultiSetup();}}
+ function setMultiMode(){
+  const count=String(logCountSelect?.value||''),isMulti=['2','3','4'].includes(count);
+  if(uploadCard)uploadCard.hidden=count!=='1';
+  const progress=$id('propulsionProgressCard');if(progress&&isMulti)progress.hidden=true;
+  const note=workspace.querySelector('.propulsion-local-note');if(note)note.hidden=isMulti;
+  if(multiSetupCard)multiSetupCard.hidden=!isMulti;
+  multiLogType='';multiSession=null;multiMappingConfirmed=false;multiMappingHost?.replaceChildren();
+  multiSetupCard?.querySelectorAll('input[name="propulsionMultiLogType"]').forEach(r=>r.checked=false);
+  resetMultiSetup();
+ }
  function getMultiMappingDefaults(headers){const result={};specs.forEach(spec=>{const candidates=headers.map((name,index)=>({index,score:scoreHeader(name,spec.aliases)})).filter(item=>item.score>=30).sort((a,b)=>b.score-a.score);result[spec.key]={candidates,selected:candidates[0]?.index??''};});return result;}
  function multiActiveSpecs(){const keys=PARAMETER_DEPENDENCY_MATRIX[multiLogType]?.mapping||[];return specs.filter(spec=>keys.includes(spec.key));}
  function engineSetMapping(log,mapping){const clean={};Object.keys(mapping||{}).forEach(key=>{const value=mapping[key]?.selected;if(value!==''&&value!==undefined)clean[key]=Number(value);});commonEngine.setMapping(log,clean);}
@@ -1649,18 +1657,29 @@ const statsPage=el('section','propulsion-report-summary-page');
  const confirmCommonSetupBtn=$id('confirmCommonSetupBtn');
  confirmCommonSetupBtn?.addEventListener('click',()=>{
   const selectedCount=String(logCountSelect?.value||'');
-  if(!['1','2','3','4'].includes(selectedCount))return;
-  const nextUrl=new URL(window.location.href);
-  nextUrl.searchParams.set('logCount',selectedCount);
-  // A full navigation reloads the entire application; the URL carries the chosen setup into the fresh page.
-  window.location.assign(nextUrl.toString());
+  if(!['1','2','3','4'].includes(selectedCount)){
+   logCountSelect?.focus();
+   const status=$id('propulsionCommonSetupStatus');
+   if(status)status.textContent='Please select the number of test logs before proceeding.';
+   return;
+  }
+  const status=$id('propulsionCommonSetupStatus');
+  if(status)status.textContent=selectedCount==='1'?'Single-log setup selected. Step 01 is ready.':'Comparative setup selected for '+selectedCount+' logs. Step 01 is ready.';
+  const commonSetup=$id('propulsionCommonSetupCard');
+  if(commonSetup)commonSetup.hidden=true;
+  setMultiMode();
+  (selectedCount==='1'?uploadCard:multiSetupCard)?.scrollIntoView({behavior:'smooth',block:'start'});
  });
  const multiLogTypePicker=$id('propulsionMultiLogTypePicker');
  function syncMultiLogTypeSelection(){multiLogTypePicker?.querySelectorAll('.propulsion-log-type-option').forEach(option=>{const selected=!!option.querySelector('input')?.checked;option.classList.toggle('is-selected',selected);if(selected){option.style.setProperty('background-color','#1769aa','important');option.style.setProperty('border-color','#1769aa','important');}else{option.style.removeProperty('background-color');option.style.removeProperty('border-color');}});}
  multiLogTypePicker?.querySelectorAll('input[name="propulsionMultiLogType"]').forEach(radio=>radio.addEventListener('change',()=>{multiLogType=radio.value;syncMultiLogTypeSelection();resetMultiSetup();updateMultiUploadGate();}));
  syncMultiLogTypeSelection();
  identifyMultipleLogsBtn?.addEventListener('click',()=>{try{identifyAllMultiLogs();}catch(error){if(multiUploadStatus)multiUploadStatus.textContent=error.message||'Unable to identify the uploaded logs.';}});
- setMultiMode();
+ // Keep both Step 01 variants hidden until the user chooses a log count and clicks Proceed.
+ if(uploadCard)uploadCard.hidden=true;
+ if(multiSetupCard)multiSetupCard.hidden=true;
+ const commonSetup=$id('propulsionCommonSetupCard');if(commonSetup)commonSetup.hidden=false;
+ if(logCountSelect)logCountSelect.value='';
 
  start.textContent='Identify Parameters';start.disabled=true;
  // Every page load starts a completely new propulsion session. No previous CSV,

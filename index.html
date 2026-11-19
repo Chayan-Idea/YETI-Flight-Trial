@@ -38,10 +38,10 @@
     <div class="propulsion-step-label">COMMON ANALYSIS SETUP</div><h3>Configure Test Logs</h3>
     <p class="propulsion-mapping-description">Choose how many CSV logs belong to this test session. A single log continues through the existing analyser; selecting 2–4 logs opens the common multi-log setup.</p>
     <label class="propulsion-mode-count-label" for="propulsionLogCount">NUMBER OF LOGS</label>
-    <select id="propulsionLogCount" class="propulsion-column-select propulsion-log-count-select">
-      <option value="1" selected>1 Log — Single Log Analyser</option><option value="2">2 Logs — Comparative Analysis</option><option value="3">3 Logs — Comparative Analysis</option><option value="4">4 Logs — Comparative Analysis</option>
+    <select id="propulsionLogCount" class="propulsion-column-select propulsion-log-count-select" required>
+      <option value="" selected disabled>Select number of test logs</option><option value="1">1 Log — Single Log Analyser</option><option value="2">2 Logs — Comparative Analysis</option><option value="3">3 Logs — Comparative Analysis</option><option value="4">4 Logs — Comparative Analysis</option>
     </select>
-    <div class="propulsion-actions"><button type="button" class="btn" id="confirmCommonSetupBtn">OK PROCEED</button></div>
+    <div class="propulsion-actions"><button type="button" class="btn" id="confirmCommonSetupBtn">PROCEED</button></div><p class="propulsion-multi-status" id="propulsionCommonSetupStatus" role="status" aria-live="polite">Select the number of test logs, then click Proceed.</p>
   </section>
   <section class="propulsion-multi-setup-card propulsion-step-card propulsion-step-card--purple" id="propulsionMultiSetupCard" hidden>
     <div class="propulsion-step-label">STEP 01 · COMMON TEST INPUT</div><h3>Upload Multiple Propulsion Test Logs</h3>
@@ -57,7 +57,7 @@
     </div>
   </section>
   <div id="propulsionMultiMappingHost"></div>
-  <div class="propulsion-upload-card propulsion-step-card propulsion-step-card--blue">
+  <div class="propulsion-upload-card propulsion-step-card propulsion-step-card--blue" hidden>
     <div class="propulsion-step-label">STEP 01 · INPUT LOG</div>
     <h3 id="propulsionUploadHeading">Upload Propulsion Test Bench Log</h3>
     <fieldset class="propulsion-log-type-picker" id="propulsionLogTypePicker">
