@@ -19,67 +19,8 @@ const server = http.createServer((req,res)=>{
   const page=await browser.newPage();
   const pageErrors=[];page.on('pageerror',error=>pageErrors.push(error.message));
   await page.goto('http://127.0.0.1:4173/',{waitUntil:'networkidle'});
-  // Verify the original single-log workflow before testing multi-log mode.
-  await page.locator('#flightPreparationTab').click();
-  await page.locator('#flightPreparationPanel').waitFor({state:'visible'});
-  const multiReport=page.locator('#propulsionPhase4ReportCard');
-  await multiReport.waitFor({state:'attached'});
-  const reportInputTable=multiReport.locator('.propulsion-phase4-report-input-table');
-  if(await reportInputTable.locator('thead th').count()!==3)throw new Error('Two-log report identification table must have one parameter column and one column per log.');
-  if(await reportInputTable.locator('tbody tr').count()!==8)throw new Error('Comparative report must retain all eight existing identification fields for each log.');
-  if(await multiReport.locator('#multiReport_commonObjective').count()!==1)throw new Error('Comparative report must have exactly one shared objective/manual entry field.');
-  if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-page').count()<2)throw new Error('Comparative report must render the live A4 cover and executive summary pages before optional report graphs are added.');
-  if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-brand-lockup').count()!==1)throw new Error('Comparative A4 cover must use the Single-Log ideaForge brand lockup.');
-  if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-accent-rule').count()!==1)throw new Error('Comparative A4 cover must use the Single-Log green and blue accent rule.');
-  const comparativeSummary=multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-comparative-summary-table');
-  if(await comparativeSummary.count()!==1)throw new Error('Comparative PDF must show one parameter-by-log executive summary table.');
-  if(await comparativeSummary.locator('thead th').count()!==3)throw new Error('Executive summary table must contain a parameter column and one column for each log.');
-  if(await comparativeSummary.locator('tbody tr').count()<6)throw new Error('Executive summary table must include all mapped comparative-summary parameters.');
-  const summaryPage=multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-multi-summary-page');
-  if(await summaryPage.count()!==1)throw new Error('All comparative executive summary parameters must fit on one A4 summary page.');
-  const summaryTableBox=await comparativeSummary.boundingBox();
-  const summaryPageBox=await summaryPage.boundingBox();
-  if(!summaryTableBox||!summaryPageBox||summaryTableBox.height>summaryPageBox.height-55)throw new Error('Comparative executive summary table is too tall for its single-page A4 layout.');
+  // Exercise the single-log workflow first, then validate comparative report UI after multi-log data exists.
 
-  if(await comparativeSummary.locator('.propulsion-report-kpi-timestamp').count()!==await comparativeSummary.locator('tbody tr').count()*2)throw new Error('Every parameter/log table cell must include its maximum-value timestamp.');
-  if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-page-kicker').filter({hasText:'PER-LOG ANALYSIS'}).count()!==0)throw new Error('PDF preview must omit the separate per-log processing and derived-statistics pages.');
-  const reportGraphX=multiReport.locator('#multiReportGraphXAxis'),reportGraphY=multiReport.locator('#multiReportGraphYAxis');
-  if(await reportGraphX.count()!==1||await reportGraphY.count()!==1)throw new Error('Comparative report must have independent X/Y graph selectors.');
-  if(await multiReport.locator('#addMultiReportGraphBtn').count()!==1)throw new Error('Comparative report must provide Add Graph to Report.');
-  if(await multiReport.locator('#multiReportGraphCount').innerText()!=='0 of 5 graphs added')throw new Error('Comparative report graph counter must start at zero of five.');
-  await reportGraphX.selectOption('actualRpm');await reportGraphY.selectOption('thrust');
-  await multiReport.locator('#addMultiReportGraphBtn').click();
-  if(await multiReport.locator('#multiReportGraphList .propulsion-report-graph-item').count()!==1)throw new Error('Adding a comparative report graph must create one removable graph entry.');
-  if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-graph-page .propulsion-report-graph-svg').count()!==1)throw new Error('The selected comparative report graph must appear in the live PDF preview.');
-  const reportSvg=multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-graph-page .propulsion-report-graph-svg').first();
-  const legendLabels=reportSvg.locator('text').filter({hasText:/^LOG [12] ·/});
-  if(await legendLabels.count()!==2)throw new Error('Comparative report graph must show one legend label for each log.');
-  const legendRects=reportSvg.locator('rect[rx="4"]');
-  if(await legendRects.count()!==2)throw new Error('Comparative graph legend labels must have separate readable background areas placed by the blank-space layout algorithm.');
-  const firstLegendBox=await legendRects.nth(0).boundingBox(),secondLegendBox=await legendRects.nth(1).boundingBox();
-  if(firstLegendBox&&secondLegendBox&&firstLegendBox.x<secondLegendBox.x+secondLegendBox.width&&firstLegendBox.x+firstLegendBox.width>secondLegendBox.x&&firstLegendBox.y<secondLegendBox.y+secondLegendBox.height&&firstLegendBox.y+firstLegendBox.height>secondLegendBox.y)throw new Error('Comparative graph legend labels must not overlap one another.');
-  if(firstLegendBox&&secondLegendBox){
-   if(Math.abs(firstLegendBox.x-secondLegendBox.x)>1)throw new Error('Comparative graph legend labels must be grouped on the same horizontal alignment.');
-   const verticalGap=Math.abs(firstLegendBox.y-secondLegendBox.y)-Math.max(firstLegendBox.height,secondLegendBox.height);
-   if(verticalGap>4)throw new Error('Comparative graph legend labels must sit closely together without excessive vertical gaps.');
-  }
-
-
-  if(await multiReport.locator('#multiReportGraphCount').innerText()!=='1 of 5 graphs added')throw new Error('Comparative report graph counter must update after adding a graph.');
-  if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-graph-page .propulsion-report-graph-svg circle').count()<2)throw new Error('Added comparative report graph must contain plotted data points from the processed logs.');
-  if(await multiReport.locator('#multiReportGraphList .propulsion-report-graph-item').count()!==1)throw new Error('Added comparative graph must appear in the report graph list.');
-  if((await multiReport.locator('.propulsion-phase4-report-status').innerText()).includes('Unable to add graph:'))throw new Error('Adding a comparative report graph must not produce a runtime error.');
-
-
-  await multiReport.locator('#multiReportGraphList button[aria-label="Remove report graph 1"]').click();
-  if(await multiReport.locator('#multiReportGraphList .propulsion-report-graph-item').count()!==0||await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-graph-page').count()!==0)throw new Error('Removing a comparative report graph must also remove it from the live PDF preview.');
-
-  if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-comparative-cell-value').filter({hasText:/\\d/}).count()===0)throw new Error('Comparative PDF summary should refresh with numeric values after each log is processed.');
-
-  if(await multiReport.locator('#multiPropulsionReportLivePreview').getByText('Rows retained',{exact:true}).count()!==0)throw new Error('PDF preview must omit per-log row-retention statistics.');
-
-
-  if(!(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-inline-title').innerText()).includes('YETI Propulsion Bench Data Validation Report'))throw new Error('Comparative cover title must match the Single-Log report design.');
 
     await page.locator('#propulsionAnalyzerTab').click();
   await page.locator('#propulsionLogCount').selectOption('1');
@@ -254,6 +195,65 @@ const server = http.createServer((req,res)=>{
    if(!(await entry.innerText()).includes('X (')||!(await entry.innerText()).includes('Y ('))throw new Error('Each log readout must show its own X and Y values.');
   }
   if(!(await page.locator('.propulsion-phase3-common-x-readout').innerText()).includes('COMMON X AXIS'))throw new Error('Comparative slider readout must identify the shared X-axis position.');
+
+  const multiReport=page.locator('#propulsionPhase4ReportCard');
+  await multiReport.waitFor({state:'attached'});
+  const reportInputTable=multiReport.locator('.propulsion-phase4-report-input-table');
+  if(await reportInputTable.locator('thead th').count()!==3)throw new Error('Two-log report identification table must have one parameter column and one column per log.');
+  if(await reportInputTable.locator('tbody tr').count()!==8)throw new Error('Comparative report must retain all eight existing identification fields for each log.');
+  if(await multiReport.locator('#multiReport_commonObjective').count()!==1)throw new Error('Comparative report must have exactly one shared objective/manual entry field.');
+  if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-page').count()<2)throw new Error('Comparative report must render the live A4 cover and executive summary pages before optional report graphs are added.');
+  if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-brand-lockup').count()!==1)throw new Error('Comparative A4 cover must use the Single-Log ideaForge brand lockup.');
+  if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-accent-rule').count()!==1)throw new Error('Comparative A4 cover must use the Single-Log green and blue accent rule.');
+  const comparativeSummary=multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-comparative-summary-table');
+  if(await comparativeSummary.count()!==1)throw new Error('Comparative PDF must show one parameter-by-log executive summary table.');
+  if(await comparativeSummary.locator('thead th').count()!==3)throw new Error('Executive summary table must contain a parameter column and one column for each log.');
+  if(await comparativeSummary.locator('tbody tr').count()<6)throw new Error('Executive summary table must include all mapped comparative-summary parameters.');
+  const summaryPage=multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-multi-summary-page');
+  if(await summaryPage.count()!==1)throw new Error('All comparative executive summary parameters must fit on one A4 summary page.');
+  const summaryTableBox=await comparativeSummary.boundingBox();
+  const summaryPageBox=await summaryPage.boundingBox();
+  if(!summaryTableBox||!summaryPageBox||summaryTableBox.height>summaryPageBox.height-55)throw new Error('Comparative executive summary table is too tall for its single-page A4 layout.');
+
+  if(await comparativeSummary.locator('.propulsion-report-kpi-timestamp').count()!==await comparativeSummary.locator('tbody tr').count()*2)throw new Error('Every parameter/log table cell must include its maximum-value timestamp.');
+  if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-page-kicker').filter({hasText:'PER-LOG ANALYSIS'}).count()!==0)throw new Error('PDF preview must omit the separate per-log processing and derived-statistics pages.');
+  const reportGraphX=multiReport.locator('#multiReportGraphXAxis'),reportGraphY=multiReport.locator('#multiReportGraphYAxis');
+  if(await reportGraphX.count()!==1||await reportGraphY.count()!==1)throw new Error('Comparative report must have independent X/Y graph selectors.');
+  if(await multiReport.locator('#addMultiReportGraphBtn').count()!==1)throw new Error('Comparative report must provide Add Graph to Report.');
+  if(await multiReport.locator('#multiReportGraphCount').innerText()!=='0 of 5 graphs added')throw new Error('Comparative report graph counter must start at zero of five.');
+  await reportGraphX.selectOption('actualRpm');await reportGraphY.selectOption('thrust');
+  await multiReport.locator('#addMultiReportGraphBtn').click();
+  if(await multiReport.locator('#multiReportGraphList .propulsion-report-graph-item').count()!==1)throw new Error('Adding a comparative report graph must create one removable graph entry.');
+  if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-graph-page .propulsion-report-graph-svg').count()!==1)throw new Error('The selected comparative report graph must appear in the live PDF preview.');
+  const reportSvg=multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-graph-page .propulsion-report-graph-svg').first();
+  const legendLabels=reportSvg.locator('text').filter({hasText:/^LOG [12] ·/});
+  if(await legendLabels.count()!==2)throw new Error('Comparative report graph must show one legend label for each log.');
+  const legendRects=reportSvg.locator('rect[rx="4"]');
+  if(await legendRects.count()!==2)throw new Error('Comparative graph legend labels must have separate readable background areas placed by the blank-space layout algorithm.');
+  const firstLegendBox=await legendRects.nth(0).boundingBox(),secondLegendBox=await legendRects.nth(1).boundingBox();
+  if(firstLegendBox&&secondLegendBox&&firstLegendBox.x<secondLegendBox.x+secondLegendBox.width&&firstLegendBox.x+firstLegendBox.width>secondLegendBox.x&&firstLegendBox.y<secondLegendBox.y+secondLegendBox.height&&firstLegendBox.y+firstLegendBox.height>secondLegendBox.y)throw new Error('Comparative graph legend labels must not overlap one another.');
+  if(firstLegendBox&&secondLegendBox){
+   if(Math.abs(firstLegendBox.x-secondLegendBox.x)>1)throw new Error('Comparative graph legend labels must be grouped on the same horizontal alignment.');
+   const verticalGap=Math.abs(firstLegendBox.y-secondLegendBox.y)-Math.max(firstLegendBox.height,secondLegendBox.height);
+   if(verticalGap>4)throw new Error('Comparative graph legend labels must sit closely together without excessive vertical gaps.');
+  }
+
+
+  if(await multiReport.locator('#multiReportGraphCount').innerText()!=='1 of 5 graphs added')throw new Error('Comparative report graph counter must update after adding a graph.');
+  if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-graph-page .propulsion-report-graph-svg circle').count()<2)throw new Error('Added comparative report graph must contain plotted data points from the processed logs.');
+  if(await multiReport.locator('#multiReportGraphList .propulsion-report-graph-item').count()!==1)throw new Error('Added comparative graph must appear in the report graph list.');
+  if((await multiReport.locator('.propulsion-phase4-report-status').innerText()).includes('Unable to add graph:'))throw new Error('Adding a comparative report graph must not produce a runtime error.');
+
+
+  await multiReport.locator('#multiReportGraphList button[aria-label="Remove report graph 1"]').click();
+  if(await multiReport.locator('#multiReportGraphList .propulsion-report-graph-item').count()!==0||await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-graph-page').count()!==0)throw new Error('Removing a comparative report graph must also remove it from the live PDF preview.');
+
+  if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-comparative-cell-value').filter({hasText:/\\d/}).count()===0)throw new Error('Comparative PDF summary should refresh with numeric values after each log is processed.');
+
+  if(await multiReport.locator('#multiPropulsionReportLivePreview').getByText('Rows retained',{exact:true}).count()!==0)throw new Error('PDF preview must omit per-log row-retention statistics.');
+
+
+  if(!(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-inline-title').innerText()).includes('YETI Propulsion Bench Data Validation Report'))throw new Error('Comparative cover title must match the Single-Log report design.');
 
   for(const [key,value] of Object.entries({motor:'Test Motor',esc:'Test ESC',propeller:'Test Propeller',date:'2026-11-18'}))await page.locator('#multiReport_'+key).fill(value);
   const exportButton=page.locator('#propulsionPhase4ReportCard button').filter({hasText:'Export Comparative Report as PDF'});
