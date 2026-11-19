@@ -319,8 +319,8 @@ const server = http.createServer((req,res)=>{
   const exportedPdf=await report.pdf({format:'A4',printBackground:true,preferCSSPageSize:true});
   const pdfSignature=exportedPdf.subarray(0,5).toString('ascii');
   const pdfSource=exportedPdf.toString('latin1');
-  const exportedPageCount=(pdfSource.match(/\\/Type\\s*\\/Page\\b/g)||[]).length;
-  const contentStreamCount=(pdfSource.match(/stream\\r?\\n/g)||[]).length;
+  const exportedPageCount=(pdfSource.match(/\/Type\s*\/Page\b/g)||[]).length;
+  const contentStreamCount=(pdfSource.match(/stream\r?\n/g)||[]).length;
   if(pdfSignature!=='%PDF-'||exportedPdf.length<8000||exportedPageCount<2||contentStreamCount<exportedPageCount)throw new Error('Comparative PDF artifact is blank or incomplete: '+JSON.stringify({bytes:exportedPdf.length,pages:exportedPageCount,streams:contentStreamCount,signature:pdfSignature}));
   if(!pdfSource.includes('FlateDecode'))throw new Error('Comparative PDF artifact contains no rendered content streams.');
 
