@@ -1459,3 +1459,39 @@
 /* WCAG AA: keep the two initial analyzer step labels readable on their pale blue cards. */
 #propulsionCommonSetupCard > .propulsion-step-label,
 .propulsion-upload-card > .propulsion-step-label{color:#1769aa!important}
+
+/* Consistent analyzer workflow layout: equal spacing and centered step cards. */
+.propulsion-analyser-workspace{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  justify-items:center;
+  align-content:start;
+  row-gap:18px;
+  column-gap:18px;
+  width:100%;
+  max-width:1100px;
+  margin-inline:auto;
+}
+.propulsion-analyser-workspace > .propulsion-step-card,
+.propulsion-analyser-workspace > .propulsion-mapping-card,
+.propulsion-analyser-workspace > .propulsion-statistics-card,
+.propulsion-analyser-workspace > .propulsion-upload-card,
+.propulsion-analyser-workspace > .propulsion-progress-card,
+.propulsion-analyser-workspace > .propulsion-csv-preview-card,
+.propulsion-analyser-workspace > #propulsionMultiMappingHost{
+  box-sizing:border-box;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  margin-block:0;
+  justify-self:stretch;
+}
+.propulsion-analyser-workspace > #propulsionMultiMappingHost > *{
+  box-sizing:border-box;
+  width:100%;
+  max-width:100%;
+  margin-block:0;
+}
+@media(max-width:760px){
+  .propulsion-analyser-workspace{row-gap:14px;column-gap:14px}
+}
