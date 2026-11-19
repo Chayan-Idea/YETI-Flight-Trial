@@ -12,13 +12,15 @@ const server = http.createServer((req,res)=>{
   fs.createReadStream(target).pipe(res);
 });
 (async()=>{
- let browser,page;
+ let browser,context,page,traceStarted=false,traceSaved=false;
  const pageErrors=[],consoleErrors=[],failedRequests=[],checkpoints=[];
  const checkpoint=name=>{checkpoints.push({name,url:page?.url()||'',time:new Date().toISOString()});console.log('[E2E CHECKPOINT] '+name);};
  try {
   await new Promise(resolve=>server.listen(4173,'127.0.0.1',resolve));
   browser=await chromium.launch({headless:true,args:['--no-sandbox']});
-  page=await browser.newPage();
+  context=await browser.newContext();
+  await context.tracing.start({screenshots:true,snapshots:true,sources:true});traceStarted=true;
+  page=await context.newPage();
   page.on('pageerror',error=>pageErrors.push(error.message));
   page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text());});
   page.on('requestfailed',request=>failedRequests.push({url:request.url(),error:request.failure()?.errorText||'request failed'}));
@@ -234,7 +236,11 @@ const server = http.createServer((req,res)=>{
   await multiReport.waitFor({state:'attached'});
   const reportInputTable=multiReport.locator('.propulsion-phase4-report-input-table');
   if(await reportInputTable.locator('thead th').count()!==3)throw new Error('Two-log report identification table must have one parameter column and one column per log.');
-  if(await reportInputTable.locator('tbody tr').count()!==8)throw new Error('Comparative report must retain all eight existing identification fields for each log.');
+  const reportRowLabels=await reportInputTable.locator('tbody tr th').allInnerTexts();
+  const expectedReportRows=['Motor Name *','Motor ID','ESC Name *','ESC ID','Propeller Name *','Propeller ID','Test Date *','Test Report Type *','Test Objective'];
+  if(reportRowLabels.length!==expectedReportRows.length||reportRowLabels.some((label,index)=>label.trim()!==expectedReportRows[index]))throw new Error('Comparative report must retain all seven per-log identification fields plus the shared report type and objective rows: '+JSON.stringify(reportRowLabels));
+  for(let index=1;index<=2;index++)for(const key of ['motor','esc','propeller','date'])if(await multiReport.locator('#multiReport_'+key+'_log'+index).count()!==1)throw new Error('Comparative report is missing the '+key+' input for Log '+index+'.');
+  if(await multiReport.locator('#multiReport_commonReportType').count()!==1)throw new Error('Comparative report must provide one shared report-type selector.');
   if(await multiReport.locator('#multiReport_commonObjective').count()!==1)throw new Error('Comparative report must have exactly one shared objective/manual entry field.');
   if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-page').count()<2)throw new Error('Comparative report must render the live A4 cover and executive summary pages before optional report graphs are added.');
   if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-brand-lockup').count()!==1)throw new Error('Comparative A4 cover must use the Single-Log ideaForge brand lockup.');
@@ -289,7 +295,9 @@ const server = http.createServer((req,res)=>{
 
   if(!(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-inline-title').innerText()).includes('YETI Propulsion Bench Data Validation Report'))throw new Error('Comparative cover title must match the Single-Log report design.');
 
-  for(const [key,value] of Object.entries({motor:'Test Motor',esc:'Test ESC',propeller:'Test Propeller',date:'2026-11-18'}))await page.locator('#multiReport_'+key).fill(value);
+  for(let index=1;index<=2;index++)for(const [key,value] of Object.entries({motor:'Test Motor '+index,esc:'Test ESC '+index,propeller:'Test Propeller '+index,date:'2026-11-18'}))await multiReport.locator('#multiReport_'+key+'_log'+index).fill(value);
+  await multiReport.locator('#multiReport_commonReportType').selectOption('Thrust Log Report');
+  await multiReport.locator('#multiReport_commonObjective').fill('Validate repeatable comparative thrust performance across both test logs.');
   const exportButton=page.locator('#propulsionPhase4ReportCard button').filter({hasText:'Export Comparative Report as PDF'});
   if(await exportButton.isDisabled())throw new Error('Report export did not unlock after both logs were processed and required metadata was entered.');
   const popupPromise=page.waitForEvent('popup');await exportButton.click();const report=await popupPromise;
@@ -350,7 +358,8 @@ const server = http.createServer((req,res)=>{
     try{await page.screenshot({path:'/tmp/yeti-browser-failure.png',fullPage:true});console.error('[SCREENSHOT] /tmp/yeti-browser-failure.png');}catch(captureError){console.error('[SCREENSHOT CAPTURE FAILED]',captureError.message);}
     try{console.error('[FAILED PAGE STATE]',JSON.stringify(await page.evaluate(()=>({url:location.href,title:document.title,visibleHeadings:[...document.querySelectorAll('h1,h2,h3')].filter(el=>el.getClientRects().length).map(el=>el.textContent.trim()).slice(-30),visibleAlerts:[...document.querySelectorAll('[role=alert]')].map(el=>el.textContent.trim()),visibleStatus:[...document.querySelectorAll('[role=status]')].map(el=>el.textContent.trim())})),null,2));}catch(stateError){console.error('[PAGE STATE CAPTURE FAILED]',stateError.message);}
    }
+   if(context&&traceStarted){try{await context.tracing.stop({path:'/tmp/yeti-browser-trace.zip'});traceSaved=true;console.error('[TRACE] /tmp/yeti-browser-trace.zip');}catch(traceError){console.error('[TRACE CAPTURE FAILED]',traceError.message);}}
    process.exitCode=1;
   }
- finally { if(browser)await browser.close();await new Promise(resolve=>server.close(resolve)); }
+ finally { if(context&&traceStarted&&!traceSaved)await context.tracing.stop().catch(()=>{});if(browser)await browser.close();await new Promise(resolve=>server.close(resolve)); }
 })();
