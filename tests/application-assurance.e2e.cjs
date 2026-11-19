@@ -65,7 +65,8 @@ async function crossBrowserSmoke(browserType,name,baseUrl,runA11y=false) {
   if(name==='chromium')launchOptions.args=['--no-sandbox'];
   const browser=await browserType.launch(launchOptions);
   const context=await browser.newContext({viewport:{width:1440,height:900},acceptDownloads:true});
-  const page=await context.newPage();
+  let page;
+  page=await context.newPage();
   page.setDefaultTimeout(12000);
   const errors=[],externalRequests=[],failedRequests=[];
   page.on('pageerror',error=>errors.push(error.message));
@@ -114,6 +115,9 @@ async function crossBrowserSmoke(browserType,name,baseUrl,runA11y=false) {
       await runAxe(page,'Propulsion Analyzer');
     }
     if(name==='chromium')await checkResponsive(page,baseUrl);
+  } catch(error) {
+    if(page)try{await page.screenshot({path:'/tmp/yeti-assurance-'+name+'-failure.png',fullPage:true});}catch(_){}
+    throw error;
   } finally {
     await context.close();
     await browser.close();
@@ -139,6 +143,9 @@ async function offlineShellCheck(baseUrl) {
     await page.locator('#flightPreparationTab').click();
     await page.locator('#flightPreparationPanel').waitFor({state:'visible'});
     console.log('[OFFLINE PASS] Service-worker cached shell, styles and scripts remained operational after network loss.');
+  } catch(error) {
+    try{await page.screenshot({path:'/tmp/yeti-assurance-offline-failure.png',fullPage:true});}catch(_){}
+    throw error;
   } finally {
     await context.close();
     await browser.close();
@@ -167,6 +174,9 @@ async function xssContentCheck(baseUrl) {
       throw new Error('User-supplied checklist metadata was not safely rendered as text: '+JSON.stringify(result));
     }
     console.log('[SECURITY PASS] HTML-like user content remained inert text in the generated preview.');
+  } catch(error) {
+    try{await page.screenshot({path:'/tmp/yeti-assurance-xss-failure.png',fullPage:true});}catch(_){}
+    throw error;
   } finally {
     await context.close();
     await browser.close();
