@@ -1,7 +1,7 @@
 /* Propulsion Test Bench Log Analyzer — CSV intake and analysis progress */
 .propulsion-analyser-workspace{display:grid;gap:16px;max-width:850px}
 .propulsion-upload-card,.propulsion-progress-card{background:#fff;border:1px solid #d7e5f1;border-radius:13px;padding:20px;box-shadow:0 4px 14px rgba(18,59,112,.045)}
-.propulsion-step-label{display:block;color:#287fbd;font-size:10px;font-weight:900;letter-spacing:.14em;margin-bottom:7px}
+.propulsion-step-label{display:block;color:#226b9f;font-size:10px;font-weight:900;letter-spacing:.14em;margin-bottom:7px}
 .propulsion-upload-card h3,.propulsion-progress-card h3{margin:0 0 7px;color:#123b70;font-size:17px}
 .propulsion-upload-card>p{margin:0 0 16px}
 .propulsion-file-picker{display:grid;justify-items:center;gap:6px;padding:26px 16px;border:2px dashed #b9cfe2;border-radius:11px;background:#f7fbff;color:#174f7d;cursor:pointer;text-align:center;transition:border-color .15s,background .15s}
@@ -22,7 +22,7 @@
 .propulsion-progress-track span{display:block;width:0;height:100%;border-radius:20px;background:linear-gradient(90deg,#23964d,#42c76b);transition:width .08s linear}
 .propulsion-progress-message{margin:10px 0 0;color:#53697e;font-size:13px;font-weight:650}
 .propulsion-progress-message.is-complete{color:#176b36}
-.propulsion-local-note{margin:0;color:#718194;font-size:11px;line-height:1.5}
+.propulsion-local-note{margin:0;color:#566678;font-size:11px;line-height:1.5}
 @media(max-width:620px){.propulsion-upload-card,.propulsion-progress-card{padding:15px}.propulsion-file-picker{padding:22px 12px}}
 
 
