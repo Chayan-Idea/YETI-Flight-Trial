@@ -1203,16 +1203,24 @@ const statsPage=el('section','propulsion-report-summary-page');
    frame.style.cssText='position:fixed;left:-12000px;top:0;width:210mm;height:297mm;border:0;opacity:.01;pointer-events:none';
    frame.onload=()=>{
     try{
-     if(!frame.contentWindow)throw new Error('Print frame is unavailable');
-     preparePrintDocument(frame.contentWindow,'Pop-up blocked. Comparative report print view is ready; choose “Save as PDF”.');
+     const printWindow=frame.contentWindow;
+     if(!printWindow)throw new Error('Print frame is unavailable');
+     const triggerPrint=()=>{
+      printStatus('Pop-up blocked. Comparative report is ready; choose “Save as PDF”.');
+      printWindow.focus();printWindow.print();
+     };
+     const stylesheet=printWindow.document.querySelector('link[rel="stylesheet"]');
+     if(!stylesheet||stylesheet.sheet)triggerPrint();
+     else{
+      stylesheet.addEventListener('load',triggerPrint,{once:true});
+      stylesheet.addEventListener('error',()=>printStatus('Unable to load report print styling. Check your connection and retry.'),{once:true});
+     }
     }catch(error){printStatus('Unable to prepare the comparative PDF: '+(error.message||'browser print error'));frame.remove();}
    };
-   frame.src='about:blank';
+   frame.srcdoc=printDoc;
    document.body.append(frame);
-   frame.contentDocument.open();frame.contentDocument.write(printDoc);frame.contentDocument.close();
-   // A same-origin iframe is used so the exact shared report stylesheet can
-   // load before print; no report content is written into the live app page.
-  });;
+   // Keep the same-origin print frame alive while the native print dialog is open.
+  });
   card.append(form,reportGraphControls,status,exportButton,previewPanel);previewPanel.append(preview);multiMappingHost.append(card);multiReportCard=card;card.refreshPreview=refresh;refreshReportGraphCount();refresh();
  }
 
