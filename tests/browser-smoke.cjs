@@ -16,14 +16,17 @@ const server = http.createServer((req, res) => {
 });
 
 (async () => {
-  let browser;
+  let browser,context,page,traceStarted=false,traceSaved=false;
   const pageErrors = [];
   const consoleErrors = [];
   const failedRequests = [];
   try {
     await new Promise(resolve => server.listen(4174, '127.0.0.1', resolve));
     browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
-    const page = await browser.newPage();
+    context = await browser.newContext();
+    await context.tracing.start({ screenshots: true, snapshots: true, sources: true });
+    traceStarted = true;
+    page = await context.newPage();
     page.on('pageerror', error => pageErrors.push(error.message));
     page.on('console', message => { if (message.type() === 'error') consoleErrors.push(message.text()); });
     page.on('requestfailed', request => failedRequests.push({ url: request.url(), error: request.failure()?.errorText || 'request failed' }));
@@ -50,8 +53,15 @@ const server = http.createServer((req, res) => {
     console.error('[PAGE ERRORS]', JSON.stringify(pageErrors, null, 2));
     console.error('[CONSOLE ERRORS]', JSON.stringify(consoleErrors, null, 2));
     console.error('[FAILED REQUESTS]', JSON.stringify(failedRequests, null, 2));
+    if (page) {
+      try { await page.screenshot({ path: '/tmp/yeti-smoke-failure.png', fullPage: true }); console.error('[SCREENSHOT] /tmp/yeti-smoke-failure.png'); } catch (captureError) { console.error('[SCREENSHOT CAPTURE FAILED]', captureError.message); }
+    }
+    if (context && traceStarted) {
+      try { await context.tracing.stop({ path: '/tmp/yeti-smoke-trace.zip' }); traceSaved = true; console.error('[TRACE] /tmp/yeti-smoke-trace.zip'); } catch (traceError) { console.error('[TRACE CAPTURE FAILED]', traceError.message); }
+    }
     process.exitCode = 1;
   } finally {
+    if (context && traceStarted && !traceSaved) await context.tracing.stop().catch(() => {});
     if (browser) await browser.close();
     await new Promise(resolve => server.close(resolve));
   }
