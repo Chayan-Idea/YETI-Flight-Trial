@@ -289,7 +289,7 @@ const server = http.createServer((req,res)=>{
   await multiReport.locator('#multiReportGraphList button[aria-label="Remove report graph 1"]').click();
   if(await multiReport.locator('#multiReportGraphList .propulsion-report-graph-item').count()!==0||await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-graph-page').count()!==0)throw new Error('Removing a comparative report graph must also remove it from the live PDF preview.');
 
-  if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-comparative-cell-value').filter({hasText:/\\d/}).count()===0)throw new Error('Comparative PDF summary should refresh with numeric values after each log is processed.');
+  if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-comparative-cell-value').filter({hasText:/\d/}).count()===0)throw new Error('Comparative PDF summary should refresh with numeric values after each log is processed.');
 
   if(await multiReport.locator('#multiPropulsionReportLivePreview').getByText('Rows retained',{exact:true}).count()!==0)throw new Error('PDF preview must omit per-log row-retention statistics.');
 
