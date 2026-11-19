@@ -1,10 +1,10 @@
 /* YETI Aerospace Engineering Workspace — presentation-only visual layer.
    Deliberately does not alter DOM structure, IDs, data attributes or application logic. */
 :root{
- --yeti-ink:#142b43;--yeti-ink-2:#243e58;--yeti-muted:#62758a;
+ --yeti-ink:#142b43;--yeti-ink-2:#243e58;--yeti-muted:#53677b;
  --yeti-canvas:#f2f5f8;--yeti-surface:#ffffff;--yeti-surface-soft:#f7f9fb;
  --yeti-line:#d8e1e9;--yeti-line-strong:#bdcbd8;
- --yeti-cyan:#078eae;--yeti-cyan-soft:#e8f6fa;
+ --yeti-cyan:#006b84;--yeti-cyan-soft:#e8f6fa;
  --yeti-green:#18845d;--yeti-amber:#a76512;--yeti-red:#b33a42;
  --yeti-radius:13px;--yeti-shadow:0 5px 18px rgba(19,43,67,.055);
 }
@@ -80,3 +80,9 @@ tr:hover td{background:#f8fbfd}
  .propulsion-actions{flex-wrap:wrap}
  .propulsion-actions .btn{max-width:100%}
 }
+
+/* WCAG AA contrast for small navigation and eyebrow text on light surfaces. */
+.nav-kicker{color:#00647b!important}
+.module-nav-heading p,.subnav-heading p{color:#53677b!important}
+.module-tab-copy small,.subtab-copy small{color:#53677b!important}
+.flight-trial-reading-header .nav-kicker{color:#00647b!important}
