@@ -1386,7 +1386,7 @@ const statsPage=el('section','propulsion-report-summary-page');
      });
      const csv='\uFEFF'+rows.map(row=>columns.map((_,index)=>escapeCsv(row[index]??'')).join(',')).join('\r\n');
      const originalName=log.fileName||multiFiles[multiSession.logs.indexOf(log)]?.file?.name||('Log_'+log.id+'.csv');
-     const base=originalName.replace(/\\.csv$/i,'');
+     const base=originalName.replace(/\.csv$/i,'');
      return {log,name:base+'_filtered_sorted.csv',csv,rows,columns,originalName,timestampSorted:timestampIndex!==undefined};
     });
     generatedMultiCsvFiles=prepared;
