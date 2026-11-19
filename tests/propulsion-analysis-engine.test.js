@@ -82,7 +82,7 @@ const edgeCalculated = engine.calculateLog(edgeLog, 'thrust', ['electricalPower'
 assert.equal(edgeCalculated[1].derived.electricalPower, 240);
 assert.equal(edgeCalculated[1].derived.specificThrust, 1250 / 240, 'comma-formatted numeric CSV cells are parsed');
 assert.ok(Number.isNaN(edgeCalculated[2].derived.specificThrust), 'invalid numeric source values produce NaN rather than fabricated results');
-assert.ok(Number.isNaN(edgeCalculated[3].derived.specificThrust), 'blank source values produce NaN rather than fabricated results');
+assert.equal(edgeCalculated[3].derived.specificThrust, 100 / 240, 'a blank RPM does not corrupt a calculation that does not depend on RPM');
 assert.throws(() => engine.calculateLog(edgeLog, 'thrust', ['mechanicalPower']), /not available for thrust/);
 assert.throws(() => engine.calculateLog(edgeLog, 'thrust', ['unsupportedParameter']), /not available for thrust/);
 
