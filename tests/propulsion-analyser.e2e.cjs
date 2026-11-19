@@ -226,7 +226,7 @@ const server = http.createServer((req,res)=>{
    const rowValues=await cells.allInnerTexts();
    const expectedFile='run-'+(index===0?'a':'b')+'.csv';
    if(rowValues[0]!==expectedFile)throw new Error('Comparative readout row must retain the correct source filename: '+JSON.stringify(rowValues));
-   if(!Number.isFinite(Number(rowValues[1]))||!Number.isFinite(Number(rowValues[2])))throw new Error('Each log readout row must show numeric X and Y values beneath their labelled headers: '+JSON.stringify(rowValues));
+   const numericReadings=rowValues.slice(1).map(value=>Number(String(value).replace(/[,_\s\u00a0]/g,'')));if(numericReadings.length!==2||numericReadings.some(value=>!Number.isFinite(value)))throw new Error('Each log readout row must show numeric X and Y values beneath their labelled headers (locale-formatted thousands separators are allowed): '+JSON.stringify(rowValues));
   }
   if(!(await page.locator('.propulsion-phase3-common-x-readout').innerText()).includes('COMMON X AXIS'))throw new Error('Comparative slider readout must identify the shared X-axis position.');
 
