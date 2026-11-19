@@ -1332,3 +1332,22 @@
  .propulsion-multi-csv-files>.propulsion-generated-csv-preview{padding:12px}
  .propulsion-multi-csv-files>.propulsion-generated-csv-preview>.propulsion-csv-actions{flex-wrap:wrap}
 }
+
+/* Virtual CSV spacer rows must never inherit frozen first-data-row styling.
+   The first tbody child is the top spacer in the virtual renderer, not a CSV record. */
+.propulsion-csv-preview-table tbody>tr.propulsion-csv-virtual-spacer,
+.propulsion-csv-preview-table tbody>tr.propulsion-csv-virtual-spacer>td{
+ position:static!important;
+ inset:auto!important;
+ top:auto!important;
+ left:auto!important;
+ z-index:auto!important;
+ background:transparent!important;
+ background-color:transparent!important;
+ box-shadow:none!important;
+}
+.propulsion-csv-preview-table tbody>tr.propulsion-csv-virtual-spacer>td{
+ padding:0!important;
+ border:0!important;
+ line-height:0!important;
+}
