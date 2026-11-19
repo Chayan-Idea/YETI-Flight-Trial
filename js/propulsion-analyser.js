@@ -1681,7 +1681,7 @@ const statsPage=el('section','propulsion-report-summary-page');
  if(uploadCard)uploadCard.hidden=true;
  if(multiSetupCard)multiSetupCard.hidden=true;
  const commonSetup=$id('propulsionCommonSetupCard');if(commonSetup)commonSetup.hidden=false;
- if(logCountSelect)logCountSelect.value='';
+ if(logCountSelect){logCountSelect.selectedIndex=0;logCountSelect.value='';}
 
  start.textContent='Identify Parameters';start.disabled=true;
  // Every page load starts a completely new propulsion session. No previous CSV,
@@ -1701,5 +1701,16 @@ const statsPage=el('section','propulsion-report-summary-page');
   updateLogTypeUI();
  };
  beginFreshPropulsionSession();
- window.addEventListener('pageshow',event=>{if(event.persisted)window.location.reload();});
+ // Browsers may restore form-control values when refreshing or returning from the
+ // back-forward cache. Force the placeholder selection whenever this page is shown.
+ const resetLogCountForFreshPage=()=>{
+  if(logCountSelect){logCountSelect.selectedIndex=0;logCountSelect.value='';}
+  if(uploadCard)uploadCard.hidden=true;
+  if(multiSetupCard)multiSetupCard.hidden=true;
+  const setupCard=$id('propulsionCommonSetupCard');
+  if(setupCard)setupCard.hidden=false;
+  const setupStatus=$id('propulsionCommonSetupStatus');
+  if(setupStatus)setupStatus.textContent='Select the number of test logs, then click Proceed.';
+ };
+ window.addEventListener('pageshow',resetLogCountForFreshPage);
 })();
