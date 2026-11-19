@@ -59,6 +59,12 @@ jobs:
             ./node_modules/.bin/playwright install chromium
           fi
 
+      - name: Run core application browser smoke
+        run: node tests/browser-smoke.cjs
+
+      - name: Run critical Flight Preparation operational smoke
+        run: node tests/flight-preparation.e2e.cjs
+
       - name: Run analyzer and comparative PDF export regression
         run: node tests/propulsion-analyser.e2e.cjs
 
