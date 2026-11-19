@@ -775,7 +775,7 @@
    const details=[['Motor Name','motorName'],['ESC Name','escName'],['Propeller Name','propellerName'],['Test Date','testDate'],['Motor ID','motorId'],['ESC ID','escId'],['Propeller ID','propellerId']];
    details.forEach(([label,key])=>{const tr=document.createElement('tr');tr.append(el('th','',label),el('td','',reportFields[key].value.trim()||'—'));coverTable.append(tr)});
    const reportTypeRow=document.createElement('tr');reportTypeRow.append(el('th','','Test Report Type'),el('td','',reportFields.testReportType.value||'—'));coverTable.append(reportTypeRow);
-   const objectiveRow=document.createElement('tr');objectiveRow.append(el('th','','Test Objective'),el('td','propulsion-report-objective',reportFields.objective.value.trim()||'—'));coverTable.append(objectiveRow);
+   const objectiveRow=document.createElement('tr');objectiveRow.append(el('th','','Test Objective'),el('td','propulsion-report-objective',reportFields.objective.value.trim()));coverTable.append(objectiveRow);
    cover.append(coverTable);
    const coverMeta=el('div','propulsion-report-cover-meta');coverMeta.append(el('span','','VALIDATED DATASET · '+analysisRows.length.toLocaleString()+' records'));cover.append(coverMeta);
 const statsPage=el('section','propulsion-report-summary-page');
@@ -1157,7 +1157,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    const body=document.createElement('tbody');
    definitions.forEach(([key,label])=>{const row=document.createElement('tr');row.append(el('th','',label));entered.forEach(fields=>row.append(el('td','',fields[key]||'—')));body.append(row);});
    const commonTypeRow=document.createElement('tr');commonTypeRow.append(el('th','','Test Report Type'));const commonTypeValue=document.createElement('td');commonTypeValue.colSpan=multiSession.logs.length;commonTypeValue.textContent=entered[0]?.reportType||'—';commonTypeRow.append(commonTypeValue);body.append(commonTypeRow);
-   const objectivePreviewRow=document.createElement('tr');objectivePreviewRow.append(el('th','','Test Objective'));const objectivePreviewCell=document.createElement('td');objectivePreviewCell.colSpan=multiSession.logs.length;objectivePreviewCell.textContent=objectiveInput.value.trim()||'No test objective or manual notes entered.';objectivePreviewRow.append(objectivePreviewCell);body.append(objectivePreviewRow);
+   const objectivePreviewRow=document.createElement('tr');objectivePreviewRow.append(el('th','','Test Objective'));const objectivePreviewCell=document.createElement('td');objectivePreviewCell.colSpan=multiSession.logs.length;objectivePreviewCell.textContent=objectiveInput.value.trim();objectivePreviewRow.append(objectivePreviewCell);body.append(objectivePreviewRow);
    details.append(body);page.append(details);
    const coverMeta=el('div','propulsion-report-cover-meta');coverMeta.append(el('span','','COMPARATIVE DATASET · '+multiSession.logs.length+' LOGS'),el('span','','FILTERED AND SORTED DATA'));page.append(coverMeta);
    page.append(el('p','propulsion-report-footer','YETI FLIGHT TRIAL  /  PROPULSION VALIDATION  /  ENGINEERING MANAGEMENT REVIEW'));
