@@ -58,14 +58,20 @@ async function captureTab(page, tab, outputPath) {
 }
 
 function compareImages(name, baseline, current) {
-  // Pixel differences are expected in an approved visual redesign. Keep both screenshots and report the delta; functional structure is the release gate.
-  const diff = new PNG({width:baseline.width,height:baseline.height});
-  const diffPixels = pixelmatch(baseline.data,current.data,diff.data,baseline.width,baseline.height,{threshold:0.08,includeAA:false,alpha:0.5});
-  const total = baseline.width*baseline.height;
-  const ratio = diffPixels/total;
+  // Full-panel heights may legitimately differ after responsive styling. Pad both
+  // captures to a common transparent canvas before comparing; never crop content.
+  const width=Math.max(baseline.width,current.width),height=Math.max(baseline.height,current.height);
+  const paddedBaseline=new PNG({width,height}),paddedCurrent=new PNG({width,height});
+  PNG.bitblt(baseline,paddedBaseline,0,0,baseline.width,baseline.height,0,0);
+  PNG.bitblt(current,paddedCurrent,0,0,current.width,current.height,0,0);
+  // Pixel differences are expected in a visual redesign; DOM fingerprint and
+  // operational workflows remain the functional release gates.
+  const diff=new PNG({width,height});
+  const diffPixels=pixelmatch(paddedBaseline.data,paddedCurrent.data,diff.data,width,height,{threshold:0.08,includeAA:false,alpha:0.5});
+  const ratio=diffPixels/(width*height);
   fs.writeFileSync(path.join(outputRoot,'diff-'+name+'.png'),PNG.sync.write(diff));
-  console.log('[UI VISUAL]',name,JSON.stringify({width:baseline.width,height:baseline.height,diffPixels,diffRatio:ratio}));
-  if (ratio>0.001) console.log('[EXPECTED VISUAL CHANGE]',name,'appearance differs from the pre-redesign baseline; verify structural fingerprint and workflow tests.');
+  console.log('[UI VISUAL]',name,JSON.stringify({width,height,baselineSize:{width:baseline.width,height:baseline.height},currentSize:{width:current.width,height:current.height},diffPixels,diffRatio:ratio}));
+  if(ratio>0.001) console.log('[EXPECTED VISUAL CHANGE]',name,'appearance differs from the pre-redesign baseline; verify structural fingerprint and workflow tests.');
 }
 
 (async()=>{
