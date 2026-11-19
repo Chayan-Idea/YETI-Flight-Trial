@@ -100,7 +100,9 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
     await dailyStatus.selectOption({label:'Pass'});
     const dailyRemark = page.locator('#list input[data-id="'+dailyItemId+'"][data-k="remarks"]');
     await dailyRemark.fill('Phase 3 automated verification remark.');
-    await page.locator('#list textarea[data-id="9.0"][data-k="remarks"]').fill('YETI daily checklist workflow verified.');
+    const overallRemarks = page.locator('#list textarea[data-id="9.0"][data-k="remarks"]');
+    await overallRemarks.locator('xpath=ancestor::details[contains(@class,"section")]').locator('summary').click();
+    await overallRemarks.fill('YETI daily checklist workflow verified.');
     await page.locator('#list .item').first().waitFor();
 
     const firstDailyTitle = await page.locator('#list .item .title').first().innerText();
