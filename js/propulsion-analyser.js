@@ -386,24 +386,9 @@
      graphStatus.textContent='Cannot calculate '+parameter.name+'. Confirm these Step 02 mappings: '+missing.map(key=>specs.find(spec=>spec.key===key)?.label||key).join(', ')+'.';
      return;
     }
-    const numberFrom=(row,key)=>{
-     const index=mapping[key].selected,raw=String(row[index]??'').trim();
-     if(raw==='')return NaN;
-     const value=Number(raw);return Number.isFinite(value)?value:NaN;
-    };
-    const calculateRow=row=>{
-     if(parameter.key==='mechanicalPower'){
-      const torque=numberFrom(row,'torque'),motorSpeed=numberFrom(row,'actualRpm');
-      return Number.isFinite(torque)&&Number.isFinite(motorSpeed)?torque*motorSpeed*(2*Math.PI/60):NaN;
-     }
-     if(parameter.key==='electricalPower'){
-      const voltage=numberFrom(row,'voltage'),current=numberFrom(row,'current');
-      return Number.isFinite(voltage)&&Number.isFinite(current)?voltage*current:NaN;
-     }
-     const thrust=numberFrom(row,'thrust'),voltage=numberFrom(row,'voltage'),current=numberFrom(row,'current');
-     const electricalPower=voltage*current;
-     return Number.isFinite(thrust)&&Number.isFinite(electricalPower)&&electricalPower>0?thrust/electricalPower:NaN;
-    };
+    const engineKey=parameter.key==='overallEfficiency'?'specificThrust':parameter.key;
+    const engineMapping=Object.fromEntries(Object.entries(mapping).map(([key,item])=>[key,item?.selected===''||item?.selected===undefined?undefined:Number(item.selected)]));
+    const calculateRow=row=>commonEngine.calculateDerivedValue(engineKey,row,engineMapping);
     let derivedIndex=headerRow.indexOf(parameter.name);
     if(derivedIndex<0){derivedIndex=headerRow.length;headerRow.push(parameter.name);}
     analysisRows=analysisRows.map(row=>{
