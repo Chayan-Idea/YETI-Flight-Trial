@@ -280,8 +280,8 @@
    step3.replaceChildren();
    csvExportButton.disabled=false;
    resetCsvConfirmationCheckboxes();
-   csvPreviewToggle.hidden=true;csvPreview.hidden=true;csvDownloadButton.hidden=true;
-   generatedCsvText='';generatedExportRows=[];generatedTimestampIndex=-1;
+   csvDownloadButton.hidden=true;
+   generatedCsvText='';
    proceed.hidden=true;directReportProceed.hidden=true;
    csvStatus.textContent=message||'Derived parameter settings changed. Generate Filtered & Sorted CSV again to include the latest selections and calculations.';
   };
@@ -359,8 +359,8 @@
      savedGraphSelection();updatePlotAvailability();
     }
     csvExportButton.disabled=false;
-    csvPreviewToggle.hidden=true;csvPreview.hidden=true;csvDownloadButton.hidden=true;
-    generatedCsvText='';generatedExportRows=[];generatedTimestampIndex=-1;
+    csvDownloadButton.hidden=true;
+    generatedCsvText='';
     proceed.hidden=true;directReportProceed.hidden=true;
     csvStatus.textContent='A derived parameter was reset. Generate Filtered & Sorted CSV again to include the updated calculations.';
     saveState();
@@ -439,35 +439,11 @@
   [derivedReadyCheckbox,filteringReadyCheckbox].forEach(input=>input.addEventListener('change',updateCsvGenerationGate));
   csvConfirmation.append(derivedReadyLabel,filteringReadyLabel);
   const csvExportButton=el('button','btn','Generate Filtered & Sorted CSV');csvExportButton.type='button';csvExportButton.hidden=true;
-  const csvPreviewToggle=el('button','btn alt','Show Generated CSV Preview');csvPreviewToggle.type='button';csvPreviewToggle.hidden=true;csvPreviewToggle.setAttribute('aria-expanded','false');
-  const csvPreview=el('section','propulsion-csv-preview-card propulsion-step-card propulsion-step-card--green propulsion-generated-csv-preview');csvPreview.hidden=true;csvPreview.setAttribute('aria-labelledby','generatedCsvPreviewHeading');
-  const csvPreviewLabel=el('div','propulsion-step-label','CSV FILE PREVIEW');
-  const csvPreviewTitle=el('h3','','Filtered & Sorted CSV File');csvPreviewTitle.id='generatedCsvPreviewHeading';
-  const csvPreviewInfo=el('p','propulsion-csv-preview-meta','');
   const csvDownloadButton=el('button','btn','Download Filtered & Sorted CSV');csvDownloadButton.type='button';csvDownloadButton.hidden=true;
-  const csvDownloadActions=el('div','propulsion-actions');csvDownloadActions.append(csvDownloadButton);
-  const csvSearchBar=el('div','propulsion-csv-search');
-  const csvTimestampSearch=document.createElement('input');csvTimestampSearch.type='text';csvTimestampSearch.className='propulsion-csv-search-input';csvTimestampSearch.placeholder='Paste timestamp to find matching row';csvTimestampSearch.setAttribute('aria-label','Search generated CSV by timestamp');
-  const csvSearchButton=el('button','btn alt','Search Timestamp');csvSearchButton.type='button';
-  const csvSearchStatus=el('span','propulsion-csv-search-status','');csvSearchBar.append(csvTimestampSearch,csvSearchButton,csvSearchStatus);
-  let generatedCsvText='',generatedExportRows=[],generatedTimestampIndex=-1,generatedPreviewRows=[],generatedPreviewVirtual=null;
-  const csvPreviewViewport=el('div','propulsion-csv-preview-viewport');csvPreviewViewport.setAttribute('role','region');csvPreviewViewport.setAttribute('aria-label','Generated filtered and sorted CSV preview');csvPreviewViewport.tabIndex=0;
-  const csvPreviewTable=document.createElement('table');csvPreviewTable.className='propulsion-csv-preview-table';
-  const csvPreviewHead=document.createElement('thead'),csvPreviewHeadRow=document.createElement('tr');
-  const csvPreviewBody=document.createElement('tbody');
-  csvPreviewTable.append(csvPreviewHead,csvPreviewBody);csvPreviewViewport.append(csvPreviewTable);
-  csvPreview.append(csvPreviewLabel,csvPreviewTitle,csvPreviewInfo,csvSearchBar,csvPreviewViewport);
-  const searchGeneratedTimestamp=()=>{const query=csvTimestampSearch.value.trim();csvPreviewBody.querySelectorAll('tr.csv-timestamp-match').forEach(row=>row.classList.remove('csv-timestamp-match'));if(!query){csvSearchStatus.textContent='Enter a timestamp to search.';return;}if(generatedTimestampIndex<0){csvSearchStatus.textContent='No timestamp column was identified in the generated CSV.';return;}const matches=[];generatedExportRows.forEach((row,index)=>{if(String(row[generatedTimestampIndex]??'').trim()===query)matches.push(index+1);});if(!matches.length){csvSearchStatus.textContent='No exact timestamp match found.';return;}generatedPreviewVirtual?.scrollTo(matches[0]);requestAnimationFrame(()=>matches.forEach(index=>generatedPreviewVirtual?.getRow(index)?.classList.add('csv-timestamp-match')));csvSearchStatus.textContent=matches.length.toLocaleString()+' matching row(s) found; first match brought into view.';};
-  csvSearchButton.addEventListener('click',searchGeneratedTimestamp);csvTimestampSearch.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();searchGeneratedTimestamp();}});
-  csvDownloadButton.addEventListener('click',()=>{if(!generatedCsvText)return;const blob=new Blob([generatedCsvText],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const link=document.createElement('a');const base=(selectedFile?.name||'propulsion_log.csv').replace(/\\.csv$/i,'');link.href=url;link.download=base+'_filtered_sorted.csv';document.body.append(link);link.click();link.remove();URL.revokeObjectURL(url);csvStatus.textContent='Filtered & sorted CSV downloaded.';});
-  const updateGeneratedCsvFreezeOffsets=()=>{const header=csvPreviewHeadRow.getBoundingClientRect(),first=csvPreviewBody.rows[0]?.getBoundingClientRect(),firstColumn=csvPreviewHeadRow.cells[0]?.getBoundingClientRect().width;if(header.height)csvPreviewViewport.style.setProperty('--csv-header-height',header.height+'px');if(first?.height)csvPreviewViewport.style.setProperty('--csv-row1-height',first.height+'px');if(firstColumn)csvPreviewViewport.style.setProperty('--csv-first-col-width',firstColumn+'px');};
-  csvPreviewToggle.addEventListener('click',()=>{
-   const show=csvPreview.hidden;csvPreview.hidden=!show;csvPreviewToggle.textContent=show?'Hide Filtered & Sorted CSV File':'Show Filtered & Sorted CSV File';csvPreviewToggle.setAttribute('aria-expanded',String(show));
-   if(show){requestAnimationFrame(updateGeneratedCsvFreezeOffsets);csvPreview.scrollIntoView({behavior:'smooth',block:'nearest'});}
-  });
-  if(typeof ResizeObserver!=='undefined'){const generatedFreezeObserver=new ResizeObserver(()=>{generatedPreviewVirtual?.refresh();updateGeneratedCsvFreezeOffsets()});generatedFreezeObserver.observe(csvPreviewViewport);generatedFreezeObserver.observe(csvPreviewTable);}
-  const csvActions=el('div','propulsion-actions propulsion-csv-actions');csvActions.append(csvExportButton,csvPreviewToggle,csvDownloadButton);
-  csvSection.append(csvConfirmation,csvStatus,csvActions,csvPreview);
+  let generatedCsvText='';
+  csvDownloadButton.addEventListener('click',()=>{if(!generatedCsvText)return;const blob=new Blob([generatedCsvText],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const link=document.createElement('a');const base=(selectedFile?.name||'propulsion_log.csv').replace(/\\.csv$/i,'');link.href=url;link.download=base+'_filtered_sorted.csv';document.body.append(link);link.remove();URL.revokeObjectURL(url);csvStatus.textContent='Filtered & sorted CSV downloaded.';});
+  const csvActions=el('div','propulsion-actions propulsion-csv-actions');csvActions.append(csvExportButton,csvDownloadButton);
+  csvSection.append(csvConfirmation,csvStatus,csvActions);
   csvExportButton.addEventListener('click',()=>{
    const rpmIndex=mapping.actualRpm?.selected;
    if(rpmIndex===''||rpmIndex===undefined){csvStatus.textContent='CSV not generated: map the Actual RPM column in Step 02 before applying the RPM filter.';return;}
@@ -490,19 +466,11 @@
    const escapeCsv=value=>{const text=String(value??'');return /[",\\r\\n]/.test(text)?'"'+text.replace(/"/g,'""')+'"':text;};
    const rows=[headerRow,...exportRows];
    const csv='\\uFEFF'+rows.map(row=>headerRow.map((_,index)=>escapeCsv(row[index]??'')).join(',')).join('\\r\\n');
-   generatedCsvText=csv;generatedExportRows=exportRows;generatedTimestampIndex=timestampIndex===undefined?-1:timestampIndex;
+   generatedCsvText=csv;
    // From this point onward, the filtered and chronologically sorted export is the sole analysis dataset.
    analysisRows=exportRows.map(row=>row.slice());
-   csvPreviewHeadRow.replaceChildren();csvPreviewHeadRow.append(el('th','','ROW'));
-   headerRow.forEach((_,column)=>{const th=el('th','','COLUMN '+(column+1));th.scope='col';csvPreviewHeadRow.append(th)});
-   csvPreviewHead.replaceChildren(csvPreviewHeadRow);csvPreviewBody.replaceChildren();
-   // Match the Raw CSV preview: generic column headings and the CSV header retained as the first frozen body row.
-   generatedPreviewRows=[headerRow,...exportRows];
-   if(generatedPreviewVirtual)generatedPreviewVirtual.setRows(generatedPreviewRows);else generatedPreviewVirtual=createVirtualCsvRows(csvPreviewViewport,csvPreviewBody,generatedPreviewRows,headerRow.length);
-   csvPreviewInfo.textContent=(exportRows.length+1).toLocaleString()+' CSV rows (including header) · '+headerRow.length.toLocaleString()+' columns · Actual RPM values greater than zero retained; zero/negative values removed · '+sortNote;
-   requestAnimationFrame(updateGeneratedCsvFreezeOffsets);
-   csvTimestampSearch.value='';csvSearchStatus.textContent='';csvPreview.hidden=true;csvPreviewToggle.hidden=false;csvPreviewToggle.textContent='Show Filtered & Sorted CSV File';csvPreviewToggle.setAttribute('aria-expanded','false');
-   csvStatus.textContent='Filtered & sorted CSV prepared: '+exportRows.length.toLocaleString()+' filtered rows and '+headerRow.length.toLocaleString()+' columns. Derived columns included where calculated. Open the preview to inspect or download it.';csvExportButton.disabled=true;csvDownloadButton.hidden=false;proceed.hidden=false;directReportProceed.hidden=false;saveState();
+
+   csvStatus.textContent='Filtered & sorted CSV prepared: '+exportRows.length.toLocaleString()+' filtered rows and '+headerRow.length.toLocaleString()+' columns. Derived columns included where calculated. Download is available.';csvExportButton.disabled=true;csvDownloadButton.hidden=false;proceed.hidden=false;directReportProceed.hidden=false;saveState();
   });
   step3Filter.append(csvSection);
   const filterActions=el('div','propulsion-actions');filterActions.append(proceed,directReportProceed);
