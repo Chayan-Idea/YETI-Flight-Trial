@@ -10,8 +10,13 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: yeti-quality-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
 jobs:
   static-validation:
+    timeout-minutes: 10
     name: Layer 1 — Static and structural validation
     runs-on: ubuntu-latest
     steps:
@@ -25,6 +30,7 @@ jobs:
         run: node scripts/validate-app.mjs
 
   engine-unit-tests:
+    timeout-minutes: 10
     name: Layer 2 — Propulsion calculation unit tests
     runs-on: ubuntu-latest
     steps:
@@ -49,9 +55,9 @@ jobs:
         with:
           node-version: 22
       - name: Install Playwright
-        run: npm install --no-save playwright
+        run: npm install --no-save --no-package-lock playwright@1.65.1
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: ./node_modules/.bin/playwright install --with-deps chromium
       - name: Test application startup and core navigation
         run: node tests/browser-smoke.cjs
 
@@ -77,6 +83,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: yeti-browser-regression-diagnostics
-          path: /tmp/yeti-browser-failure.png
+          path: |
+            /tmp/yeti-browser-failure.png
+            /tmp/yeti-browser-trace.zip
           if-no-files-found: ignore
           retention-days: 7
