@@ -88,3 +88,49 @@ tr:hover td{background:#f8fbfd}
 /* The redesigned active module card is light, so keep its subtitle dark and fully opaque too. */
 .module-tab.active .module-tab-copy small{color:#53677b!important;opacity:1!important}
 .flight-trial-reading-header .nav-kicker{color:#00647b!important}
+
+/* Navigation contrast repair: active tabs use light surfaces, so all labels stay dark. */
+.checklist-tab,
+.checklist-tab .subtab-copy strong,
+.checklist-tab .subtab-copy small{
+  color:#243e58!important;
+}
+.checklist-tab.active{
+  color:#142b43!important;
+  background:#fff!important;
+  border-color:#8fb8c8!important;
+}
+.checklist-tab.active .subtab-copy strong,
+.checklist-tab.active .subtab-copy small{
+  color:#142b43!important;
+  opacity:1!important;
+}
+.checklist-tab.active .subtab-number{
+  color:#fff!important;
+  background:#087f9d!important;
+}
+.checklist-tab:hover:not(.active){
+  color:#142b43!important;
+  background:#f7fbfd!important;
+}
+.checklist-tab:focus-visible,
+.module-tab:focus-visible{
+  outline:3px solid rgba(8,127,157,.38);
+  outline-offset:2px;
+}
+/* Active module tabs retain a dark surface and therefore use white foregrounds. */
+.module-tab.active{
+  color:#fff!important;
+  background:linear-gradient(115deg,#123b70,#1769aa)!important;
+  border-color:#1769aa!important;
+}
+.module-tab.active .module-tab-copy strong,
+.module-tab.active .module-tab-copy small,
+.module-tab.active .module-arrow{
+  color:#fff!important;
+  opacity:1!important;
+}
+.module-tab.active .module-index{
+  color:#fff!important;
+  background:rgba(255,255,255,.16)!important;
+}
