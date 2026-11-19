@@ -1263,66 +1263,72 @@
  }
 }
 
-/* Compact generated CSV cards: concise filename, metadata and aligned actions. */
-#generatedCsvFilesHost{
+/* Compact multi-log generated CSV cards: target the actual container class. */
+.propulsion-multi-csv-files{
  display:grid;
- grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));
+ grid-template-columns:repeat(2,minmax(0,1fr));
  gap:12px;
  width:100%;
  align-items:stretch;
+ margin-top:12px;
 }
-#generatedCsvFilesHost .propulsion-generated-csv-preview{
+.propulsion-multi-csv-files>.propulsion-generated-csv-preview{
  box-sizing:border-box;
  min-width:0;
  margin:0;
- padding:14px 16px;
+ padding:13px 15px;
  border:1px solid #cbddea;
  border-radius:12px;
  background:#fff;
  box-shadow:0 2px 8px rgba(22,58,91,.045);
+ overflow:hidden;
 }
-#generatedCsvFilesHost .propulsion-step-label{
+.propulsion-multi-csv-files>.propulsion-generated-csv-preview>.propulsion-step-label{
  display:inline-flex;
  align-items:center;
- margin:0 0 8px;
+ margin:0 0 7px;
  padding:4px 9px;
+ border:1px solid #9dd6ba;
  border-radius:6px;
+ background:#effaf4;
+ color:#16805b;
  font-size:10px;
+ line-height:1.3;
  letter-spacing:.07em;
 }
-#generatedCsvFilesHost .propulsion-generated-csv-preview h3{
+.propulsion-multi-csv-files>.propulsion-generated-csv-preview>h3{
  margin:0 0 7px;
  color:#174f7d;
- font-size:clamp(13px,1.15vw,16px);
+ font-size:15px;
  line-height:1.35;
  font-weight:800;
  overflow-wrap:anywhere;
  word-break:break-word;
 }
-#generatedCsvFilesHost .propulsion-csv-preview-meta{
+.propulsion-multi-csv-files>.propulsion-generated-csv-preview>.propulsion-csv-preview-meta{
  margin:0;
  color:#64748b;
  font-size:11px;
  line-height:1.45;
+ font-weight:600;
 }
-#generatedCsvFilesHost .propulsion-csv-actions{
+.propulsion-multi-csv-files>.propulsion-generated-csv-preview>.propulsion-csv-actions{
  display:flex;
  align-items:center;
  gap:8px;
  width:auto;
- margin-top:11px;
+ margin-top:10px;
 }
-#generatedCsvFilesHost .propulsion-csv-actions .propulsion-csv-download-spacer{display:none}
-#generatedCsvFilesHost .propulsion-csv-actions .btn{
- min-height:34px;
- padding:7px 12px;
+.propulsion-multi-csv-files>.propulsion-generated-csv-preview>.propulsion-csv-actions .btn{
+ min-height:33px;
+ padding:6px 11px;
  border-radius:8px;
  font-size:12px;
  line-height:1.2;
 }
-#generatedCsvFilesHost .propulsion-generated-csv-preview{overflow:hidden}
-@media(max-width:560px){
- #generatedCsvFilesHost{grid-template-columns:minmax(0,1fr);gap:10px}
- #generatedCsvFilesHost .propulsion-generated-csv-preview{padding:12px}
- #generatedCsvFilesHost .propulsion-csv-actions{flex-wrap:wrap}
+.propulsion-multi-csv-files .propulsion-generated-csv-preview[hidden]{display:none}
+@media(max-width:760px){
+ .propulsion-multi-csv-files{grid-template-columns:minmax(0,1fr);gap:10px}
+ .propulsion-multi-csv-files>.propulsion-generated-csv-preview{padding:12px}
+ .propulsion-multi-csv-files>.propulsion-generated-csv-preview>.propulsion-csv-actions{flex-wrap:wrap}
 }
