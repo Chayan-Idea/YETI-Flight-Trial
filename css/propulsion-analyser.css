@@ -1140,6 +1140,7 @@
 .propulsion-phase4-report-input-table thead th{background:#edf4fa;color:#24476b;font-size:.75rem;font-weight:850}
 .propulsion-phase4-report-input-table tbody th{width:190px;background:#f8fafc;color:#334b63;font-size:.78rem}
 .propulsion-phase4-report-input-table input,.propulsion-phase4-report-input-table select{width:100%;min-width:0;box-sizing:border-box;padding:9px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;color:#172b4d;font:inherit}
+.propulsion-phase4-report-input-table textarea{display:block;width:100%;min-width:0;max-width:100%;min-height:96px;box-sizing:border-box;padding:10px 12px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;color:#172b4d;font:inherit;line-height:1.45;resize:vertical}
 .propulsion-phase4-common-objective{margin-top:18px;padding:16px;border:1px solid #d8e2eb;border-radius:10px;background:#f8fbfe}
 .propulsion-phase4-common-objective h4{margin:0 0 12px;color:#174f7d}
 .propulsion-phase4-common-objective textarea{width:100%;box-sizing:border-box;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font:inherit;resize:vertical}
