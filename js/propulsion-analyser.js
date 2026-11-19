@@ -1394,7 +1394,19 @@ const statsPage=el('section','propulsion-report-summary-page');
   rangeActions.append(applyRange,resetRange);rangePanel.append(rangeFields,rangeActions);
   const sliderLabel=el('label','propulsion-phase3-control','GRAPH NAVIGATION USING SLIDING BAR');const slider=document.createElement('input');slider.type='range';slider.min='0';slider.max='0';slider.value='0';slider.step='1';slider.disabled=true;slider.setAttribute('aria-label','Explore comparative graph data points');sliderLabel.append(slider);
   const readout=el('p','propulsion-phase3-point-readout','No point selected.');readout.setAttribute('aria-live','polite');explorer.append(sliderLabel,readout);
-  plotButton.addEventListener('click',()=>drawMultiComparison({xSelect,ySelect,plotHost,status,slider,readout,rangePanel,rangeXStart,rangeXEnd,rangeYStart,rangeYEnd,resetRange}));
+  let plottedAxisPair='';
+  const plotSelectedAxes=()=>{
+   const selectedPair=xSelect.value+'|'+ySelect.value;
+   if(selectedPair!==plottedAxisPair){
+    // A different axis pair has different numeric bounds; never reuse the prior graph's X-Y range.
+    rangeXStart.value='';rangeXEnd.value='';rangeYStart.value='';rangeYEnd.value='';
+    rangePanel.hidden=true;resetRange.disabled=true;plottedAxisPair=selectedPair;
+   }
+   drawMultiComparison({xSelect,ySelect,plotHost,status,slider,readout,rangePanel,rangeXStart,rangeXEnd,rangeYStart,rangeYEnd,resetRange});
+  };
+  xSelect.addEventListener('change',()=>{status.textContent='X-axis changed. Click Plot Comparative Graph to update the comparison.';});
+  ySelect.addEventListener('change',()=>{status.textContent='Y-axis changed. Click Plot Comparative Graph to update the comparison.';});
+  plotButton.addEventListener('click',plotSelectedAxes);
   applyRange.addEventListener('click',()=>drawMultiComparison({xSelect,ySelect,plotHost,status,slider,readout,rangePanel,rangeXStart,rangeXEnd,rangeYStart,rangeYEnd,resetRange}));
   resetRange.addEventListener('click',()=>{rangeXStart.value='';rangeXEnd.value='';rangeYStart.value='';rangeYEnd.value='';drawMultiComparison({xSelect,ySelect,plotHost,status,slider,readout,rangePanel,rangeXStart,rangeXEnd,rangeYStart,rangeYEnd,resetRange});});
   explorer.append(sliderLabel,readout,rangePanel);
