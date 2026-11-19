@@ -1455,3 +1455,7 @@
 #propulsionUnifiedMappingStep .propulsion-multi-confirm-actions{margin-top:14px}
 #propulsionUnifiedMappingStep .propulsion-multi-confirm-status{margin-top:10px}
 @media(max-width:760px){#propulsionUnifiedMappingStep{padding:17px 14px;border-radius:14px}#propulsionUnifiedMappingStep .propulsion-multi-mapping-table-wrap{overflow-x:auto}}
+
+/* WCAG AA: keep the two initial analyzer step labels readable on their pale blue cards. */
+#propulsionCommonSetupCard > .propulsion-step-label,
+.propulsion-upload-card > .propulsion-step-label{color:#1769aa!important}
