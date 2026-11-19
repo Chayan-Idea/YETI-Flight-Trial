@@ -940,6 +940,7 @@ const statsPage=el('section','propulsion-report-summary-page');
  const requestedLogCount=new URLSearchParams(window.location.search).get('logCount');
  if(logCountSelect&&['1','2','3','4'].includes(requestedLogCount||''))logCountSelect.value=requestedLogCount;
  let multiSession=null,multiFiles=[],multiLogType='',multiMappingConfirmed=false;
+ let multiHiddenReadoutLogs=new Set();
  function resetMultiSetup(){multiSession=null;multiFiles=[];multiMappingConfirmed=false;multiMappingHost?.replaceChildren();multiUploadGrid?.replaceChildren();if(identifyMultipleLogsBtn)identifyMultipleLogsBtn.disabled=true;if(multiUploadStatus)multiUploadStatus.textContent='Select the common test type and upload every requested CSV file.';renderMultiUploadSlots();}
  function renderMultiUploadSlots(){
   if(!multiUploadGrid||!logCountSelect)return;
@@ -995,6 +996,7 @@ const statsPage=el('section','propulsion-report-summary-page');
      select.addEventListener('change',()=>{candidate.selected=select.value===''?'':Number(select.value);engineSetMapping(log,mapping);validateMultiMappingCards();});
      mappingCell.append(select);row.append(mappingCell);
     });
+    row.append(visibilityCell);
     tbody.append(row);
    });
   });
@@ -1608,16 +1610,32 @@ const statsPage=el('section','propulsion-report-summary-page');
    const tableWrap=el('div','propulsion-phase3-readout-table-wrap');
    const table=document.createElement('table');table.className='propulsion-phase3-readout-table';
    const thead=document.createElement('thead'),headRow=document.createElement('tr');
-   ['LOG','FILE NAME','X AXIS · '+xLabel,'Y AXIS · '+yLabel].forEach(label=>headRow.append(el('th','',label)));
+   ['LOG','FILE NAME','X AXIS · '+xLabel,'Y AXIS · '+yLabel,'VISIBILITY'].forEach(label=>headRow.append(el('th','',label)));
    thead.append(headRow);table.append(thead);
    const tbody=document.createElement('tbody');
+   const hiddenTray=el('div','propulsion-phase3-hidden-logs');
+   hiddenTray.style.display='flex';hiddenTray.style.flexWrap='wrap';hiddenTray.style.alignItems='center';hiddenTray.style.gap='8px';hiddenTray.style.marginTop='10px';
+   const hiddenItems=visibleSeries.filter(item=>multiHiddenReadoutLogs.has(item.index));
+   if(hiddenItems.length){hiddenTray.append(el('strong','','HIDDEN LOGS'));hiddenItems.forEach(item=>{
+    const name=item.log.fileName||multiFiles[item.index]?.file.name||('Log '+(item.index+1));
+    const unhide=el('button','btn alt propulsion-phase3-log-visibility-btn','Unhide LOG '+(item.index+1));unhide.type='button';unhide.style.padding='6px 10px';unhide.style.fontSize='12px';
+    unhide.addEventListener('click',()=>{multiHiddenReadoutLogs.delete(item.index);updateAtCommonX(Number(slider.value));});
+    unhide.title='Show '+name+' in the common X-axis readout';hiddenTray.append(unhide);
+   });}
    visibleSeries.forEach(item=>{
     const points=item.points,color=multiColors[item.index%multiColors.length],marker=selectedMarkers[item.index];
+    if(multiHiddenReadoutLogs.has(item.index)){marker.setAttribute('visibility','hidden');return;}
     let nearest=null,distance=Infinity;
     points.forEach(point=>{const delta=Math.abs(point.x-targetX);if(delta<distance){distance=delta;nearest=point;}});
     const row=document.createElement('tr');
     const logCell=el('th','','LOG '+(item.index+1));logCell.scope='row';logCell.style.borderLeft='4px solid '+color;row.append(logCell);
     const fileCell=el('td','',item.log.fileName||multiFiles[item.index]?.file.name||('Log '+(item.index+1)));fileCell.className='propulsion-phase3-readout-filename';row.append(fileCell);
+    const visibilityCell=el('td','');
+    const hideButton=el('button','btn alt propulsion-phase3-log-visibility-btn','Hide');hideButton.type='button';hideButton.style.padding='6px 10px';hideButton.style.fontSize='12px';
+    const fileName=item.log.fileName||multiFiles[item.index]?.file.name||('Log '+(item.index+1));
+    hideButton.title='Hide '+fileName+' from the common X-axis readout';
+    hideButton.addEventListener('click',()=>{multiHiddenReadoutLogs.add(item.index);updateAtCommonX(Number(slider.value));});
+    visibilityCell.append(hideButton);
     if(nearest){
      marker.setAttribute('cx',sx(nearest.x));marker.setAttribute('cy',sy(nearest.y));marker.setAttribute('visibility','visible');
      row.append(el('td','',fmt(nearest.x)),el('td','',fmt(nearest.y)));
@@ -1628,6 +1646,7 @@ const statsPage=el('section','propulsion-report-summary-page');
     tbody.append(row);
    });
    table.append(tbody);tableWrap.append(table);readout.append(tableWrap);
+   if(hiddenItems.length){readout.append(hiddenTray);}
   };
   slider.min='0';slider.max=String(sliderSteps);slider.step='1';slider.value='0';slider.disabled=false;
   slider.setAttribute('aria-valuetext','Common X-axis position');
