@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import { spawn } from 'node:child_process';
 
 const BUDGET_MS = 110_000;
+process.exitCode = 0;
 const startedAt = Date.now();
 const active = new Set();
 const results = new Map();
