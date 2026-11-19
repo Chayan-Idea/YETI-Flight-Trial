@@ -85,4 +85,5 @@ tr:hover td{background:#f8fbfd}
 .nav-kicker{color:#00647b!important}
 .module-nav-heading p,.subnav-heading p{color:#53677b!important}
 .module-tab-copy small,.subtab-copy small{color:#53677b!important}
+.module-tab.active .module-tab-copy small{color:#ffffff!important;opacity:1}
 .flight-trial-reading-header .nav-kicker{color:#00647b!important}
