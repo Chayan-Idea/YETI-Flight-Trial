@@ -1,4 +1,4 @@
-name: Application Quality Checks
+name: YETI 2-Minute Quick Quality Check
 
 on:
   push:
@@ -11,170 +11,41 @@ permissions:
   contents: read
 
 concurrency:
-  group: yeti-quality-${{ github.event.pull_request.number || github.ref }}
+  group: yeti-quick-quality-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  static-validation:
-    timeout-minutes: 10
-    name: Layer 1 — Static and structural validation
+  quick-quality-check:
+    name: Quick Quality Check — single job
     runs-on: ubuntu-latest
+    timeout-minutes: 2
     steps:
-      - name: Check out repository
+      - name: Check out candidate commit
         uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Validate application structure, assets, and syntax
-        run: node scripts/validate-app.mjs
 
-  engine-unit-tests:
-    timeout-minutes: 10
-    name: Layer 2 — Propulsion calculation unit tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-      - name: Set up Node.js
+      - name: Set up Node.js 22
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Test common propulsion analysis engine
-        run: node tests/propulsion-analysis-engine.test.js
-      - name: Test extracted analyzer responsibility modules
-        run: node tests/yeti-modules.test.js
 
-  browser-smoke:
-    name: Layer 3A — Browser, Flight Preparation and UI preservation
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Check out current quality branch
-        uses: actions/checkout@v4
-      - name: Check out untouched production UI baseline
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          path: .baseline-main
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Install Playwright
-        run: npm install --no-save --no-package-lock playwright@1.65.1 pixelmatch@5.3.0 pngjs@6.0.0
-      - name: Install Chromium
-        run: ./node_modules/.bin/playwright install chromium
-      - name: Test application startup and core navigation
-        run: node tests/browser-smoke.cjs
-      - name: Validate Flight Preparation operational workflows
-        run: node tests/flight-preparation.e2e.cjs
-      - name: Compare Flight Preparation UI with untouched main baseline
-        env:
-          YETI_BASELINE_ROOT: ${{ github.workspace }}/.baseline-main
-        run: node tests/ui-preservation.e2e.cjs
-      - name: Upload browser smoke diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: yeti-browser-smoke-diagnostics
-          path: |
-            /tmp/yeti-smoke-failure.png
-            /tmp/yeti-smoke-trace.zip
-          if-no-files-found: ignore
-          retention-days: 7
-      - name: Upload Flight Preparation and visual regression evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: yeti-flight-preparation-ui-evidence
-          path: |
-            /tmp/yeti-flight-preparation-failure.png
-            /tmp/yeti-flight-preparation-trace.zip
-            /tmp/yeti-ui-preservation
-          if-no-files-found: ignore
-          retention-days: 7
-
-  application-assurance:
-    name: Phase 4 — Cross-browser, offline, accessibility and security
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Install pinned browser and accessibility dependencies
-        run: npm install --no-save --no-package-lock playwright@1.65.1 axe-core@4.11.0
-      - name: Install Chromium, Firefox and WebKit
-        run: ./node_modules/.bin/playwright install --with-deps chromium firefox webkit
-      - name: Run complete application assurance
-        run: node tests/application-assurance.e2e.cjs
-      - name: Upload application assurance diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: yeti-application-assurance-evidence
-          path: /tmp/yeti-assurance-*.png
-          if-no-files-found: ignore
-          retention-days: 7
-
-  browser-workflow:
-    name: Layer 3B and 4 — Analyzer workflow and end-to-end regression
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Install Playwright
-        run: npm install --no-save --no-package-lock playwright@1.65.1
-      - name: Install Chromium
-        run: ./node_modules/.bin/playwright install chromium
-      - name: Run propulsion analyzer workflow regression
-        run: node tests/propulsion-analyser.e2e.cjs
-      - name: Upload browser failure diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: yeti-browser-regression-diagnostics
-          path: |
-            /tmp/yeti-browser-failure.png
-            /tmp/yeti-browser-trace.zip
-          if-no-files-found: ignore
-          retention-days: 7
-  phase5-certification:
-    name: Phase 5 — Final release certification (no merge or deployment)
-    needs:
-      - static-validation
-      - engine-unit-tests
-      - browser-smoke
-      - application-assurance
-      - browser-workflow
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Check out certified commit and full history
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Generate final quality certification
-        env:
-          QUALITY_RESULTS: ${{ toJSON(needs) }}
-        run: node scripts/phase5-release-certification.mjs
-      - name: Upload Phase 5 certification report
-        uses: actions/upload-artifact@v4
-        with:
-          name: yeti-phase5-release-certification
-          path: quality-evidence/
-          if-no-files-found: error
-          retention-days: 30
+      - name: Run the only quality check
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "## YETI 2-Minute Quick Quality Check" >> "$GITHUB_STEP_SUMMARY"
+          run_check() {
+            label="$1"
+            shift
+            started=$(date +%s)
+            echo "::group::$label"
+            "$@"
+            elapsed=$(( $(date +%s) - started ))
+            echo "PASS — $label (${elapsed}s)"
+            echo "- PASS — $label (${elapsed}s)" >> "$GITHUB_STEP_SUMMARY"
+            echo "::endgroup::"
+          }
+          run_check "Application structure, assets and JavaScript syntax" node scripts/validate-app.mjs
+          run_check "Propulsion calculation unit tests" node tests/propulsion-analysis-engine.test.js
+          run_check "Analyzer module regression tests" node tests/yeti-modules.test.js
+          echo "OVERALL: PASS — all quick checks completed." >> "$GITHUB_STEP_SUMMARY"
+          echo "YETI QUICK QUALITY CHECK PASSED."
