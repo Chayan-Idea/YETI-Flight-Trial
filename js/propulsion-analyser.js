@@ -1174,7 +1174,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    // about:blank has no usable relative base URL. Resolve the report CSS
    // against the live GitHub Pages application URL before writing the print document.
    const reportStylesheetUrl=new URL('./css/propulsion-analyser.css?v=24',window.location.href).href;
-   const printDoc='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base href="'+new URL('./',window.location.href).href+'"><title>YETI Comparative Propulsion Report</title><link rel="stylesheet" href="'+reportStylesheetUrl+'">'+printCss+'</head><body>'+markup.outerHTML+'</body></html>';
+   const printDoc='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base href="'+new URL('./',window.location.href).href+'"><title>YETI Comparative Propulsion Report</title><link rel="stylesheet" href="'+reportStylesheetUrl+'">'+printCss+'</head><body><main id="propulsionReportLivePreview">'+markup.outerHTML+'</main></body></html>';
    const printStatus=(message)=>{status.textContent=message;};
    const preparePrintDocument=(targetWindow,successMessage)=>{
     targetWindow.document.open();targetWindow.document.write(printDoc);targetWindow.document.close();
