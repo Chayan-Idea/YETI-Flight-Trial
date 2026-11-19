@@ -304,7 +304,7 @@ const server = http.createServer((req,res)=>{
   if(await exportButton.isDisabled())throw new Error('Report export did not unlock after both logs were processed and required metadata was entered.');
   const popupPromise=page.waitForEvent('popup');await exportButton.click();const report=await popupPromise;
   await report.waitForLoadState('domcontentloaded');
-  await report.getByText('YETI Propulsion Comparative Validation Report').waitFor();
+  await report.getByText('YETI Propulsion Bench Data Validation Report',{exact:true}).waitFor();
   await report.getByText('run-a.csv').waitFor();await report.getByText('run-b.csv').waitFor();
 
   // Verify the same unified mapping-table layout for 3-log and 4-log analysis.
