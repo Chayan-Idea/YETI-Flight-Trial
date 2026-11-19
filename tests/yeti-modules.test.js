@@ -30,4 +30,4 @@ assert.equal(session.DB_NAME,'yeti-flight-trial-state');
 assert.equal(typeof session.read,'function');
 assert.equal(typeof session.write,'function');
 assert.equal(typeof session.clear,'function');
-console.log('YETI modular responsibility tests passed.');
+console.log('YETI modular responsibility tests passed (CSV, mapping, graph, report and session adapters).');
