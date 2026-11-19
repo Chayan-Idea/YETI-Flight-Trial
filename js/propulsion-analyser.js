@@ -699,7 +699,7 @@
   reportGraphControls.append(addReportGraph,reportGraphCount,reportGraphList);
   const reportPreviewPanel=el('div','propulsion-report-preview-panel');reportPreviewPanel.append(el('h3','','Live A4 PDF Preview'));
   const reportPreview=el('div','propulsion-report-preview-pages');reportPreview.id='propulsionReportLivePreview';
-  const exportActions=el('div','propulsion-actions');const exportPdf=el('button','btn','Export Report as PDF');exportPdf.type='button';exportPdf.addEventListener('click',()=>{const missing=reportTools.missingRequiredFields(Object.fromEntries(Object.entries(reportFields).map(([key,field])=>[key,field.value])));if(missing.length){reportForm.querySelector('#report_'+missing[0]).focus();reportPreviewPanel.querySelector('.propulsion-report-validation').textContent='Complete all mandatory fields before exporting.';return}
+  const exportActions=el('div','propulsion-actions');const exportPdf=el('button','btn propulsion-report-export-btn','Export Report as PDF');exportPdf.type='button';exportPdf.addEventListener('click',()=>{const missing=reportTools.missingRequiredFields(Object.fromEntries(Object.entries(reportFields).map(([key,field])=>[key,field.value])));if(missing.length){reportForm.querySelector('#report_'+missing[0]).focus();reportPreviewPanel.querySelector('.propulsion-report-validation').textContent='Complete all mandatory fields before exporting.';return}
    // Print an isolated copy of the exact live A4 preview. The main app stylesheet
    // contains unrelated landscape @page rules for other modules, which can override
    // this report's portrait layout in the browser print pipeline.
@@ -1118,7 +1118,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   const previewPanel=el('section','propulsion-phase4-live-preview-panel');
   previewPanel.append(el('h3','','Live A4 PDF Preview'));
   const preview=el('div','propulsion-report-preview-pages');preview.id='multiPropulsionReportLivePreview';
-  const exportButton=el('button','btn','Export Comparative Report as PDF');exportButton.type='button';exportButton.disabled=true;
+  const exportButton=el('button','btn propulsion-report-export-btn','Export Comparative Report as PDF');exportButton.type='button';exportButton.disabled=true;
   const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const labelFor=key=>definitions.find(def=>def[0]===key)?.[1]||key;
   const values=()=>fieldsByLog.map(fields=>Object.fromEntries(Object.entries(fields).map(([key,input])=>[key,input.value.trim()])));
