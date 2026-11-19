@@ -1427,3 +1427,31 @@
  overflow-wrap:normal!important;
  word-break:normal!important;
 }
+
+
+/* Step 02 unified mapping: keep the heading, table, validation and action together in one card. */
+#propulsionUnifiedMappingStep{
+ box-sizing:border-box;width:100%;max-width:100%;margin:0 0 20px;padding:24px 26px 22px;
+ border:1px solid #b9dfd0;border-top:5px solid #279b72;border-radius:18px;
+ background:linear-gradient(145deg,#fbfefd 0%,#f4faf7 100%);
+ box-shadow:0 10px 28px rgba(24,72,99,.07);overflow:hidden;
+}
+#propulsionUnifiedMappingStep>.propulsion-step-label{margin:0 0 16px}
+#propulsionUnifiedMappingStep>h3{margin:0 0 8px;color:#123d70;font-size:clamp(1.25rem,2vw,1.65rem);line-height:1.25}
+#propulsionUnifiedMappingStep>.propulsion-mapping-description{margin:0 0 18px;color:#536b82;line-height:1.5}
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-table-wrap{
+ box-sizing:border-box;width:100%;max-width:100%;margin:0 0 14px;padding:0;
+ border:1px solid #cfdeeb;border-radius:13px;background:#fff;overflow-x:auto;
+ box-shadow:0 3px 12px rgba(22,58,91,.045);
+}
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-unified{border-collapse:separate;border-spacing:0;overflow:hidden}
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-unified thead tr:first-child th{background:#e4eef8;color:#163e68;padding:13px 10px;border-bottom:1px solid #cfdeeb}
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-unified thead tr:nth-child(2) th{background:#f1f6fb;color:#42617e;padding:9px 8px}
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-unified tbody tr:hover{background:#f2f8fd}
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-unified .propulsion-multi-mapping-group{background:#f0f5fa;color:#365775;border-right:1px solid #d6e2ed}
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-unified .propulsion-multi-mapping-parameter{color:#153f70}
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-unified .propulsion-column-select{min-height:43px;padding:9px 10px;border-color:#c9d8e7;border-radius:9px;background-color:#fff}
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-summary-grid{margin:12px 0 4px}
+#propulsionUnifiedMappingStep .propulsion-multi-confirm-actions{margin-top:14px}
+#propulsionUnifiedMappingStep .propulsion-multi-confirm-status{margin-top:10px}
+@media(max-width:760px){#propulsionUnifiedMappingStep{padding:17px 14px;border-radius:14px}#propulsionUnifiedMappingStep .propulsion-multi-mapping-table-wrap{overflow-x:auto}}
