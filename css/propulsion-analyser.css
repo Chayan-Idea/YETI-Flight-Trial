@@ -1262,3 +1262,67 @@
   outline-offset:-3mm!important;
  }
 }
+
+/* Compact generated CSV cards: concise filename, metadata and aligned actions. */
+#generatedCsvFilesHost{
+ display:grid;
+ grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));
+ gap:12px;
+ width:100%;
+ align-items:stretch;
+}
+#generatedCsvFilesHost .propulsion-generated-csv-preview{
+ box-sizing:border-box;
+ min-width:0;
+ margin:0;
+ padding:14px 16px;
+ border:1px solid #cbddea;
+ border-radius:12px;
+ background:#fff;
+ box-shadow:0 2px 8px rgba(22,58,91,.045);
+}
+#generatedCsvFilesHost .propulsion-step-label{
+ display:inline-flex;
+ align-items:center;
+ margin:0 0 8px;
+ padding:4px 9px;
+ border-radius:6px;
+ font-size:10px;
+ letter-spacing:.07em;
+}
+#generatedCsvFilesHost .propulsion-generated-csv-preview h3{
+ margin:0 0 7px;
+ color:#174f7d;
+ font-size:clamp(13px,1.15vw,16px);
+ line-height:1.35;
+ font-weight:800;
+ overflow-wrap:anywhere;
+ word-break:break-word;
+}
+#generatedCsvFilesHost .propulsion-csv-preview-meta{
+ margin:0;
+ color:#64748b;
+ font-size:11px;
+ line-height:1.45;
+}
+#generatedCsvFilesHost .propulsion-csv-actions{
+ display:flex;
+ align-items:center;
+ gap:8px;
+ width:auto;
+ margin-top:11px;
+}
+#generatedCsvFilesHost .propulsion-csv-actions .propulsion-csv-download-spacer{display:none}
+#generatedCsvFilesHost .propulsion-csv-actions .btn{
+ min-height:34px;
+ padding:7px 12px;
+ border-radius:8px;
+ font-size:12px;
+ line-height:1.2;
+}
+#generatedCsvFilesHost .propulsion-generated-csv-preview{overflow:hidden}
+@media(max-width:560px){
+ #generatedCsvFilesHost{grid-template-columns:minmax(0,1fr);gap:10px}
+ #generatedCsvFilesHost .propulsion-generated-csv-preview{padding:12px}
+ #generatedCsvFilesHost .propulsion-csv-actions{flex-wrap:wrap}
+}
