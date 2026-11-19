@@ -107,7 +107,7 @@ jobs:
       - name: Install pinned browser and accessibility dependencies
         run: npm install --no-save --no-package-lock playwright@1.65.1 axe-core@4.11.0
       - name: Install Chromium, Firefox and WebKit
-        run: ./node_modules/.bin/playwright install --with-deps chromium firefox webkit
+        run: ./node_modules/.bin/playwright install chromium firefox webkit
       - name: Run complete application assurance
         run: node tests/application-assurance.e2e.cjs
       - name: Upload application assurance diagnostics
