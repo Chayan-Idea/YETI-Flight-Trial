@@ -1199,7 +1199,6 @@ const statsPage=el('section','propulsion-report-summary-page');
      if(!printWindow)throw new Error('Print frame is unavailable');
      status.textContent='Popup was blocked. Opening the comparative report print dialog in this page; choose “Save as PDF”.';
      printWindow.focus();printWindow.print();
-     printWindow.addEventListener('afterprint',()=>frame.remove(),{once:true});
     }catch(error){
      status.textContent='Unable to open the PDF print dialog: '+(error.message||'browser print error')+'. Please allow pop-ups or use your browser print command.';
      frame.remove();
