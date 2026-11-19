@@ -325,7 +325,7 @@ const server = http.createServer((req,res)=>{
    const doc=frame?.contentDocument;
    const css=doc?.querySelector('link[rel="stylesheet"]');
    const page=doc?.querySelector('#multiPropulsionReportLivePreview .propulsion-report-page');
-   return !!doc&&doc.title==='YETI Comparative Propulsion Report'&&!!page&&page.textContent.trim().length>40&&!!css?.sheet&&css.href.startsWith(location.origin+'/YETI-Flight-Trial/css/propulsion-analyser.css');
+   return !!doc&&doc.title==='YETI Comparative Propulsion Report'&&!!page&&page.textContent.trim().length>40&&!!css?.sheet&&new URL(css.href).origin===location.origin&&new URL(css.href).pathname.endsWith('/css/propulsion-analyser.css');
   });
   if(!(await multiReport.locator('.propulsion-phase4-report-status').innerText()).includes('Pop-up blocked'))throw new Error('Comparative PDF export must prepare the same-page print view and load its stylesheet when pop-ups are blocked.');
   await page.evaluate(()=>{window.open=window.__yetiOriginalOpen;delete window.__yetiOriginalOpen;});
