@@ -44,14 +44,26 @@ jobs:
           path: |
             ~/.npm
             ~/.cache/ms-playwright
-          key: ${{ runner.os }}-yeti-six-layer-node22-pw1.65.1-pixelmatch5.3.0-png6.0.0-axe4.11.0-v1
+            node_modules
+          key: yeti-six-layer-v1-${{ runner.os }}-node22-pw1.65.1-pixelmatch5.3.0-png6.0.0-axe4.11.0
+          restore-keys: |
+            yeti-full-v1-${{ runner.os }}-node22-playwright1.65.1-
+            yeti-quick-v1-${{ runner.os }}-node22-playwright1.65.1-
 
       - name: Install pinned test dependencies
-        run: npm install --no-save --no-package-lock playwright@1.65.1 pixelmatch@5.3.0 pngjs@6.0.0 axe-core@4.11.0
+        run: |
+          if [ ! -x node_modules/.bin/playwright ] || [ ! -d node_modules/pixelmatch ] || [ ! -d node_modules/pngjs ] || [ ! -d node_modules/axe-core ]; then
+            npm install --no-save --no-package-lock playwright@1.65.1 pixelmatch@5.3.0 pngjs@6.0.0 axe-core@4.11.0
+          fi
 
       - name: Install browser engines on a cold cache
         if: steps.quality-cache.outputs.cache-hit != 'true'
-        run: npx playwright install chromium firefox webkit
+        run: |
+          for browser in chromium firefox webkit; do
+            if ! find "$HOME/.cache/ms-playwright" -maxdepth 1 -type d -name "$browser-*" 2>/dev/null | grep -q .; then
+              npx playwright install "$browser"
+            fi
+          done
 
       - name: Run all six quality layers with a strict execution budget
         env:
