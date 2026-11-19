@@ -124,7 +124,7 @@
     if (key === 'mechanicalPower') {
       const torque = value('torque');
       const rpm = value('actualRpm');
-      return Number.isFinite(torque) && Number.isFinite(rpm) ? torque * rpm * (2 * Math.PI / 60) : NaN;
+      return Number.isFinite(torque) && Number.isFinite(rpm) ? Math.abs(torque) * rpm * (2 * Math.PI / 60) : NaN;
     }
     if (key === 'electricalPower') {
       const voltage = value('voltage');
