@@ -150,7 +150,7 @@ const server = http.createServer((req,res)=>{
    if(download.suggestedFilename()!=='run-'+(index===0?'a':'b')+'_filtered_sorted.csv')throw new Error('Generated CSV download filename does not match its source log.');
   }
   // Follow the real Step 03 -> Step 04 -> Step 05 navigation before interacting with hidden controls.
-  const proceedInApp=csvSection.locator('button').filter({hasText:'Proceed with In App Analysis'});
+  const proceedInApp=step3Card.locator('.propulsion-next-step-actions button').filter({hasText:'Proceed with In App Analysis'});
   await proceedInApp.waitFor({state:'visible'});
   await proceedInApp.click();
   const multiSummary=page.locator('#propulsionMultiParameterSummaryCard');
