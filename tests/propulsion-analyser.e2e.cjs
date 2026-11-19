@@ -61,7 +61,7 @@ const server = http.createServer((req,res)=>{
   await page.locator('#propulsionMultiSetupCard').waitFor({state:'visible'});
   await page.locator('#propulsionMultiUploadControls').waitFor({state:'hidden'});
   if(await page.locator('#propulsionMultiUploadControls').isVisible())throw new Error('Multi-log upload controls must remain hidden until a test type is selected.');
-  await page.locator('#propulsionMultiLogTypePicker input[value="thrust"]').evaluate(el=>{el.checked=true;el.dispatchEvent(new Event('change',{bubbles:true}));});
+  await page.locator('#propulsionMultiLogTypePicker input[value="thrust"]').check();
   await page.locator('#propulsionMultiUploadControls').waitFor({state:'visible'});
   const selectedTypeCard=page.locator('#propulsionMultiLogTypePicker .propulsion-log-type-option').filter({has:page.locator('input[value="thrust"]')});
   if(!(await selectedTypeCard.evaluate(el=>el.classList.contains('is-selected'))))throw new Error('Selected Thrust Log option did not receive its full selected state.');
@@ -73,8 +73,11 @@ const server = http.createServer((req,res)=>{
   await page.locator('#identifyMultipleLogsBtn').waitFor({state:'hidden'});
   await uploads.nth(1).setInputFiles({name:'run-b.csv',mimeType:'text/csv',buffer:Buffer.from(csvB)});
   await page.locator('#identifyMultipleLogsBtn').waitFor({state:'visible'});
+  await page.locator('#identifyMultipleLogsBtn').waitFor({state:'attached'});
+  if(await page.locator('#identifyMultipleLogsBtn').isDisabled())throw new Error('Identify Multiple Logs stayed disabled after all CSV files were read. Upload status: '+await page.locator('#propulsionMultiUploadStatus').innerText());
   await page.locator('#identifyMultipleLogsBtn').click();
-  await page.locator('#confirmAllMultiLogMappingsBtn').waitFor({state:'visible'});
+  try{await page.locator('#confirmAllMultiLogMappingsBtn').waitFor({state:'visible',timeout:10000});}
+  catch(error){throw new Error('Multi-log parameter identification did not render. Upload status: '+await page.locator('#propulsionMultiUploadStatus').innerText()+'; mapping host: '+await page.locator('#propulsionMultiMappingHost').innerText().catch(()=>'(missing)')+'; page errors: '+pageErrors.join(' | '));}
   const mappingTables=page.locator('.propulsion-multi-mapping-unified');
   const assertMappingFits=async(label)=>{
    const dimensions=await page.evaluate(()=>{
