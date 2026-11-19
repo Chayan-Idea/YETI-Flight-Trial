@@ -21,7 +21,9 @@ const server = http.createServer((req, res) => {
   const consoleErrors = [];
   const failedRequests = [];
   try {
-    await new Promise(resolve => server.listen(4174, '127.0.0.1', resolve));
+    await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+    const address = server.address();
+    const baseUrl = 'http://127.0.0.1:' + address.port;
     browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
     context = await browser.newContext();
     await context.tracing.start({ screenshots: true, snapshots: true, sources: true });
@@ -31,7 +33,7 @@ const server = http.createServer((req, res) => {
     page.on('console', message => { if (message.type() === 'error') consoleErrors.push(message.text()); });
     page.on('requestfailed', request => failedRequests.push({ url: request.url(), error: request.failure()?.errorText || 'request failed' }));
 
-    const response = await page.goto('http://127.0.0.1:4174/', { waitUntil: 'networkidle' });
+    const response = await page.goto(baseUrl + '/', { waitUntil: 'networkidle' });
     if (!response || !response.ok()) throw new Error('Application shell did not return a successful HTTP response.');
     await page.locator('#propulsionAnalyzerTab').waitFor({ state: 'visible' });
     await page.locator('#flightPreparationTab').waitFor({ state: 'visible' });
