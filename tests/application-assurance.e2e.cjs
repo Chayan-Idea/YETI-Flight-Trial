@@ -41,8 +41,10 @@ async function runAxe(page,label) {
 async function checkResponsive(page,baseUrl) {
   for(const width of [360,390,768,1024,1440]) {
     await page.setViewportSize({width,height:900});
-    for(const [tab,panel] of [['flightPreparationTab','flightPreparationPanel'],['propulsionAnalyzerTab','propulsionAnalyzerPanel']]) {
-      await page.locator('#'+tab).click();
+    await page.locator('#flightPreparationTab').click();
+    await page.locator('#flightPreparationPanel').waitFor({state:'visible'});
+    for(const [subtab,panel] of [['flightTrialPreparationSopTab','flightTrialPreparationSopPanel'],['dailyTabBtn','dailyChecklistTabPanel'],['loadingTabBtn','loadingChecklistSection']]) {
+      await page.locator('#'+subtab).click();
       await page.locator('#'+panel).waitFor({state:'visible'});
       const dims=await page.evaluate(()=>({
         viewport:window.innerWidth,
@@ -52,9 +54,13 @@ async function checkResponsive(page,baseUrl) {
         overflowingElements:[...document.querySelectorAll('body *')].map(el=>{const r=el.getBoundingClientRect(),cs=getComputedStyle(el);return {tag:el.tagName,id:el.id,className:typeof el.className==='string'?el.className:'',left:Math.round(r.left),right:Math.round(r.right),width:Math.round(r.width),scrollWidth:el.scrollWidth,clientWidth:el.clientWidth,overflowX:cs.overflowX}}).filter(x=>x.width>0&&x.right>window.innerWidth+2&&x.overflowX!=='auto'&&x.overflowX!=='scroll').slice(0,20)
       }));
       if(dims.document>dims.viewport+2||dims.body>dims.viewport+2) {
-        throw new Error('Unexpected page-level horizontal overflow at '+width+'px in '+tab+': '+JSON.stringify(dims));
+        throw new Error('Unexpected page-level horizontal overflow at '+width+'px in Flight Preparation '+subtab+': '+JSON.stringify(dims));
       }
     }
+    await page.locator('#propulsionAnalyzerTab').click();
+    await page.locator('#propulsionAnalyzerPanel').waitFor({state:'visible'});
+    const analyzerDims=await page.evaluate(()=>({viewport:innerWidth,document:document.documentElement.scrollWidth,body:document.body.scrollWidth}));
+    if(analyzerDims.document>analyzerDims.viewport+2||analyzerDims.body>analyzerDims.viewport+2)throw new Error('Unexpected page-level horizontal overflow at '+width+'px in Propulsion Analyzer: '+JSON.stringify(analyzerDims));
   }
   await page.setViewportSize({width:1440,height:900});
   await page.locator('#flightPreparationTab').click();
