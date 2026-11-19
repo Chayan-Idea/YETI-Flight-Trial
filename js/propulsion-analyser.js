@@ -998,7 +998,6 @@ const statsPage=el('section','propulsion-report-summary-page');
      select.addEventListener('change',()=>{candidate.selected=select.value===''?'':Number(select.value);engineSetMapping(log,mapping);validateMultiMappingCards();});
      mappingCell.append(select);row.append(mappingCell);
     });
-    row.append(visibilityCell);
     tbody.append(row);
    });
   });
