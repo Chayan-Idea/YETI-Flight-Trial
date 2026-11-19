@@ -47,6 +47,7 @@
    const raw=String(row?.[rpmIndex]??'').trim();
    const rpm=raw===''?NaN:Number(raw.replace(/,/g,''));
    if(!Number.isFinite(rpm)||rpm>0){kept.push(row);continue;}
+   if(rpm<0)continue;
    kept.push(row);returnTailRemaining=5;
   }
   return kept;
@@ -466,6 +467,7 @@
     if(returnTailRemaining>0){filteredSourceIndexes.push(index);returnTailRemaining--;return;}
     const raw=String(item.row[rpmIndex]??'').trim(),rpm=raw===''?NaN:Number(raw.replace(/,/g,''));
     if(!Number.isFinite(rpm)||rpm>0){filteredSourceIndexes.push(index);return;}
+    if(rpm<0)return;
     filteredSourceIndexes.push(index);returnTailRemaining=5;
    });
    const filteredRows=filteredSourceIndexes.map(index=>sourceRows[index]);
