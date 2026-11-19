@@ -1207,7 +1207,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    };
    frame.srcdoc=documentHtml;
    document.body.append(frame);
-  });;
+  });
   card.append(form,reportGraphControls,status,exportButton,previewPanel);previewPanel.append(preview);multiMappingHost.append(card);multiReportCard=card;card.refreshPreview=refresh;refreshReportGraphCount();refresh();
  }
 
