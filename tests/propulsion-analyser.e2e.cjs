@@ -160,6 +160,9 @@ const server = http.createServer((req,res)=>{
   await proceedToGraph.click();
   const multiGraph=page.locator('#propulsionPhase4GraphCard');
   await multiGraph.waitFor({state:'visible'});
+  const xyRange=page.locator('.propulsion-phase3-range-panel');
+  if(await xyRange.count()!==1)throw new Error('Comparative graph must provide the X-Y range selector.');
+  if(await xyRange.isVisible())throw new Error('Comparative X-Y range selector must remain hidden before a graph is plotted.');
   if(await page.locator('#multiGraphSecondaryYAxis, .propulsion-phase3-series-controls, .propulsion-phase3-graph-controls input[type=number]').count()!==0)throw new Error('Comparative graph should expose only common X/Y selectors, not secondary axes, per-log toggles or manual range fields.');
   await page.locator('#multiGraphXAxis').selectOption('actualRpm');
   await page.locator('#multiGraphYAxis').selectOption('thrust');
@@ -183,10 +186,8 @@ const server = http.createServer((req,res)=>{
   if(await readoutTable.locator('thead th').count()!==4)throw new Error('Per-log readout table must show only Log, File Name, X and Y columns.');
   const sliderStyle=await commonSlider.evaluate(el=>({width:getComputedStyle(el).width,marginLeft:getComputedStyle(el).marginLeft,appearance:getComputedStyle(el).appearance}));
   if(sliderStyle.appearance!=='auto')throw new Error('Comparative slider must use the shared native slider appearance.');
-  const xyRange=page.locator('.propulsion-phase3-range-panel');
-  if(await xyRange.count()!==1)throw new Error('Comparative graph must provide the X-Y range selector.');
-  if(await xyRange.isVisible())throw new Error('Comparative X-Y range selector must remain hidden before a graph is plotted.');
   await page.getByRole('button',{name:'Plot Comparative Graph'}).click();
+  if(!(await xyRange.isVisible()))throw new Error('Comparative X-Y range selector must appear after graph plotting.');
   if(!(await xyRange.isVisible()))throw new Error('Comparative X-Y range selector must appear after graph plotting.');
   const explorerOrder=await page.locator('.propulsion-phase3-explorer').evaluate(el=>Array.from(el.children).map(child=>child.className));
   if(explorerOrder.indexOf('propulsion-phase3-range-panel')<explorerOrder.indexOf('propulsion-phase3-point-readout'))throw new Error('Comparative X-Y range selector must appear below graph slider and readout.');
