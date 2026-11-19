@@ -783,7 +783,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    const units={thrust:'N',torque:'Nm',commandRpm:'RPM',actualRpm:'RPM',voltage:'V',current:'A',motorTemperature:'°C',escTemperature:'°C',accelerationX:'g',accelerationY:'g',accelerationZ:'g'};
    const getNum=(row,key)=>{const idx=mapping[key]?.selected;if(idx===undefined||idx==='')return NaN;const raw=String(row[idx]??'').trim();if(raw==='')return NaN;const value=Number(raw);return accelerationParameterKeys.has(key)?toDisplayAcceleration(value):value};
    const fmt=(v,d=2)=>Number.isFinite(v)?new Intl.NumberFormat(undefined,{maximumFractionDigits:d}).format(v):'—';
-   const peak=(key)=>{let value=-Infinity,at=-1;analysisRows.forEach((row,i)=>{const v=getNum(row,key);if(Number.isFinite(v)&&v>value){value=v;at=i}});return {value,at}};
+   const peak=(key)=>{let scoreMax=-Infinity,at=-1;analysisRows.forEach((row,i)=>{const v=getNum(row,key),score=(key==='torque'||accelerationParameterKeys.has(key))?Math.abs(v):v;if(Number.isFinite(v)&&score>scoreMax){scoreMax=score;at=i}});return {value:at>=0?getNum(analysisRows[at],key):NaN,at}};
    const pThrust=peak('thrust'),pTorque=peak('torque'),pRpm=peak('actualRpm'),pVolt=peak('voltage'),pCurrent=peak('current'),pMotor=peak('motorTemperature'),pEsc=peak('escTemperature');
    let peakInputPower=0,peakThrustPerKw=0,sumAbsRpmError=0,rpmErrorCount=0,maxRpmError=0;
    analysisRows.forEach(row=>{const v=getNum(row,'voltage'),a=getNum(row,'current'),t=getNum(row,'thrust'),cmd=getNum(row,'commandRpm'),rpm=getNum(row,'actualRpm');if(Number.isFinite(v)&&Number.isFinite(a)){const kw=v*a/1000;if(kw>peakInputPower)peakInputPower=kw;if(Number.isFinite(t)&&kw>0)peakThrustPerKw=Math.max(peakThrustPerKw,t/kw)}if(Number.isFinite(cmd)&&cmd!==0&&Number.isFinite(rpm)){const e=Math.abs((rpm-cmd)/cmd)*100;sumAbsRpmError+=e;rpmErrorCount++;maxRpmError=Math.max(maxRpmError,e)}});
@@ -842,8 +842,8 @@ const statsPage=el('section','propulsion-report-summary-page');
      const raw=String(row[idx]??'').trim();
      if(raw==='')return;
      const rawValue=Number(raw);
-     const value=accelerationParameterKeys.has(s.key)?toDisplayAcceleration(rawValue):s.key==='torque'?Math.abs(rawValue):rawValue;
-     if(Number.isFinite(value)&&value>max){max=value;maxRow=rowIndex}
+     const value=accelerationParameterKeys.has(s.key)?toDisplayAcceleration(rawValue):rawValue;const score=(s.key==='torque'||accelerationParameterKeys.has(s.key))?Math.abs(value):value;
+     if(Number.isFinite(value)&&score>max){max=score;maxRow=rowIndex}
     });
     const tr=document.createElement('tr');
     tr.append(el('th','propulsion-stat-parameter',s.label+' ('+units[s.key]+')'));
@@ -1190,8 +1190,8 @@ const statsPage=el('section','propulsion-report-summary-page');
      let maximum=-Infinity,maximumRow=null;
      if(available)(log.calculatedRows||[]).forEach(item=>{
       const raw=specIsDerived?'':String(item.source?.[sourceIndex]??'').trim();
-      const value=specIsDerived?item.derived?.[parameter.key]:(raw===''?NaN:Number(raw));
-      if(Number.isFinite(value)&&value>maximum){maximum=value;maximumRow=item;}
+      const value=specIsDerived?item.derived?.[parameter.key]:(raw===''?NaN:Number(raw));const score=(!specIsDerived&&(parameter.key==='torque'||accelerationParameterKeys.has(parameter.key)))?Math.abs(value):value;
+      if(Number.isFinite(value)&&score>maximum){maximum=score;maximumRow=item;}
      });
      const valueText=Number.isFinite(maximum)?new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(maximum):'—';
      const timestamp=maximumRow?(timestampIndex===undefined?'Timestamp column not found':String(maximumRow.source?.[timestampIndex]??'').trim()||'Timestamp unavailable'):(timestampIndex===undefined?'Timestamp column not found':'No numeric data');
@@ -1475,8 +1475,8 @@ const statsPage=el('section','propulsion-report-summary-page');
     specsForLog.forEach(spec=>{
      let maximum=-Infinity,maximumRow=null;
      rows.slice(1).forEach(item=>{
-      const raw=String(item.source?.[spec.index]??'').trim();const value=spec.derived?item.derived?.[spec.key]:(raw===''?NaN:Number(raw));
-      if(Number.isFinite(value)&&value>maximum){maximum=value;maximumRow=item;}
+      const raw=String(item.source?.[spec.index]??'').trim();const value=spec.derived?item.derived?.[spec.key]:(raw===''?NaN:Number(raw));const score=(!spec.derived&&(spec.key==='torque'||accelerationParameterKeys.has(spec.key)))?Math.abs(value):value;
+      if(Number.isFinite(value)&&score>maximum){maximum=score;maximumRow=item;}
      });
      const timestamp=maximumRow?(timestampIndex===undefined?'Timestamp column not found':String(maximumRow.source?.[timestampIndex]??'').trim()||'Timestamp unavailable'):(timestampIndex===undefined?'Timestamp column not found':'No numeric data');
      values.set(spec.key,{maximum:Number.isFinite(maximum)?new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(maximum):'—',timestamp});
