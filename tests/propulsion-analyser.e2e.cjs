@@ -233,7 +233,9 @@ const server = http.createServer((req,res)=>{
   if(!(await page.locator('.propulsion-phase3-common-x-readout').innerText()).includes('COMMON X AXIS'))throw new Error('Comparative slider readout must identify the shared X-axis position.');
 
   const multiReport=page.locator('#propulsionPhase4ReportCard');
-  await multiReport.waitFor({state:'attached'});
+  await page.locator('#proceedToMultiGenerateReportBtn').waitFor({state:'visible'});
+  await page.locator('#proceedToMultiGenerateReportBtn').click();
+  await multiReport.waitFor({state:'visible'});
   const reportInputTable=multiReport.locator('.propulsion-phase4-report-input-table');
   if(await reportInputTable.locator('thead th').count()!==3)throw new Error('Two-log report identification table must have one parameter column and one column per log.');
   const reportRowLabels=await reportInputTable.locator('tbody tr th').allInnerTexts();
