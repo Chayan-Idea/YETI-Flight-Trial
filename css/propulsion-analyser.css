@@ -1351,3 +1351,40 @@
  border:0!important;
  line-height:0!important;
 }
+
+/* Restore reliable horizontal scrolling in raw and generated CSV preview tables.
+   Constrain the scroll viewport (not the table) and prevent cells from wrapping
+   enough to collapse the table to the viewport width. */
+.propulsion-csv-preview-card{
+ min-width:0!important;
+ max-width:100%!important;
+}
+.propulsion-csv-preview-viewport{
+ display:block!important;
+ box-sizing:border-box!important;
+ width:100%!important;
+ min-width:0!important;
+ max-width:100%!important;
+ overflow-x:auto!important;
+ overflow-y:auto!important;
+ overscroll-behavior-x:contain;
+ -webkit-overflow-scrolling:touch;
+}
+.propulsion-csv-preview-table{
+ display:table!important;
+ width:max-content!important;
+ min-width:max-content!important;
+ max-width:none!important;
+ table-layout:auto!important;
+}
+.propulsion-csv-preview-table th,
+.propulsion-csv-preview-table td{
+ white-space:nowrap!important;
+ overflow-wrap:normal!important;
+ word-break:normal!important;
+ max-width:360px;
+}
+.propulsion-csv-preview-table .propulsion-csv-virtual-spacer>td{
+ min-width:0!important;
+ max-width:none!important;
+}
