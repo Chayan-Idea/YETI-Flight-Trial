@@ -145,13 +145,8 @@ jobs:
             node_modules
           key: yeti-full-v1-${{ runner.os }}-node22-playwright1.65.1
           restore-keys: yeti-full-v1-${{ runner.os }}-node22-playwright1.65.1-
-      - name: Install Playwright when missing
-        run: |
-          if [ ! -x node_modules/.bin/playwright ]; then
-            npm install --no-save --no-package-lock playwright@1.65.1 pixelmatch@5.3.0 pngjs@6.0.0
-          else
-            npm install --no-save --no-package-lock pixelmatch@5.3.0 pngjs@6.0.0
-          fi
+      - name: Install all pinned analyzer regression dependencies together
+        run: npm install --no-save --no-package-lock playwright@1.65.1 pixelmatch@5.3.0 pngjs@6.0.0
       - name: Install Chromium when cache is cold
         run: |
           if ! find "$HOME/.cache/ms-playwright" -maxdepth 1 -type d -name 'chromium-*' 2>/dev/null | grep -q .; then
