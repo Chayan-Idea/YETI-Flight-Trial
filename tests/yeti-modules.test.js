@@ -8,7 +8,7 @@ const session=require('../js/yeti-session-storage.js');
 const source='Time;Actual RPM;Thrust\r\n00:00;1000;10\r\n00:01;0;9\r\n00:02;900;8';
 assert.deepEqual(csv.parse(source,csv.chooseDelimiter(source)),[['Time','Actual RPM','Thrust'],['00:00','1000','10'],['00:01','0','9'],['00:02','900','8']]);
 assert.equal(csv.normalizeHeader('\uFEFF Actual RPM '),'actual_rpm');
-assert.deepEqual(csv.filterRowsWithReturnTail([['RPM'],['100'],['0'],['-1'],['90']],0,1),[['RPM'],['100'],['0'],['90']]);
+assert.deepEqual(csv.filterRowsWithReturnTail([['RPM'],['100'],['0'],['-1'],['90']],0,1),[['RPM'],['100'],['0'],['-1'],['90']]);
 
 const specs=[{aliases:['actual_rpm','actual rpm']},{aliases:['thrust']}];
 const score=(value,aliases)=>mapping.scoreHeader(value,aliases,csv.normalizeHeader);
