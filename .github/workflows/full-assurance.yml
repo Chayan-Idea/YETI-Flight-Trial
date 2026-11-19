@@ -109,6 +109,8 @@ jobs:
           if [ ! -x node_modules/.bin/playwright ] || [ ! -d node_modules/axe-core ]; then
             npm install --no-save --no-package-lock playwright@1.65.1 axe-core@4.11.0
           fi
+      - name: Install Linux dependencies required by all browsers
+        run: ./node_modules/.bin/playwright install-deps chromium firefox webkit
       - name: Install Chromium, Firefox and WebKit when cache is cold
         run: |
           for browser in chromium firefox webkit; do
