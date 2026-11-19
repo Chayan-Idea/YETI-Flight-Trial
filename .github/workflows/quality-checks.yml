@@ -42,6 +42,8 @@ jobs:
           node-version: 22
       - name: Test common propulsion analysis engine
         run: node tests/propulsion-analysis-engine.test.js
+      - name: Test extracted analyzer responsibility modules
+        run: node tests/yeti-modules.test.js
 
   browser-smoke:
     name: Layer 3A — Browser, Flight Preparation and UI preservation
