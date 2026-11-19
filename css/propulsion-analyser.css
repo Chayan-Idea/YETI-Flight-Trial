@@ -1247,3 +1247,18 @@
 .propulsion-phase4-report-graph-controls>h4,.propulsion-phase4-report-graph-controls>p,.propulsion-phase4-report-graph-controls>.propulsion-actions,.propulsion-phase4-report-graph-controls>.propulsion-report-graph-list{grid-column:1/-1}
 .propulsion-phase4-report-graph-controls>.propulsion-phase4-field{width:100%;min-width:0}
 .propulsion-phase4-report-graph-controls>.propulsion-phase4-field select{width:100%;min-width:0;box-sizing:border-box}
+
+/* Match the Single-Log analyzer's double-line page frame on every comparative PDF page. */
+#multiPropulsionReportLivePreview .propulsion-report-page{
+ box-sizing:border-box!important;
+ border:1.2px solid #9aaebe!important;
+ outline:2px solid #dce5ed!important;
+ outline-offset:-3mm!important;
+}
+@media print{
+ #multiPropulsionReportLivePreview .propulsion-report-page{
+  border:1.2px solid #9aaebe!important;
+  outline:2px solid #dce5ed!important;
+  outline-offset:-3mm!important;
+ }
+}
