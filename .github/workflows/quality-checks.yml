@@ -62,5 +62,6 @@ jobs:
 
       - name: Run all six quality layers with a strict execution budget
         env:
+          HOME: /root
           YETI_BASELINE_ROOT: ${{ github.workspace }}/.baseline-main
         run: node scripts/run-six-layer-quality.mjs
