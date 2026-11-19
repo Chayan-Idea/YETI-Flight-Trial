@@ -478,9 +478,9 @@
     filteredRows.splice(0,filteredRows.length,...parsed);sortNote='Sorted by detected timestamp in ascending chronological order; unparseable timestamps remain in original order after valid timestamps.';
    }
    const exportRows=filteredRows.map(item=>item.row);
-   const escapeCsv=value=>{const text=String(value??'');return /[",\\r\\n]/.test(text)?'"'+text.replace(/"/g,'""')+'"':text;};
-   const rows=[headerRow,...exportRows];
-   const csv='\\uFEFF'+rows.map(row=>headerRow.map((_,index)=>escapeCsv(row[index]??'')).join(',')).join('\\r\\n');
+   const escapeCsv=value=>{const text=String(value??'');return /[",\r\n]/.test(text)?'"'+text.replace(/"/g,'""')+'"':text;};
+   const rows=[headerRow.slice(),...exportRows.map(row=>row.slice())];
+   const csv='\uFEFF'+rows.map(row=>rows[0].map((_,index)=>escapeCsv(row[index]??'')).join(',')).join('\r\n');
    generatedCsvText=csv;
    // From this point onward, the filtered and chronologically sorted export is the sole analysis dataset.
    analysisRows=exportRows.map(row=>row.slice());
@@ -1363,7 +1363,7 @@ const statsPage=el('section','propulsion-report-summary-page');
     const incomplete=requiredKeys.filter(key=>!sharedDerivedAdded.has(key));
     if(incomplete.length)throw new Error('Calculate all required derived parameters before generating the CSV.');
     const labels={mechanicalPower:'Mechanical Power (W)',electricalPower:'Electrical Power (W)',specificThrust:'Specific Thrust (N/W)'};
-    const escapeCsv=value=>{const text=String(value??'');return /[",\\r\\n]/.test(text)?'"'+text.replace(/"/g,'""')+'"':text;};
+    const escapeCsv=value=>{const text=String(value??'');return /[",\r\n]/.test(text)?'"'+text.replace(/"/g,'""')+'"':text;};
     const prepared=multiSession.logs.map(log=>{
      if(!log._phase3Filtered){commonEngine.filterLog(log,{actualRpmIndex:log.mapping.actualRpm});log._phase3Filtered=true;}
      const header=(log.filteredRows[0]||log.headers||[]).slice();
@@ -1375,13 +1375,16 @@ const statsPage=el('section','propulsion-report-summary-page');
       log.filteredRows=[header,...body.map(item=>item.row)];
      }
      commonEngine.calculateLog(log,multiLogType,requiredKeys);log._derivedKeys=requiredKeys.slice();log._phase3Ready=true;
-     const columns=header.slice();requiredKeys.forEach(key=>{const label=labels[key];if(!columns.includes(label))columns.push(label);});
+     const columns=header.slice();
+     const derivedColumnIndexes={};
+     requiredKeys.forEach(key=>{const label=labels[key];let index=columns.indexOf(label);if(index<0){index=columns.length;columns.push(label);}derivedColumnIndexes[key]=index;});
      const rows=[columns];
      log.calculatedRows.slice(1).forEach(item=>{
-      const row=columns.map((name,index)=>{const derivedKey=requiredKeys.find(key=>labels[key]===name);return derivedKey?Number.isFinite(item.derived[derivedKey])?item.derived[derivedKey]:'':item.source[index]??'';});
-      rows.push(row);
+      const row=item.source.slice();
+      requiredKeys.forEach(key=>{row[derivedColumnIndexes[key]]=Number.isFinite(item.derived[key])?item.derived[key]:'';});
+      rows.push(columns.map((_,index)=>row[index]??''));
      });
-     const csv='\\uFEFF'+rows.map(row=>row.map(escapeCsv).join(',')).join('\\r\\n');
+     const csv='\uFEFF'+rows.map(row=>columns.map((_,index)=>escapeCsv(row[index]??'')).join(',')).join('\r\n');
      const originalName=log.fileName||multiFiles[multiSession.logs.indexOf(log)]?.file?.name||('Log_'+log.id+'.csv');
      const base=originalName.replace(/\\.csv$/i,'');
      return {log,name:base+'_filtered_sorted.csv',csv,rows,columns,originalName,timestampSorted:timestampIndex!==undefined};
