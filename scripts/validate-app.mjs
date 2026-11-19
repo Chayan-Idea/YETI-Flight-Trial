@@ -69,8 +69,52 @@ for (const reference of stylesheets) {
   else fail('Missing stylesheet: ' + localPath);
 }
 
-checkJavaScript('service-worker.js', read('service-worker.js'));
+// Parse every maintained browser JavaScript and CommonJS test file, not only scripts referenced by index.html.
+function collectJavaScript(directory) {
+  if (!exists(directory)) return [];
+  return fs.readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
+    const file = path.join(directory, entry.name);
+    if (entry.isDirectory()) return collectJavaScript(file);
+    return /\.(?:js|cjs)$/.test(entry.name) ? [file] : [];
+  });
+}
+const checkedFiles = new Set(externalScripts.map(reference => reference.split('?')[0].replace(/^\.\//, '')));
+for (const directory of ['js', 'scripts', 'tests']) {
+  for (const file of collectJavaScript(directory)) {
+    if (checkedFiles.has(file)) continue;
+    checkJavaScript(file, read(file));
+    checkedFiles.add(file);
+  }
+}
+pass('All JavaScript application, utility, and test files were syntax-checked');
 
+const serviceWorker = read('service-worker.js');
+checkJavaScript('service-worker.js', serviceWorker);
+const shellStart = serviceWorker.indexOf('const SHELL=[');
+const shellEnd = shellStart >= 0 ? serviceWorker.indexOf('];', shellStart) : -1;
+if (shellStart < 0 || shellEnd < 0) {
+  fail('Service worker app-shell list could not be identified');
+} else {
+  const shellText = serviceWorker.slice(shellStart, shellEnd);
+  const shellAssets = [...shellText.matchAll(/['"]([^'"]+)['"]/g)].map(match => match[1]);
+  const duplicateShellAssets = shellAssets.filter((asset, index) => shellAssets.indexOf(asset) !== index);
+  if (duplicateShellAssets.length) fail('Duplicate service-worker precache assets: ' + [...new Set(duplicateShellAssets)].join(', '));
+  else pass('No duplicate service-worker precache assets');
+  for (const asset of shellAssets) {
+    const localPath = asset.startsWith('./') ? asset.slice(2) : asset;
+    if (exists(localPath)) pass('Service-worker precache asset exists: ' + localPath);
+    else fail('Missing service-worker precache asset: ' + localPath);
+  }
+  const appAssets = [...externalScripts, ...stylesheets].map(reference => reference.split('?')[0]);
+  for (const asset of appAssets) {
+    if (!shellAssets.includes(asset)) fail('Application entry is missing from service-worker precache: ' + asset);
+  }
+  if (!appAssets.some(asset => asset.endsWith('/propulsion-analysis-engine.js'))) {
+    fail('Propulsion analysis engine is not loaded by index.html');
+  } else if (!shellAssets.includes('./js/propulsion-analysis-engine.js')) {
+    fail('Propulsion analysis engine is missing from service-worker precache');
+  } else pass('All application scripts and stylesheets are included in service-worker precache');
+}
 if (failures.length) {
   console.error('YETI Flight Trial validation FAILED');
   for (const failure of failures) console.error('✗ ' + failure);

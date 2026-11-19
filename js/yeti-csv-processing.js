@@ -1,0 +1,9 @@
+/* YETI CSV processing module — pure parsing and row filtering. */
+(function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;if(root)root.YetiCsvProcessing=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
+ 'use strict';
+ function parse(text,delimiter){const rows=[];let row=[],field='',quoted=false;for(let i=0;i<text.length;i++){const ch=text[i];if(quoted){if(ch==='"'&&text[i+1]==='"'){field+='"';i++;}else if(ch==='"')quoted=false;else field+=ch;}else if(ch==='"')quoted=true;else if(ch===delimiter){row.push(field);field='';}else if(ch==='\n'){row.push(field.replace(/\r$/,''));rows.push(row);row=[];field='';}else field+=ch;}if(field.length||row.length){row.push(field.replace(/\r$/,''));rows.push(row);}return rows;}
+ function chooseDelimiter(text){const first=(text.split(/\r?\n/).find(line=>line.trim())||'');const candidates=[',',';','\t'];return candidates.map(d=>({d,n:(first.match(new RegExp(d==='\t'?'\\t':d.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\$&'),'g'))||[]).length})).sort((a,b)=>b.n-a.n)[0].d;}
+ function normalizeHeader(value){return String(value??'').replace(/^\uFEFF/,'').trim().toLowerCase().replace(/[\s().\-\/]+/g,'_').replace(/_+/g,'_');}
+ function filterRowsWithReturnTail(rows,rpmIndex,headerCount=0){if(!Number.isInteger(Number(rpmIndex)))return rows.slice();const kept=[];let returnTailRemaining=-1;for(let index=0;index<rows.length;index++){const row=rows[index];if(index<headerCount){kept.push(row);continue;}if(returnTailRemaining===0)break;if(returnTailRemaining>0){kept.push(row);returnTailRemaining--;continue;}const raw=String(row?.[rpmIndex]??'').trim(),rpm=raw===''?NaN:Number(raw.replace(/,/g,''));if(!Number.isFinite(rpm)||rpm>0){kept.push(row);continue;}if(rpm<0)continue;kept.push(row);returnTailRemaining=5;}return kept;}
+ return Object.freeze({parse,chooseDelimiter,normalizeHeader,filterRowsWithReturnTail});
+});
