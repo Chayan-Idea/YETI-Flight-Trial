@@ -17,12 +17,18 @@ const server = http.createServer((req,res)=>{
   await new Promise(resolve=>server.listen(4173,'127.0.0.1',resolve));
   browser=await chromium.launch({headless:true,args:['--no-sandbox']});
   const page=await browser.newPage();
-  const pageErrors=[];page.on('pageerror',error=>pageErrors.push(error.message));
+  const pageErrors=[],consoleErrors=[],failedRequests=[],checkpoints=[];
+  page.on('pageerror',error=>pageErrors.push(error.message));
+  page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text());});
+  page.on('requestfailed',request=>failedRequests.push({url:request.url(),error:request.failure()?.errorText||'request failed'}));
+  const checkpoint=name=>{checkpoints.push({name,url:page.url(),time:new Date().toISOString()});console.log('[E2E CHECKPOINT] '+name);};
   await page.goto('http://127.0.0.1:4173/',{waitUntil:'networkidle'});
+  checkpoint('application shell loaded');
   // Exercise the single-log workflow first, then validate comparative report UI after multi-log data exists.
 
 
     await page.locator('#propulsionAnalyzerTab').click();
+  checkpoint('propulsion analyzer opened');
   await page.locator('#propulsionLogCount').selectOption('1');
   await page.locator('#propulsionLogTypePicker input[value="thrust"]').evaluate(el=>{el.checked=true;el.dispatchEvent(new Event('change',{bubbles:true}));});
   await page.locator('#propulsionLogUploadArea').waitFor({state:'visible'});
@@ -34,6 +40,7 @@ const server = http.createServer((req,res)=>{
   await page.locator('#confirmPropulsionMappingBtn').waitFor({state:'visible'});
   if(await page.locator('#confirmPropulsionMappingBtn').isDisabled())throw new Error('Single-log parameter mapping did not validate.');
   await page.locator('#confirmPropulsionMappingBtn').click();
+  checkpoint('single-log mapping confirmed');
   const electrical=page.locator('.propulsion-calculated-parameter[data-parameter-key="electricalPower"]');
   await electrical.locator('input[type="checkbox"]').check();
   await electrical.locator('button').filter({hasText:'Calculate and Add to Log file'}).click();
@@ -73,6 +80,7 @@ const server = http.createServer((req,res)=>{
   await uploads.nth(1).setInputFiles({name:'run-b.csv',mimeType:'text/csv',buffer:Buffer.from(csvB)});
   await page.locator('#identifyMultipleLogsBtn').waitFor({state:'visible'});
   await page.locator('#identifyMultipleLogsBtn').click();
+  checkpoint('multi-log parameter identification opened');
   await page.locator('#confirmAllMultiLogMappingsBtn').waitFor({state:'visible'});
   const mappingTables=page.locator('.propulsion-multi-mapping-unified');
   const assertMappingFits=async(label)=>{
@@ -326,6 +334,17 @@ const server = http.createServer((req,res)=>{
   await page.locator('#flightPreparationPanel').waitFor({state:'visible'});
   if(pageErrors.length)throw new Error('Browser runtime errors: '+pageErrors.join(' | '));
   console.log('Propulsion analyzer browser E2E passed: 2-log upload, independent mapping, RPM filtering, comparative graph with secondary Y axis, report generation and PDF print view.');
- } catch(error) { console.error(error);process.exitCode=1; }
+ } catch(error) {
+   console.error('[E2E FAILURE]',error.stack||error);
+   console.error('[E2E CHECKPOINTS]',JSON.stringify(checkpoints,null,2));
+   console.error('[BROWSER PAGE ERRORS]',JSON.stringify(pageErrors,null,2));
+   console.error('[BROWSER CONSOLE ERRORS]',JSON.stringify(consoleErrors,null,2));
+   console.error('[FAILED NETWORK REQUESTS]',JSON.stringify(failedRequests,null,2));
+   if(page){
+    try{await page.screenshot({path:'/tmp/yeti-browser-failure.png',fullPage:true});console.error('[SCREENSHOT] /tmp/yeti-browser-failure.png');}catch(captureError){console.error('[SCREENSHOT CAPTURE FAILED]',captureError.message);}
+    try{console.error('[FAILED PAGE STATE]',JSON.stringify(await page.evaluate(()=>({url:location.href,title:document.title,visibleHeadings:[...document.querySelectorAll('h1,h2,h3')].filter(el=>el.getClientRects().length).map(el=>el.textContent.trim()).slice(-30),visibleAlerts:[...document.querySelectorAll('[role=alert]')].map(el=>el.textContent.trim()),visibleStatus:[...document.querySelectorAll('[role=status]')].map(el=>el.textContent.trim())})),null,2));}catch(stateError){console.error('[PAGE STATE CAPTURE FAILED]',stateError.message);}
+   }
+   process.exitCode=1;
+  }
  finally { if(browser)await browser.close();await new Promise(resolve=>server.close(resolve)); }
 })();
