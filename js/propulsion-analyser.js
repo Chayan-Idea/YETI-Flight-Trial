@@ -849,7 +849,8 @@ const statsPage=el('section','propulsion-report-summary-page');
     tr.append(el('th','propulsion-stat-parameter',s.label+' ('+units[s.key]+')'));
     tr.append(el('td','propulsion-stat-column',headerRow[idx]));
     if(maxRow>=0){
-     tr.append(el('td','',fmt(max)+' '+units[s.key]));
+     const displayedValue=accelerationParameterKeys.has(s.key)?toDisplayAcceleration(Number(analysisRows[maxRow][idx])):Number(analysisRows[maxRow][idx]);
+     tr.append(el('td','',fmt(displayedValue)+' '+units[s.key]));
      const timestamp=timestampIndex===undefined?'Timestamp column not found':String(analysisRows[maxRow][timestampIndex]??'').trim()||'Timestamp unavailable';
      tr.append(el('td','propulsion-stat-timestamp',timestamp));
     }else{
@@ -1193,7 +1194,8 @@ const statsPage=el('section','propulsion-report-summary-page');
       const value=specIsDerived?item.derived?.[parameter.key]:(raw===''?NaN:Number(raw));const score=(!specIsDerived&&(parameter.key==='torque'||accelerationParameterKeys.has(parameter.key)))?Math.abs(value):value;
       if(Number.isFinite(value)&&score>maximum){maximum=score;maximumRow=item;}
      });
-     const valueText=Number.isFinite(maximum)?new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(maximum):'—';
+     const displayedMaximum=maximumRow&&!specIsDerived&&(parameter.key==='torque'||accelerationParameterKeys.has(parameter.key))?Number(maximumRow.source?.[sourceIndex]):maximum;
+     const valueText=Number.isFinite(displayedMaximum)?new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(displayedMaximum):'—';
      const timestamp=maximumRow?(timestampIndex===undefined?'Timestamp column not found':String(maximumRow.source?.[timestampIndex]??'').trim()||'Timestamp unavailable'):(timestampIndex===undefined?'Timestamp column not found':'No numeric data');
      const tile=el('div','propulsion-report-comparative-cell');
      tile.append(el('strong','propulsion-report-comparative-cell-value',valueText),el('small','propulsion-report-kpi-timestamp',timestamp));
@@ -1479,7 +1481,8 @@ const statsPage=el('section','propulsion-report-summary-page');
       if(Number.isFinite(value)&&score>maximum){maximum=score;maximumRow=item;}
      });
      const timestamp=maximumRow?(timestampIndex===undefined?'Timestamp column not found':String(maximumRow.source?.[timestampIndex]??'').trim()||'Timestamp unavailable'):(timestampIndex===undefined?'Timestamp column not found':'No numeric data');
-     values.set(spec.key,{maximum:Number.isFinite(maximum)?new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(maximum):'—',timestamp});
+     const displayed=maximumRow&&!spec.derived&&(spec.key==='torque'||accelerationParameterKeys.has(spec.key))?Number(maximumRow.source?.[spec.index]):maximum;
+     values.set(spec.key,{maximum:Number.isFinite(displayed)?new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(displayed):'—',timestamp});
     });
     return values;
    });
