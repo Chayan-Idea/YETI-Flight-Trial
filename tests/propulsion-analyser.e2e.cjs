@@ -13,15 +13,15 @@ const server = http.createServer((req,res)=>{
 });
 (async()=>{
  let browser,page;
+ const pageErrors=[],consoleErrors=[],failedRequests=[],checkpoints=[];
+ const checkpoint=name=>{checkpoints.push({name,url:page?.url()||'',time:new Date().toISOString()});console.log('[E2E CHECKPOINT] '+name);};
  try {
   await new Promise(resolve=>server.listen(4173,'127.0.0.1',resolve));
   browser=await chromium.launch({headless:true,args:['--no-sandbox']});
   page=await browser.newPage();
-  const pageErrors=[],consoleErrors=[],failedRequests=[],checkpoints=[];
   page.on('pageerror',error=>pageErrors.push(error.message));
   page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text());});
   page.on('requestfailed',request=>failedRequests.push({url:request.url(),error:request.failure()?.errorText||'request failed'}));
-  const checkpoint=name=>{checkpoints.push({name,url:page.url(),time:new Date().toISOString()});console.log('[E2E CHECKPOINT] '+name);};
   await page.goto('http://127.0.0.1:4173/',{waitUntil:'networkidle'});
   checkpoint('application shell loaded');
   // Exercise the single-log workflow first, then validate comparative report UI after multi-log data exists.
@@ -214,8 +214,8 @@ const server = http.createServer((req,res)=>{
   if(!changedRange||!Number.isFinite(Number(changedRange)))throw new Error('Changing the Y-axis must initialise a fresh valid Y range for the newly selected parameter.');
 
     const graphSvg=page.locator('.propulsion-phase3-plot-host svg');
-  const svgStyle=await graphSvg.evaluate(el=>({width:getComputedStyle(el).width,minWidth:getComputedStyle(el).minWidth}));
-  if(svgStyle.minWidth!=='0px')throw new Error('Comparative graph must fit its viewport so the slider and graph share visible endpoints.');
+  const svgStyle=await graphSvg.evaluate(el=>({width:el.getBoundingClientRect().width,hostWidth:el.parentElement.clientWidth,scrollWidth:el.parentElement.scrollWidth,minWidth:getComputedStyle(el).minWidth}));
+  if(svgStyle.minWidth!=='0px'||svgStyle.width>svgStyle.hostWidth+1||svgStyle.scrollWidth>svgStyle.hostWidth+1)throw new Error('Comparative graph must fit its viewport so the slider and graph share visible endpoints: '+JSON.stringify(svgStyle));
 
   for(let index=0;index<2;index++){
    const entry=perLogReadouts.nth(index);
