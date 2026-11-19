@@ -705,9 +705,36 @@
    // this report's portrait layout in the browser print pipeline.
    const printWindow=window.open('','_blank');if(!printWindow){reportPreviewPanel.querySelector('.propulsion-report-validation').textContent='Allow pop-ups for this site to export the report PDF.';return}
    const printMarkup=reportPreview.cloneNode(true);printMarkup.id='propulsionReportLivePreview';
-   const printDoc='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Propulsion Validation Report</title><link rel="stylesheet" href="./css/propulsion-analyser.css?v=24"><style>html,body{margin:0!important;padding:0!important;width:210mm!important;background:#fff!important}body{display:block!important}#propulsionReportLivePreview{display:block!important;width:210mm!important;max-height:none!important;overflow:visible!important;padding:0!important;margin:0!important;background:#fff!important}#propulsionReportLivePreview .propulsion-report-page{box-sizing:border-box!important;width:210mm!important;height:297mm!important;min-height:297mm!important;max-height:297mm!important;margin:0!important;padding:12mm 13mm!important;overflow:hidden!important;box-shadow:none!important}#propulsionReportLivePreview .propulsion-report-preview-graph svg{display:block!important;width:100%!important;height:auto!important;max-height:102mm!important}@media print{@page{size:A4 portrait;margin:0}html,body{width:210mm!important;margin:0!important;padding:0!important}#propulsionReportLivePreview .propulsion-report-page{break-after:page!important;page-break-after:always!important;print-color-adjust:exact!important;-webkit-print-color-adjust:exact!important}#propulsionReportLivePreview .propulsion-report-page:last-child{break-after:auto!important;page-break-after:auto!important}}</style></head><body>'+printMarkup.outerHTML+'</body></html>';
+   const printDoc='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Propulsion Validation Report</title><style>html,body{margin:0!important;padding:0!important;width:210mm!important;background:#fff!important}body{display:block!important}#propulsionReportLivePreview{display:block!important;width:210mm!important;max-height:none!important;overflow:visible!important;padding:0!important;margin:0!important;background:#fff!important}#propulsionReportLivePreview .propulsion-report-page{box-sizing:border-box!important;width:210mm!important;height:297mm!important;min-height:297mm!important;max-height:297mm!important;margin:0!important;padding:12mm 13mm!important;overflow:hidden!important;box-shadow:none!important}#propulsionReportLivePreview .propulsion-report-preview-graph svg{display:block!important;width:100%!important;height:auto!important;max-height:102mm!important}@media print{@page{size:A4 portrait;margin:0}html,body{width:210mm!important;margin:0!important;padding:0!important}#propulsionReportLivePreview .propulsion-report-page{break-after:page!important;page-break-after:always!important;print-color-adjust:exact!important;-webkit-print-color-adjust:exact!important}#propulsionReportLivePreview .propulsion-report-page:last-child{break-after:auto!important;page-break-after:auto!important}}</style></head><body>'+printMarkup.outerHTML+'</body></html>';
    printWindow.document.open();printWindow.document.write(printDoc);printWindow.document.close();
-   const triggerPrint=()=>{printWindow.focus();printWindow.print()};const printStyle=printWindow.document.querySelector('link[rel="stylesheet"]');if(printStyle){if(printStyle.sheet)triggerPrint();else{printStyle.addEventListener('load',triggerPrint,{once:true});printStyle.addEventListener('error',()=>{reportPreviewPanel.querySelector('.propulsion-report-validation').textContent='Unable to load report print styling. Please retry.'},{once:true})}}else triggerPrint();
+   // The print window starts at about:blank: a relative stylesheet URL there
+   // resolves against about:blank and silently leaves the report unstyled/blank.
+   // Resolve the app stylesheet against the live YETI page and wait for layout.
+   const printStyle=printWindow.document.createElement('link');
+   printStyle.rel='stylesheet';
+   printStyle.href=new URL('./css/propulsion-analyser.css?v=60',window.location.href).href;
+   printWindow.document.head.append(printStyle);
+   const triggerPrint=async()=>{
+    try{
+     await (printWindow.document.fonts?.ready||Promise.resolve());
+     await Promise.all(Array.from(printWindow.document.images).map(image=>image.complete?Promise.resolve():new Promise(resolve=>{image.addEventListener('load',resolve,{once:true});image.addEventListener('error',resolve,{once:true});})));
+     await new Promise(resolve=>printWindow.requestAnimationFrame(()=>printWindow.requestAnimationFrame(resolve)));
+     if(printWindow.closed)return;
+     const printable=printWindow.document.querySelector('#propulsionReportLivePreview');
+     if(!printable||!printable.querySelector('.propulsion-report-page')||!printable.textContent.trim()){
+      reportPreviewPanel.querySelector('.propulsion-report-validation').textContent='The report preview is empty. Please regenerate the preview and retry.';
+      printWindow.close();return;
+     }
+     printWindow.focus();printWindow.print();
+    }catch(error){
+     console.error('YETI PDF print preparation failed:',error);
+     reportPreviewPanel.querySelector('.propulsion-report-validation').textContent='Unable to prepare the report for PDF export. Please retry.';
+    }
+   };
+   printStyle.addEventListener('load',triggerPrint,{once:true});
+   printStyle.addEventListener('error',()=>{
+    reportPreviewPanel.querySelector('.propulsion-report-validation').textContent='Unable to load report print styling. Check your connection and retry.';
+   },{once:true});
   });const validation=el('p','propulsion-report-validation','Complete the mandatory fields to enable a valid report export.');exportActions.append(exportPdf);reportPreviewPanel.append(reportPreview,validation,exportActions);
   reportBuilder.append(reportForm,reportGraphControls,reportPreviewPanel);step5.append(reportBuilder);
   function updateReportPreview(){
