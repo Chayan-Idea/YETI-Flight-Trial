@@ -61,7 +61,7 @@ const server = http.createServer((req,res)=>{
   await page.locator('#propulsionMultiSetupCard').waitFor({state:'visible'});
   await page.locator('#propulsionMultiUploadControls').waitFor({state:'hidden'});
   if(await page.locator('#propulsionMultiUploadControls').isVisible())throw new Error('Multi-log upload controls must remain hidden until a test type is selected.');
-  await page.locator('#propulsionMultiLogTypePicker input[value="thrust"]').check();
+  await page.locator('#propulsionMultiLogTypePicker input[value="thrust"]').evaluate(el=>el.click());
   await page.locator('#propulsionMultiUploadControls').waitFor({state:'visible'});
   const selectedTypeCard=page.locator('#propulsionMultiLogTypePicker .propulsion-log-type-option').filter({has:page.locator('input[value="thrust"]')});
   if(!(await selectedTypeCard.evaluate(el=>el.classList.contains('is-selected'))))throw new Error('Selected Thrust Log option did not receive its full selected state.');
