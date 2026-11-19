@@ -1666,7 +1666,9 @@ const statsPage=el('section','propulsion-report-summary-page');
   const status=$id('propulsionCommonSetupStatus');
   if(status)status.textContent=selectedCount==='1'?'Single-log setup selected. Step 01 is ready.':'Comparative setup selected for '+selectedCount+' logs. Step 01 is ready.';
   const commonSetup=$id('propulsionCommonSetupCard');
-  if(commonSetup)commonSetup.hidden=true;
+  // Keep the Configure Test Logs card visible after Step 01 is revealed so users
+  // can always see and review the selected workflow configuration.
+  if(commonSetup)commonSetup.hidden=false;
   setMultiMode();
   (selectedCount==='1'?uploadCard:multiSetupCard)?.scrollIntoView({behavior:'smooth',block:'start'});
  });
