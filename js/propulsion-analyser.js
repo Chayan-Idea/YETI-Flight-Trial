@@ -36,7 +36,7 @@
   };
  }
 
- function filterRowsWithReturnTail(rows,rpmIndex,headerCount=0){
+ function filterRowsWithReturnTail(rows,rpmIndex,headerCount=0){return csvProcessing.filterRowsWithReturnTail(rows,rpmIndex,headerCount);}\n /* Legacy call site retained; filtering implementation lives in yeti-csv-processing.js. */\n function _legacyFilterRowsWithReturnTail_DISABLED(rows,rpmIndex,headerCount=0){
   if(!Number.isInteger(Number(rpmIndex)))return rows.slice();
   const kept=[];let returnTailRemaining=-1;
   for(let index=0;index<rows.length;index++){
@@ -150,44 +150,19 @@
  function activeSpecs(stage='mapping'){return specs.filter(spec=>isParameterAvailable(spec.key,stage));}
 
  let selectedFile=null,headerRow=[],dataRows=[],analysisRows=[],mapping={},calculatedParameterKeys=[],calculatedParameterControls={},confirmed=false,step3FilterVisible=false,step3Visible=false,step4Visible=false,step5Visible=false,reportDirectVisible=false,analysisPanel=null;
- const DB_NAME='yeti-flight-trial-state',DB_STORE='propulsion-analyser',DB_KEY='active-session';
- function openStateDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(DB_STORE))req.result.createObjectStore(DB_STORE)};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
+ const DB_NAME=sessionTools.DB_NAME,DB_STORE=sessionTools.DB_STORE,DB_KEY=sessionTools.DB_KEY;
+ function openStateDB(){return sessionTools.open()}
  let graphXIndex='',graphYIndex='',graphY2Index='',graphRangeStart='',graphRangeEnd='',graphYRangeStart='',graphYRangeEnd='',graphY2RangeStart='',graphY2RangeEnd='';
  async function saveState(){try{const db=await openStateDB();await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).put({csvText:parseCSVText,fileName:selectedFile?.name||'Restored CSV log.csv',stage:step5Visible?'report':step4Visible?'graphical':step3Visible?'summary':step3FilterVisible?'filter':confirmed?'confirmed':analysisPanel?'identified':selectedFile?'uploaded':'empty',reportDirectVisible,logType,mapping:Object.fromEntries(specs.map(s=>[s.key,mapping[s.key]?.selected??''])),graphXIndex,graphYIndex,graphY2Index,graphRangeStart,graphRangeEnd,graphYRangeStart,graphYRangeEnd,graphY2RangeStart,graphY2RangeEnd,calculatedParameterKeys},DB_KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}catch(error){console.warn('Could not save propulsion session locally:',error)}}
  async function loadState(){try{const db=await openStateDB();const saved=await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readonly');const req=tx.objectStore(DB_STORE).get(DB_KEY);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});db.close();if(!saved?.csvText)return;logType=saved.logType||'';if(logTypePicker){const choice=logTypePicker.querySelector('input[value="'+logType+'"]');if(choice)choice.checked=true;}updateLogTypeUI();parseCSVText=saved.csvText;selectedFile={name:saved.fileName||'Restored CSV log.csv',size:new Blob([parseCSVText]).size,text:async()=>parseCSVText};if(filePicker)filePicker.hidden=true;meta.hidden=false;meta.textContent=selectedFile.name+' · '+(selectedFile.size/1024).toFixed(1)+' KB · Restored locally';reset.hidden=false;setUploadState(true,'Previous CSV session restored from this browser');renderCsvPreview(parseCSVText);const rows=parseCSV(parseCSVText,chooseDelimiter(parseCSVText));detect(rows);if(saved.mapping){specs.forEach(spec=>{const value=saved.mapping[spec.key];if(value!==''&&value!==undefined)mapping[spec.key].selected=Number(value)});analysisPanel.querySelectorAll('.propulsion-column-select').forEach(select=>{select.value=mapping[select.dataset.key].selected===''?'':String(mapping[select.dataset.key].selected)});validateMapping()}if((saved.stage==='confirmed'||saved.stage==='filter'||saved.stage==='summary'||saved.stage==='graphical'||saved.stage==='report')&&validateMapping())$id('confirmPropulsionMappingBtn').click();if(Array.isArray(saved.calculatedParameterKeys)){saved.calculatedParameterKeys.forEach(key=>{const control=calculatedParameterControls[key];if(control){control.checkbox.checked=true;control.checkbox.dispatchEvent(new Event('change'));control.calculate.click();}})}if((saved.stage==='summary'||saved.stage==='graphical')&&confirmed)$id('proceedToParameterSummaryBtn')?.click();if(saved.stage==='summary'||saved.stage==='graphical')$id('proceedToParameterSummaryBtn')?.click();if(saved.stage==='report'&&saved.reportDirectVisible){$id('proceedToReportGenerationChoiceBtn')?.click()}else if((saved.stage==='graphical'||saved.stage==='report')&&step3Visible){$id('proceedToGraphicalAnalysisBtn')?.click();if(saved.stage==='report')$id('proceedToGenerateReportBtn')?.click();if(saved.graphXIndex!==undefined){graphXIndex=String(saved.graphXIndex);graphYIndex=String(saved.graphYIndex??'');graphY2Index=String(saved.graphY2Index??'');const xs=$id('propulsionXAxisSelect'),ys=$id('propulsionYAxisSelect'),y2s=$id('propulsionSecondaryYAxisSelect');if(xs)xs.value=graphXIndex;if(ys)ys.value=graphYIndex;if(y2s)y2s.value=graphY2Index;graphRangeStart=String(saved.graphRangeStart??'');graphRangeEnd=String(saved.graphRangeEnd??'');graphYRangeStart=String(saved.graphYRangeStart??'');graphYRangeEnd=String(saved.graphYRangeEnd??'');graphY2RangeStart=String(saved.graphY2RangeStart??'');graphY2RangeEnd=String(saved.graphY2RangeEnd??'');const savedRangeStart=$id('propulsionXRangeStart'),savedRangeEnd=$id('propulsionXRangeEnd'),savedYRangeStart=$id('propulsionYRangeStart'),savedYRangeEnd=$id('propulsionYRangeEnd'),savedY2RangeStart=$id('propulsionY2RangeStart'),savedY2RangeEnd=$id('propulsionY2RangeEnd');if(savedRangeStart)savedRangeStart.value=graphRangeStart;if(savedRangeEnd)savedRangeEnd.value=graphRangeEnd;if(savedYRangeStart)savedYRangeStart.value=graphYRangeStart;if(savedYRangeEnd)savedYRangeEnd.value=graphYRangeEnd;if(savedY2RangeStart)savedY2RangeStart.value=graphY2RangeStart;if(savedY2RangeEnd)savedY2RangeEnd.value=graphY2RangeEnd;if($id('plotPropulsionGraphBtn')&&graphXIndex!==''&&graphYIndex!=='')$id('plotPropulsionGraphBtn').click();}}start.textContent='Parameters Identified';start.disabled=true}catch(error){console.warn('Could not restore propulsion session:',error)}}
  function setUploadState(ok,text){status.classList.toggle('is-complete',ok);status.querySelector('.propulsion-status-symbol').textContent=ok?'✓':'○';status.lastElementChild.textContent=text}
- function parseCSV(text,delimiter){
-  const rows=[];let row=[],field='',quoted=false;
-  for(let i=0;i<text.length;i++){
-   const ch=text[i];
-   if(quoted){if(ch==='"'&&text[i+1]==='"'){field+='"';i++}else if(ch==='"')quoted=false;else field+=ch}
-   else if(ch==='"')quoted=true;
-   else if(ch===delimiter){row.push(field);field=''}
-   else if(ch==='\n'){row.push(field.replace(/\r$/,''));rows.push(row);row=[];field=''}
-   else field+=ch;
-  }
-  if(field.length||row.length){row.push(field.replace(/\r$/,''));rows.push(row)}
-  return rows;
- }
- function chooseDelimiter(text){
-  const first=(text.split(/\r?\n/).find(line=>line.trim())||'');
-  const candidates=[',',';','\t'];return candidates.map(d=>({d,n:(first.match(new RegExp(d==='\t'?'\\t':d==='.'?'\\.':d==='|'?'\\|':d.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\$&'),'g'))||[]).length})).sort((a,b)=>b.n-a.n)[0].d;
- }
- function norm(s){return String(s??'').replace(/^\uFEFF/,'').trim().toLowerCase().replace(/[\s().\-\/]+/g,'_').replace(/_+/g,'_')}
- function scoreHeader(header,aliases){
-  const h=norm(header);let best=0;
-  for(const a of aliases){const n=norm(a);if(h===n)best=Math.max(best,100);else if(h.includes(n)||n.includes(h))best=Math.max(best, h.length>3?65:30)}
-  return best;
- }
- function findHeader(rows){
-  let best={index:-1,score:0};
-  for(let i=0;i<Math.min(rows.length,10);i++){
-   const cells=rows[i].map(v=>String(v??'').trim());
-   const score=specs.reduce((sum,s)=>sum+(cells.some(c=>scoreHeader(c,s.aliases)>=65)?1:0),0);
-   if(score>best.score)best={index:i,score};
-  }
-  return best.score>=4?best.index:-1;
- }
+ const csvProcessing=window.YetiCsvProcessing,mappingTools=window.YetiParameterMapping,graphTools=window.YetiGraphAnalysis,reportTools=window.YetiReportGeneration,sessionTools=window.YetiSessionStorage;
+ if(!csvProcessing||!mappingTools||!graphTools||!reportTools||!sessionTools)throw new Error('A required YETI analysis module failed to load.');
+ function parseCSV(text,delimiter){return csvProcessing.parse(text,delimiter);}
+ function chooseDelimiter(text){return csvProcessing.chooseDelimiter(text);}
+ function norm(value){return csvProcessing.normalizeHeader(value);}
+ function scoreHeader(header,aliases){return mappingTools.scoreHeader(header,aliases,norm);}
+ function findHeader(rows){return mappingTools.findHeader(rows,specs,scoreHeader);}
  function detect(rows){
   // Re-identification starts a fresh review cycle and removes every previously unlocked downstream step.
   workspace.querySelector('#propulsionDataFilteringCard')?.remove();
@@ -590,20 +565,8 @@
    pointGuide.setAttribute('x1',point.sx);pointGuide.setAttribute('x2',point.sx);
    pointSlider.setAttribute('aria-valuetext','Point '+(safeIndex+1)+' of '+plottedPoints.length+', X '+formatPointValue(point.x)+', primary Y '+formatPointValue(point.y)+', secondary Y '+formatPointValue(point.y2));
   };
-  const getRecordHighXPoints=xi=>{
-   const retained=[];let highestX=-Infinity;
-   analysisRows.forEach((row,index)=>{
-    const raw=String(row[xi]??'').trim();if(raw==='')return;
-    const parsed=Number(raw),x=isAccelerationColumn(xi)?toDisplayAcceleration(parsed):parsed;if(!Number.isFinite(x)||x<highestX)return;
-    highestX=x;retained.push({index,x});
-   });
-   return retained;
-  };
-  const getFullGraphXRange=xi=>{
-   const points=getRecordHighXPoints(xi);if(!points.length)return null;
-   let min=Infinity,max=-Infinity;points.forEach(point=>{if(point.x<min)min=point.x;if(point.x>max)max=point.x});
-   return {min,max};
-  };
+  const getRecordHighXPoints=xi=>graphTools.recordHighXPoints(analysisRows,xi,value=>isAccelerationColumn(xi)?toDisplayAcceleration(value):value);
+  const getFullGraphXRange=xi=>graphTools.fullXRange(getRecordHighXPoints(xi));
   // Use the live input event as the sole slider update source while dragging.
   pointSlider.addEventListener('input',()=>selectGraphPoint(pointSlider.value));
   plotButton.addEventListener('click',()=>{
@@ -750,7 +713,7 @@
   reportGraphControls.append(addReportGraph,reportGraphCount,reportGraphList);
   const reportPreviewPanel=el('div','propulsion-report-preview-panel');reportPreviewPanel.append(el('h3','','Live A4 PDF Preview'));
   const reportPreview=el('div','propulsion-report-preview-pages');reportPreview.id='propulsionReportLivePreview';
-  const exportActions=el('div','propulsion-actions');const exportPdf=el('button','btn','Export Report as PDF');exportPdf.type='button';exportPdf.addEventListener('click',()=>{const required=['motorName','escName','propellerName','testDate','testReportType'];const missing=required.filter(key=>!reportFields[key].value.trim());if(missing.length){reportForm.querySelector('#report_'+missing[0]).focus();reportPreviewPanel.querySelector('.propulsion-report-validation').textContent='Complete all mandatory fields before exporting.';return}
+  const exportActions=el('div','propulsion-actions');const exportPdf=el('button','btn','Export Report as PDF');exportPdf.type='button';exportPdf.addEventListener('click',()=>{const missing=reportTools.missingRequiredFields(Object.fromEntries(Object.entries(reportFields).map(([key,field])=>[key,field.value])));if(missing.length){reportForm.querySelector('#report_'+missing[0]).focus();reportPreviewPanel.querySelector('.propulsion-report-validation').textContent='Complete all mandatory fields before exporting.';return}
    // Print an isolated copy of the exact live A4 preview. The main app stylesheet
    // contains unrelated landscape @page rules for other modules, which can override
    // this report's portrait layout in the browser print pipeline.
@@ -795,8 +758,8 @@ const statsPage=el('section','propulsion-report-summary-page');
    cover.append(el('p','propulsion-report-footer','YETI FLIGHT TRIAL  /  PROPULSION VALIDATION  /  ENGINEERING MANAGEMENT REVIEW'));
    reportPreview.append(cover);
 
-   if(reportGraphs.length){for(let offset=0,pageNo=1;offset<reportGraphs.length;offset+=2,pageNo++){const graphPage=el('article','propulsion-report-page propulsion-report-graph-page');graphPage.append(el('div','propulsion-report-page-kicker','02  /  GRAPHICAL ANALYSIS'),el('h2','','PROPULSION PERFORMANCE PLOTS'));reportGraphs.slice(offset,offset+2).forEach((item,index)=>{const wrap=el('div','propulsion-report-preview-graph');wrap.append(el('h3','',String(offset+index+1).padStart(2,'0')+'  '+item.title),item.svg.cloneNode(true));graphPage.append(wrap)});reportPreview.append(graphPage)}}
-   const valid=['motorName','escName','propellerName','testDate','testReportType'].every(key=>reportFields[key].value.trim());validation.textContent=valid?'Mandatory identification fields complete. PDF export is ready.':'Complete Motor Name, ESC Name, Propeller Name, Test Date and Test Report Type before exporting.';
+   if(reportGraphs.length){for(const pageGraphs of reportTools.pairGraphPages(reportGraphs)){const graphPage=el('article','propulsion-report-page propulsion-report-graph-page');graphPage.append(el('div','propulsion-report-page-kicker','02  /  GRAPHICAL ANALYSIS'),el('h2','','PROPULSION PERFORMANCE PLOTS'));pageGraphs.forEach((item,index)=>{const wrap=el('div','propulsion-report-preview-graph');wrap.append(el('h3','',String(reportPreview.querySelectorAll('.propulsion-report-preview-graph').length+1).padStart(2,'0')+'  '+item.title),item.svg.cloneNode(true));graphPage.append(wrap)});reportPreview.append(graphPage)}}
+   const valid=reportTools.isReady(Object.fromEntries(Object.entries(reportFields).map(([key,field])=>[key,field.value])));validation.textContent=valid?'Mandatory identification fields complete. PDF export is ready.':'Complete Motor Name, ESC Name, Propeller Name, Test Date and Test Report Type before exporting.';
   }
   updateReportPreview();
   const reportProceedActions=el('div','propulsion-actions');const reportProceed=el('button','btn','Proceed to Generate Report');reportProceed.type='button';reportProceed.id='proceedToGenerateReportBtn';const setReportSectionOpen=(open)=>{step5Visible=!!open;step5.hidden=!step5Visible;reportProceed.disabled=step5Visible;reportProceed.textContent=step5Visible?'Report Section Opened':'Proceed to Generate Report';};reportProceed.addEventListener('click',()=>{reportDirectVisible=false;setReportSectionOpen(true);saveState();step5.scrollIntoView({behavior:'smooth',block:'start'});});step4.append(reportProceedActions);reportProceedActions.append(reportProceed);
