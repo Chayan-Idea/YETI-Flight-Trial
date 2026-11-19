@@ -2,6 +2,22 @@
 (()=>{
  'use strict';
  const $id=id=>document.getElementById(id);
+ // A loaded stylesheet is not sufficient evidence that Chromium has painted a printable report.
+ // Wait for fonts, images and two layout frames, then reject empty/off-screen report documents.
+ async function waitForPrintableReport(targetWindow,rootSelector,minTextLength=40){
+  const doc=targetWindow?.document;if(!doc)throw new Error('The PDF print document is unavailable.');
+  const root=doc.querySelector(rootSelector);if(!root)throw new Error('The PDF report content was not copied into the print document.');
+  await Promise.race([doc.fonts?.ready||Promise.resolve(),new Promise((_,reject)=>targetWindow.setTimeout(()=>reject(new Error('Timed out waiting for report fonts.')),10000))]);
+  const images=Array.from(root.querySelectorAll('img'));
+  await Promise.all(images.map(img=>img.complete?Promise.resolve():new Promise(resolve=>{img.addEventListener('load',resolve,{once:true});img.addEventListener('error',resolve,{once:true});targetWindow.setTimeout(resolve,5000)})));
+  await new Promise(resolve=>targetWindow.requestAnimationFrame(()=>targetWindow.requestAnimationFrame(resolve)));
+  const pages=Array.from(root.querySelectorAll('.propulsion-report-page'));
+  const text=root.innerText?.replace(/\\s+/g,' ').trim()||root.textContent?.replace(/\\s+/g,' ').trim()||'';
+  const visiblePages=pages.filter(page=>{const rect=page.getBoundingClientRect();return rect.width>100&&rect.height>100});
+  if(!pages.length||visiblePages.length!==pages.length||text.length<minTextLength)throw new Error('The PDF report is blank or incomplete; export was stopped before printing.');
+  return {pageCount:pages.length,textLength:text.length};
+ }
+
  const logTypePicker=$id('propulsionLogTypePicker'),logUploadArea=$id('propulsionLogUploadArea');let logType='';const input=$id('propulsionCsvInput'),filePicker=input?.closest('.propulsion-file-picker'),status=$id('propulsionUploadStatus'),meta=$id('propulsionFileMeta'),start=$id('startPropulsionAnalysisBtn'),reset=$id('resetPropulsionUploadBtn'),workspace=document.querySelector('.propulsion-analyser-workspace');
  if(reset)reset.textContent='Choose another log file';
  if(!input||!status||!start||!workspace)return;
@@ -707,7 +723,7 @@
    const printMarkup=reportPreview.cloneNode(true);printMarkup.id='propulsionReportLivePreview';
    const printDoc='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Propulsion Validation Report</title><link rel="stylesheet" href="./css/propulsion-analyser.css?v=24"><style>html,body{margin:0!important;padding:0!important;width:210mm!important;background:#fff!important}body{display:block!important}#propulsionReportLivePreview{display:block!important;width:210mm!important;max-height:none!important;overflow:visible!important;padding:0!important;margin:0!important;background:#fff!important}#propulsionReportLivePreview .propulsion-report-page{box-sizing:border-box!important;width:210mm!important;height:297mm!important;min-height:297mm!important;max-height:297mm!important;margin:0!important;padding:12mm 13mm!important;overflow:hidden!important;box-shadow:none!important}#propulsionReportLivePreview .propulsion-report-preview-graph svg{display:block!important;width:100%!important;height:auto!important;max-height:102mm!important}@media print{@page{size:A4 portrait;margin:0}html,body{width:210mm!important;margin:0!important;padding:0!important}#propulsionReportLivePreview .propulsion-report-page{break-after:page!important;page-break-after:always!important;print-color-adjust:exact!important;-webkit-print-color-adjust:exact!important}#propulsionReportLivePreview .propulsion-report-page:last-child{break-after:auto!important;page-break-after:auto!important}}</style></head><body>'+printMarkup.outerHTML+'</body></html>';
    printWindow.document.open();printWindow.document.write(printDoc);printWindow.document.close();
-   const triggerPrint=()=>{printWindow.focus();printWindow.print()};const printStyle=printWindow.document.querySelector('link[rel="stylesheet"]');if(printStyle){if(printStyle.sheet)triggerPrint();else{printStyle.addEventListener('load',triggerPrint,{once:true});printStyle.addEventListener('error',()=>{reportPreviewPanel.querySelector('.propulsion-report-validation').textContent='Unable to load report print styling. Please retry.'},{once:true})}}else triggerPrint();
+   const triggerPrint=async()=>{try{const readiness=await waitForPrintableReport(printWindow,'#propulsionReportLivePreview',80);reportPreviewPanel.querySelector('.propulsion-report-validation').textContent='Verified '+readiness.pageCount+' report page(s) with '+readiness.textLength+' characters. Choose “Save as PDF” in the print dialog.';printWindow.focus();printWindow.print()}catch(error){reportPreviewPanel.querySelector('.propulsion-report-validation').textContent=error.message||'The report is not ready to print. Please retry.';try{printWindow.close()}catch(_){}}};const printStyle=printWindow.document.querySelector('link[rel="stylesheet"]');if(printStyle){if(printStyle.sheet)triggerPrint();else{printStyle.addEventListener('load',triggerPrint,{once:true});printStyle.addEventListener('error',()=>{reportPreviewPanel.querySelector('.propulsion-report-validation').textContent='Unable to load report print styling. Please retry.'},{once:true})}}else triggerPrint();
   });const validation=el('p','propulsion-report-validation','Complete the mandatory fields to enable a valid report export.');exportActions.append(exportPdf);reportPreviewPanel.append(reportPreview,validation,exportActions);
   reportBuilder.append(reportForm,reportGraphControls,reportPreviewPanel);step5.append(reportBuilder);
   function updateReportPreview(){
@@ -1178,11 +1194,10 @@ const statsPage=el('section','propulsion-report-summary-page');
    const printStatus=(message)=>{status.textContent=message;};
    const preparePrintDocument=(targetWindow,successMessage)=>{
     targetWindow.document.open();targetWindow.document.write(printDoc);targetWindow.document.close();
-    const triggerPrint=()=>{
+    const triggerPrint=async()=>{
      if(targetWindow.closed){printStatus('The report print view was closed before printing. Click Export Comparative Report as PDF to try again.');return;}
-     printStatus(successMessage);
-     targetWindow.focus();
-     targetWindow.print();
+     try{const readiness=await waitForPrintableReport(targetWindow,'#multiPropulsionReportLivePreview',80);printStatus('Verified '+readiness.pageCount+' report page(s) and '+readiness.textLength+' characters. '+successMessage);targetWindow.focus();targetWindow.print();}
+     catch(error){printStatus('PDF export stopped: '+(error.message||'report content is not ready.'));try{targetWindow.close();}catch(_){}}
     };
     const stylesheet=targetWindow.document.querySelector('link[rel="stylesheet"]');
     if(!stylesheet){triggerPrint();return;}
@@ -1208,9 +1223,9 @@ const statsPage=el('section','propulsion-report-summary-page');
     try{
      const printWindow=frame.contentWindow;
      if(!printWindow)throw new Error('Print frame is unavailable');
-     const triggerPrint=()=>{
-      printStatus('Pop-up blocked. Comparative report is ready; choose “Save as PDF”.');
-      printWindow.focus();printWindow.print();
+     const triggerPrint=async()=>{
+      try{const readiness=await waitForPrintableReport(printWindow,'#multiPropulsionReportLivePreview',80);printStatus('Pop-up blocked. Verified '+readiness.pageCount+' report page(s) and '+readiness.textLength+' characters; choose “Save as PDF”.');printWindow.focus();printWindow.print();}
+      catch(error){printStatus('PDF export stopped: '+(error.message||'report content is not ready.'));frame.remove();}
      };
      const stylesheet=printWindow.document.querySelector('link[rel="stylesheet"]');
      if(!stylesheet||stylesheet.sheet)triggerPrint();
