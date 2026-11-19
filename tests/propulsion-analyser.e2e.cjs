@@ -197,10 +197,12 @@ const server = http.createServer((req,res)=>{
   for(const id of ['multiGraphXRangeStart','multiGraphXRangeEnd','multiGraphYRangeStart','multiGraphYRangeEnd'])if(await page.locator('#'+id).count()!==1)throw new Error('Missing comparative X-Y range input: '+id);
   if(await page.getByRole('button',{name:'Apply',exact:true}).count()<1||await page.getByRole('button',{name:'Reset Full Range'}).count()<1)throw new Error('Comparative X-Y range selector must provide Apply and Reset Full Range actions.');
   // Switching axes must discard the previous pair's numeric range and replot the newly selected parameters.
-  await page.locator('#multiGraphYAxis').selectOption('motorTemperature');
-  await page.getByRole('button',{name:'Plot Comparative Graph'}).click();
-  const changedGraphLabel=await page.locator('.propulsion-phase3-plot-host svg').getAttribute('aria-label');
-  if(!changedGraphLabel.includes('actualRpm')||!changedGraphLabel.includes('motorTemperature'))throw new Error('Plot Comparative Graph did not redraw after changing the Y-axis parameter.');
+  await page.locator('#multiGraphYAxis').selectOption('electricalPower');
+  await page.locator('.propulsion-phase3-graph-card button').filter({hasText:'Plot Comparative Graph'}).click();
+  const changedGraph=page.locator('.propulsion-phase3-plot-host svg');
+  await changedGraph.waitFor({state:'visible'});
+  const changedGraphLabel=await changedGraph.getAttribute('aria-label');
+  if(!changedGraphLabel.includes('actualRpm')||!changedGraphLabel.includes('electricalPower'))throw new Error('Plot Comparative Graph did not redraw after changing the Y-axis parameter.');
   const changedRange=await page.locator('#multiGraphYRangeStart').inputValue();
   if(!changedRange||!Number.isFinite(Number(changedRange)))throw new Error('Changing the Y-axis must initialise a fresh valid Y range for the newly selected parameter.');
 
