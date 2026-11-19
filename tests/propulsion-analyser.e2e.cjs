@@ -58,6 +58,12 @@ const server = http.createServer((req,res)=>{
   if(await legendRects.count()!==2)throw new Error('Comparative graph legend labels must have separate readable background areas placed by the blank-space layout algorithm.');
   const firstLegendBox=await legendRects.nth(0).boundingBox(),secondLegendBox=await legendRects.nth(1).boundingBox();
   if(firstLegendBox&&secondLegendBox&&firstLegendBox.x<secondLegendBox.x+secondLegendBox.width&&firstLegendBox.x+firstLegendBox.width>secondLegendBox.x&&firstLegendBox.y<secondLegendBox.y+secondLegendBox.height&&firstLegendBox.y+firstLegendBox.height>secondLegendBox.y)throw new Error('Comparative graph legend labels must not overlap one another.');
+  if(firstLegendBox&&secondLegendBox){
+   if(Math.abs(firstLegendBox.x-secondLegendBox.x)>1)throw new Error('Comparative graph legend labels must be grouped on the same horizontal alignment.');
+   const verticalGap=Math.abs(firstLegendBox.y-secondLegendBox.y)-Math.max(firstLegendBox.height,secondLegendBox.height);
+   if(verticalGap>4)throw new Error('Comparative graph legend labels must sit closely together without excessive vertical gaps.');
+  }
+
 
   if(await multiReport.locator('#multiReportGraphCount').innerText()!=='1 of 5 graphs added')throw new Error('Comparative report graph counter must update after adding a graph.');
   await multiReport.locator('#multiReportGraphList button[aria-label="Remove report graph 1"]').click();
