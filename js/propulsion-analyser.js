@@ -941,7 +941,7 @@ const statsPage=el('section','propulsion-report-summary-page');
  if(logCountSelect&&['1','2','3','4'].includes(requestedLogCount||''))logCountSelect.value=requestedLogCount;
  let multiSession=null,multiFiles=[],multiLogType='',multiMappingConfirmed=false;
  let multiHiddenReadoutLogs=new Set();
- function resetMultiSetup(){multiSession=null;multiFiles=[];multiMappingConfirmed=false;multiMappingHost?.replaceChildren();multiUploadGrid?.replaceChildren();if(identifyMultipleLogsBtn)identifyMultipleLogsBtn.disabled=true;if(multiUploadStatus)multiUploadStatus.textContent='Select the common test type and upload every requested CSV file.';renderMultiUploadSlots();}
+ function resetMultiSetup(){multiSession=null;multiFiles=[];multiHiddenReadoutLogs.clear();multiMappingConfirmed=false;multiMappingHost?.replaceChildren();multiUploadGrid?.replaceChildren();if(identifyMultipleLogsBtn)identifyMultipleLogsBtn.disabled=true;if(multiUploadStatus)multiUploadStatus.textContent='Select the common test type and upload every requested CSV file.';renderMultiUploadSlots();}
  function renderMultiUploadSlots(){
   if(!multiUploadGrid||!logCountSelect)return;
   const count=Number(logCountSelect.value);multiFiles=Array.from({length:count},(_,index)=>multiFiles[index]||null);multiUploadGrid.replaceChildren();
