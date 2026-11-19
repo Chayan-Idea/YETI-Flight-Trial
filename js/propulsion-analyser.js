@@ -1108,24 +1108,23 @@ const statsPage=el('section','propulsion-report-summary-page');
    add('line',{x1:L,y1:T+ph,x2:L+pw,y2:T+ph,stroke:'#111827','stroke-width':3.5});add('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#111827','stroke-width':3.5});
    // Draw all data series first, then place each legend label in the least-occupied blank area.
    series.forEach(item=>{if(!item.points.length)return;const color=multiColors[item.index%multiColors.length],path=item.points.map((point,index)=>(index?'L':'M')+sx(point.x).toFixed(2)+','+sy(point.y).toFixed(2)).join(' ');add('path',{d:path,fill:'none',stroke:color,'stroke-width':2.8,'stroke-linejoin':'round','stroke-linecap':'round'});item.points.forEach(point=>add('circle',{cx:sx(point.x),cy:sy(point.y),r:3.5,fill:color,opacity:.9}));});
-   const occupiedLegendRects=[];
-   const segmentSamples=[];
-   series.forEach(item=>{for(let i=1;i<item.points.length;i++){const a={x:sx(item.points[i-1].x),y:sy(item.points[i-1].y)},b={x:sx(item.points[i].x),y:sy(item.points[i].y)},distance=Math.hypot(b.x-a.x,b.y-a.y),steps=Math.max(1,Math.ceil(distance/7));for(let step=0;step<=steps;step++){const ratio=step/steps;segmentSamples.push({x:a.x+(b.x-a.x)*ratio,y:a.y+(b.y-a.y)*ratio});}}});
-   series.filter(item=>item.points.length).forEach(item=>{
-    const color=multiColors[item.index%multiColors.length],label='LOG '+(item.index+1)+' · '+(item.log.fileName||'Log '+(item.index+1)),fontSize=13,labelWidth=Math.min(pw-20,Math.max(150,label.length*7.1+18)),labelHeight=22;
-    const xCandidates=[L+8,L+(pw-labelWidth)/2,L+pw-labelWidth-8],yCandidates=[T+8,T+ph*.34,T+ph*.68];
-    let best=null,bestScore=Infinity;
-    xCandidates.forEach(x=>yCandidates.forEach(y=>{
-     const box={x,y,width:labelWidth,height:labelHeight};
-     const overlaps=occupiedLegendRects.some(other=>box.x<other.x+other.width+6&&box.x+box.width+6>other.x&&box.y<other.y+other.height+5&&box.y+box.height+5>other.y);
-     if(overlaps)return;
-     let score=0;segmentSamples.forEach(point=>{if(point.x>=box.x-4&&point.x<=box.x+box.width+4&&point.y>=box.y-4&&point.y<=box.y+box.height+4)score+=1;});
-     if(score<bestScore){bestScore=score;best=box;}
-    }));
-    if(!best)best={x:L+8,y:T+8+occupiedLegendRects.length*(labelHeight+4),width:labelWidth,height:labelHeight};
-    occupiedLegendRects.push(best);
-    add('rect',{x:best.x,y:best.y,width:best.width,height:best.height,rx:4,fill:'#ffffff','fill-opacity':.94,stroke:color,'stroke-opacity':.45,'stroke-width':1});
-    add('text',{x:best.x+8,y:best.y+15,fill:color,'font-size':fontSize,'font-weight':700},label);
+   // Keep all log labels together as one compact legend group; move the group as a unit.
+   const legendItems=series.filter(item=>item.points.length).map(item=>({item,color:multiColors[item.index%multiColors.length],label:'LOG '+(item.index+1)+' · '+(item.log.fileName||'Log '+(item.index+1))}));
+   const legendFont=13,legendHeight=21,legendGap=3,legendGroupHeight=legendItems.length*legendHeight+Math.max(0,legendItems.length-1)*legendGap;
+   const legendWidths=legendItems.map(entry=>Math.min(pw-20,Math.max(150,entry.label.length*7.1+18))),legendWidth=Math.max(...legendWidths);
+   let bestLegend=null,bestLegendScore=Infinity;
+   const legendXCandidates=[L+8,L+(pw-legendWidth)/2,L+pw-legendWidth-8],legendYCandidates=[T+8,T+(ph-legendGroupHeight)/2,T+ph-legendGroupHeight-8];
+   legendXCandidates.forEach(x=>legendYCandidates.forEach(y=>{
+    if(y<T+4||y+legendGroupHeight>T+ph-4)return;
+    let score=0;
+    segmentSamples.forEach(point=>{if(point.x>=x-4&&point.x<=x+legendWidth+4&&point.y>=y-4&&point.y<=y+legendGroupHeight+4)score+=1;});
+    if(score<bestLegendScore){bestLegendScore=score;bestLegend={x,y};}
+   }));
+   if(!bestLegend)bestLegend={x:L+8,y:T+8};
+   legendItems.forEach((entry,index)=>{
+    const y=bestLegend.y+index*(legendHeight+legendGap),width=legendWidths[index];
+    add('rect',{x:bestLegend.x,y,width,height:legendHeight,rx:4,fill:'#ffffff','fill-opacity':.96,stroke:entry.color,'stroke-opacity':.5,'stroke-width':1});
+    add('text',{x:bestLegend.x+8,y:y+14,fill:entry.color,'font-size':legendFont,'font-weight':700},entry.label);
    });
    add('text',{x:L+pw/2,y:H-20,'text-anchor':'middle',fill:'#123b70','font-size':16,'font-weight':700},xLabel);
    const yAxis=add('text',{x:30,y:T+ph/2,'text-anchor':'middle',fill:'#287fbd','font-size':15,'font-weight':700},yLabel);yAxis.setAttribute('transform',`rotate(-90 30 ${T+ph/2})`);
