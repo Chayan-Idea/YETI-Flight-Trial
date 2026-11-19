@@ -1,0 +1,90 @@
+/* YETI Aerospace Engineering Workspace — presentation-only visual layer.
+   Deliberately does not alter DOM structure, IDs, data attributes or application logic. */
+:root{
+ --yeti-ink:#142b43;--yeti-ink-2:#243e58;--yeti-muted:#53677b;
+ --yeti-canvas:#f2f5f8;--yeti-surface:#ffffff;--yeti-surface-soft:#f7f9fb;
+ --yeti-line:#d8e1e9;--yeti-line-strong:#bdcbd8;
+ --yeti-cyan:#006b84;--yeti-cyan-soft:#e8f6fa;
+ --yeti-green:#18845d;--yeti-amber:#a76512;--yeti-red:#b33a42;
+ --yeti-radius:13px;--yeti-shadow:0 5px 18px rgba(19,43,67,.055);
+}
+html{background:var(--yeti-canvas);color:var(--yeti-ink);scroll-behavior:smooth}
+body{background:var(--yeti-canvas);color:var(--yeti-ink);font-family:Inter,"Segoe UI",Roboto,Arial,sans-serif;letter-spacing:.005em}
+.top{background:linear-gradient(115deg,#10243a 0%,#183b59 68%,#14536b 100%);border-bottom:1px solid rgba(255,255,255,.12);box-shadow:0 5px 22px rgba(10,30,48,.16)}
+.top-inner{max-width:1500px}
+.brand-eyebrow{letter-spacing:.13em;text-transform:uppercase;font-size:10px;font-weight:800;color:#a9d9e5}
+.brand-copy h1{letter-spacing:-.035em;font-weight:800}
+.brand-copy p{color:#c4d5e3}
+main{max-width:1500px}
+.module-nav-heading,.subnav-heading{align-items:flex-end}
+.nav-kicker{color:var(--yeti-cyan);font-size:10px;font-weight:850;letter-spacing:.16em}
+.module-nav-heading h2,.subnav-heading h2{color:var(--yeti-ink);letter-spacing:-.025em;font-weight:800}
+.module-nav-heading p,.subnav-heading p{color:var(--yeti-muted)}
+.module-tabs{gap:12px}
+.module-tab{border:1px solid var(--yeti-line);border-radius:var(--yeti-radius);background:var(--yeti-surface);box-shadow:var(--yeti-shadow);transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease}
+.module-tab:hover{border-color:#8dbdce;box-shadow:0 8px 24px rgba(19,43,67,.09);transform:translateY(-1px)}
+.module-tab.active{border-color:#168eaa;box-shadow:inset 0 0 0 1px rgba(7,142,174,.16),var(--yeti-shadow);background:linear-gradient(110deg,#fff 0%,#f1fafc 100%)}
+.module-index,.subtab-number{font-family:"IBM Plex Mono","SFMono-Regular",Consolas,monospace;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.module-tab-copy strong,.subtab-copy strong{color:var(--yeti-ink);font-weight:800}
+.module-tab-copy small,.subtab-copy small{color:var(--yeti-muted)}
+.module-arrow{color:var(--yeti-cyan)}
+.module-panel,.submodule-content{min-width:0}
+.card,.stat,.checklist-section,.preview-panel,.flight-trial-reading-document{border-color:var(--yeti-line);border-radius:var(--yeti-radius);box-shadow:var(--yeti-shadow)}
+.card{background:var(--yeti-surface)}
+.card>b,.card>strong{color:var(--yeti-ink)}
+.checklist-tabs{border:1px solid var(--yeti-line);border-radius:var(--yeti-radius);background:#eaf0f5;padding:8px}
+.checklist-tab{border:1px solid transparent;border-radius:9px;transition:background .15s ease,border-color .15s ease}
+.checklist-tab:hover{background:#fff;border-color:var(--yeti-line)}
+.checklist-tab.active{background:#fff;border-color:#a9cbd7;box-shadow:0 2px 8px rgba(19,43,67,.05)}
+.btn{border:1px solid #087f9d;border-radius:9px;background:linear-gradient(180deg,#1198b8,#087f9d);box-shadow:0 2px 5px rgba(7,105,132,.15);font-weight:750;letter-spacing:.01em;transition:filter .15s ease,transform .15s ease,box-shadow .15s ease}
+.btn:hover{filter:brightness(1.04);box-shadow:0 4px 12px rgba(7,105,132,.2);transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn.alt{border:1px solid var(--yeti-line-strong);background:#fff;color:var(--yeti-ink-2);box-shadow:none}
+.btn.alt:hover{border-color:#7eafc0;background:#f5fafb;color:#075d78}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(7,142,174,.3);outline-offset:2px}
+input,select,textarea{border-color:var(--yeti-line-strong);border-radius:8px;color:var(--yeti-ink);background:#fff}
+input::placeholder,textarea::placeholder{color:#8999a8}
+.stats,.loading-stats{gap:10px}
+.stat,.loading-stats>div{background:linear-gradient(180deg,#fff,#f8fafc);border:1px solid var(--yeti-line);border-radius:11px}
+.stat b,.loading-stats b{font-family:"IBM Plex Mono","SFMono-Regular",Consolas,monospace;color:#12617a;font-variant-numeric:tabular-nums}
+.progress{background:#e2eaf0;border-radius:999px;overflow:hidden}
+.progress i{background:linear-gradient(90deg,#087f9d,#20abc0);border-radius:999px}
+.tools{gap:9px}
+table{border-color:var(--yeti-line)}
+th{background:#edf3f7;color:#29445d}
+td{border-color:#e3eaf0}
+tr:hover td{background:#f8fbfd}
+.muted,.help-text{color:var(--yeti-muted)}
+[hidden]{display:none!important}
+@media(max-width:760px){
+ .top-inner{gap:12px}
+ .module-tabs{grid-template-columns:minmax(0,1fr)}
+ .module-tab{min-width:0}
+ .subnav-heading{align-items:flex-start}
+ .card{border-radius:11px}
+}
+@media(prefers-reduced-motion:reduce){
+ html{scroll-behavior:auto}
+ *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
+}
+/* Analyzer-specific presentation only; data, SVG geometry and controls remain owned by existing scripts. */
+.propulsion-workspace,.propulsion-step-card,.propulsion-upload-card,.propulsion-summary-card,.propulsion-graph-card{border-color:var(--yeti-line);border-radius:var(--yeti-radius);box-shadow:var(--yeti-shadow)}
+.propulsion-step-label{letter-spacing:.12em;font-weight:850}
+.propulsion-step-card h2,.propulsion-step-card h3,.propulsion-step-card h4{color:var(--yeti-ink);letter-spacing:-.015em}
+.propulsion-actions .btn,.propulsion-step-card .btn{min-height:38px}
+.propulsion-mapping-table-wrap,.propulsion-multi-mapping-table-wrap,.propulsion-csv-preview-card{border-color:var(--yeti-line);border-radius:11px}
+.propulsion-csv-preview-table th{background:#eaf1f6;color:#24435e}
+.propulsion-csv-preview-table td{font-family:"IBM Plex Mono","SFMono-Regular",Consolas,monospace;font-variant-numeric:tabular-nums}
+.propulsion-graph-container,.propulsion-chart-container{border-radius:10px}
+@media(max-width:760px){
+ .propulsion-actions{flex-wrap:wrap}
+ .propulsion-actions .btn{max-width:100%}
+}
+
+/* WCAG AA contrast for small navigation and eyebrow text on light surfaces. */
+.nav-kicker{color:#00647b!important}
+.module-nav-heading p,.subnav-heading p{color:#53677b!important}
+.module-tab-copy small,.subtab-copy small{color:#53677b!important;opacity:1!important}
+/* The redesigned active module card is light, so keep its subtitle dark and fully opaque too. */
+.module-tab.active .module-tab-copy small{color:#53677b!important;opacity:1!important}
+.flight-trial-reading-header .nav-kicker{color:#00647b!important}

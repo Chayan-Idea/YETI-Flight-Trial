@@ -27,20 +27,38 @@ function startServer() {
 async function drawSignature(page, selector) {
   const canvas = page.locator(selector);
   await canvas.waitFor({ state:'visible' });
+  await canvas.scrollIntoViewIfNeeded();
+  await page.waitForFunction(sel => {
+    const el=document.querySelector(sel), r=el?.getBoundingClientRect();
+    return !!el && !!r && r.width>100 && r.height>40 && getComputedStyle(el).pointerEvents!=='none';
+  }, selector);
   const box = await canvas.boundingBox();
   if (!box) throw new Error('Signature canvas is not measurable: ' + selector);
-  await page.mouse.move(box.x + 20, box.y + box.height / 2);
+  // Draw within the actual visible canvas bounds; fixed pixel offsets can land
+  // outside a responsive canvas after layout or viewport changes.
+  const y = box.y + box.height * 0.52;
+  const points = [
+    [box.x + box.width * 0.08, y],
+    [box.x + box.width * 0.32, y - box.height * 0.18],
+    [box.x + box.width * 0.56, y + box.height * 0.12],
+    [box.x + box.width * 0.82, y - box.height * 0.08]
+  ];
+  const hit = await page.evaluate(({x,y,sel}) => {
+    const el=document.elementFromPoint(x,y);
+    return !!el && (el.matches(sel) || el.closest(sel));
+  }, {x:points[0][0],y:points[0][1],sel:selector});
+  if (!hit) throw new Error('Signature canvas is covered at the drawing point: ' + selector);
+  await page.mouse.move(points[0][0], points[0][1]);
   await page.mouse.down();
-  await page.mouse.move(box.x + 120, box.y + box.height / 2 - 25, { steps:8 });
-  await page.mouse.move(box.x + 220, box.y + box.height / 2 + 15, { steps:8 });
+  for (const [x,py] of points.slice(1)) await page.mouse.move(x, py, {steps:12});
   await page.mouse.up();
-  const pixels = await canvas.evaluate(el => {
-    const data = el.getContext('2d').getImageData(0,0,el.width,el.height).data;
-    let count = 0;
-    for (let i=3;i<data.length;i+=4) if (data[i] > 0) count++;
-    return count;
+  const result = await canvas.evaluate(el => {
+    const data=el.getContext('2d').getImageData(0,0,el.width,el.height).data;
+    let count=0; for(let i=3;i<data.length;i+=4) if(data[i]>0) count++;
+    const r=el.getBoundingClientRect(), s=getComputedStyle(el);
+    return {pixels:count,width:el.width,height:el.height,rect:{width:r.width,height:r.height},pointerEvents:s.pointerEvents};
   });
-  if (pixels < 10) throw new Error('Signature drawing did not produce visible canvas data: ' + selector);
+  if (result.pixels < 10) throw new Error('Signature drawing did not produce visible canvas data: ' + selector + ' (' + JSON.stringify(result) + ')');
 }
 
 async function exportPreview(page, buttonSelector, expectedHeading, promptName) {
