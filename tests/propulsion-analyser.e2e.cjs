@@ -314,6 +314,15 @@ const server = http.createServer((req,res)=>{
   await report.getByText('YETI Propulsion Bench Data Validation Report',{exact:true}).waitFor();
   await report.getByText('run-a.csv').waitFor();await report.getByText('run-b.csv').waitFor();
 
+  // The comparative PDF export must still work when the browser blocks pop-up windows.
+  await page.evaluate(()=>{window.__yetiOriginalOpen=window.open;window.open=()=>null;});
+  await exportButton.click();
+  await page.locator('iframe[data-yeti-comparative-print="true"]').waitFor({state:'attached'});
+  if(!(await multiReport.locator('.propulsion-phase4-report-status').innerText()).includes('Popup was blocked'))throw new Error('Comparative PDF export must provide a same-page print fallback when pop-ups are blocked.');
+  await page.evaluate(()=>{window.open=window.__yetiOriginalOpen;delete window.__yetiOriginalOpen;});
+  await page.locator('iframe[data-yeti-comparative-print="true"]').evaluate(el=>el.remove());
+
+
   // Verify the same unified mapping-table layout for 3-log and 4-log analysis.
   for (const count of [3,4]) {
    await page.locator('#propulsionLogCount').selectOption(String(count));
