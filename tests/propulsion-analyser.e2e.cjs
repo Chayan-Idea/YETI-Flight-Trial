@@ -53,6 +53,14 @@ const server = http.createServer((req,res)=>{
   const csvGenerate=page.locator('#propulsionDataFilteringCard button').filter({hasText:'Generate Filtered & Sorted CSV'});
   await csvGenerate.waitFor({state:'visible'});
   await csvGenerate.click();
+  const singleDownloadButton=page.locator('#propulsionDataFilteringCard button').filter({hasText:'Download Filtered & Sorted CSV'});
+  await singleDownloadButton.waitFor({state:'visible'});
+  const singleDownloadPromise=page.waitForEvent('download');
+  await singleDownloadButton.click();
+  const singleDownload=await singleDownloadPromise;
+  if(singleDownload.suggestedFilename()!=='single-thrust_filtered_sorted.csv')throw new Error('Single-log filtered CSV download must preserve the source filename.');
+  const singleCsvOutput=fs.readFileSync(await singleDownload.path(),'utf8');
+  if(!singleCsvOutput.includes('Electrical Power')||!singleCsvOutput.includes('Specific Thrust')||!singleCsvOutput.includes('500')||!singleCsvOutput.includes('0.2'))throw new Error('Single-log CSV export must contain the shared-engine Electrical Power (500 W) and Specific Thrust (0.2 N/W) reference results.');
   await page.locator('#proceedToParameterSummaryBtn').click();
   await page.locator('#proceedToGraphicalAnalysisBtn').click();
   await page.locator('#propulsionGraphicalAnalysisCard').waitFor({state:'visible'});
