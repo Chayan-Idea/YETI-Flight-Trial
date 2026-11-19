@@ -1039,7 +1039,7 @@ const statsPage=el('section','propulsion-report-summary-page');
 
  function buildMultiLogReportCard(){
   const card=el('section','propulsion-phase4-report-card propulsion-step-card propulsion-step-card--green');card.id='propulsionPhase4ReportCard';
-  card.append(el('div','propulsion-step-label','STEP 06 · MULTI-LOG REPORT GENERATION'),el('h3','','Generate Comparative Test Validation Report'),el('p','propulsion-mapping-description','Enter test identification details independently for each log. The test objective is common to the complete comparative test.'));
+  card.append(el('div','propulsion-step-label','STEP 06 · MULTI-LOG REPORT GENERATION'),el('h3','','Generate Comparative Test Validation Report'),el('p','propulsion-mapping-description','Enter test identification details independently for each log. Test Report Type and Test Objective are common to the complete comparative test.'));
   const fieldsByLog=multiSession.logs.map(()=>({}));
   const form=el('div','propulsion-phase4-report-form propulsion-phase4-report-form--multi');
   const tableWrap=el('div','propulsion-phase4-report-input-table-wrap');
@@ -1056,8 +1056,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    ['escId','ESC ID','text',false],
    ['propeller','Propeller Name','text',true],
    ['propellerId','Propeller ID','text',false],
-   ['date','Test Date','date',true],
-   ['reportType','Test Report Type','select',true]
+   ['date','Test Date','date',true]
   ];
   definitions.forEach(def=>{
    const [key,label,type,required]=def,row=document.createElement('tr');
@@ -1074,6 +1073,14 @@ const statsPage=el('section','propulsion-report-summary-page');
    });
    tbody.append(row);
   });
+  const reportTypeRow=document.createElement('tr');
+  reportTypeRow.append(el('th','','Test Report Type *'));
+  const reportTypeCell=document.createElement('td');reportTypeCell.colSpan=multiSession.logs.length;
+  const commonReportType=document.createElement('select');commonReportType.id='multiReport_commonReportType';commonReportType.className='propulsion-column-select';commonReportType.required=true;
+  const reportTypeBlank=document.createElement('option');reportTypeBlank.value='';reportTypeBlank.textContent='Select Test Report Type';reportTypeBlank.disabled=true;reportTypeBlank.selected=true;commonReportType.append(reportTypeBlank);
+  ['Thrust Log Report','Torque Log Report'].forEach(value=>{const option=document.createElement('option');option.value=value;option.textContent=value;commonReportType.append(option)});
+  reportTypeCell.append(commonReportType);reportTypeRow.append(reportTypeCell);tbody.append(reportTypeRow);
+  fieldsByLog.forEach(fields=>{fields.reportType=commonReportType;});
   table.append(tbody);tableWrap.append(table);
   const objectiveSection=el('section','propulsion-phase4-common-objective');
   objectiveSection.append(el('h4','','Test Objective'));
@@ -1081,7 +1088,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   const objectiveInput=document.createElement('textarea');objectiveInput.id='multiReport_commonObjective';objectiveInput.rows=4;objectiveInput.placeholder='Enter the common objective, test conditions, observations or other manual notes for this comparative test.';
   objectiveLabel.append(objectiveInput);objectiveSection.append(objectiveLabel);
   form.append(tableWrap,objectiveSection);
-  const status=el('p','propulsion-phase4-report-status','Complete the mandatory identification fields for every log and enter the common test objective before exporting.');
+  const status=el('p','propulsion-phase4-report-status','Complete the mandatory identification fields for every log, select the common Test Report Type and enter the common test objective before exporting.');
   status.setAttribute('role','status');status.setAttribute('aria-live','polite');
   // Report graph selection is intentionally independent of Step 05 interactive graph controls.
   const reportGraphControls=el('section','propulsion-phase4-report-graph-controls');
@@ -1161,7 +1168,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    const complete=values().every(fields=>['motor','esc','propeller','date','reportType'].every(key=>fields[key]));
    const processed=multiSession.logs.every(log=>log._phase3Ready);
    exportButton.disabled=!(complete&&processed);
-   status.textContent=!processed?'Process every log before exporting the report.':complete?'All per-log identification fields are complete. The comparative PDF is ready.':'Complete Motor Name, ESC Name, Propeller Name, Test Date and Test Report Type for every log.';
+   status.textContent=!processed?'Process every log before exporting the report.':complete?'All per-log identification fields are complete. The comparative PDF is ready.':'Complete Motor Name, ESC Name, Propeller Name and Test Date for every log, and select one common Test Report Type.';
    return !exportButton.disabled;
   };
   function buildPreview(){
@@ -1180,6 +1187,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    headerRow.append(el('th','','PARAMETER'));multiSession.logs.forEach(log=>headerRow.append(el('th','','LOG '+log.id)));header.append(headerRow);details.append(header);
    const body=document.createElement('tbody');
    definitions.forEach(([key,label])=>{const row=document.createElement('tr');row.append(el('th','',label));entered.forEach(fields=>row.append(el('td','',fields[key]||'—')));body.append(row);});
+   const commonTypeRow=document.createElement('tr');commonTypeRow.append(el('th','','Test Report Type'));entered.forEach(fields=>commonTypeRow.append(el('td','',fields.reportType||'—')));body.append(commonTypeRow);
    details.append(body);page.append(details);
    const objective=el('section','propulsion-report-objective');
    objective.append(el('h3','propulsion-report-section-heading','TEST OBJECTIVE'),el('p','',objectiveInput.value.trim()||'No test objective or manual notes entered.'));
