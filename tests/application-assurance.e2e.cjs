@@ -48,7 +48,8 @@ async function checkResponsive(page,baseUrl) {
         viewport:window.innerWidth,
         document:document.documentElement.scrollWidth,
         body:document.body.scrollWidth,
-        panel:(()=>{const el=document.querySelector('[id$="Panel"]:not([hidden])');const r=el?.getBoundingClientRect();return r?{left:r.left,right:r.right,width:r.width}:null})()
+        panel:(()=>{const el=document.querySelector('[id$="Panel"]:not([hidden])');const r=el?.getBoundingClientRect();return r?{left:r.left,right:r.right,width:r.width}:null})(),
+        overflowingElements:[...document.querySelectorAll('body *')].map(el=>{const r=el.getBoundingClientRect(),cs=getComputedStyle(el);return {tag:el.tagName,id:el.id,className:typeof el.className==='string'?el.className:'',left:Math.round(r.left),right:Math.round(r.right),width:Math.round(r.width),scrollWidth:el.scrollWidth,clientWidth:el.clientWidth,overflowX:cs.overflowX}}).filter(x=>x.width>0&&x.right>window.innerWidth+2&&x.overflowX!=='auto'&&x.overflowX!=='scroll').slice(0,20)
       }));
       if(dims.document>dims.viewport+2||dims.body>dims.viewport+2) {
         throw new Error('Unexpected page-level horizontal overflow at '+width+'px in '+tab+': '+JSON.stringify(dims));
