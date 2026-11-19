@@ -49,3 +49,32 @@ jobs:
           run_check "Analyzer module regression tests" node tests/yeti-modules.test.js
           echo "OVERALL: PASS — all quick checks completed." >> "$GITHUB_STEP_SUMMARY"
           echo "YETI QUICK QUALITY CHECK PASSED."
+
+  deploy-production:
+    name: Deploy to GitHub Pages
+    needs: quick-quality-check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out the quality-checked commit
+        uses: actions/checkout@v4
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Package YETI application
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy production site
+        id: deployment
+        uses: actions/deploy-pages@v4
