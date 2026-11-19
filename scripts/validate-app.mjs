@@ -69,6 +69,25 @@ for (const reference of stylesheets) {
   else fail('Missing stylesheet: ' + localPath);
 }
 
+// Parse every maintained JavaScript source and test file, not only scripts referenced by index.html.
+function collectJavaScript(directory) {
+  if (!exists(directory)) return [];
+  return fs.readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
+    const file = path.join(directory, entry.name);
+    if (entry.isDirectory()) return collectJavaScript(file);
+    return /\\.(?:js|mjs|cjs)$/.test(entry.name) ? [file] : [];
+  });
+}
+const checkedFiles = new Set(externalScripts.map(reference => reference.split('?')[0].replace(/^\\.\\//, '')));
+for (const directory of ['js', 'scripts', 'tests']) {
+  for (const file of collectJavaScript(directory)) {
+    if (checkedFiles.has(file)) continue;
+    checkJavaScript(file, read(file));
+    checkedFiles.add(file);
+  }
+}
+pass('All JavaScript application, utility, and test files were syntax-checked');
+
 const serviceWorker = read('service-worker.js');
 checkJavaScript('service-worker.js', serviceWorker);
 const shellStart = serviceWorker.indexOf('const SHELL=[');
