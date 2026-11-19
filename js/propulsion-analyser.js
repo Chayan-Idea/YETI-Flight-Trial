@@ -1165,13 +1165,49 @@ const statsPage=el('section','propulsion-report-summary-page');
   table.querySelectorAll('select').forEach(input=>input.addEventListener('change',refresh));
   objectiveInput.addEventListener('input',refresh);
   exportButton.addEventListener('click',()=>{
-   if(!validate())return;buildPreview();
-   const win=window.open('','_blank');if(!win){status.textContent='Allow pop-ups for this site to export the PDF report.';return;}
+   if(!validate())return;
+   // Open the print surface immediately within the trusted click gesture so
+   // browsers do not treat the report window as a delayed popup.
+   const win=window.open('','_blank');
+   buildPreview();
    const markup=preview.cloneNode(true);markup.id='multiPropulsionReportLivePreview';
    const printCss='<style>@page{size:A4 portrait;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0;width:210mm;background:#fff;font:10pt Arial,sans-serif;color:#172b3d}#multiPropulsionReportLivePreview{display:block;width:210mm;margin:0;padding:0}.propulsion-report-page{width:210mm;height:297mm;min-height:297mm;max-height:297mm;margin:0;padding:10mm 12mm;overflow:hidden;box-shadow:none;break-after:page;page-break-after:always}.propulsion-report-page:last-child{break-after:auto;page-break-after:auto}.propulsion-report-stats-table{width:100%;border-collapse:collapse;font-size:7pt}.propulsion-report-stats-table th,.propulsion-report-stats-table td{border:1px solid #d8e2eb;padding:1.5mm;text-align:left;overflow-wrap:anywhere}.propulsion-report-stats-table th{background:#eaf3fa;color:#174f7d}#multiPropulsionReportLivePreview .propulsion-report-multi-summary-page{display:flex;flex-direction:column;justify-content:flex-start}#multiPropulsionReportLivePreview .propulsion-report-multi-summary-page .propulsion-report-page-kicker{margin:0 0 1.5mm;font-size:7pt}#multiPropulsionReportLivePreview .propulsion-report-multi-summary-page h2{margin:0 0 2.5mm;padding-bottom:2mm;font-size:14pt}#multiPropulsionReportLivePreview .propulsion-report-comparative-summary-table{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0 .7mm;font-size:6pt}#multiPropulsionReportLivePreview .propulsion-report-comparative-summary-table thead th{padding:1.5mm 1mm;font-size:6pt;line-height:1.1}#multiPropulsionReportLivePreview .propulsion-report-comparative-summary-table thead th:first-child{width:20%}#multiPropulsionReportLivePreview .propulsion-report-comparative-summary-table tbody th{width:20%;padding:1.2mm 1.5mm;font-size:6.2pt;line-height:1.1}#multiPropulsionReportLivePreview .propulsion-report-comparative-summary-table tbody td{padding:.5mm}#multiPropulsionReportLivePreview .propulsion-report-comparative-cell{min-height:10.5mm;padding:1mm;border-radius:1.3mm;gap:.8mm}#multiPropulsionReportLivePreview .propulsion-report-comparative-cell-value{font-size:9pt;line-height:1.05}#multiPropulsionReportLivePreview .propulsion-report-comparative-cell .propulsion-report-kpi-timestamp{font-size:5pt;line-height:1.05}#multiPropulsionReportLivePreview .propulsion-report-multi-summary-page .propulsion-report-small-note{margin-top:2mm!important;font-size:5.5pt;line-height:1.15}#multiPropulsionReportLivePreview .propulsion-report-multi-summary-page .propulsion-report-footer{padding-top:2mm;font-size:6pt}.propulsion-report-preview-graph svg{display:block;width:100%;height:auto;max-height:165mm}</style>';
-   win.document.open();win.document.write('<!doctype html><html><head><meta charset="utf-8"><title>YETI Comparative Propulsion Report</title>'+printCss+'</head><body>'+markup.outerHTML+'</body></html>');win.document.close();win.focus();setTimeout(()=>win.print(),350);
-   status.textContent='Print dialog opened. Select “Save as PDF” to create the comparative report.';
-  });
+   const documentHtml='<!doctype html><html><head><meta charset="utf-8"><title>YETI Comparative Propulsion Report</title>'+printCss+'</head><body>'+markup.outerHTML+'</body></html>';
+   if(win){
+    try{
+     win.document.open();win.document.write(documentHtml);win.document.close();
+     status.textContent='Comparative report prepared. In the print dialog, choose “Save as PDF”.';
+     const triggerPrint=()=>{if(win.closed){status.textContent='The report window was closed before printing. Click Export Comparative Report as PDF to try again.';return;}win.focus();win.print();};
+     if(win.document.readyState==='complete')setTimeout(triggerPrint,150);
+     else win.addEventListener('load',()=>setTimeout(triggerPrint,150),{once:true});
+    }catch(error){
+     status.textContent='The report window could not be prepared: '+(error.message||'browser print error')+'. Allow pop-ups and try again.';
+     try{win.close();}catch(_){}
+    }
+    return;
+   }
+   // Popup-blocked fallback: print the same A4 report from a same-origin iframe.
+   // This preserves the current analysis page and still opens the browser PDF dialog.
+   const frame=document.createElement('iframe');
+   frame.title='YETI Comparative PDF print view';
+   frame.setAttribute('aria-hidden','true');
+   frame.dataset.yetiComparativePrint='true';
+   frame.style.cssText='position:fixed;left:-12000px;top:0;width:210mm;height:297mm;border:0;opacity:.01;pointer-events:none';
+   frame.onload=()=>{
+    try{
+     const printWindow=frame.contentWindow;
+     if(!printWindow)throw new Error('Print frame is unavailable');
+     status.textContent='Popup was blocked. Opening the comparative report print dialog in this page; choose “Save as PDF”.';
+     printWindow.focus();printWindow.print();
+     printWindow.addEventListener('afterprint',()=>frame.remove(),{once:true});
+    }catch(error){
+     status.textContent='Unable to open the PDF print dialog: '+(error.message||'browser print error')+'. Please allow pop-ups or use your browser print command.';
+     frame.remove();
+    }
+   };
+   frame.srcdoc=documentHtml;
+   document.body.append(frame);
+  });;
   card.append(form,reportGraphControls,status,exportButton,previewPanel);previewPanel.append(preview);multiMappingHost.append(card);multiReportCard=card;card.refreshPreview=refresh;refreshReportGraphCount();refresh();
  }
 
