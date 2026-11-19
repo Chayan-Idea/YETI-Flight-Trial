@@ -6,7 +6,7 @@
  if(reset)reset.textContent='Choose another log file';
  if(!input||!status||!start||!workspace)return;
  const uploadCard=input.closest('.propulsion-upload-card');
- let csvPreviewPanel=null;
+ let csvPreviewPanel=null,identifyActions=null;
  function createVirtualCsvRows(viewport,tbody,rows,columnCount){
   const rowHeight=38,overscan=12;let currentRows=rows,start=-1,end=-1,frame=0;
   const topSpacer=document.createElement('tr'),topCell=document.createElement('td');
@@ -81,7 +81,7 @@
   const rawToggle=el('button','btn alt','Show Uploaded Raw CSV File');rawToggle.type='button';rawToggle.id='showUploadedRawCsvBtn';
   const previewActions=el('div','propulsion-actions propulsion-csv-preview-toggle-actions');
   previewActions.append(rawToggle);
-  const identifyActions=el('div','propulsion-actions propulsion-csv-preview-actions');identifyActions.append(start);identifyActions.hidden=true;
+  identifyActions=el('div','propulsion-actions propulsion-csv-preview-actions');identifyActions.append(start);identifyActions.hidden=true;
   let activeView='',visibleRows=[];
   const timestampAliases=['timestamp','time_stamp','datetime','date_time','date time','time','utc_time','local_time','sample_time','logged_at','date'];
   const timestampColumn=headerIndex>=0?(rows[headerIndex].map((name,index)=>({index,score:scoreHeader(name,timestampAliases)})).filter(item=>item.score>=65).sort((a,b)=>b.score-a.score)[0]?.index??0):0;
@@ -116,7 +116,7 @@
   else{workspace.insertBefore(previewActions,workspace.firstChild);previewActions.insertAdjacentElement('afterend',csvPreviewPanel);}
   csvPreviewPanel.append(heading,title,info,searchBar,viewport);
   csvPreviewPanel.hidden=true;
-  csvPreviewPanel.insertAdjacentElement('afterend',identifyActions);
+  csvPreviewPanel.insertAdjacentElement('afterend',identifyActions);identifyActions.hidden=false;
   const setFreezeOffsets=()=>{const header=headRow.getBoundingClientRect(),first=tbody.rows[0]?.getBoundingClientRect(),rowIndexWidth=headRow.cells[0]?.getBoundingClientRect().width;if(header.height)viewport.style.setProperty('--csv-header-height',header.height+'px');if(first?.height)viewport.style.setProperty('--csv-row1-height',first.height+'px');if(rowIndexWidth)viewport.style.setProperty('--csv-first-col-width',rowIndexWidth+'px');};
   requestAnimationFrame(setFreezeOffsets);
   if(typeof ResizeObserver!=='undefined'){const freezeObserver=new ResizeObserver(()=>{virtualPreview?.refresh();setFreezeOffsets()});freezeObserver.observe(viewport);freezeObserver.observe(table);}
@@ -1281,7 +1281,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    check.addEventListener('change',()=>{
     if(!check.checked){sharedDerivedAdded.delete(key);addedStatus.hidden=true;retry.hidden=true;calculate.hidden=false;calculate.textContent='Calculate and Add to Log file';card.classList.remove('is-added-to-graph');}
     multiSession.logs.forEach(log=>{log._phase3Ready=false;log._derivedKeys=[...sharedDerivedAdded];if(log._phase3Filtered)commonEngine.calculateLog(log,multiLogType,log._derivedKeys);if(log._phase3Card)renderMultiLogPreview(log,log._phase3Card._phase3Controls.tableHost,log._derivedKeys);});
-    if(!check.checked){derivedReadyCheckbox.checked=false;filteringReadyCheckbox.checked=false;generatedMultiCsv='';csvDownloadButton.hidden=true;csvExportButton.disabled=false;}
+    if(!check.checked){derivedReadyCheckbox.checked=false;filteringReadyCheckbox.checked=false;generatedMultiCsvFiles=[];generatedCsvFilesHost.replaceChildren();csvExportButton.hidden=true;csvExportButton.disabled=false;}
     updateAction();updateMultiReadiness();updateMultiCsvGate();
    });
    calculate.addEventListener('click',()=>{
@@ -1328,7 +1328,7 @@ const statsPage=el('section','propulsion-report-summary-page');
     sharedDerivedAdded.delete(key);check.disabled=false;check.checked=false;calculate.hidden=false;calculate.disabled=true;calculate.textContent='Calculate and Add to All logs';calculate.title='Select the parameter and apply filtering to every log before calculating.';addedStatus.hidden=true;retry.hidden=true;card.classList.remove('is-added-to-graph');
     multiSession.logs.forEach(log=>{log._phase3Ready=false;log._derivedKeys=[...sharedDerivedAdded];if(log._phase3Filtered)commonEngine.calculateLog(log,multiLogType,log._derivedKeys);if(log._phase3Card){renderMultiLogPreview(log,log._phase3Card._phase3Controls.tableHost,log._derivedKeys);log._phase3Card._phase3Controls.summary.textContent='Derived parameter reset. Recalculate the selected parameters for all logs.';}});
     Object.entries(sharedDerivedActions).forEach(([otherKey,action])=>{if(otherKey!==key)action.calculate.disabled=!sharedDerivedChecks[otherKey].checked||sharedDerivedAdded.has(otherKey);});
-    derivedReadyCheckbox.checked=false;filteringReadyCheckbox.checked=false;generatedMultiCsv='';csvDownloadButton.hidden=true;csvExportButton.disabled=false;
+    derivedReadyCheckbox.checked=false;filteringReadyCheckbox.checked=false;generatedMultiCsvFiles=[];generatedCsvFilesHost.replaceChildren();csvExportButton.hidden=true;csvExportButton.disabled=false;
     note.textContent='Calculation reset. Select the parameter and calculate it again for all logs.';
     updateMultiReadiness();updateMultiCsvGate();
    });
