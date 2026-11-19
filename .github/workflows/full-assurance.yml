@@ -61,7 +61,7 @@ jobs:
           restore-keys: yeti-full-v1-${{ runner.os }}-node22-playwright1.65.1-
       - name: Install pinned browser test dependencies
         run: |
-          if [ ! -x node_modules/.bin/playwright ]; then
+          if [ ! -x node_modules/.bin/playwright ] || [ ! -d node_modules/pixelmatch ] || [ ! -d node_modules/pngjs ]; then
             npm install --no-save --no-package-lock playwright@1.65.1 pixelmatch@5.3.0 pngjs@6.0.0
           fi
       - name: Install Chromium when cache is cold
