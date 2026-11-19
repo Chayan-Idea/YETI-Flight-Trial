@@ -1,0 +1,8 @@
+/* YETI parameter mapping module — header scoring and identification. */
+(function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;if(root)root.YetiParameterMapping=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
+ 'use strict';
+ function scoreHeader(header,aliases,normalize){const norm=normalize||String,h=norm(header);let best=0;for(const alias of aliases){const n=norm(alias);if(h===n)best=Math.max(best,100);else if(h.includes(n)||n.includes(h))best=Math.max(best,h.length>3?65:30);}return best;}
+ function findHeader(rows,specs,score){let best={index:-1,score:0};for(let i=0;i<Math.min(rows.length,10);i++){const cells=rows[i].map(v=>String(v??'').trim());const value=specs.reduce((sum,s)=>sum+(cells.some(c=>score(c,s.aliases)>=65)?1:0),0);if(value>best.score)best={index:i,score:value};}return best.score>=4?best.index:-1;}
+ function validateSelection(mapping,requiredKeys){const errors=[],used=new Map();for(const key of requiredKeys){const index=mapping?.[key]?.selected;if(index===''||index===undefined||!Number.isInteger(Number(index)))errors.push('Missing mapping: '+key);else if(used.has(Number(index)))errors.push('Duplicate mapping: '+used.get(Number(index))+' and '+key);else used.set(Number(index),key);}return {valid:errors.length===0,errors};}
+ return Object.freeze({scoreHeader,findHeader,validateSelection});
+});
