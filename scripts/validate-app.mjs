@@ -69,13 +69,13 @@ for (const reference of stylesheets) {
   else fail('Missing stylesheet: ' + localPath);
 }
 
-// Parse every maintained JavaScript source and test file, not only scripts referenced by index.html.
+// Parse every maintained browser JavaScript and CommonJS test file, not only scripts referenced by index.html.
 function collectJavaScript(directory) {
   if (!exists(directory)) return [];
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
     const file = path.join(directory, entry.name);
     if (entry.isDirectory()) return collectJavaScript(file);
-    return /\\.(?:js|mjs|cjs)$/.test(entry.name) ? [file] : [];
+    return /\\.(?:js|cjs)$/.test(entry.name) ? [file] : [];
   });
 }
 const checkedFiles = new Set(externalScripts.map(reference => reference.split('?')[0].replace(/^\\.\\//, '')));
