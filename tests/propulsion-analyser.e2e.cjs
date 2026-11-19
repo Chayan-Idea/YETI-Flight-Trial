@@ -152,6 +152,11 @@ const server = http.createServer((req,res)=>{
   const proceedInApp=page.getByRole('button',{name:'Proceed with In App Analysis',exact:true});
   await proceedInApp.waitFor({state:'visible'});
   await proceedInApp.click();
+  const comparativeSummary=page.locator('#propulsionMultiParameterSummaryCard');
+  await comparativeSummary.waitFor({state:'visible'});
+  const proceedToGraph=comparativeSummary.getByRole('button',{name:'Proceed to Graphical Analysis',exact:true});
+  await proceedToGraph.waitFor({state:'visible'});
+  await proceedToGraph.click();
   await page.locator('#multiGraphXAxis').waitFor({state:'visible'});
   if(await page.locator('#multiGraphSecondaryYAxis, .propulsion-phase3-series-controls, .propulsion-phase3-graph-controls input[type=number]').count()!==0)throw new Error('Comparative graph should expose only common X/Y selectors, not secondary axes, per-log toggles or manual range fields.');
   await page.locator('#multiGraphXAxis').selectOption('actualRpm');
