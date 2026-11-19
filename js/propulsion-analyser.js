@@ -35,6 +35,22 @@
    getRow(index){return tbody.querySelector('tr[data-row-index="'+index+'"]')||null;}
   };
  }
+
+ function filterRowsWithReturnTail(rows,rpmIndex,headerCount=0){
+  if(!Number.isInteger(Number(rpmIndex)))return rows.slice();
+  const kept=[];let returnTailRemaining=-1;
+  for(let index=0;index<rows.length;index++){
+   const row=rows[index];
+   if(index<headerCount){kept.push(row);continue;}
+   if(returnTailRemaining===0)break;
+   if(returnTailRemaining>0){kept.push(row);returnTailRemaining--;continue;}
+   const raw=String(row?.[rpmIndex]??'').trim();
+   const rpm=raw===''?NaN:Number(raw.replace(/,/g,''));
+   if(!Number.isFinite(rpm)||rpm>0){kept.push(row);continue;}
+   kept.push(row);returnTailRemaining=5;
+  }
+  return kept;
+ }
  function renderCsvPreview(text){
   if(csvPreviewPanel)csvPreviewPanel.remove();
   const rows=parseCSV(text,chooseDelimiter(text));
@@ -42,13 +58,7 @@
   const maxColumns=Math.max(0,...rows.map(row=>row.length));
   const headerIndex=findHeader(rows);
   const actualRpmIndex=headerIndex>=0?rows[headerIndex].map((name,index)=>({index,score:scoreHeader(name,specs.find(s=>s.key==='actualRpm').aliases)})).filter(item=>item.score>=65).sort((a,b)=>b.score-a.score)[0]?.index:-1;
-  const filteredRows=actualRpmIndex<0?null:rows.filter((row,index)=>{
-   if(index<=headerIndex)return true;
-   const raw=String(row[actualRpmIndex]??'').trim();
-   if(raw==='')return true;
-   const rpm=Number(raw);
-   return !Number.isFinite(rpm)||rpm>0;
-  });
+  const filteredRows=actualRpmIndex<0?null:filterRowsWithReturnTail(rows,actualRpmIndex,headerIndex+1);
   csvPreviewPanel=el('section','propulsion-csv-preview-card propulsion-step-card propulsion-step-card--green');
   csvPreviewPanel.id='propulsionCsvPreview';
   csvPreviewPanel.setAttribute('aria-labelledby','propulsionCsvPreviewHeading');
@@ -450,12 +460,15 @@
    const timestampAliases=['timestamp','time_stamp','datetime','date_time','date time','time','utc_time','local_time','sample_time','logged_at','date'];
    const timestampIndex=headerRow.map((name,index)=>({index,score:scoreHeader(name,timestampAliases)})).filter(item=>item.score>=65).sort((a,b)=>b.score-a.score)[0]?.index;
    const sourceRows=analysisRows.map((row,index)=>({row:row.slice(),sourceIndex:index}));
-   const filteredRows=sourceRows.filter(item=>{
-    const raw=String(item.row[rpmIndex]??'').trim();
-    if(raw==='')return true;
-    const rpm=Number(raw);
-    return !Number.isFinite(rpm)||rpm>0;
+   const filteredSourceIndexes=[];let returnTailRemaining=-1;
+   sourceRows.forEach((item,index)=>{
+    if(returnTailRemaining===0)return;
+    if(returnTailRemaining>0){filteredSourceIndexes.push(index);returnTailRemaining--;return;}
+    const raw=String(item.row[rpmIndex]??'').trim(),rpm=raw===''?NaN:Number(raw.replace(/,/g,''));
+    if(!Number.isFinite(rpm)||rpm>0){filteredSourceIndexes.push(index);return;}
+    filteredSourceIndexes.push(index);returnTailRemaining=5;
    });
+   const filteredRows=filteredSourceIndexes.map(index=>sourceRows[index]);
    let sortNote='Original row order retained because no timestamp column was identified.';
    if(timestampIndex!==undefined){
     const parsed=filteredRows.map(item=>{const raw=String(item.row[timestampIndex]??'').trim();const numeric=raw!==''?Number(raw):NaN;const date=numeric>0&&numeric<1e12?new Date(numeric*1000):numeric>=1e12?new Date(numeric):new Date(raw);return {...item,sortTime:Number.isFinite(date.getTime())?date.getTime():NaN};});
