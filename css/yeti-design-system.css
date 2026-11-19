@@ -84,5 +84,7 @@ tr:hover td{background:#f8fbfd}
 /* WCAG AA contrast for small navigation and eyebrow text on light surfaces. */
 .nav-kicker{color:#00647b!important}
 .module-nav-heading p,.subnav-heading p{color:#53677b!important}
-.module-tab-copy small,.subtab-copy small{color:#53677b!important}
+.module-tab-copy small,.subtab-copy small{color:#53677b!important;opacity:1!important}
+/* The redesigned active module card is light, so keep its subtitle dark and fully opaque too. */
+.module-tab.active .module-tab-copy small{color:#53677b!important;opacity:1!important}
 .flight-trial-reading-header .nav-kicker{color:#00647b!important}
