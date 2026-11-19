@@ -69,7 +69,34 @@ for (const reference of stylesheets) {
   else fail('Missing stylesheet: ' + localPath);
 }
 
-checkJavaScript('service-worker.js', read('service-worker.js'));
+const serviceWorker = read('service-worker.js');
+checkJavaScript('service-worker.js', serviceWorker);
+const shellMatch = serviceWorker.match(/\\bconst\\s+SHELL\\s*=\\s*\\[([\\s\\S]*?)\\]/);
+if (!shellMatch) {
+  fail('Service worker app-shell list could not be identified');
+} else {
+  const shellAssets = [...shellMatch[1].matchAll(/['"]([^'"]+)['"]/g)].map(match => match[1]);
+  const duplicateShellAssets = shellAssets.filter((asset, index) => shellAssets.indexOf(asset) !== index);
+  if (duplicateShellAssets.length) fail('Duplicate service-worker precache assets: ' + [...new Set(duplicateShellAssets)].join(', '));
+  else pass('No duplicate service-worker precache assets');
+  for (const asset of shellAssets) {
+    const localPath = asset.split('?')[0].replace(/^\\.\\//, '');
+    if (exists(localPath)) pass('Service-worker precache asset exists: ' + localPath);
+    else fail('Missing service-worker precache asset: ' + localPath);
+  }
+  const appAssets = [
+    ...[...html.matchAll(/<script\\b[^>]*\\bsrc=["']([^"']+)["'][^>]*><\\/script>/gi)].map(match => match[1]),
+    ...[...html.matchAll(/<link\\b[^>]*\\brel=["']stylesheet["'][^>]*\\bhref=["']([^"']+)["'][^>]*>/gi)].map(match => match[1])
+  ].map(reference => reference.split('?')[0]);
+  for (const asset of appAssets) {
+    if (!shellAssets.includes(asset)) fail('Application entry is missing from service-worker precache: ' + asset);
+  }
+  if (!appAssets.some(asset => asset.endsWith('/propulsion-analysis-engine.js'))) {
+    fail('Propulsion analysis engine is not loaded by index.html');
+  } else if (!shellAssets.includes('./js/propulsion-analysis-engine.js')) {
+    fail('Propulsion analysis engine is missing from service-worker precache');
+  } else pass('All application scripts and stylesheets are included in service-worker precache');
+}
 
 if (failures.length) {
   console.error('YETI Flight Trial validation FAILED');
