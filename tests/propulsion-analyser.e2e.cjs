@@ -19,7 +19,7 @@ const server = http.createServer((req,res)=>{
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   const address=server.address();const baseUrl='http://127.0.0.1:'+address.port;
   browser=await chromium.launch({headless:true,args:['--no-sandbox']});
-  context=await browser.newContext();
+  context=await browser.newContext({acceptDownloads:true});
   await context.tracing.start({screenshots:true,snapshots:true,sources:true});traceStarted=true;
   page=await context.newPage();
   page.on('pageerror',error=>pageErrors.push(error.message));
