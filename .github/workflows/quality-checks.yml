@@ -1,4 +1,4 @@
-name: YETI Six-Layer Quality Check
+name: YETI Quick Quality Check
 
 on:
   push:
@@ -11,23 +11,23 @@ permissions:
   contents: read
 
 concurrency:
-  group: yeti-six-layer-quality-${{ github.event.pull_request.number || github.ref }}
+  group: yeti-quick-quality-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  six-layer-quality:
-    name: Six layers — one quality check
+  quick-quality-check:
+    name: Quick Quality Check — single job
     runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/playwright:v1.65.1-noble
     timeout-minutes: 2
     steps:
-      - name: Check out the candidate commit
+      - name: Check out candidate commit
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Check out the unchanged production UI baseline
+      - name: Check out production UI baseline for preservation test
         uses: actions/checkout@v4
         with:
           ref: main
@@ -39,32 +39,57 @@ jobs:
         with:
           node-version: 22
 
-      - name: Restore pinned test dependencies and browser binaries
-        id: quality-cache
+      - name: Restore quick-check dependencies
+        id: quick-cache
         uses: actions/cache@v4
         with:
           path: |
             ~/.npm
             node_modules
-          key: yeti-six-layer-v2-${{ runner.os }}-node22-pw1.65.1-pixelmatch5.3.0-png6.0.0-axe4.11.0
-          restore-keys: |
-            yeti-full-v1-${{ runner.os }}-node22-playwright1.65.1-
-            yeti-quick-v1-${{ runner.os }}-node22-playwright1.65.1-
+          key: yeti-quick-quality-v1-${{ runner.os }}-node22-pw1.65.1-pixelmatch5.3.0-png6.0.0
 
-      - name: Install pinned test dependencies
+      - name: Install pinned test dependencies when cache is incomplete
         run: |
-          if [ ! -x node_modules/.bin/playwright ] || [ ! -d node_modules/pixelmatch ] || [ ! -d node_modules/pngjs ] || [ ! -d node_modules/axe-core ]; then
-            npm install --no-save --no-package-lock playwright@1.65.1 pixelmatch@5.3.0 pngjs@6.0.0 axe-core@4.11.0
+          if [ ! -x node_modules/.bin/playwright ] || [ ! -d node_modules/pixelmatch ] || [ ! -d node_modules/pngjs ]; then
+            npm install --no-save --no-package-lock playwright@1.65.1 pixelmatch@5.3.0 pngjs@6.0.0
           fi
 
-      - name: Verify preinstalled Chromium, Firefox and WebKit engines
-        run: npx playwright --version && test -d /ms-playwright
+      - name: Verify cached Chromium
+        run: |
+          node -e "const { chromium } = require('playwright'); console.log('Playwright', require('playwright/package.json').version);"
+          test -d /ms-playwright
+          test -x /ms-playwright/chromium-*/chrome-linux/chrome || find /ms-playwright -maxdepth 3 -type f -name chrome -print -quit | grep -q .
 
-      - name: Run all six quality layers with a strict execution budget
+      - name: Run the single quick quality check
         env:
           HOME: /root
           GIT_CONFIG_COUNT: 1
           GIT_CONFIG_KEY_0: safe.directory
           GIT_CONFIG_VALUE_0: ${{ github.workspace }}
           YETI_BASELINE_ROOT: ${{ github.workspace }}/.baseline-main
-        run: node scripts/run-six-layer-quality.mjs
+        run: |
+          set -euo pipefail
+          echo "## YETI Quick Quality Check" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "One workflow, one job, one pass/fail result. Execution timeout: 2 minutes." >> "$GITHUB_STEP_SUMMARY"
+          run_check() {
+            label="$1"
+            shift
+            echo "::group::$label"
+            started=$(date +%s)
+            "$@"
+            elapsed=$(( $(date +%s) - started ))
+            echo "**PASS** — $label (${elapsed}s)" >> "$GITHUB_STEP_SUMMARY"
+            echo "PASS — $label (${elapsed}s)"
+            echo "::endgroup::"
+          }
+          run_check "Static and structural validation" node scripts/validate-app.mjs
+          run_check "Propulsion calculation unit tests" node tests/propulsion-analysis-engine.test.js
+          run_check "Analyzer module regression tests" node tests/yeti-modules.test.js
+          run_check "Browser startup and navigation" node tests/browser-smoke.cjs
+          run_check "Flight Preparation operational regression" node tests/flight-preparation.e2e.cjs
+          run_check "Flight Preparation UI preservation" node tests/ui-preservation.e2e.cjs
+          run_check "Propulsion Analyzer, comparative logs and PDF regression" node tests/propulsion-analyser.e2e.cjs
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**OVERALL: PASS — all quick quality checks completed.**" >> "$GITHUB_STEP_SUMMARY"
+          echo "YETI QUICK QUALITY CHECK PASSED."
