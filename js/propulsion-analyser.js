@@ -1108,6 +1108,8 @@ const statsPage=el('section','propulsion-report-summary-page');
    add('line',{x1:L,y1:T+ph,x2:L+pw,y2:T+ph,stroke:'#111827','stroke-width':3.5});add('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#111827','stroke-width':3.5});
    // Draw all data series first, then place each legend label in the least-occupied blank area.
    series.forEach(item=>{if(!item.points.length)return;const color=multiColors[item.index%multiColors.length],path=item.points.map((point,index)=>(index?'L':'M')+sx(point.x).toFixed(2)+','+sy(point.y).toFixed(2)).join(' ');add('path',{d:path,fill:'none',stroke:color,'stroke-width':2.8,'stroke-linejoin':'round','stroke-linecap':'round'});item.points.forEach(point=>add('circle',{cx:sx(point.x),cy:sy(point.y),r:3.5,fill:color,opacity:.9}));});
+   // Convert plotted data points to SVG coordinates for adaptive legend placement.
+   const segmentSamples=series.flatMap(item=>item.points.map(point=>({x:sx(point.x),y:sy(point.y)})));
    // Keep all log labels together as one compact legend group; move the group as a unit.
    const legendItems=series.filter(item=>item.points.length).map(item=>({item,color:multiColors[item.index%multiColors.length],label:'LOG '+(item.index+1)+' · '+(item.log.fileName||'Log '+(item.index+1))}));
    const legendFont=13,legendHeight=21,legendGap=3,legendGroupHeight=legendItems.length*legendHeight+Math.max(0,legendItems.length-1)*legendGap;
