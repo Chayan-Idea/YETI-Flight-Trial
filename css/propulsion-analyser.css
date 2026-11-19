@@ -1240,3 +1240,9 @@
 #multiPropulsionReportLivePreview .propulsion-report-multi-summary-page .propulsion-report-small-note{margin-top:2mm!important;font-size:5.5pt;line-height:1.15}
 #multiPropulsionReportLivePreview .propulsion-report-multi-summary-page .propulsion-report-footer{padding-top:2mm;font-size:6pt}
 @media print{#multiPropulsionReportLivePreview .propulsion-report-multi-summary-page{padding:10mm 12mm!important}#multiPropulsionReportLivePreview .propulsion-report-comparative-summary-table tr{break-inside:avoid;page-break-inside:avoid}}
+
+/* Comparative report graph axis selectors: equal-width side-by-side layout. */
+.propulsion-phase4-report-graph-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:16px;row-gap:12px;width:100%;align-items:end}
+.propulsion-phase4-report-graph-controls>h4,.propulsion-phase4-report-graph-controls>p,.propulsion-phase4-report-graph-controls>.propulsion-actions,.propulsion-phase4-report-graph-controls>.propulsion-report-graph-list{grid-column:1/-1}
+.propulsion-phase4-report-graph-controls>.propulsion-phase4-field{width:100%;min-width:0}
+.propulsion-phase4-report-graph-controls>.propulsion-phase4-field select{width:100%;min-width:0;box-sizing:border-box}
