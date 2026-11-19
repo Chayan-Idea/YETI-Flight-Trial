@@ -10,9 +10,9 @@ assert.deepEqual(csv.parse(source,csv.chooseDelimiter(source)),[['Time','Actual 
 assert.equal(csv.normalizeHeader('\uFEFF Actual RPM '),'actual_rpm');
 assert.deepEqual(csv.filterRowsWithReturnTail([['RPM'],['100'],['0'],['-1'],['90']],0,1),[['RPM'],['100'],['0'],['-1'],['90']]);
 
-const specs=[{aliases:['actual_rpm','actual rpm']},{aliases:['thrust']}];
+const specs=[{aliases:['actual_rpm','actual rpm']},{aliases:['thrust']},{aliases:['time']},{aliases:['torque']}];
 const score=(value,aliases)=>mapping.scoreHeader(value,aliases,csv.normalizeHeader);
-assert.equal(mapping.findHeader([['metadata'],['Actual RPM','Thrust']],specs,score),1);
+assert.equal(mapping.findHeader([['metadata'],['Actual RPM','Thrust','Time','Torque']],specs,score),1);
 assert.deepEqual(mapping.validateSelection({rpm:{selected:0},thrust:{selected:1}},['rpm','thrust']),{valid:true,errors:[]});
 assert.equal(mapping.validateSelection({rpm:{selected:0},thrust:{selected:0}},['rpm','thrust']).valid,false);
 
