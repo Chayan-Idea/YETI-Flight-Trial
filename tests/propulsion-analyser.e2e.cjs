@@ -12,11 +12,11 @@ const server = http.createServer((req,res)=>{
   fs.createReadStream(target).pipe(res);
 });
 (async()=>{
- let browser;
+ let browser,page;
  try {
   await new Promise(resolve=>server.listen(4173,'127.0.0.1',resolve));
   browser=await chromium.launch({headless:true,args:['--no-sandbox']});
-  const page=await browser.newPage();
+  page=await browser.newPage();
   const pageErrors=[],consoleErrors=[],failedRequests=[],checkpoints=[];
   page.on('pageerror',error=>pageErrors.push(error.message));
   page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text());});
@@ -195,7 +195,6 @@ const server = http.createServer((req,res)=>{
   const sliderStyle=await commonSlider.evaluate(el=>({width:getComputedStyle(el).width,marginLeft:getComputedStyle(el).marginLeft,appearance:getComputedStyle(el).appearance}));
   if(sliderStyle.appearance!=='auto')throw new Error('Comparative slider must use the shared native slider appearance.');
   await page.getByRole('button',{name:'Plot Comparative Graph'}).click();
-  if(!(await xyRange.isVisible()))throw new Error('Comparative X-Y range selector must appear after graph plotting.');
   if(!(await xyRange.isVisible()))throw new Error('Comparative X-Y range selector must appear after graph plotting.');
   const explorerOrder=await page.locator('.propulsion-phase3-explorer').evaluate(el=>Array.from(el.children).map(child=>Array.from(child.classList)));
   const rangeOrderIndex=explorerOrder.findIndex(classes=>classes.includes('propulsion-phase3-range-panel'));
