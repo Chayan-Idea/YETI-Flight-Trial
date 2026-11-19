@@ -38,6 +38,10 @@ const server = http.createServer((req, res) => {
     await page.locator('#propulsionAnalyzerTab').waitFor({ state: 'visible' });
     await page.locator('#flightPreparationTab').waitFor({ state: 'visible' });
     await page.locator('#flightPreparationPanel').waitFor({ state: 'visible' });
+    const designLayer = await page.locator('link[href*="yeti-design-system.css"]').count();
+    if (designLayer !== 1) throw new Error('YETI visual design stylesheet is not loaded exactly once.');
+    const designTokens = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--yeti-ink').trim());
+    if (designTokens !== '#142b43') throw new Error('YETI design tokens are not active.');
 
     await page.locator('#propulsionAnalyzerTab').click();
     await page.locator('.propulsion-analyser-workspace').waitFor({ state: 'visible' });
