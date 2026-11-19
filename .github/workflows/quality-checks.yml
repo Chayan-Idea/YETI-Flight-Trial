@@ -44,35 +44,7 @@ jobs:
         run: node tests/propulsion-analysis-engine.test.js
 
   browser-smoke:
-    name: Layer 3A — Browser smoke and navigation regression
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Install Playwright
-        run: npm install --no-save --no-package-lock playwright@1.65.1
-      - name: Install Chromium
-        run: ./node_modules/.bin/playwright install --with-deps chromium
-      - name: Test application startup and core navigation
-        run: node tests/browser-smoke.cjs
-      - name: Upload browser smoke diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: yeti-browser-smoke-diagnostics
-          path: |
-            /tmp/yeti-smoke-failure.png
-            /tmp/yeti-smoke-trace.zip
-          if-no-files-found: ignore
-          retention-days: 7
-
-  flight-preparation-ui:
-    name: Phase 3 — Flight Preparation workflows and UI preservation
+    name: Layer 3A — Browser, Flight Preparation and UI preservation
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -87,16 +59,28 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Install pinned browser and visual comparison dependencies
+      - name: Install Playwright
         run: npm install --no-save --no-package-lock playwright@1.65.1 pixelmatch@5.3.0 pngjs@6.0.0
       - name: Install Chromium
-        run: ./node_modules/.bin/playwright install chromium
+        run: ./node_modules/.bin/playwright install --with-deps chromium
+      - name: Test application startup and core navigation
+        run: node tests/browser-smoke.cjs
       - name: Validate Flight Preparation operational workflows
         run: node tests/flight-preparation.e2e.cjs
       - name: Compare Flight Preparation UI with untouched main baseline
         env:
           YETI_BASELINE_ROOT: ${{ github.workspace }}/.baseline-main
         run: node tests/ui-preservation.e2e.cjs
+      - name: Upload browser smoke diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: yeti-browser-smoke-diagnostics
+          path: |
+            /tmp/yeti-smoke-failure.png
+            /tmp/yeti-smoke-trace.zip
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Upload Flight Preparation and visual regression evidence
         if: always()
         uses: actions/upload-artifact@v4
