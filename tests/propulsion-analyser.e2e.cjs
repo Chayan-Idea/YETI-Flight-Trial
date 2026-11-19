@@ -140,10 +140,14 @@ const server = http.createServer((req,res)=>{
   if(await generatedFiles.count()!==2)throw new Error('2-log mode must generate two independent CSV result cards.');
   for(let index=0;index<2;index++){
    const fileCard=generatedFiles.nth(index);
-   if(await fileCard.locator('button').filter({hasText:'Show CSV Preview'}).count()!==1||await fileCard.locator('button').filter({hasText:'Download CSV'}).count()!==1)throw new Error('Each generated log CSV must have its own preview and download buttons.');
-   await fileCard.locator('button').filter({hasText:'Show CSV Preview'}).click();
-   await fileCard.locator('.propulsion-csv-preview-viewport').waitFor({state:'visible'});
-   if(await fileCard.locator('.propulsion-csv-preview-table tbody tr').count()===0)throw new Error('Generated individual CSV preview did not display its rows.');
+   const downloadButton=fileCard.locator('button').filter({hasText:'Download CSV'});
+   if(await downloadButton.count()!==1)throw new Error('Each generated log CSV must have its own download action.');
+   if(!(await fileCard.locator('h3').innerText()).includes('run-'+(index===0?'a':'b')+'_filtered_sorted.csv'))throw new Error('Each generated CSV card must retain its corresponding source log filename.');
+   if(!(await fileCard.locator('.propulsion-csv-preview-meta').innerText()).includes('filtered data rows'))throw new Error('Each generated CSV card must describe the filtered output rows.');
+   const downloadPromise=page.waitForEvent('download');
+   await downloadButton.click();
+   const download=await downloadPromise;
+   if(download.suggestedFilename()!=='run-'+(index===0?'a':'b')+'_filtered_sorted.csv')throw new Error('Generated CSV download filename does not match its source log.');
   }
   if(await page.locator('#multiGraphSecondaryYAxis, .propulsion-phase3-series-controls, .propulsion-phase3-graph-controls input[type=number]').count()!==0)throw new Error('Comparative graph should expose only common X/Y selectors, not secondary axes, per-log toggles or manual range fields.');
   await page.locator('#multiGraphXAxis').selectOption('actualRpm');
