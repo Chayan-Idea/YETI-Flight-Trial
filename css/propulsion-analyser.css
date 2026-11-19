@@ -16,6 +16,9 @@
 .propulsion-file-meta{margin-top:8px;color:#53697e;font-size:12px;overflow-wrap:anywhere}
 .propulsion-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}
 .propulsion-actions .btn:disabled{opacity:.45;cursor:not-allowed}
+/* Keep PDF export visible while making its unavailable state unmistakable. */
+.propulsion-report-export-btn:disabled{position:relative;isolation:isolate;overflow:hidden;opacity:1!important;cursor:not-allowed!important}
+.propulsion-report-export-btn:disabled::after{content:"";position:absolute;inset:0;background:rgba(255,255,255,.68);border-radius:inherit;pointer-events:none;z-index:2}
 .propulsion-progress-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:13px}
 .propulsion-progress-heading>strong{font-size:22px;color:#176b36;font-variant-numeric:tabular-nums}
 .propulsion-progress-track{height:14px;overflow:hidden;border-radius:20px;background:#e8edf1;border:1px solid #dce5eb}
