@@ -67,6 +67,9 @@ const server = http.createServer((req,res)=>{
 
   if(await multiReport.locator('#multiReportGraphCount').innerText()!=='1 of 5 graphs added')throw new Error('Comparative report graph counter must update after adding a graph.');
   if(await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-graph-page .propulsion-report-graph-svg circle').count()<2)throw new Error('Added comparative report graph must contain plotted data points from the processed logs.');
+  if(await multiReport.locator('#multiReportGraphList .propulsion-report-graph-item').count()!==1)throw new Error('Added comparative graph must appear in the report graph list.');
+  if((await multiReport.locator('.propulsion-phase4-report-status').innerText()).includes('Unable to add graph:'))throw new Error('Adding a comparative report graph must not produce a runtime error.');
+
 
   await multiReport.locator('#multiReportGraphList button[aria-label="Remove report graph 1"]').click();
   if(await multiReport.locator('#multiReportGraphList .propulsion-report-graph-item').count()!==0||await multiReport.locator('#multiPropulsionReportLivePreview .propulsion-report-graph-page').count()!==0)throw new Error('Removing a comparative report graph must also remove it from the live PDF preview.');
