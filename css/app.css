@@ -97,6 +97,7 @@
 .loading-route-grid label{display:grid;gap:5px;color:#36536f;font-size:12px;font-weight:750}
 .loading-route-grid input{width:100%;min-width:0;border:1px solid #c7d8e9;border-radius:7px;padding:10px;font:inherit;background:#f8fbff}
 @media(max-width:620px){.loading-route-grid{grid-template-columns:1fr}}
+@media(max-width:620px){.loading-meta-grid{grid-template-columns:minmax(0,1fr)}.loading-meta-grid input{min-width:0;width:100%}}
 
 .module-panel[hidden]{display:none!important}
 
