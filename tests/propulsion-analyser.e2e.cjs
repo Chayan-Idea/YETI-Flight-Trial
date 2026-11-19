@@ -217,12 +217,16 @@ const server = http.createServer((req,res)=>{
   const svgStyle=await graphSvg.evaluate(el=>({width:el.getBoundingClientRect().width,hostWidth:el.parentElement.clientWidth,scrollWidth:el.parentElement.scrollWidth,minWidth:getComputedStyle(el).minWidth}));
   if(svgStyle.minWidth!=='0px'||svgStyle.width>svgStyle.hostWidth+1||svgStyle.scrollWidth>svgStyle.hostWidth+1)throw new Error('Comparative graph must fit its viewport so the slider and graph share visible endpoints: '+JSON.stringify(svgStyle));
 
+  const readoutHeaders=await readoutTable.locator('thead th').allInnerTexts();
+  if(!readoutHeaders[2]?.startsWith('X AXIS · ')||!readoutHeaders[3]?.startsWith('Y AXIS · '))throw new Error('Comparative readout must label X and Y values in the table headers: '+JSON.stringify(readoutHeaders));
   for(let index=0;index<2;index++){
    const row=readoutTable.locator('tbody tr').nth(index);
    const cells=row.locator('td');
-   if(await cells.count()!==3)throw new Error('Each comparative readout row must contain file name, common X and per-log Y values.');
-   const rowText=await row.innerText();
-   if(!rowText.includes('run-'+(index===0?'a':'b')+'.csv')||!rowText.includes('X (')||!rowText.includes('Y ('))throw new Error('Each log readout table row must show its file name and corresponding X/Y values: '+rowText);
+   if(await row.locator('th').count()!==1||await cells.count()!==3)throw new Error('Each comparative readout row must contain a log label, file name, common X and per-log Y values.');
+   const rowValues=await cells.allInnerTexts();
+   const expectedFile='run-'+(index===0?'a':'b')+'.csv';
+   if(rowValues[0]!==expectedFile)throw new Error('Comparative readout row must retain the correct source filename: '+JSON.stringify(rowValues));
+   if(!Number.isFinite(Number(rowValues[1]))||!Number.isFinite(Number(rowValues[2])))throw new Error('Each log readout row must show numeric X and Y values beneath their labelled headers: '+JSON.stringify(rowValues));
   }
   if(!(await page.locator('.propulsion-phase3-common-x-readout').innerText()).includes('COMMON X AXIS'))throw new Error('Comparative slider readout must identify the shared X-axis position.');
 
