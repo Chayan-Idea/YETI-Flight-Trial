@@ -36,22 +36,9 @@
   };
  }
 
- function filterRowsWithReturnTail(rows,rpmIndex,headerCount=0){return csvProcessing.filterRowsWithReturnTail(rows,rpmIndex,headerCount);}\n /* Legacy call site retained; filtering implementation lives in yeti-csv-processing.js. */\n function _legacyFilterRowsWithReturnTail_DISABLED(rows,rpmIndex,headerCount=0){
-  if(!Number.isInteger(Number(rpmIndex)))return rows.slice();
-  const kept=[];let returnTailRemaining=-1;
-  for(let index=0;index<rows.length;index++){
-   const row=rows[index];
-   if(index<headerCount){kept.push(row);continue;}
-   if(returnTailRemaining===0)break;
-   if(returnTailRemaining>0){kept.push(row);returnTailRemaining--;continue;}
-   const raw=String(row?.[rpmIndex]??'').trim();
-   const rpm=raw===''?NaN:Number(raw.replace(/,/g,''));
-   if(!Number.isFinite(rpm)||rpm>0){kept.push(row);continue;}
-   if(rpm<0)continue;
-   kept.push(row);returnTailRemaining=5;
-  }
-  return kept;
- }
+ function filterRowsWithReturnTail(rows,rpmIndex,headerCount=0){return csvProcessing.filterRowsWithReturnTail(rows,rpmIndex,headerCount);}
+ function filterRowsWithReturnTail(rows,rpmIndex,headerCount=0){return csvProcessing.filterRowsWithReturnTail(rows,rpmIndex,headerCount);}
+
  function renderCsvPreview(text){
   if(csvPreviewPanel)csvPreviewPanel.remove();
   const rows=parseCSV(text,chooseDelimiter(text));
