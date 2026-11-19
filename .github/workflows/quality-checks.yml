@@ -90,7 +90,7 @@ jobs:
       - name: Install pinned browser and visual comparison dependencies
         run: npm install --no-save --no-package-lock playwright@1.65.1 pixelmatch@5.3.0 pngjs@6.0.0
       - name: Install Chromium
-        run: ./node_modules/.bin/playwright install --with-deps chromium
+        run: ./node_modules/.bin/playwright install chromium
       - name: Validate Flight Preparation operational workflows
         run: node tests/flight-preparation.e2e.cjs
       - name: Compare Flight Preparation UI with untouched main baseline
