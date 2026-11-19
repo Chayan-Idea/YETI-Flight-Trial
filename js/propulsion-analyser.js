@@ -1083,6 +1083,39 @@ const statsPage=el('section','propulsion-report-summary-page');
   form.append(tableWrap,objectiveSection);
   const status=el('p','propulsion-phase4-report-status','Complete the mandatory identification fields for every log and enter the common test objective before exporting.');
   status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+  // Report graph selection is intentionally independent of Step 05 interactive graph controls.
+  const reportGraphControls=el('section','propulsion-phase4-report-graph-controls');
+  reportGraphControls.append(el('h4','','Graphical Report Selection'),el('p','propulsion-mapping-description','Select a common X and Y parameter to create a comparative graph with every processed log overlaid. Add up to five independent graphs to the PDF report.'));
+  const reportAxisField=(label,id)=>{const wrap=el('label','propulsion-phase4-field');wrap.append(el('span','',label));const select=document.createElement('select');select.id=id;select.className='propulsion-column-select';const blank=document.createElement('option');blank.value='';blank.textContent='Select parameter';select.append(blank);multiFieldOptions().forEach(option=>{const item=document.createElement('option');item.value=option.key;item.textContent=option.label;select.append(item)});wrap.append(select);reportGraphControls.append(wrap);return select;};
+  const reportGraphX=reportAxisField('Choose X Axis','multiReportGraphXAxis'),reportGraphY=reportAxisField('Choose Y Axis','multiReportGraphYAxis');
+  const reportGraphActions=el('div','propulsion-actions'),addReportGraph=el('button','btn alt','Add Graph to Report');addReportGraph.type='button';addReportGraph.id='addMultiReportGraphBtn';const reportGraphCount=el('span','propulsion-report-graph-count','0 of 5 graphs added');reportGraphCount.id='multiReportGraphCount';const reportGraphList=el('div','propulsion-report-graph-list');reportGraphList.id='multiReportGraphList';reportGraphActions.append(addReportGraph,reportGraphCount);reportGraphControls.append(reportGraphActions,reportGraphList);
+  let reportGraphs=[];
+  const renderComparativeReportGraph=(xKey,yKey)=>{
+   const options=multiFieldOptions(),xLabel=options.find(item=>item.key===xKey)?.label||xKey,yLabel=options.find(item=>item.key===yKey)?.label||yKey;
+   const series=multiSession.logs.map((log,index)=>{
+    const valid=(log.calculatedRows||[]).slice(1).map((item,rowIndex)=>({x:mappedValue(log,item.source,xKey,item),y:mappedValue(log,item.source,yKey,item),row:rowIndex+1})).filter(point=>Number.isFinite(point.x)&&Number.isFinite(point.y));
+    let highest=-Infinity;const points=valid.filter(point=>{if(point.x<highest)return false;highest=point.x;return true;});
+    return {log,index,points};
+   });
+   const all=series.flatMap(item=>item.points);if(all.length<2)return {error:'At least two valid X/Y data points across the processed logs are required.'};
+   const bounds=values=>{let min=Math.min(...values),max=Math.max(...values);if(min===max){const pad=Math.abs(min)*.05||1;min-=pad;max+=pad;}return {min,max};};
+   const xr=bounds(all.map(point=>point.x)),yr=bounds(all.map(point=>point.y));
+   const W=1040,H=520,L=105,R=35,T=30,B=82,pw=W-L-R,ph=H-T-B,sx=x=>L+(x-xr.min)/(xr.max-xr.min)*pw,sy=y=>T+ph-(y-yr.min)/(yr.max-yr.min)*ph;
+   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('role','img');svg.setAttribute('aria-label','Comparative report graph: '+xLabel+' versus '+yLabel);svg.classList.add('propulsion-chart-svg','propulsion-report-graph-svg','propulsion-multi-report-graph-svg');
+   const add=(tag,attrs,text)=>{const node=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs||{}).forEach(([key,value])=>node.setAttribute(key,String(value)));if(text!==undefined)node.textContent=text;svg.append(node);return node;};
+   const fmt=value=>new Intl.NumberFormat(undefined,{maximumFractionDigits:3}).format(value);
+   for(let tick=0;tick<=5;tick++){const x=L+pw*tick/5,y=T+ph-ph*tick/5;add('line',{x1:x,y1:T,x2:x,y2:T+ph,stroke:'#e3eaf1','stroke-width':1});add('line',{x1:L,y1:y,x2:L+pw,y2:y,stroke:'#e3eaf1','stroke-width':1});add('text',{x,y:T+ph+28,'text-anchor':'middle',fill:'#000','font-size':16,'font-weight':800},fmt(xr.min+(xr.max-xr.min)*tick/5));add('text',{x:L-16,y:y+6,'text-anchor':'end',fill:'#000','font-size':16,'font-weight':800},fmt(yr.min+(yr.max-yr.min)*tick/5));}
+   add('line',{x1:L,y1:T+ph,x2:L+pw,y2:T+ph,stroke:'#111827','stroke-width':3.5});add('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#111827','stroke-width':3.5});
+   series.forEach(item=>{if(!item.points.length)return;const color=multiColors[item.index%multiColors.length],path=item.points.map((point,index)=>(index?'L':'M')+sx(point.x).toFixed(2)+','+sy(point.y).toFixed(2)).join(' ');add('path',{d:path,fill:'none',stroke:color,'stroke-width':2.8,'stroke-linejoin':'round','stroke-linecap':'round'});item.points.forEach(point=>add('circle',{cx:sx(point.x),cy:sy(point.y),r:3.5,fill:color,opacity:.9}));add('text',{x:L+12,y:T+20+item.index*22,fill:color,'font-size':15,'font-weight':700},'LOG '+(item.index+1)+' · '+(item.log.fileName||'Log '+(item.index+1)));});
+   add('text',{x:L+pw/2,y:H-20,'text-anchor':'middle',fill:'#123b70','font-size':16,'font-weight':700},xLabel);
+   const yAxis=add('text',{x:30,y:T+ph/2,'text-anchor':'middle',fill:'#287fbd','font-size':15,'font-weight':700},yLabel);yAxis.setAttribute('transform',`rotate(-90 30 ${T+ph/2})`);
+   return {svg,title:yLabel+' vs '+xLabel,pointCount:all.length};
+  };
+  const refreshReportGraphCount=()=>{reportGraphCount.textContent=reportGraphs.length+' of 5 graphs added';addReportGraph.disabled=reportGraphs.length>=5;};
+  const renderReportGraphList=()=>{reportGraphList.replaceChildren();reportGraphs.forEach((item,index)=>{const entry=el('div','propulsion-report-graph-item');const heading=el('strong','',String(index+1).padStart(2,'0')+' · '+item.title);const remove=el('button','btn alt','Remove');remove.type='button';remove.setAttribute('aria-label','Remove report graph '+(index+1));remove.addEventListener('click',()=>{reportGraphs.splice(index,1);renderReportGraphList();refreshReportGraphCount();refresh()});entry.append(heading,remove,item.svg.cloneNode(true));reportGraphList.append(entry)});};
+  addReportGraph.addEventListener('click',()=>{if(reportGraphs.length>=5){refreshReportGraphCount();return;}if(!reportGraphX.value||!reportGraphY.value){status.textContent='Select both X and Y parameters before adding a report graph.';return;}if(reportGraphX.value===reportGraphY.value){status.textContent='Choose two different parameters for the report graph.';return;}const result=renderComparativeReportGraph(reportGraphX.value,reportGraphY.value);if(result.error){status.textContent=result.error;return;}reportGraphs.push(result);renderReportGraphList();refreshReportGraphCount();refresh();status.textContent='Graph added to comparative report. '+reportGraphs.length+' of 5 graphs selected.';});
+  reportGraphX.addEventListener('change',()=>{status.textContent='Report graph X-axis selection updated. These controls do not change Step 05 Graphical Analysis.';});
+  reportGraphY.addEventListener('change',()=>{status.textContent='Report graph Y-axis selection updated. These controls do not change Step 05 Graphical Analysis.';});
   const previewPanel=el('section','propulsion-phase4-live-preview-panel');
   previewPanel.append(el('h3','','Live A4 PDF Preview'));
   const preview=el('div','propulsion-report-preview-pages');preview.id='multiPropulsionReportLivePreview';
@@ -1164,9 +1197,8 @@ const statsPage=el('section','propulsion-report-summary-page');
    resultPage.append(el('p','propulsion-report-small-note','Values are maximum recorded values from each log’s filtered and sorted dataset. The timestamp identifies when each maximum occurred. Records with Actual RPM = 0 are excluded.'));
    resultPage.append(el('p','propulsion-report-footer','COMPARATIVE SUMMARY  /  ALL LOGS'));
    preview.append(resultPage);
-   // Per-log processing/derived-statistics detail pages are intentionally omitted from the PDF preview.
-   const currentSvg=multiGraphCard?.querySelector('.propulsion-phase3-plot-host svg');
-   if(currentSvg){const graphPage=el('article','propulsion-report-page');graphPage.append(el('div','propulsion-report-page-kicker','COMPARATIVE GRAPHICAL ANALYSIS'),el('h2','','Comparative Propulsion Graph'));const graph=el('div','propulsion-report-preview-graph');const clone=currentSvg.cloneNode(true);clone.removeAttribute('style');graph.append(clone);graphPage.append(graph);preview.append(graphPage);}
+   // Only graphs explicitly added in Step 06 appear in the PDF; Step 05 remains independent.
+   if(reportGraphs.length){for(let offset=0,pageNo=1;offset<reportGraphs.length;offset+=2,pageNo++){const graphPage=el('article','propulsion-report-page propulsion-report-graph-page');graphPage.append(el('div','propulsion-report-page-kicker','0'+(pageNo+1)+'  /  GRAPHICAL ANALYSIS'),el('h2','','COMPARATIVE PROPULSION PERFORMANCE PLOTS'));reportGraphs.slice(offset,offset+2).forEach((item,index)=>{const wrap=el('div','propulsion-report-preview-graph');wrap.append(el('h3','',String(offset+index+1).padStart(2,'0')+'  '+item.title),item.svg.cloneNode(true));graphPage.append(wrap)});preview.append(graphPage)}}
   }
   const refresh=()=>{validate();buildPreview();};
   table.querySelectorAll('input,select').forEach(input=>input.addEventListener('input',refresh));
@@ -1180,7 +1212,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    win.document.open();win.document.write('<!doctype html><html><head><meta charset="utf-8"><title>YETI Comparative Propulsion Report</title>'+printCss+'</head><body>'+markup.outerHTML+'</body></html>');win.document.close();win.focus();setTimeout(()=>win.print(),350);
    status.textContent='Print dialog opened. Select “Save as PDF” to create the comparative report.';
   });
-  card.append(form,status,exportButton,previewPanel);previewPanel.append(preview);multiMappingHost.append(card);multiReportCard=card;card.refreshPreview=refresh;refresh();
+  card.append(form,reportGraphControls,status,exportButton,previewPanel);previewPanel.append(preview);multiMappingHost.append(card);multiReportCard=card;card.refreshPreview=refresh;refreshReportGraphCount();refresh();
  }
 
  function renderMultiAnalysisWorkspace(){
