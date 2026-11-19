@@ -1,6 +1,6 @@
 /* Preserve the last opened main module tab, while its working session data resets separately. */
 const MODULE_TAB_STATE_KEY='yetiActiveMainModuleTab';
-function setModuleTab(which,save=true){const flight=which==='flight';$('flightPreparationPanel').hidden=!flight;$('propulsionAnalyzerPanel').hidden=flight;[['flightPreparationTab',flight],['propulsionAnalyzerTab',!flight]].forEach(([id,active])=>{$(id).classList.toggle('active',active);$(id).setAttribute('aria-selected',String(active))});if(save){try{localStorage.setItem(MODULE_TAB_STATE_KEY,flight?'flight':'propulsion')}catch(e){}}}
+function setModuleTab(which,save=true){const flight=which==='flight';$('flightPreparationPanel').hidden=!flight;$('propulsionAnalyzerPanel').hidden=flight;[['flightPreparationTab',flight],['propulsionAnalyzerTab',!flight]].forEach(([id,active])=>{$(id).classList.toggle('active',active);$(id).setAttribute('aria-pressed',String(active))});if(save){try{localStorage.setItem(MODULE_TAB_STATE_KEY,flight?'flight':'propulsion')}catch(e){}}}
 $('flightPreparationTab').addEventListener('click',()=>setModuleTab('flight'));
 $('propulsionAnalyzerTab').addEventListener('click',()=>setModuleTab('propulsion'));
 let savedModuleTab='flight';try{savedModuleTab=localStorage.getItem(MODULE_TAB_STATE_KEY)||'flight'}catch(e){}if(!['flight','propulsion'].includes(savedModuleTab))savedModuleTab='flight';setModuleTab(savedModuleTab,false);
