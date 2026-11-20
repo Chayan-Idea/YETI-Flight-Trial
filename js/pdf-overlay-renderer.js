@@ -60,7 +60,7 @@
   page.append(title,slot,note);container.appendChild(page);
  }
  async function renderPreview(container,candidate,manifest,signature,photos,answers={},trialInfo={}){
-  const revision=++previewRevision;const [pdfjs]=await libraries();if(revision!==previewRevision)return;container.innerHTML='';
+  const revision=++previewRevision;const [pdfjs]=await libraries();if(revision!==previewRevision)return;const stage=document.createElement('div');stage.className='yeti-pdf-preview-stage';
   const pdf=await pdfjs.getDocument({data:candidate.pdfBytes.slice(0)}).promise;
   if(revision!==previewRevision)return;
   let pageWidth=0,pageHeight=0;
@@ -71,13 +71,14 @@
    const wrap=document.createElement('div');wrap.className='yeti-pdf-source-page';wrap.style.cssText='position:relative;width:100%;max-width:'+viewport.width+'px;margin:0 auto 18px;background:#fff;box-shadow:0 2px 12px #0002';
    const canvas=document.createElement('canvas');canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);canvas.style.cssText='display:block;width:100%;height:auto';
    const overlay=document.createElement('canvas');overlay.width=canvas.width;overlay.height=canvas.height;overlay.style.cssText='position:absolute;inset:0;width:100%;height:100%;pointer-events:none';
-   wrap.append(canvas,overlay);container.appendChild(wrap);await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;if(revision!==previewRevision)return;
+   wrap.append(canvas,overlay);stage.appendChild(wrap);await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;if(revision!==previewRevision)return;
    drawLivePreview(overlay.getContext('2d'),manifest,answers,trialInfo,viewport.width/(manifest?.page?.width||base.width),viewport.height/(manifest?.page?.height||base.height),index);
    if(signature&&signatureBox(manifest)?.page===index)await drawSignaturePreview(overlay.getContext('2d'),signature,manifest,index,scale);
   }
-  if(signature&&!signatureBox(manifest)&&manifest?.signatureMode==='append-signature-page')appendSignaturePreview(container,signature,pageWidth,pageHeight);
+  if(signature&&!signatureBox(manifest)&&manifest?.signatureMode==='append-signature-page')appendSignaturePreview(stage,signature,pageWidth,pageHeight);
   const cleanPhotos=safePhotos(photos);
-  for(let i=0;i<cleanPhotos.length;i+=4)photoPage(container,cleanPhotos.slice(i,i+4),pageWidth,pageHeight);
+  for(let i=0;i<cleanPhotos.length;i+=4)photoPage(stage,cleanPhotos.slice(i,i+4),pageWidth,pageHeight);
+  if(revision===previewRevision)container.replaceChildren(...stage.childNodes);
  }
  async function exportPdf(candidate,manifest,signature,photos,answers={},trialInfo={}){
   const [,PDFLib]=await libraries(),doc=await PDFLib.PDFDocument.load(candidate.pdfBytes.slice(0)),pages=doc.getPages();
