@@ -21,19 +21,20 @@
   const ids=(pkg.sections||[]).flatMap(s=>(s.items||[]).map(i=>i.id));
   if(!ids.length)errors.push('No checklist checkpoints found.');
   if(new Set(ids).size!==ids.length)errors.push('Duplicate checkpoint IDs found.');
-  if(pkg.template?.signatureMode!=='append-signature-page'){
+  const requiresChecklistMap=pkg.activation?.status==='approved'||pkg.template?.signatureMode!=='append-signature-page';
+  if(requiresChecklistMap){
    for(const id of ids.filter(id=>id!=='9.0')){
     const row=pkg.template?.rows?.[id];
     if(!Array.isArray(row)||row.length!==2||!Number.isInteger(row[0])||row[0]<1||row[0]>pkg.document.pageCount||!Number.isFinite(row[1])||row[1]<0||row[1]>pkg.document.pageHeight)errors.push('Missing/invalid coordinate mapping: '+id);
    }
   }
   const columns=pkg.template?.columns||{};
-  for(const key of ['passCenterX','failCenterX','notAvailableCenterX','remarksLeft','remarksRight']){
+  if(requiresChecklistMap)for(const key of ['passCenterX','failCenterX','notAvailableCenterX','remarksLeft','remarksRight']){
    const value=columns[key];
    if(!Number.isFinite(value)||value<0||value>pkg.document.pageWidth)errors.push('Missing or out-of-page checklist column mapping: '+key);
   }
-  if(Number.isFinite(columns.remarksLeft)&&Number.isFinite(columns.remarksRight)&&columns.remarksLeft>=columns.remarksRight)errors.push('Remarks column boundaries are invalid.');
-  if(['passCenterX','failCenterX','notAvailableCenterX'].every(key=>Number.isFinite(columns[key]))&&!(columns.passCenterX<columns.failCenterX&&columns.failCenterX<columns.notAvailableCenterX))errors.push('Status column centres are not in left-to-right order.');
+  if(requiresChecklistMap&&Number.isFinite(columns.remarksLeft)&&Number.isFinite(columns.remarksRight)&&columns.remarksLeft>=columns.remarksRight)errors.push('Remarks column boundaries are invalid.');
+  if(requiresChecklistMap&&['passCenterX','failCenterX','notAvailableCenterX'].every(key=>Number.isFinite(columns[key]))&&!(columns.passCenterX<columns.failCenterX&&columns.failCenterX<columns.notAvailableCenterX))errors.push('Status column centres are not in left-to-right order.');
   for(const groupName of ['header','fieldBoxes','specialFields']){
    for(const [key,box] of Object.entries(pkg.template?.[groupName]||{})){
     const width=box?.width??(groupName==='header'?250:NaN),height=box?.height??(groupName==='header'?7:NaN);
