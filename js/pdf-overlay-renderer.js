@@ -39,11 +39,11 @@
    }
    for(const [key,value] of Object.entries(a.values||{})){
     const b=m?.fieldBoxes?.[key]||m?.specialFields?.[key]||(key==='minCellVoltage'?m?.specialFields?.minimumCellVoltage:null);
-    if(b&&b.page===pageIndex&&value!==''&&value!==null&&value!==undefined){ctx.save();const max=(b.width||100)*scaleX,fit=fitSingleLine(String(value),max,5.5*scaleY,(v,s)=>{ctx.font=s+'px Arial';return ctx.measureText(v).width},3.4*scaleY);ctx.font=fit.size+'px Arial';ctx.fillStyle='#111';ctx.textBaseline='middle';ctx.textAlign='center';ctx.fillText(fit.text,(b.x+(b.width||100)/2)*scaleX,(b.y+(b.height||7)/2)*scaleY);ctx.restore();}
+    if(b&&b.page===pageIndex&&value!==''&&value!==null&&value!==undefined){const center=mapper?.getCellCenter(b);if(!center)continue;ctx.save();const max=(b.width||100)*scaleX,fit=fitSingleLine(String(value),max,5.5*scaleY,(v,s)=>{ctx.font=s+'px Arial';return ctx.measureText(v).width},3.4*scaleY);ctx.font=fit.size+'px Arial';ctx.fillStyle='#111';ctx.textBaseline='middle';ctx.textAlign='center';ctx.fillText(fit.text,center.x*scaleX,center.y*scaleY);ctx.restore();}
    }
   }
   const h=m?.header||{},meta={trialPhase:trial?.phase,trialStage:trial?.stage,flightPlace:trial?.place,flightDate:trial?.date};
-  for(const [key,value] of Object.entries(meta)){const b=h[key];if(b&&b.page===pageIndex&&value){ctx.save();const max=(b.width||250)*scaleX,fit=fitSingleLine(String(value),max,5.5*scaleY,(v,size)=>{ctx.font=size+'px Arial';return ctx.measureText(v).width},3.4*scaleY);ctx.font=fit.size+'px Arial';ctx.fillStyle='#111';ctx.textBaseline='middle';ctx.textAlign='center';ctx.fillText(fit.text,(b.x+(b.width||250)/2)*scaleX,(b.y+(b.height||6)/2)*scaleY);ctx.restore();}}
+  for(const [key,value] of Object.entries(meta)){const b=h[key],center=b&&mapper?.getCellCenter(b);if(b&&center&&b.page===pageIndex&&value){ctx.save();const max=(b.width||250)*scaleX,fit=fitSingleLine(String(value),max,5.5*scaleY,(v,size)=>{ctx.font=size+'px Arial';return ctx.measureText(v).width},3.4*scaleY);ctx.font=fit.size+'px Arial';ctx.fillStyle='#111';ctx.textBaseline='middle';ctx.textAlign='center';ctx.fillText(fit.text,center.x*scaleX,center.y*scaleY);ctx.restore();}}
  }
  function drawLiveExport(doc,m,answers,trial,PDFLib,bold,regular){
   const pages=doc.getPages(),c=m?.columns||{},baseW=m?.page?.width||pages[0]?.getWidth()||1,baseH=m?.page?.height||pages[0]?.getHeight()||1,mapper=root.YETI_PDF_COORDINATE_MAPPER;
@@ -66,11 +66,11 @@
    }
    for(const [key,value] of Object.entries(a.values||{})){
     const b=m?.fieldBoxes?.[key]||m?.specialFields?.[key]||(key==='minCellVoltage'?m?.specialFields?.minimumCellVoltage:null);
-    if(b&&b.page===anchors.page&&value!==''&&value!==null&&value!==undefined){const max=(b.width||100)*sx,fit=fitSingleLine(String(value),max,5.5*sy,(v,size)=>regular.widthOfTextAtSize(v,size),3.4*sy),size=fit.size,textWidth=regular.widthOfTextAtSize(fit.text,size);page.drawText(fit.text,{x:(b.x+(b.width||100)/2)*sx-textWidth/2,y:ph-(b.y+(b.height||7)/2)*sy-size*.35,size,font:regular,color:PDFLib.rgb(.05,.05,.05)});}
+    if(b&&b.page===anchors.page&&value!==''&&value!==null&&value!==undefined){const center=mapper?.getCellCenter(b);if(!center)continue;const max=(b.width||100)*sx,fit=fitSingleLine(String(value),max,5.5*sy,(v,size)=>regular.widthOfTextAtSize(v,size),3.4*sy),size=fit.size,textWidth=regular.widthOfTextAtSize(fit.text,size);page.drawText(fit.text,{x:center.x*sx-textWidth/2,y:ph-center.y*sy-size*.35,size,font:regular,color:PDFLib.rgb(.05,.05,.05)});}
    }
   }
   const h=m?.header||{},meta={trialPhase:trial?.phase,trialStage:trial?.stage,flightPlace:trial?.place,flightDate:trial?.date};
-  for(const [key,value] of Object.entries(meta)){const b=h[key],page=b&&pages[b.page-1];if(b&&value&&page){const sx=page.getWidth()/baseW,sy=page.getHeight()/baseH,max=(b.width||250)*sx,fit=fitSingleLine(String(value),max,5.5*sy,(v,size)=>regular.widthOfTextAtSize(v,size),3.4*sy),size=fit.size,textWidth=regular.widthOfTextAtSize(fit.text,size),centerY=(b.y+(b.height||6)/2)*sy;page.drawText(fit.text,{x:(b.x+(b.width||250)/2)*sx-textWidth/2,y:page.getHeight()-centerY-size*.35,size,font:regular,color:PDFLib.rgb(.05,.05,.05)});}}
+  for(const [key,value] of Object.entries(meta)){const b=h[key],page=b&&pages[b.page-1],center=b&&mapper?.getCellCenter(b);if(b&&center&&value&&page){const sx=page.getWidth()/baseW,sy=page.getHeight()/baseH,max=(b.width||250)*sx,fit=fitSingleLine(String(value),max,5.5*sy,(v,size)=>regular.widthOfTextAtSize(v,size),3.4*sy),size=fit.size,textWidth=regular.widthOfTextAtSize(fit.text,size),centerY=center.y*sy;page.drawText(fit.text,{x:center.x*sx-textWidth/2,y:page.getHeight()-centerY-size*.35,size,font:regular,color:PDFLib.rgb(.05,.05,.05)});}}
  }
  function drawSignaturePreview(ctx,signature,manifest,pageIndex,scale){
   const box=signatureBox(manifest);if(!signature||!box||box.page!==pageIndex)return Promise.resolve();

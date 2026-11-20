@@ -147,13 +147,14 @@ assert.deepEqual(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='8.1').
 assert.equal(v2Candidate.template.columns.passCenterX,505.24,'Pass status must use the attached PDF column geometry');
 assert.equal(v2Candidate.template.specialFields.checkerReviewer.x,588.93,'signature must map into the attached PDF signature cell');
 
-assert.ok(rendererSourceForAppend.includes('(b.y+(b.height||6)/2)*scaleY'),'measured metadata cell height must control vertical text centring in the live preview');
-assert.ok(rendererSourceForAppend.includes('centerY=(b.y+(b.height||6)/2)*sy'),'measured metadata cell height must control vertical text centring in exported PDFs');
+assert.ok(rendererSourceForAppend.includes('center.y*scaleY'),'measured metadata cell height must control vertical text centring in the live preview');
+assert.ok(rendererSourceForAppend.includes('center.y*sy'),'measured metadata cell height must control vertical text centring in exported PDFs');
 
 assert.ok(rendererSourceForAppend.includes("!m?.specialFields?.[k]"),'mapped battery values must not also be duplicated in the remarks cell');
 
 assert.ok(rendererSourceForAppend.includes('(centerY-3.35)*scaleY'),'status chips must be positioned from the calculated cell centre');
 assert.ok(rendererSourceForAppend.includes('centerY*scaleY'),'remarks must share the calculated cell centre with status chips');
+assert.ok(rendererSourceForAppend.includes('mapper?.getCellCenter(b)'),'all explicit value and metadata rectangles must use the shared cell-centre utility');
 
 assert.equal(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='4.1.1').subsection,'1. Port-Side Wing Chcek','candidate checklist must preserve the uploaded source subsection wording');
 assert.equal(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='4.2.1').subsection,'2. Star-Board Side Wing Chcek','candidate checklist must preserve source spelling rather than silently normalizing it');
@@ -162,6 +163,20 @@ assert.equal(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='9.0').disp
 
 assert.equal(v2Candidate.sourcePdf.sha256,'986ce7f835de38d78901d1bde3b569a16b083fc93ec382e199ee2ae1aa9122a8','candidate must identify the exact PDF attached in this conversation');
 assert.equal(v2Candidate.document.version,'2.0.1','corrected attachment candidate must have its own version');
+
+for(const id of ['2.2','3.4','4.9.4','5.2','6.4','7.4']){
+ const bounds=mapper.getRowCellBounds(v2Candidate.template,id);
+ assert.ok(bounds,'section-boundary checkpoint must have explicit cell bounds: '+id);
+ assert.ok(bounds.height>9.3&&bounds.height<9.8,'section separator must not be mistaken for a double-height checklist cell: '+id+' height='+bounds.height);
+}
+for(const [key,box] of Object.entries({...v2Candidate.template.fieldBoxes,...v2Candidate.template.specialFields,...v2Candidate.template.header})){
+ const center=mapper.getCellCenter(box);
+ assert.ok(center.x>box.x&&center.x<box.x+box.width,'mapped '+key+' text centre must remain inside its cell horizontally');
+ assert.ok(center.y>box.y&&center.y<box.y+box.height,'mapped '+key+' text centre must remain inside its cell vertically');
+}
+assert.ok(mapper.getCheckpointAnchors(v2Candidate.template,'2.2').remarks.y>v2Candidate.template.rows['2.2'][1],'remarks must use the centre of the single-height row after a section gap');
+assert.ok(mapper.getCheckpointAnchors(v2Candidate.template,'3.4').pass.y-v2Candidate.template.rows['3.4'][1]<5,'status chip must remain within the mapped row after a section gap');
+
 const v2Cell=mapper.getCheckpointAnchors(v2Candidate.template,'4.1.1');
 assert.ok(v2Cell,'active v2 checklist row must expose calculated cell geometry');
 assert.ok(Math.abs(v2Cell.row.height-9.57)<0.02,'row height must be derived from neighbouring mapped row boundaries');
