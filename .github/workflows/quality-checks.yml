@@ -60,8 +60,13 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install minimal PDF parser dependency
-        run: python -m pip install --disable-pip-version-check --no-input pymupdf
+      - name: Install PDF parser and optional OCR dependencies
+        run: |
+          python -m pip install --disable-pip-version-check --no-input pymupdf pytesseract Pillow
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ inputs.pdf_path }}" ]]; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq tesseract-ocr
+          fi
       - name: Publish explicitly approved PDF template (optional)
         if: github.event_name == 'workflow_dispatch' && inputs.pdf_path != ''
         env:
