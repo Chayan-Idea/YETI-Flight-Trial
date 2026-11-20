@@ -48,7 +48,9 @@ const server = http.createServer((req,res)=>{
    const photoPages=mount.querySelectorAll('.yeti-pdf-photo-page').length;
    const overlay=mount.querySelectorAll('.yeti-pdf-source-page')[1].querySelector('canvas:nth-child(2)');
    const overlayData=overlay.getContext('2d').getImageData(0,0,overlay.width,overlay.height).data;
-   let overlayPixels=0;for(let i=3;i<overlayData.length;i+=4)if(overlayData[i]>0)overlayPixels++;
+   let overlayPixels=0,minX=overlay.width,minY=overlay.height,maxX=-1,maxY=-1;for(let y=0;y<overlay.height;y++)for(let x=0;x<overlay.width;x++){const alpha=overlayData[(y*overlay.width+x)*4+3];if(alpha>0){overlayPixels++;minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y)}}
+   const signatureScale=overlay.width/842,signatureBox={left:573.9*signatureScale,top:294.99*signatureScale,right:(573.9+216.28)*signatureScale,bottom:(294.99+25.68)*signatureScale};
+   if(overlayPixels>0&&(minX<signatureBox.left-2||minY<signatureBox.top-2||maxX>signatureBox.right+2||maxY>signatureBox.bottom+2))throw new Error('Signature preview is outside the Checker + Reviewer cell: '+JSON.stringify({minX,minY,maxX,maxY,signatureBox}));
    if(sourcePages!==2||photoPages!==2)throw new Error('Preview must show 2 source pages plus 2 Photo Evidence pages; got '+sourcePages+' + '+photoPages);
    if(overlayPixels<10)throw new Error('Checker/Reviewer signature was not drawn in preview');
    const exported=await renderer.exportPdf(candidate,pkg.template,signature,photos);
