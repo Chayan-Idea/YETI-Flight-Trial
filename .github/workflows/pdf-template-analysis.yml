@@ -74,11 +74,13 @@ jobs:
             template_id="$(python -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d.get("documentNumber") or sys.argv[2])' "template-candidates/${safe_name}-candidate.json" "$safe_name" | tr -cs 'A-Za-z0-9._-' '_')"
             version_tag="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["sha256"][:8])' "template-candidates/${safe_name}-candidate.json")"
             python scripts/build-pdf-review-package.py "template-candidates/${safe_name}-candidate.json" "$pdf_path" --template-id "$template_id" --version "candidate-$version_tag" --output "template-candidates/${safe_name}-package.candidate.json"
+            mkdir -p "template-candidates/${safe_name}-rendered"
+            python -c 'import fitz,sys,os; d=fitz.open(sys.argv[1]); out=sys.argv[2]; [d[i].get_pixmap(matrix=fitz.Matrix(1.5,1.5),alpha=False).save(os.path.join(out,f"page-{i+1}.png")) for i in range(len(d))]' "$pdf_path" "template-candidates/${safe_name}-rendered"
           done
       - name: Upload review candidates
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: yeti-pdf-template-candidates
-          path: template-candidates/*.json
+          path: template-candidates/**
           if-no-files-found: error
