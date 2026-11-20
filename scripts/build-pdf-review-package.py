@@ -52,7 +52,7 @@ def build(candidate_path: Path, pdf_path: Path, template_id: str, version: str):
       "sections":sections,
       "extractionReview":{"sourceCandidate":candidate_path.name,"checkpointCount":len(seen),
         "duplicateIds":candidate.get("duplicateCheckpointIds",[]),
-        "numberingGaps:candidate.get("numberingGaps",[]),
+        "numberingGaps":candidate.get("numberingGaps",[]),
         "requiresHumanReview":True,"activationAllowed":False,
         "warnings":["Verify every extracted checkpoint and exact wording against the source PDF.",
           "Investigate numbering gaps; missing IDs are never auto-created.",
