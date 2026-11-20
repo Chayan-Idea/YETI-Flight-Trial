@@ -1,0 +1,46 @@
+name: YETI PDF Template Candidate Analysis
+
+on:
+  push:
+    paths:
+      - 'template-inbox/**/*.pdf'
+      - 'template-inbox/*.pdf'
+  workflow_dispatch:
+    inputs:
+      pdf_path:
+        description: Repository path of the PDF inside template-inbox/
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  analyze-template:
+    name: Extract review-only PDF candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install PDF analysis dependency
+        run: python -m pip install --disable-pip-version-check pymupdf
+      - name: Analyse source PDF
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            PDF_PATH="${{ inputs.pdf_path }}"
+          else
+            PDF_PATH="$(git diff-tree --no-commit-id --name-only -r HEAD -- 'template-inbox/*.pdf' 'template-inbox/**/*.pdf' | head -n 1)"
+          fi
+          test -n "$PDF_PATH"
+          python scripts/analyze-pdf-template.py "$PDF_PATH" --output template-candidate.json
+      - name: Upload review candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: yeti-pdf-template-candidate
+          path: template-candidate.json
+          if-no-files-found: error
