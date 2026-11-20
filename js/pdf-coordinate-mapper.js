@@ -27,7 +27,8 @@
   const typical=typicalRowHeight(rows),next=rows[index+1];
   const nextGap=next?next.top-top:NaN;
   // Section separators create ~19 pt gaps (two checklist rows). Never mistake them for one tall cell.
-  const height=Number.isFinite(manifest?.rowGeometry?.defaultHeight)?Number(manifest.rowGeometry.defaultHeight):(nextGap>0.5&&nextGap<=12?nextGap:typical);
+  const explicitHeight=Number(manifest?.rowGeometry?.heights?.[id]);
+  const height=Number.isFinite(explicitHeight)&&explicitHeight>0?explicitHeight:(Number.isFinite(manifest?.rowGeometry?.defaultHeight)?Number(manifest.rowGeometry.defaultHeight):(nextGap>0.5&&nextGap<=12?nextGap:typical));
   const pageWidth=Number(manifest?.page?.width),pageHeight=Number(manifest?.page?.height);
   if(!Number.isFinite(pageWidth)||!Number.isFinite(pageHeight)||height<=0)return null;
   return {page,x:0,y:top,width:pageWidth,height,centerX:pageWidth/2,centerY:top+height/2};
