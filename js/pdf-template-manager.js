@@ -7,6 +7,7 @@
   if(!template||!template.templateId)errors.push('Missing template identity.');
   if(!template?.page||template.page.width<=0||template.page.height<=0)errors.push('Invalid source page geometry.');
   if(!Number.isInteger(template?.sourcePages)||template.sourcePages<1)errors.push('Invalid source page count.');
+  if(template?.signatureMode!==undefined&&!['mapped-source-cell','append-signature-page'].includes(template.signatureMode))errors.push('Unsupported signature placement mode.');
   const ids=(sections||[]).flatMap(section=>(section.items||[]).map(item=>item.id));
   if(!ids.length)errors.push('Checklist schema contains no checkpoints.');
   if(new Set(ids).size!==ids.length)errors.push('Checklist schema contains duplicate checkpoint IDs.');
