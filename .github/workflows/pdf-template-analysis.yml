@@ -5,6 +5,12 @@ on:
     paths:
       - 'template-inbox/**/*.pdf'
       - 'template-inbox/*.pdf'
+  pull_request:
+    paths:
+      - 'scripts/analyze-pdf-template.py'
+      - 'scripts/build-pdf-review-package.py'
+      - 'tests/pdf-intake.test.py'
+      - '.github/workflows/pdf-template-analysis.yml'
   workflow_dispatch:
     inputs:
       pdf_path:
@@ -34,6 +40,8 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq tesseract-ocr
           python -m pip install --disable-pip-version-check pymupdf pytesseract Pillow
+      - name: Run searchable and scanned-PDF extraction regression tests
+        run: python tests/pdf-intake.test.py
       - name: Analyse every new PDF safely
         shell: bash
         env:
