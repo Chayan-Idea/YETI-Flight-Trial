@@ -193,7 +193,7 @@
   const singleGroupHead=el('th','','PARAMETER GROUP'),singleParameterHead=el('th','','PARAMETER');
   singleGroupHead.rowSpan=2;singleParameterHead.rowSpan=2;singleGroupHead.scope='col';singleParameterHead.scope='col';
   singleMappingGroupHead.append(singleGroupHead,singleParameterHead);
-  const singleLogHead=el('th','','LOG 1 · '+(currentFile?.name||'Uploaded CSV'));singleLogHead.scope='colgroup';singleMappingGroupHead.append(singleLogHead);
+  const singleLogHead=el('th','','LOG 1 · '+(selectedFile?.name||'Uploaded CSV'));singleLogHead.scope='colgroup';singleMappingGroupHead.append(singleLogHead);
   const singleColumnHead=el('th','','CSV COLUMN MAPPING');singleColumnHead.scope='col';singleMappingSubHead.append(singleColumnHead);
   singleMappingHead.append(singleMappingGroupHead,singleMappingSubHead);singleMappingTable.append(singleMappingHead);
   const singleMappingBody=document.createElement('tbody'),singleActiveKeys=new Set(activeSpecs('mapping').map(spec=>spec.key));
