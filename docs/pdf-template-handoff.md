@@ -11,6 +11,20 @@ The operator-facing webpage does not expose a master-PDF upload control. Operato
 
 ## From PDF to live checklist
 
+### Automated approval-to-activation release
+
+1. Commit the new PDF to `template-inbox/`. The candidate-analysis workflow runs automatically and uploads the extracted JSON and review-package artifact.
+2. Review the artifact against every rendered source page. Confirm checkpoint IDs, exact wording, section grouping, numbering gaps, page geometry, and whether the PDF is digitally searchable. Do not approve a partial/OCR-incomplete extraction.
+3. Open **Actions → YETI 2-Minute Quick Quality Check → Run workflow** on the `main` branch.
+4. Supply the repository PDF path, set **approve_activation** to true only after the document review is complete, enter the reviewer name/GitHub handle, and provide an approval reference (for example, the review PR or controlled document record).
+5. The same single quality-check job re-runs extraction, rejects duplicate IDs and empty descriptions, builds an immutable versioned package, copies the original PDF into `assets/templates/<template-id>/<version>/`, updates the active package pointer, increments the service-worker cache version, and runs the existing application/module/PDF regression checks.
+6. Only if the quality gate passes does the job commit the new version and active pointer to `main`. The deployment job then publishes that checked commit to GitHub Pages in the same workflow run.
+7. The webpage fetches the new approved package, verifies the source PDF SHA-256, and rebuilds the 01B checklist from its extracted sections and checkpoints. The template-activation event resets the previous daily checklist answers and evidence while leaving other modules and Loading/Unloading data separate.
+8. If extraction, approval metadata, checksum, package validation or any quality check fails, publication and deployment stop. The previous active template remains in production.
+
+The workflow's approval input is a deliberate human release decision, not an automatic inference by the extractor. A reviewer must inspect the candidate artifact before entering approval details.
+
+
 1. **Intake:** validate the PDF header, file path, page count, dimensions and SHA-256. Reject unreadable or encrypted PDFs safely.
 2. **Extraction:** capture page text, cluster words by vertical row across separate PDF text blocks, associate row-span descriptions with serial IDs, infer section headings, and report duplicate IDs and numbering gaps. The workflow also builds a coordinate-free review package from unambiguous numbered points.
 3. **Template preparation:** the inbox workflow generates a review-only package candidate (`*-package.candidate.json`) grouping numbered points under detected section headings. ChatGPT/reviewer checks exact wording, grouping, multi-line descriptions and stable IDs against the original pages. Duplicate IDs or PDFs without extractable text fail closed. The package is never approved automatically.
