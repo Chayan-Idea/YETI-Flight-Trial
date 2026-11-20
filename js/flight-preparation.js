@@ -125,9 +125,11 @@ $('loadingCameraPhotos').addEventListener('change',e=>addPhotoFiles(e.target.fil
 let livePreviewTimer=null,livePreviewRevision=0,previewBuildRevision=0;function scheduleLivePdfPreview(immediate=false){clearTimeout(livePreviewTimer);const revision=++livePreviewRevision;livePreviewTimer=setTimeout(()=>{if(revision===livePreviewRevision)buildPreview(true)},immediate?0:100)}
 async function buildPreview(skipPhotoRefresh=false){
  const buildRevision=++previewBuildRevision,previewTrialInfo=syncTrialInfoFromInputs();
+ if(dailyPhotoResetPromise)await dailyPhotoResetPromise;
+ if(buildRevision!==previewBuildRevision)return;
  if(!skipPhotoRefresh)await renderPhotoThumbs();
  if(buildRevision!==previewBuildRevision)return;
- try{evidencePhotos=await photoDB('getAll')}catch(e){}
+ try{evidencePhotos=await photoDB('getAll')}catch(e){evidencePhotos=[]}
  if(buildRevision!==previewBuildRevision)return;
  const activePdf=window.YETI_ACTIVE_PDF_TEMPLATE;
  if(activePdf?.pdfBytes&&window.YETI_PDF_OVERLAY_RENDERER){try{await window.YETI_PDF_OVERLAY_RENDERER.renderPreview($('previewContent'),activePdf,activePdf.package.template,answers['9.0']?.signature,evidencePhotos.filter(p=>(p.category||'daily')==='daily'),answers,previewTrialInfo);return}catch(error){console.error('Source PDF preview unavailable.',error);$('previewContent').innerHTML='<div class="alert alert-danger" role="alert">The approved source PDF preview could not be rendered. The original-PDF preview has been stopped to prevent a misleading substitute.</div>';return}}
@@ -272,14 +274,12 @@ window.addEventListener('yeti:pdf-template-activated',event=>{
   loadingMeta:Object.fromEntries(['loadingUavNameId','loadingFrom','unloadingAt','loadingDate','loadingTime'].map(id=>[id,$(id)?.value||'']))
  };
  if(isTemplateReplacement){
-  try{localStorage.removeItem(checklistStateKey())}catch(e){}
+  try{for(let index=localStorage.length-1;index>=0;index--){const key=localStorage.key(index);if(key?.startsWith(CHECKLIST_STATE_KEY+':'))localStorage.removeItem(key)}}catch(e){}
   answers={};trialInfo={};
   ['trialPhase','trialStage','flightPlace','flightDate'].forEach(id=>{if($(id))$(id).value=''});
   const dailySignature=$('signaturePad');if(dailySignature)dailySignature.getContext('2d').clearRect(0,0,dailySignature.width,dailySignature.height);
   expandedDailySections.clear();
-  (async()=>{for(const photo of evidencePhotos.filter(p=>(p.category||'daily')==='daily')){try{await photoDB('delete',photo.id)}catch(e){}}
-   await renderPhotoThumbs();await buildPreview();
-  })();
+  dailyPhotoResetPromise=(async()=>{try{const stored=await photoDB('getAll');for(const photo of stored){if((photo.category||'daily')==='daily')await photoDB('delete',photo.id)}evidencePhotos=await photoDB('getAll')}catch(error){evidencePhotos=evidencePhotos.filter(photo=>photo.category==='loading');console.error('Daily Airworthiness evidence reset failed safely.',error)}$('photoThumbs').replaceChildren();$('photoStatus').textContent='0 photos added. Add evidence for the new template.'})();
  }
  sourceKey=nextStateKey;
  try{localStorage.setItem('yeti-active-daily-template-version',nextStateKey)}catch(e){}
