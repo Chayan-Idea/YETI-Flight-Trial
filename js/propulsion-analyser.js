@@ -788,9 +788,8 @@ const statsPage=el('section','propulsion-report-summary-page');
    const zeroActualRpmRows=dataRows.filter(isZeroActualRpm).length;
    analysisRows=dataRows.filter(row=>!isZeroActualRpm(row));
    confirmed=true;calculatedParameterDefinitions.forEach(parameter=>calculatedParameterControls[parameter.key]?.updateMappingNote());confirm.disabled=true;confirm.textContent='Mapping Confirmed';
-   next.hidden=false;next.replaceChildren(el('strong','', 'Parameter mapping confirmed'));
-   // Keep the confirmation panel concise; dataset filtering details remain internal.
-   const mappingList=el('ul','propulsion-confirmed-mapping');activeSpecs('mapping').forEach(s=>mappingList.append(el('li','',s.label+' → '+headerRow[mapping[s.key].selected])));next.append(mappingList);proceed.hidden=true;directReportProceed.hidden=true;step3Filter.append(filterActions);step3.hidden=true;step3Filter.hidden=false;step3FilterVisible=true;saveState();
+   // The 1-log workflow does not need a duplicate green mapping-confirmation summary.
+   next.hidden=true;next.replaceChildren();proceed.hidden=true;directReportProceed.hidden=true;step3Filter.append(filterActions);step3.hidden=true;step3Filter.hidden=false;step3FilterVisible=true;saveState();
    saveState();
   });
   directReportProceed.addEventListener('click',()=>{if(!confirmed||!generatedCsvText)return;reportDirectVisible=true;step3Visible=false;step4Visible=false;step5Visible=true;analysisPanel.hidden=false;step3Filter.hidden=false;step3.hidden=true;step4.hidden=true;step5.hidden=false;saveState();step5.scrollIntoView({behavior:'smooth',block:'start'});});
