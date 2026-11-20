@@ -258,3 +258,12 @@ body.pdf-viewer-open{overflow:hidden!important;overscroll-behavior:none}
 @keyframes yeti-refresh-progress{from{transform:translateX(-105%)}to{transform:translateX(265%)}}
 @keyframes yeti-refresh-spin{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.app-refresh-status-track span,.app-refresh-status-icon{animation:none!important}}
+
+/* Nested checklist cards use a contrasting soft-green palette; outer section headers remain blue. */
+.vv-themed-checklist .subsection,.vv-themed-checklist .loading-route-card{background:#f6fbf7;border-color:#c9e2d2}
+.vv-themed-checklist .subsection-heading{background:linear-gradient(100deg,#e1f1e6,#f0f8f2);border-left-color:#29956b;color:#205b43}
+.vv-themed-checklist .subsection .item,.vv-themed-checklist .loading-route-card{background:#fbfefb}
+.vv-themed-checklist .subsection .item:focus-within{background:#f0f8f2}
+.vv-themed-checklist .serial,.vv-themed-checklist .loading-serial{color:#246a4b;background:#e6f4eb;border-color:#b9dcc7}
+.vv-themed-checklist .subsection .fields input,.vv-themed-checklist .subsection .fields select,.vv-themed-checklist .subsection .fields textarea{background:#fff;border-color:#c5ddce}
+.vv-themed-checklist .subsection .fields input:focus,.vv-themed-checklist .subsection .fields select:focus,.vv-themed-checklist .subsection .fields textarea:focus{outline:2px solid #a7d4b8;outline-offset:1px}
