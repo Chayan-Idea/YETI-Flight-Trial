@@ -25,20 +25,28 @@ const server = http.createServer((req,res)=>{
   page.on('requestfailed',r=>failedRequests.push({url:r.url(),error:r.failure()?.errorText||'failed'}));
   const response=await page.goto('http://127.0.0.1:'+server.address().port+'/',{waitUntil:'networkidle'});
   if(!response?.ok())throw new Error('YETI staging shell failed to load');
-  await page.waitForFunction(()=>window.YETI_ACTIVE_PDF_TEMPLATE&&document.querySelectorAll('#list .item').length===62,{timeout:15000});
+  await page.waitForFunction(()=>{const active=window.YETI_ACTIVE_PDF_TEMPLATE;return active&&document.querySelectorAll('#list .item').length===active.validation.checkpointCount},{timeout:15000});
   await page.locator('#dailyTabBtn').click();
-  await page.locator('#previewBtn').click();
-  await page.waitForFunction(()=>document.querySelectorAll('#previewContent .yeti-pdf-source-page').length===2,{timeout:20000});
+  if(await page.locator('#previewBtn').count()!==0)throw new Error('Manual Update PDF Preview button must not exist');
+  await page.waitForFunction(()=>document.querySelectorAll('#previewContent .yeti-pdf-source-page').length===window.YETI_ACTIVE_PDF_TEMPLATE.package.document.pageCount,{timeout:20000});
+  await page.locator('#list select[data-id="2.1"][data-k="status"]').selectOption('Pass');
+  await page.waitForFunction(()=>{const a=window.YETI_ACTIVE_PDF_TEMPLATE,canvas=document.querySelector('#previewContent .yeti-pdf-source-page canvas:nth-child(2)'),row=a.package.template.rows['2.1'],c=a.package.template.columns,sx=canvas.width/a.package.template.page.width,sy=canvas.height/a.package.template.page.height,x=Math.round(c.passCenterX*sx),y=Math.round((row[1]+6.7)*sy),d=canvas.getContext('2d').getImageData(x,y,1,1).data;return d[1]>90&&d[1]>d[0]*2},{timeout:8000});
+  await page.locator('#list select[data-id="2.1"][data-k="status"]').selectOption('Fail');
+  await page.waitForFunction(()=>{const a=window.YETI_ACTIVE_PDF_TEMPLATE,canvas=document.querySelector('#previewContent .yeti-pdf-source-page canvas:nth-child(2)'),row=a.package.template.rows['2.1'],c=a.package.template.columns,sx=canvas.width/a.package.template.page.width,sy=canvas.height/a.package.template.page.height,x=Math.round(c.failCenterX*sx),y=Math.round((row[1]+6.7)*sy),d=canvas.getContext('2d').getImageData(x,y,1,1).data;return d[0]>90&&d[0]>d[1]*2},{timeout:8000});
+  await page.locator('#list input[data-id="2.1"][data-k="remarks"]').fill('LIVE REMARK TEST');
+  await page.waitForFunction(()=>{const a=window.YETI_ACTIVE_PDF_TEMPLATE,canvas=document.querySelector('#previewContent .yeti-pdf-source-page canvas:nth-child(2)'),row=a.package.template.rows['2.1'],c=a.package.template.columns,sx=canvas.width/a.package.template.page.width,sy=canvas.height/a.package.template.page.height,x=Math.round((c.remarksLeft+c.remarksRight)/2*sx),y=Math.round((row[1]+5)*sy),d=canvas.getContext('2d').getImageData(x-80,y-5,160,10).data;return d.some((v,i)=>i%4===3&&v>0)},{timeout:8000});
+  await page.locator('#trialPhase').fill('LIVE PHASE TEST');
+  await page.waitForFunction(()=>{const a=window.YETI_ACTIVE_PDF_TEMPLATE,canvas=document.querySelector('#previewContent .yeti-pdf-source-page canvas:nth-child(2)'),b=a.package.template.header.trialPhase,sx=canvas.width/a.package.template.page.width,sy=canvas.height/a.package.template.page.height,x=Math.round((b.x+b.width/2)*sx),y=Math.round((b.y+b.height/2)*sy),d=canvas.getContext('2d').getImageData(x-90,y-5,180,10).data;return d.some((v,i)=>i%4===3&&v>0)},{timeout:8000});
   const result=await page.evaluate(async()=>{
    const loader=window.YETI_PDF_TEMPLATE_PACKAGE,renderer=window.YETI_PDF_OVERLAY_RENDERER;
    if(!loader||!renderer)throw new Error('PDF template loader or renderer is missing');
    if(!window.YETI_ACTIVE_PDF_TEMPLATE||window.YETI_ACTIVE_PDF_TEMPLATE.package.activation.status!=='approved')throw new Error('Approved master PDF did not become the active webpage template');
-   if(document.querySelectorAll('#list .item').length!==62)throw new Error('The 01B user interaction section does not display all 62 extracted checklist checkpoints');
+   if(document.querySelectorAll('#list .item').length!==window.YETI_ACTIVE_PDF_TEMPLATE.validation.checkpointCount)throw new Error('The 01B user interaction section does not display every extracted checklist checkpoint');
    if(document.querySelectorAll('#previewContent .yeti-pdf-source-page').length!==2)throw new Error('The webpage preview is not using the exact original PDF pages');
    const candidate=await loader.load(window.YETI_DAILY_AIRWORTHINESS_PDF_PACKAGE_URL);
    const pkg=candidate.package;
    if(!candidate.validation.valid)throw new Error('Candidate package did not validate');
-   if(candidate.validation.checkpointCount!==62)throw new Error('Expected 62 PDF checklist checkpoints');
+   if(candidate.validation.checkpointCount!==window.YETI_ACTIVE_PDF_TEMPLATE.validation.checkpointCount)throw new Error('User interaction count does not match the approved PDF package');
    const [pdfjs]=await renderer.libraries();
    const original=await pdfjs.getDocument({data:candidate.pdfBytes.slice(0)}).promise;
    if(original.numPages!==2)throw new Error('Master PDF must contain exactly two original pages');
@@ -56,7 +64,7 @@ const server = http.createServer((req,res)=>{
    const overlay=mount.querySelectorAll('.yeti-pdf-source-page')[1].querySelector('canvas:nth-child(2)');
    const overlayData=overlay.getContext('2d').getImageData(0,0,overlay.width,overlay.height).data;
    let overlayPixels=0,minX=overlay.width,minY=overlay.height,maxX=-1,maxY=-1;for(let y=0;y<overlay.height;y++)for(let x=0;x<overlay.width;x++){const alpha=overlayData[(y*overlay.width+x)*4+3];if(alpha>0){overlayPixels++;minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y)}}
-   const signatureScale=overlay.width/842,signatureBox={left:573.9*signatureScale,top:294.99*signatureScale,right:(573.9+216.28)*signatureScale,bottom:(294.99+25.68)*signatureScale};
+   const signatureScale=overlay.width/pkg.template.page.width,signatureCell=pkg.template.specialFields.checkerReviewer,signatureBox={left:signatureCell.x*signatureScale,top:signatureCell.y*signatureScale,right:(signatureCell.x+signatureCell.width)*signatureScale,bottom:(signatureCell.y+signatureCell.height)*signatureScale};
    if(overlayPixels>0&&(minX<signatureBox.left-2||minY<signatureBox.top-2||maxX>signatureBox.right+2||maxY>signatureBox.bottom+2))throw new Error('Signature preview is outside the Checker + Reviewer cell: '+JSON.stringify({minX,minY,maxX,maxY,signatureBox}));
    if(sourcePages!==2||photoPages!==2)throw new Error('Preview must show 2 source pages plus 2 Photo Evidence pages; got '+sourcePages+' + '+photoPages);
    if(overlayPixels<10)throw new Error('Checker/Reviewer signature was not drawn in preview');
@@ -66,7 +74,7 @@ const server = http.createServer((req,res)=>{
    const finalText=[];
    for(let i=1;i<=finalPdf.numPages;i++){const p=await finalPdf.getPage(i);const t=await p.getTextContent();finalText.push(t.items.map(x=>x.str).join(' '))}
    if(!finalText[0].includes(originalText[0].slice(0,30).trim())||!finalText[1].includes(originalText[1].slice(0,30).trim()))throw new Error('Original PDF text/content was not preserved on its source pages');
-   if(finalText.slice(0,2).some(t=>/QA PRIVATE STATUS MARKER|QA PRIVATE REMARK MARKER|QA TRIAL METADATA MARKER/.test(t)))throw new Error('Disallowed dynamic checklist content leaked onto original PDF pages');
+   if(finalText.slice(0,2).some(t=>/QA PRIVATE STATUS MARKER|QA PRIVATE REMARK MARKER|QA TRIAL METADATA MARKER/.test(t)))throw new Error('Test-only markers leaked onto the source pages during the clean-template export');
    if(!finalText[2].includes('PHOTO EVIDENCE')||!finalText[3].includes('PHOTO EVIDENCE'))throw new Error('Exported Photo Evidence page headings are missing');
    if(!finalText[2].includes('QA PHOTO 1')||!finalText[3].includes('QA PHOTO 5'))throw new Error('Photo Evidence captions are missing or incorrectly paginated');
    const loadingPhoto={name:'QA LOADING PHOTO MUST NOT EXPORT',category:'loading',data:photos[0].data};
