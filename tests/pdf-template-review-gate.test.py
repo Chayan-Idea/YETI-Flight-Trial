@@ -43,4 +43,17 @@ with tempfile.TemporaryDirectory() as tmp:
         publisher.validate_reviewed_package(invalid,candidate["sha256"],candidate,root/"review.json")
         raise AssertionError("Mismatched PDF checksum must block release")
     except ValueError as error: assert "checksum" in str(error)
+
+    corrected=json.loads(json.dumps(package))
+    corrected["sections"][0]["items"][0]["id"]="1.1.1"
+    corrected["extractionReview"]["idCorrections"]={"1.1":"1.1.1"}
+    corrected["extractionReview"]["reviewedCheckpointIds"]=["1.1.1","1.2"]
+    assert publisher.validate_reviewed_package(corrected,candidate["sha256"],candidate,root/"review.json")==["1.1.1","1.2"]
+    expanded=json.loads(json.dumps(package))
+    expanded["sections"][0]["items"].insert(1,{"id":"1.1.1","title":"Manually verified missing sub-check","criteria":[]})
+    expanded["template"]["rows"]["1.1.1"]=[1,110]
+    expanded["extractionReview"]["manuallyAddedCheckpointIds"]=["1.1.1"]
+    expanded["extractionReview"]["reviewedCheckpointIds"]=["1.1","1.1.1","1.2"]
+    assert publisher.validate_reviewed_package(expanded,candidate["sha256"],candidate,root/"review.json")==["1.1","1.1.1","1.2"]
+
 print("PDF release-gate tests passed: human review attestations, exact ID order, cell mappings and source checksum.")
