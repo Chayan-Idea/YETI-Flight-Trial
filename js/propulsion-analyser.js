@@ -695,7 +695,7 @@
      plotButton.click();
    });
     const step5=el('section','propulsion-report-card propulsion-step-card propulsion-step-card--purple');step5.id='propulsionReportGenerationCard';step5.hidden=true;
-  const returnToDataFiltering=()=>{step3FilterVisible=true;analysisPanel.hidden=false;step3Derived.hidden=false;step3Filter.hidden=false;step3.hidden=step3.hidden;step4.hidden=step4.hidden;step5.hidden=step5.hidden;saveState();step3Filter.scrollIntoView({behavior:'smooth',block:'start'});};
+  const returnToDataFiltering=()=>{step3FilterVisible=true;analysisPanel.hidden=false;step3Derived.hidden=false;step3Filter.hidden=false;saveState();step3Filter.scrollIntoView({behavior:'smooth',block:'start'});};
   const addReturnButton=(parent)=>{const actions=el('div','propulsion-actions');const button=el('button','btn alt','Return to Data Filtering & Sorting');button.type='button';button.addEventListener('click',returnToDataFiltering);actions.append(button);parent.append(actions);return button;};
   step5.append(el('span','propulsion-step-label','STEP 07 · REPORT GENERATION'));
   const reportBuilder=el('div','propulsion-report-builder');
@@ -812,7 +812,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    next.hidden=true;next.replaceChildren();proceed.hidden=true;directReportProceed.hidden=true;step3Derived.hidden=false;step3Filter.hidden=true;step3.hidden=true;step3FilterVisible=false;updateDerivedProceedGate();saveState();
    saveState();
   });
-  directReportProceed.addEventListener('click',()=>{if(!confirmed||!generatedCsvText)return;reportDirectVisible=true;step3Visible=false;step4Visible=false;step5Visible=true;analysisPanel.hidden=false;step3Derived.hidden=false;step3Filter.hidden=false;step3.hidden=step3.hidden;step4.hidden=step4.hidden;step5.hidden=false;saveState();step5.scrollIntoView({behavior:'smooth',block:'start'});});
+  directReportProceed.addEventListener('click',()=>{if(!confirmed||!generatedCsvText)return;reportDirectVisible=true;step3Visible=false;step4Visible=false;step5Visible=true;analysisPanel.hidden=false;step3Derived.hidden=false;step3Filter.hidden=false;step5.hidden=false;saveState();step5.scrollIntoView({behavior:'smooth',block:'start'});});
   proceed.addEventListener('click',()=>{if(!confirmed)return;showParameterSummary();});
   const showParameterSummary=()=>{
    if(!confirmed)return;
