@@ -23,6 +23,11 @@ assert.equal(manifest.sourcePages,2);
 assert.ok(window.YETI_PDF_TEMPLATE_STATUS.valid,'baseline PDF template must validate');
 const ids=sections.flatMap(s=>s.items.map(i=>i.id));
 assert.equal(new Set(ids).size,ids.length,'checkpoint IDs must be unique');
+const restoredCameraCheck=sections.flatMap(section=>section.items).find(item=>item.id==='8.1');
+assert.ok(restoredCameraCheck,'user-requested checkpoint 8.1 must be restored in the final daily checklist');
+assert.equal(restoredCameraCheck.title,'Camera Functionality','restored checkpoint 8.1 title must remain consistent with the approved YETI master checklist');
+assert.deepEqual(JSON.parse(JSON.stringify(restoredCameraCheck.criteria)),['Video recording is ok.'],'restored checkpoint 8.1 acceptance criterion must be preserved');
+assert.ok(manifest.rows['8.1'],'the approved v1 source PDF must retain its verified 8.1 row mapping');
 for(const id of ids.filter(id=>id!=='9.0')){
  const anchor=mapper.getCheckpointAnchors(manifest,id);
  assert.ok(anchor, 'missing coordinate mapping for '+id);
