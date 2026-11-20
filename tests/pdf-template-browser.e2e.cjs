@@ -25,9 +25,13 @@ const server = http.createServer((req,res)=>{
   page.on('requestfailed',r=>failedRequests.push({url:r.url(),error:r.failure()?.errorText||'failed'}));
   const response=await page.goto('http://127.0.0.1:'+server.address().port+'/',{waitUntil:'networkidle'});
   if(!response?.ok())throw new Error('YETI staging shell failed to load');
+  await page.waitForFunction(()=>window.YETI_ACTIVE_PDF_TEMPLATE&&document.querySelectorAll('#list .item').length===62,{timeout:15000});
   const result=await page.evaluate(async()=>{
    const loader=window.YETI_PDF_TEMPLATE_PACKAGE,renderer=window.YETI_PDF_OVERLAY_RENDERER;
    if(!loader||!renderer)throw new Error('PDF template loader or renderer is missing');
+   if(!window.YETI_ACTIVE_PDF_TEMPLATE||window.YETI_ACTIVE_PDF_TEMPLATE.package.activation.status!=='approved')throw new Error('Approved master PDF did not become the active webpage template');
+   if(document.querySelectorAll('#list .item').length!==62)throw new Error('The 01B user interaction section does not display all 62 extracted checklist checkpoints');
+   if(document.querySelectorAll('#previewContent .yeti-pdf-source-page').length!==2)throw new Error('The webpage preview is not using the exact original PDF pages');
    const candidate=await loader.load(window.YETI_DAILY_AIRWORTHINESS_PDF_PACKAGE_URL);
    const pkg=candidate.package;
    if(!candidate.validation.valid)throw new Error('Candidate package did not validate');
@@ -68,7 +72,7 @@ const server = http.createServer((req,res)=>{
    const candidateStatus=pkg.activation.status;
    return {templateId:pkg.document.templateId,packageStatus:candidateStatus,checksumVerified:true,checkpointCount:candidate.validation.checkpointCount,originalPdfPages:original.numPages,previewSourcePages:sourcePages,previewPhotoPages:photoPages,signaturePreviewPixels:overlayPixels,exportedPages:finalPdf.numPages,exportPhotoCaptions:[finalText[2],finalText[3]]};
   });
-  if(result.packageStatus!=='candidate')throw new Error('Browser test must not activate the candidate package');
+  if(result.packageStatus!=='approved')throw new Error('Browser test must verify the approved master PDF package');
   if(pageErrors.length||consoleErrors.length||failedRequests.length)throw new Error('Browser errors: '+JSON.stringify({pageErrors,consoleErrors,failedRequests}));
   console.log('PDF STAGING BROWSER TEST PASSED '+JSON.stringify(result));
  }catch(error){console.error('[PDF STAGING BROWSER TEST FAILED]',error.stack||error);console.error('[PAGE ERRORS]',JSON.stringify(pageErrors));console.error('[CONSOLE ERRORS]',JSON.stringify(consoleErrors));console.error('[FAILED REQUESTS]',JSON.stringify(failedRequests));process.exitCode=1}
