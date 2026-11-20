@@ -12,6 +12,7 @@
   if(new Set(ids).size!==ids.length)errors.push('Checklist schema contains duplicate checkpoint IDs.');
   const rows=template?.rows||{};
   ids.filter(id=>id!=='9.0').forEach(id=>{
+   if(template.signatureMode==='append-signature-page')return;
    const row=rows[id];
    if(!Array.isArray(row)||row.length!==2||!Number.isInteger(row[0])||row[0]<1||row[0]>template.sourcePages||!Number.isFinite(row[1])||row[1]<0||row[1]>template.page.height)errors.push('Missing or invalid PDF row mapping: '+id);
   });
