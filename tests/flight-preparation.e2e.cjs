@@ -159,6 +159,8 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
 
     await page.locator('#previewBtn').click();
     await page.locator('#previewContent .yeti-pdf-source-page').nth(1).waitFor({state:'attached'});
+    // The preview button starts asynchronous PDF.js rendering; wait for the appended evidence page, not merely an earlier source-page canvas.
+    await page.locator('#previewContent .yeti-pdf-photo-page').waitFor({state:'attached'});
     const dailyPreviewText = await page.locator('#previewContent').innerText();
     if (dailyPreviewText.includes('YETI-PHASE3-QA') || dailyPreviewText.includes('Phase 3 UI Assurance') || dailyPreviewText.includes('Phase 3 automated verification remark.')) {
       throw new Error('Dynamic trial metadata or checklist remarks leaked into the original-PDF preview.');
