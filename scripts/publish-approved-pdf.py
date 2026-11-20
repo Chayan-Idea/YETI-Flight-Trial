@@ -79,20 +79,20 @@ def main():
         raise ValueError("This PDF version already exists. Its immutable version folder will not be overwritten.")
     version_dir.mkdir(parents=True, exist_ok=False)
     shutil.copy2(pdf, version_dir / f"{safe(pdf.stem)}.pdf")
-    (version_dir / "template-package.json").write_text(json.dumps(package, indent=2, ensure_ascii=False) + "\\n", encoding="utf-8")
+    (version_dir / "template-package.json").write_text(json.dumps(package, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     manifest_path = ROOT / "js" / "daily-airworthiness-pdf-manifest.js"
     manifest = manifest_path.read_text(encoding="utf-8")
     url = f"./assets/templates/{template_id}/{version}/template-package.json"
     line = f'window.YETI_DAILY_AIRWORTHINESS_PDF_PACKAGE_URL="{url}";'
-    manifest, count = re.subn(r'window\\.YETI_DAILY_AIRWORTHINESS_PDF_PACKAGE_URL="[^"]+";', line, manifest, count=1)
+    manifest, count = re.subn(r'window\.YETI_DAILY_AIRWORTHINESS_PDF_PACKAGE_URL="[^"]+";', line, manifest, count=1)
     if count != 1:
         raise ValueError("Could not safely update the active PDF package pointer.")
     manifest_path.write_text(manifest, encoding="utf-8")
 
     sw_path = ROOT / "service-worker.js"
     sw = sw_path.read_text(encoding="utf-8")
-    match = re.search(r"const CACHE='yeti-flight-trial-shell-v(\\d+)';", sw)
+    match = re.search(r"const CACHE='yeti-flight-trial-shell-v(\d+)';", sw)
     if not match:
         raise ValueError("Could not locate service-worker cache version.")
     next_cache = f"const CACHE='yeti-flight-trial-shell-v{int(match.group(1)) + 1}';"
