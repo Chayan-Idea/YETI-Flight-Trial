@@ -342,6 +342,8 @@ window.addEventListener('yeti:pdf-template-activated',event=>{
  try{localStorage.setItem('yeti-active-daily-template-version',nextStateKey)}catch(e){}
  sections=structuredClone(template.checklistSections);
  restoreChecklistState();
+ // Template activation is asynchronous; rehydrate the trial-information controls after restoring the version-scoped session.
+ [['uavNameId','uavNameId'],['trialPhase','phase'],['trialStage','stage'],['flightPlace','place'],['flightDate','date']].forEach(([id,key])=>{if($(id))$(id).value=trialInfo[key]||''});
  render();
  refreshDailyChecklistCounters();
  buildPreview(true);
