@@ -1,7 +1,13 @@
 /* Original-PDF renderer with shared live overlays for preview and export. */
 (function(root){
  'use strict';
- let pdfJsPromise=null,pdfLibPromise=null,previewRevision=0;
+ let pdfJsPromise=null,pdfLibPromise=null,previewRevision=0,previewZoom=1;
+  const MIN_PREVIEW_ZOOM=.75,MAX_PREVIEW_ZOOM=3;
+  function clampZoom(value){return Math.min(MAX_PREVIEW_ZOOM,Math.max(MIN_PREVIEW_ZOOM,Number(value)||1))}
+  function applyPreviewZoom(container){const stage=container?.querySelector('.yeti-pdf-preview-stage');if(stage){stage.style.zoom=String(previewZoom);container.dataset.previewZoom=String(previewZoom)}const label=document.getElementById('pdfPreviewZoomLevel');if(label)label.textContent=Math.round(previewZoom*100)+'%';}
+  function bindTouchZoom(container){if(!container||container.dataset.touchZoomBound==='1')return;container.dataset.touchZoomBound='1';let startDistance=0,startZoom=1;const distance=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);container.addEventListener('touchstart',e=>{if(e.touches.length===2){startDistance=distance(e.touches);startZoom=previewZoom;}},{passive:true});container.addEventListener('touchmove',e=>{if(e.touches.length===2&&startDistance>0){e.preventDefault();previewZoom=clampZoom(startZoom*distance(e.touches)/startDistance);applyPreviewZoom(container)}},{passive:false});container.addEventListener('touchend',e=>{if(e.touches.length<2)startDistance=0},{passive:true});container.addEventListener('touchcancel',()=>{startDistance=0},{passive:true});}
+  function setPreviewZoom(container,value){previewZoom=clampZoom(value);applyPreviewZoom(container);return previewZoom}
+  function getPreviewZoom(){return previewZoom}
  function loadScript(url,test){
   if(test())return Promise.resolve();
   return new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=url;script.async=true;script.onload=()=>test()?resolve():reject(new Error('PDF library API unavailable.'));script.onerror=()=>reject(new Error('PDF library failed to load.'));document.head.appendChild(script)});
@@ -95,7 +101,7 @@
   page.append(title,slot,note);container.appendChild(page);
  }
  async function renderPreview(container,candidate,manifest,signature,photos,answers={},trialInfo={}){
-  const revision=++previewRevision;const [pdfjs]=await libraries();if(revision!==previewRevision)return;const stage=document.createElement('div');stage.className='yeti-pdf-preview-stage';
+  const revision=++previewRevision;bindTouchZoom(container);const [pdfjs]=await libraries();if(revision!==previewRevision)return;const stage=document.createElement('div');stage.className='yeti-pdf-preview-stage';
   const pdf=await pdfjs.getDocument({data:candidate.pdfBytes.slice(0)}).promise;
   if(revision!==previewRevision)return;
   let pageWidth=0,pageHeight=0;
@@ -113,7 +119,7 @@
   if(signature&&!signatureBox(manifest)&&manifest?.signatureMode==='append-signature-page')appendSignaturePreview(stage,signature,pageWidth,pageHeight);
   const cleanPhotos=safePhotos(photos);
   for(let i=0;i<cleanPhotos.length;i+=4)photoPage(stage,cleanPhotos.slice(i,i+4),pageWidth,pageHeight);
-  if(revision===previewRevision)container.replaceChildren(...stage.childNodes);
+  if(revision===previewRevision){container.replaceChildren(stage);applyPreviewZoom(container)}
  }
  async function exportPdf(candidate,manifest,signature,photos,answers={},trialInfo={}){
   const [,PDFLib]=await libraries(),doc=await PDFLib.PDFDocument.load(candidate.pdfBytes.slice(0)),pages=doc.getPages();
@@ -158,5 +164,5 @@
   }
   return await doc.save();
  }
- root.YETI_PDF_OVERLAY_RENDERER=Object.freeze({libraries,renderPreview,exportPdf,safePhotos});
+ root.YETI_PDF_OVERLAY_RENDERER=Object.freeze({libraries,renderPreview,exportPdf,safePhotos,setPreviewZoom,getPreviewZoom});
 })(window);
