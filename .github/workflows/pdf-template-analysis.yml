@@ -56,7 +56,7 @@ jobs:
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             paths=("$INPUT_PDF_PATH")
           else
-            mapfile -t paths < <(git diff-tree --no-commit-id --name-only --diff-filter=AM -r HEAD | grep -E '^template-inbox/.*[.]pdf$' || true)
+            mapfile -t paths < <(find template-inbox -type f -iname '*.pdf' -print | sort)
           fi
           if [ "${#paths[@]}" -eq 0 ]; then
             echo "No new or modified PDFs found in template-inbox/."
