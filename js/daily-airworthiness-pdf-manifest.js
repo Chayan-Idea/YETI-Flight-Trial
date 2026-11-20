@@ -261,6 +261,29 @@ window.YETI_DAILY_AIRWORTHINESS_PDF_MANIFEST={
       296.6666666666667
     ]
   },
+  "fieldBoxes": {
+    "cgX": {
+      "page": 1,
+      "x": 412,
+      "y": 115.33333333333333,
+      "width": 426,
+      "height": 9.555555555555555
+    },
+    "cgY": {
+      "page": 1,
+      "x": 412,
+      "y": 124.88888888888889,
+      "width": 426,
+      "height": 9.555555555555555
+    },
+    "cgZ": {
+      "page": 1,
+      "x": 412,
+      "y": 134.44444444444446,
+      "width": 426,
+      "height": 9.555555555555555
+    }
+  },
   "specialFields": {
     "checkerReviewer": {
       "page": 2,
