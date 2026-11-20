@@ -62,7 +62,8 @@ assert.ok(rendererSourceForAppend.includes('append-signature-page'),'renderer mu
 assert.ok(rendererSourceForAppend.includes('yeti-pdf-signature-page'),'preview must display the appended signature page');
 assert.equal(manifest.columns.passCenterX,511.35);
 assert.ok(rendererSourceForAppend.includes('textWidth=bold.widthOfTextAtSize(st.label,size)'),'status labels must be horizontally centred within their status cells');
-assert.ok(rendererSourceForAppend.includes("ctx.textAlign='center'"),'status labels must remain centred');\nassert.ok(rendererSourceForAppend.includes("ctx.textAlign='left'"),'non-status preview text must be left aligned');
+assert.ok(rendererSourceForAppend.includes("ctx.textAlign='center'"),'status labels must remain centred');
+assert.ok(rendererSourceForAppend.includes("ctx.textAlign='left'"),'non-status preview text must be left aligned');
 assert.ok(rendererSourceForAppend.includes('x:placement.x'),'exported remarks must be left aligned with cell padding');
 const flightPreparationSource=fs.readFileSync(path.join(root,'js/flight-preparation.js'),'utf8');
 assert.ok(flightPreparationSource.includes('scheduleLivePdfPreview'),'visible PDF preview must synchronize automatically after input changes');
