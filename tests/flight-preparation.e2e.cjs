@@ -148,7 +148,7 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
     if (!(await page.locator('#photoStatus').innerText()).includes('1 photo(s) added')) throw new Error('Daily photo evidence was not saved and rendered.');
 
     await page.locator('#previewBtn').click();
-    await page.locator('#previewContent .print-document').waitFor({state:'attached'});
+    await page.locator('#previewContent .dac-pages').waitFor({state:'attached'});
     const dailyPreviewText = await page.locator('#previewContent').innerText();
     if (!dailyPreviewText.includes('YETI-PHASE3-QA') || !dailyPreviewText.includes('Phase 3 automated verification remark.')) {
       throw new Error('Daily Airworthiness preview did not include the entered trial information and checklist remarks.');
