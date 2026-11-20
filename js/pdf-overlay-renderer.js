@@ -17,7 +17,7 @@
  function signatureBox(manifest){return manifest?.specialFields?.checkerReviewer||null}
  const STATUS_STYLE={Pass:{label:'PASS',fill:'#16834a',width:20},Fail:{label:'FAIL',fill:'#b42332',width:20},'Not Available':{label:'N/A',fill:'#737373',width:29}};
  const VALUE_LABELS={totalWeight:'UAV Weight',cgX:'CG X',cgY:'CG Y',cgZ:'CG Z',setupDescription:'Setup',lvVoltage:'LV V',hvPreInstallVoltage:'HV Pre-install V'};
- function rowValueText(a,id,m){return Object.entries(a?.values||{}).filter(([k,v])=>!m?.fieldBoxes?.[k]&&v!==''&&v!==null&&v!==undefined).map(([k,v])=>(VALUE_LABELS[k]||k)+': '+String(v)).join(' | ')}
+ function rowValueText(a,id,m){return Object.entries(a?.values||{}).filter(([k,v])=>!m?.fieldBoxes?.[k]&&!m?.specialFields?.[k]&&!(k==='minCellVoltage'&&m?.specialFields?.minimumCellVoltage)&&v!==''&&v!==null&&v!==undefined).map(([k,v])=>(VALUE_LABELS[k]||k)+': '+String(v)).join(' | ')}
  function answerRemark(a,id,m){return [a?.remarks,rowValueText(a,id,m)].filter(Boolean).join(' | ')}
  function fitSingleLine(text,maxWidth,baseSize,measure,minSize){let value=String(text),size=baseSize;while(size>minSize&&measure(value,size)>maxWidth)size=Math.max(minSize,size-.25);if(measure(value,size)>maxWidth){const suffix='…';while(value.length&&measure(value+suffix,size)>maxWidth)value=value.slice(0,-1);value=value?value+suffix:suffix}return {text:value,size}}
  function drawLivePreview(ctx,m,answers,trial,scaleX,scaleY,pageIndex){
