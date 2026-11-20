@@ -143,22 +143,22 @@ $('loadingCameraPhotos').addEventListener('change',e=>addPhotoFiles(e.target.fil
     const values=(item.valueFields||[]).map(field=>field.label+' : '+(ans.values?.[field.key]||'')).filter(x=>!x.endsWith(': ')).join('<br>');
     const criteria=(item.criteria||[]).map(safe).join('<br>');
     const checkpoint=setup?safe(ans.values?.setupDescription||item.title):safe(item.title);
-    const desc=[checkpoint,criteria,values].filter(Boolean).join('<br>');
+    const desc=[checkpoint,criteria].filter(Boolean).join('<br>');
     const statusCell=status=>ans.status===status?'✓':'';
     const result=spec||setup?'<td></td><td></td><td></td>':'<td class="dac-mark">'+statusCell('Pass')+'</td><td class="dac-mark">'+statusCell('Fail')+'</td><td class="dac-mark">'+statusCell('Not Available')+'</td>';
-    out+='<tr><td class="dac-serial">'+safe(item.id)+'</td>'+groupCell+'<td class="dac-description">'+desc+'</td>'+result+'<td class="dac-remarks">'+safe(ans.remarks)+'</td></tr>';
+    out+='<tr><td class="dac-serial">'+safe(item.id)+'</td>'+groupCell+'<td class="dac-description">'+desc+'</td>'+result+'<td class="dac-remarks">'+[safe(ans.remarks),values].filter(Boolean).join('<br>')+'</td></tr>';
    }else{
     const spec=sec.title.startsWith('1. UAV Specification'),setup=item.id==='3.1';
     const values=(item.valueFields||[]).map(field=>field.label+' : '+(ans.values?.[field.key]||'')).filter(x=>!x.endsWith(': ')).join('<br>');
-    const desc=[safe(item.title),(item.criteria||[]).map(safe).join('<br>'),values].filter(Boolean).join('<br>');
+    const desc=[safe(item.title),(item.criteria||[]).map(safe).join('<br>')].filter(Boolean).join('<br>');
     const result=spec||setup?'<td></td><td></td><td></td>':'<td class="dac-mark">'+(ans.status==='Pass'?'✓':'')+'</td><td class="dac-mark">'+(ans.status==='Fail'?'✓':'')+'</td><td class="dac-mark">'+(ans.status==='Not Available'?'✓':'')+'</td>';
-    out+='<tr><td class="dac-serial">'+safe(item.id)+'</td><td class="dac-description">'+desc+'</td>'+result+'<td class="dac-remarks">'+safe(ans.remarks)+'</td></tr>';
+    out+='<tr><td class="dac-serial">'+safe(item.id)+'</td><td class="dac-description">'+desc+'</td>'+result+'<td class="dac-remarks">'+[safe(ans.remarks),values].filter(Boolean).join('<br>')+'</td></tr>';
    }
    i++;
   }
   return out;
  };
- let html='<style id="dac-print-layout">@page{size:A4 landscape;margin:0}.dac-pages{display:flex;flex-direction:column;align-items:center;gap:22px}.dac-page{width:297mm;height:210mm;box-sizing:border-box;padding:7mm 8mm;background:#fff;color:#000;font-family:Arial,Helvetica,sans-serif;overflow:hidden;box-shadow:0 2px 14px #0002}.dac-master-head{height:42mm;display:grid;grid-template-columns:60% 40%;border:1px solid #000;box-sizing:border-box}.dac-title-cell{position:relative;display:flex;align-items:center;justify-content:center;border-right:1px solid #000;background:#eee}.dac-title-cell img{position:absolute;left:5mm;top:50%;transform:translateY(-50%);width:24mm;max-height:22mm;object-fit:contain}.dac-title-cell h2{font-size:17pt;margin:0;text-align:center}.dac-meta-cell{background:#eee;padding:2mm 3mm;font-size:8pt;line-height:1.4}.dac-meta-cell>div{min-height:5mm}.dac-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:7.2pt}.dac-table th,.dac-table td{border:1px solid #000;padding:1.1mm 1.2mm;vertical-align:middle;line-height:1.12;overflow-wrap:anywhere}.dac-table thead th{height:9mm;background:#c6d9f1;text-align:center;font-weight:700}.dac-table .dac-serial{text-align:center;white-space:nowrap}.dac-table .dac-group{text-align:center;font-size:6.7pt}.dac-table .dac-description{font-size:6.8pt}.dac-table .dac-mark{text-align:center;font-size:11pt;font-weight:bold}.dac-table .dac-remarks{font-size:6.8pt;white-space:pre-wrap}.dac-table tr{break-inside:avoid;page-break-inside:avoid}.dac-page+.dac-page{break-before:page;page-break-before:always}@media screen{.dac-page{max-width:100%;height:auto;min-height:210mm;aspect-ratio:297/210}.dac-table{font-size:clamp(5px,.72vw,7.2pt)}}@media print{.dac-pages{display:block}.dac-page{width:297mm;height:210mm;margin:0;padding:7mm 8mm;box-shadow:none;break-after:page;page-break-after:always}.dac-page:last-child{break-after:auto;page-break-after:auto}}</style><div class="dac-pages">';
+ let html='<style id="dac-print-layout">@page{size:A4 landscape;margin:0}.dac-pages{display:flex;flex-direction:column;align-items:center;gap:22px}.dac-page{width:297mm;height:210mm;box-sizing:border-box;padding:7mm 8mm;background:#fff;color:#000;font-family:Arial,Helvetica,sans-serif;overflow:hidden;box-shadow:0 2px 14px #0002}.dac-master-head{height:17mm;display:grid;grid-template-columns:60% 40%;border:1px solid #000;box-sizing:border-box}.dac-title-cell{position:relative;display:flex;align-items:center;justify-content:center;border-right:1px solid #000;background:#eee}.dac-title-cell img{position:absolute;left:5mm;top:50%;transform:translateY(-50%);width:17mm;max-height:15mm;object-fit:contain}.dac-title-cell h2{font-size:13pt;margin:0;text-align:center}.dac-meta-cell{background:#eee;padding:1mm 2mm;font-size:6.5pt;line-height:1.25}.dac-meta-cell>div{min-height:3.5mm}.dac-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:7.2pt}.dac-table th,.dac-table td{border:1px solid #000;padding:1.1mm 1.2mm;vertical-align:middle;line-height:1.12;overflow-wrap:anywhere}.dac-table thead th{height:9mm;background:#c6d9f1;text-align:center;font-weight:700}.dac-table .dac-serial{text-align:center;white-space:nowrap}.dac-table .dac-group{text-align:center;font-size:6.7pt}.dac-table .dac-description{font-size:6.8pt}.dac-table .dac-mark{text-align:center;font-size:11pt;font-weight:bold}.dac-table .dac-remarks{font-size:6.8pt;white-space:pre-wrap}.dac-table tr{break-inside:avoid;page-break-inside:avoid}.dac-page+.dac-page{break-before:page;page-break-before:always}@media screen{.dac-page{max-width:100%;height:auto;min-height:210mm;aspect-ratio:297/210}.dac-table{font-size:clamp(5px,.72vw,7.2pt)}}@media print{.dac-pages{display:block}.dac-page{width:297mm;height:210mm;margin:0;padding:7mm 8mm;box-shadow:none;break-after:page;page-break-after:always}.dac-page:last-child{break-after:auto;page-break-after:auto}}</style><div class="dac-pages">';
  for(const rows of pages){if(!rows.length)continue;html+='<section class="dac-page">'+pageHeader()+tableHead+renderRows(rows)+'</tbody></table></section>'}
  html+='</div>';
  $('previewContent').innerHTML=html;
@@ -181,6 +181,20 @@ async function exportChecklistPdf(previewId,title){
    html,body{margin:0;padding:0;width:100%;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif}
    body{padding:0;orphans:3;widows:3}
    .print-document,.loading-print-document{display:block;width:100%;max-width:100%;min-width:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif;overflow:visible}
+   .dac-pages{display:block;width:100%;margin:0;padding:0}
+   .dac-page{width:297mm;height:210mm;min-height:210mm;margin:0;padding:7mm 8mm;box-sizing:border-box;background:#fff;color:#000;overflow:hidden;break-after:page;page-break-after:always}
+   .dac-page:last-child{break-after:auto;page-break-after:auto}
+   .dac-master-head{height:17mm;display:grid;grid-template-columns:60% 40%;border:1px solid #000;box-sizing:border-box}
+   .dac-title-cell{position:relative;display:flex;align-items:center;justify-content:center;border-right:1px solid #000;background:#eee}
+   .dac-title-cell img{position:absolute;left:5mm;top:50%;transform:translateY(-50%);width:17mm;max-height:15mm;object-fit:contain}
+   .dac-title-cell h2{font-size:13pt;margin:0;text-align:center}
+   .dac-meta-cell{background:#eee;padding:1mm 2mm;font-size:6.5pt;line-height:1.25}
+   .dac-meta-cell>div{min-height:3.5mm}
+   .dac-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:7.2pt}
+   .dac-table th,.dac-table td{border:1px solid #000;padding:1.1mm 1.2mm;vertical-align:middle;line-height:1.12;overflow-wrap:anywhere}
+   .dac-table thead{display:table-header-group}
+   .dac-table thead th{height:9mm;background:#c6d9f1;text-align:center;font-weight:700}
+   .dac-table tr{break-inside:avoid;page-break-inside:avoid}
    .print-doc-head,.loading-print-head{break-inside:avoid;page-break-inside:avoid}
    .print-checklist,.loading-print-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:8.5px;break-inside:auto;page-break-inside:auto}
    .print-checklist th,.print-checklist td,.loading-print-table th,.loading-print-table td{border:1px solid #555;padding:4px;vertical-align:top;overflow-wrap:anywhere;word-break:normal}
