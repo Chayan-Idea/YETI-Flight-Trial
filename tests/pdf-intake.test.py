@@ -42,7 +42,14 @@ with tempfile.TemporaryDirectory() as directory:
     simple_doc = fitz.open()
     simple_page = simple_doc.new_page(width=612, height=792)
     simple_page.insert_text((400, 60), "1. DAILY CHECKS", fontsize=12)
-    simple_page.insert_text((50, 90), "1.1 Inspect airframe condition", fontsize=10)
+    simple_page.insert_text((50, 90), "1.1", fontsize=10)
+    simple_page.insert_text((230, 90), "Inspect airframe condition", fontsize=10)
+    simple_page.insert_text((230, 100), "and verify all fasteners", fontsize=10)
+    simple_page.insert_text((50, 130), "1.2", fontsize=10)
+    simple_page.insert_text((230, 130), "Check propulsion system", fontsize=10)
+    simple_page.insert_text((400, 145), "2. NEXT SECTION", fontsize=12)
+    simple_page.insert_text((50, 165), "2.1", fontsize=10)
+    simple_page.insert_text((230, 165), "Confirm safety equipment", fontsize=10)
     simple_doc.save(simple)
     simple_candidate = MODULE.analyse(simple)
     candidate_path = Path(directory) / "simple-candidate.json"
@@ -57,7 +64,10 @@ with tempfile.TemporaryDirectory() as directory:
     assert package["template"]["rows"] == {}
     assert package["sections"][0]["title"] == "DAILY CHECKS"
     assert package["sections"][0]["items"][0]["id"] == "1.1"
-    assert package["sections"][0]["items"][0]["title"] == "Inspect airframe condition"
+    assert package["sections"][0]["items"][0]["title"] == "Inspect airframe condition and verify all fasteners"
+    assert package["sections"][0]["items"][1]["title"] == "Check propulsion system"
+    assert package["sections"][1]["title"] == "NEXT SECTION"
+    assert package["sections"][1]["items"][0]["id"] == "2.1"
     try:
         BUILDER.build(candidate_path, Path(directory) / "missing.pdf", "TEST_TEMPLATE", "1.0.0")
         raise AssertionError("Missing PDF source should be rejected")
