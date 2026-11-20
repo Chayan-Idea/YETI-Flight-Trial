@@ -17,6 +17,8 @@ Prepared against the exact PDF attachment supplied in this conversation.
 - 4.4.5 is absent in the source and is not invented.
 - 4.4.6 is present.
 - The final serial is displayed as 9; the source's signature heading is Checker + Reviewer.
+- The 1.1/1.2 and 3.1 user-entered values are mapped into the corresponding blank Remarks cells, not over the printed checklist descriptions.
+- The signature box is mapped below the Checker + Reviewer heading, inside the blank signature cell.
 - Original spelling and wording are retained, including source terms such as "GNSS antena" and "Port-Side Wing Chcek".
 
 ## Geometry
