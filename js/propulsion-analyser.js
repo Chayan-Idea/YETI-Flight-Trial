@@ -468,7 +468,7 @@
    csvStatus.textContent='Filtered & sorted CSV prepared: '+exportRows.length.toLocaleString()+' filtered rows and '+headerRow.length.toLocaleString()+' columns. Derived columns included where calculated. Download is available.';csvExportButton.disabled=true;csvDownloadButton.hidden=false;proceed.hidden=false;directReportProceed.hidden=false;saveState();
   });
   step3Filter.append(csvSection);
-  const filterActions=el('div','propulsion-actions');filterActions.append(proceed,directReportProceed);
+  const filterActions=el('div','propulsion-actions');filterActions.append(proceed,directReportProceed);step3Filter.append(filterActions);
   workspace.insertBefore(step3Derived,workspace.querySelector('.propulsion-local-note'));
   workspace.insertBefore(step3Filter,workspace.querySelector('.propulsion-local-note'));
   workspace.insertBefore(step3,workspace.querySelector('.propulsion-local-note'));
@@ -1240,6 +1240,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    const allCalculated=selected.every(key=>sharedDerivedAdded.has(key));
    const ready=allCalculated;
    multiSession.logs.forEach(log=>{log._phase3Ready=ready;});
+   if(typeof multiDerivedProceed!=='undefined')multiDerivedProceed.disabled=!(commonEngine.DERIVED_BY_TEST[multiLogType]||[]).every(key=>sharedDerivedAdded.has(key));
    updateMultiGraphAvailability();
   };
   (['mechanicalPower','electricalPower','specificThrust']).forEach(key=>{
@@ -1313,7 +1314,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    });
    retry.addEventListener('click',()=>{
     sharedDerivedAdded.delete(key);check.disabled=false;check.checked=false;calculate.hidden=false;calculate.disabled=true;calculate.textContent='Calculate and Add to All logs';calculate.title='Select the parameter and apply filtering to every log before calculating.';addedStatus.hidden=true;retry.hidden=true;card.classList.remove('is-added-to-graph');
-    multiSession.logs.forEach(log=>{log._phase3Ready=false;log._derivedKeys=[...sharedDerivedAdded];if(log._phase3Filtered)commonEngine.calculateLog(log,multiLogType,log._derivedKeys);if(log._phase3Card){renderMultiLogPreview(log,log._phase3Card._phase3Controls.tableHost,log._derivedKeys);log._phase3Card._phase3Controls.summary.textContent='Derived parameter reset. Recalculate the selected parameters for all logs.';}});
+    multiSession.logs.forEach(log=>{log._phase3Ready=false;log._derivedKeys=[...sharedDerivedAdded];log.filteredRows=(log.sourceRows||[]).map(row=>row.slice());log._phase3Filtered=false;if(log._derivedKeys.length)commonEngine.calculateLog(log,multiLogType,log._derivedKeys);else log.calculatedRows=[];if(log._phase3Card){renderMultiLogPreview(log,log._phase3Card._phase3Controls.tableHost,log._derivedKeys);log._phase3Card._phase3Controls.summary.textContent='Derived parameter reset. Recalculate the selected parameters for all logs.';}});
     Object.entries(sharedDerivedActions).forEach(([otherKey,action])=>{if(otherKey!==key)action.calculate.disabled=!sharedDerivedChecks[otherKey].checked||sharedDerivedAdded.has(otherKey);});
     filteringReadyCheckbox.checked=false;generatedMultiCsvFiles=[];generatedCsvFilesHost.replaceChildren();csvExportButton.hidden=true;csvExportButton.disabled=false;
     note.textContent='Calculation reset. Select the parameter and calculate it again for all logs.';
@@ -1345,14 +1346,13 @@ const statsPage=el('section','propulsion-report-summary-page');
   };
   filteringReadyCheckbox.addEventListener('change',()=>{
    if(filteringReadyCheckbox.checked){
-    const requiredKeys=commonEngine.DERIVED_BY_TEST[multiLogType]||[];
-    if(!requiredKeys.every(key=>sharedDerivedAdded.has(key))){updateMultiCsvGate();return;}
+    const selectedKeys=[...sharedDerivedAdded];
     multiSession.logs.forEach(log=>{
      commonEngine.filterLog(log,{actualRpmIndex:log.mapping.actualRpm});
      log._phase3Filtered=true;
-     commonEngine.calculateLog(log,multiLogType,requiredKeys);
-     log._derivedKeys=requiredKeys.slice();log._phase3Ready=true;
-     if(log._phase3Card){const controls=log._phase3Card._phase3Controls;renderMultiLogPreview(log,controls.tableHost,requiredKeys);controls.summary.textContent=Math.max(0,log.filteredRows.length-1).toLocaleString()+' filtered and sorted data rows · '+requiredKeys.length+' derived parameter(s) retained.';}
+     if(selectedKeys.length)commonEngine.calculateLog(log,multiLogType,selectedKeys);
+     log._derivedKeys=selectedKeys.slice();log._phase3Ready=true;
+     if(log._phase3Card){const controls=log._phase3Card._phase3Controls;renderMultiLogPreview(log,controls.tableHost,selectedKeys);controls.summary.textContent=Math.max(0,log.filteredRows.length-1).toLocaleString()+' filtered data rows · '+selectedKeys.length+' derived parameter(s) retained. Timestamp sorting will be applied when generating CSV.';}
     });
    }else{
     generatedMultiCsvFiles=[];generatedCsvFilesHost.replaceChildren();
@@ -1422,7 +1422,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   const multiProceedInApp=el('button','btn','Proceed with In App Analysis');multiProceedInApp.type='button';multiProceedInApp.hidden=true;
   const multiProceedReport=el('button','btn alt','Proceed with Report Generation');multiProceedReport.type='button';multiProceedReport.hidden=true;
   multiProceedActions.hidden=true;multiProceedActions.append(multiProceedInApp,multiProceedReport);
-  const multiDerivedProceed=el('button','btn','Proceed to Data Sorting & Filtering');multiDerivedProceed.type='button';
+  const multiDerivedProceed=el('button','btn','Proceed to Data Sorting & Filtering');multiDerivedProceed.type='button';multiDerivedProceed.disabled=!(commonEngine.DERIVED_BY_TEST[multiLogType]||[]).every(key=>sharedDerivedAdded.has(key));
   multiDerivedProceed.addEventListener('click',()=>{
    if(!multiSession.logs.every(log=>log._phase3Ready)){csvStatus.textContent='Complete every selected derived-parameter calculation for all logs before proceeding.';return;}
    multiAnalysisCard.hidden=true;multiFilterCard.hidden=false;multiFilterCard.scrollIntoView({behavior:'smooth',block:'start'});
