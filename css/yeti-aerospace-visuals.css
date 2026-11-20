@@ -245,3 +245,9 @@ img,svg,canvas{max-width:100%}
     max-width:100%!important;
   }
 }
+
+
+/* Hide the introductory Operational Modules banner; keep the module tabs and panels intact. */
+main>.module-nav-heading{
+  display:none!important;
+}
