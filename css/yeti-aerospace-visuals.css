@@ -251,3 +251,28 @@ img,svg,canvas{max-width:100%}
 main>.module-nav-heading{
   display:none!important;
 }
+
+
+/* Keep all three primary module tabs in one horizontal row. */
+.module-tabs{
+ display:grid!important;
+ grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ grid-auto-flow:column;
+ align-items:stretch;
+ gap:16px;
+ width:100%;
+ min-width:0;
+}
+.module-tabs>.module-tab{
+ box-sizing:border-box;
+ width:100%;
+ min-width:0;
+}
+@media(max-width:760px){
+ .module-tabs{
+  grid-template-columns:repeat(3,minmax(245px,1fr))!important;
+  overflow-x:auto;
+  overscroll-behavior-x:contain;
+  padding-bottom:6px;
+ }
+}
