@@ -128,7 +128,7 @@ if (!packageUrlMatch) {
 
 const serviceWorker = read('service-worker.js');
 checkJavaScript('service-worker.js', serviceWorker);
-if (/const CACHE='yeti-flight-trial-shell-v\\d+';/.test(serviceWorker) && /pathname\.endsWith\('\.pdf'\)/.test(serviceWorker) && /template-package\.json/.test(serviceWorker)) {
+if (/const CACHE='yeti-flight-trial-shell-v\d+';/.test(serviceWorker) && /pathname\.endsWith\('\.pdf'\)/.test(serviceWorker) && /template-package\.json/.test(serviceWorker)) {
   pass('Service worker bypasses stale PDF and template-package caches');
 } else fail('Service worker must bypass cached PDF templates and versioned package manifests');
 const shellStart = serviceWorker.indexOf('const SHELL=[');
