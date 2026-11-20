@@ -153,7 +153,8 @@ assert.ok(rendererSourceForAppend.includes('centerY=(b.y+(b.height||6)/2)*sy'),'
 assert.ok(rendererSourceForAppend.includes("!m?.specialFields?.[k]"),'mapped battery values must not also be duplicated in the remarks cell');
 
 assert.ok(rendererSourceForAppend.includes('(centerY-3.35)*scaleY'),'status chips must be positioned from the calculated cell centre');
-assert.ok(rendererSourceForAppend.includes('centerY*scaleY'),'remarks must share the calculated cell centre with status chips');\nassert.ok(rendererSourceForAppend.includes('mapper?.getCellCenter(b)'),'all explicit value and metadata rectangles must use the shared cell-centre utility');
+assert.ok(rendererSourceForAppend.includes('centerY*scaleY'),'remarks must share the calculated cell centre with status chips');
+assert.ok(rendererSourceForAppend.includes('mapper?.getCellCenter(b)'),'all explicit value and metadata rectangles must use the shared cell-centre utility');
 
 assert.equal(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='4.1.1').subsection,'1. Port-Side Wing Chcek','candidate checklist must preserve the uploaded source subsection wording');
 assert.equal(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='4.2.1').subsection,'2. Star-Board Side Wing Chcek','candidate checklist must preserve source spelling rather than silently normalizing it');
@@ -175,7 +176,8 @@ for(const [key,box] of Object.entries({...v2Candidate.template.fieldBoxes,...v2C
 }
 assert.ok(mapper.getCheckpointAnchors(v2Candidate.template,'2.2').remarks.y>v2Candidate.template.rows['2.2'][1],'remarks must use the centre of the single-height row after a section gap');
 assert.ok(mapper.getCheckpointAnchors(v2Candidate.template,'3.4').pass.y-v2Candidate.template.rows['3.4'][1]<5,'status chip must remain within the mapped row after a section gap');
-\nconst v2Cell=mapper.getCheckpointAnchors(v2Candidate.template,'4.1.1');
+
+const v2Cell=mapper.getCheckpointAnchors(v2Candidate.template,'4.1.1');
 assert.ok(v2Cell,'active v2 checklist row must expose calculated cell geometry');
 assert.ok(Math.abs(v2Cell.row.height-9.57)<0.02,'row height must be derived from neighbouring mapped row boundaries');
 assert.ok(Math.abs(v2Cell.row.centerY-(v2Candidate.template.rows['4.1.1'][1]+v2Cell.row.height/2))<0.001,'cell centre must be the midpoint of its measured bounds');
