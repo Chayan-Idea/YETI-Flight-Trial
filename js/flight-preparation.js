@@ -131,78 +131,14 @@ async function buildPreview(skipPhotoRefresh=false){
  if(buildRevision!==previewBuildRevision)return;
  const activePdf=window.YETI_ACTIVE_PDF_TEMPLATE;
  if(activePdf?.pdfBytes&&window.YETI_PDF_OVERLAY_RENDERER){try{await window.YETI_PDF_OVERLAY_RENDERER.renderPreview($('previewContent'),activePdf,activePdf.package.template,answers['9.0']?.signature,evidencePhotos.filter(p=>(p.category||'daily')==='daily'),answers,previewTrialInfo);return}catch(error){console.error('Source PDF preview unavailable.',error);$('previewContent').innerHTML='<div class="alert alert-danger" role="alert">The approved source PDF preview could not be rendered. The original-PDF preview has been stopped to prevent a misleading substitute.</div>';return}}
- const doc=window.YETI_DAILY_AIRWORTHINESS_DOCUMENT||{};
- const safe=v=>esc(v==null?'':String(v));
- const meta=[['Trial Phase',trialInfo.phase],['Trial Stage',trialInfo.stage],['Flight Place',trialInfo.place],['Flight Date',trialInfo.date]];
- const groupNames={
- '4.1':'1. Port-Side Wing Check','4.2':'2. Star-Board Side Wing Check','4.3':'3. VTOL Propulsion','4.4':'4. FW Propulsion',
- '4.5':'5. Tail Assembly','4.6':'6. HV Floor (No-Battery Area)','4.7':'7. HV Floor (Battery Area)','4.8':'8. LV Floor','4.9':'9. Propulsion Cooling System'
- };
- const row=(id,group,description,answer={},opts={})=>{
-  const mark=k=>answer.status===k?'✓':'';
-  const result=opts.noStatus?'<td></td><td></td><td></td>':'<td class="dac-mark">'+mark('Pass')+'</td><td class="dac-mark">'+mark('Fail')+'</td><td class="dac-mark">'+mark('Not Available')+'</td>';
-  return '<tr class="dac-row"><td class="dac-serial">'+safe(id)+'</td>'+(group===null?'<td colspan="2" class="dac-description">'+description+'</td>':'<td class="dac-group">'+safe(group)+'</td><td class="dac-description">'+description+'</td>')+result+'<td class="dac-remarks">'+safe(answer.remarks||'')+'</td></tr>';
- };
- const sectionRow=title=>'<tr class="dac-section"><td colspan="7">'+safe(title)+'</td></tr>';
- const tableOpen='<table class="dac-table"><colgroup><col style="width:5.95%"><col style="width:14.25%"><col style="width:38.95%"><col style="width:3.32%"><col style="width:3.32%"><col style="width:6.53%"><col style="width:27.68%"></colgroup><thead><tr><th>Sl. No</th><th colspan="2">Checklist</th><th>Pass</th><th>Fail</th><th>Not Available</th><th>Remarks</th></tr></thead><tbody>';
- const head=()=>'<div class="dac-head"><div class="dac-brand"><img src="assets/ideaforge-logo.png" alt="ideaForge"><b>'+safe(doc.title||'Daily Airworthiness Checklist')+'</b></div><div class="dac-meta"><strong>Doc Number: '+safe(doc.documentNumber||'IF_YETI_TD0_FTR_CKT_005')+'</strong>'+meta.map(([k,v])=>'<div><b>'+k+' :</b> '+safe(v)+'</div>').join('')+'</div></div>';
- const a=id=>answers[id]||{};
- const field=(ans,key)=>ans.values?.[key]||'';
- const makeItem=(item,group,overrideText=null)=>{
-  const ans=a(item.id),isSpec=item.id.startsWith('1.'),isSetup=item.id==='3.1';
-  const desc=overrideText!==null?overrideText:[safe(item.title),...(item.criteria||[]).map(safe)].filter(Boolean).join('<br>');
-  return row(item.id,group,desc,ans,{noStatus:isSpec||isSetup});
- };
- const p1=[],p2=[];
- for(const sec of sections){
-  const target=(sec.title.startsWith('5.')||sec.title.startsWith('6.')||sec.title.startsWith('7.')||sec.title.startsWith('8.')||sec.title.startsWith('9.'))?p2:p1;
-  if(sec.title.startsWith('4. Airframe')){
-   target.push(sectionRow(sec.title));
-   for(let ix=0;ix<sec.items.length;ix++){
-    const item=sec.items[ix],prefix=item.id.split('.').slice(0,2).join('.');
-    const destination=item.id.startsWith('4.9.')?p2:p1;
-    const prev=sec.items[ix-1],first=!prev||prev.id.split('.').slice(0,2).join('.')!==prefix;
-    if(first){
-     const count=sec.items.filter(x=>x.id.split('.').slice(0,2).join('.')===prefix).length;
-     destination.push(makeItem(item,groupNames[prefix]||'').replace('<td class="dac-group">','<td rowspan="'+count+'" class="dac-group">'));
-    }else destination.push(makeItem(item,null));
-   }
-  }else if(sec.title.startsWith('1. UAV')){
-   target.push(sectionRow(sec.title));
-   const w=sec.items.find(x=>x.id==='1.1'),cg=sec.items.find(x=>x.id==='1.2');
-   if(w)target.push(makeItem(w,'UAV Weight',safe(w.title)+'<br>UAV Total weight: '+safe(field(a('1.1'),'totalWeight'))));
-   if(cg){
-    const fields=cg.valueFields||[];
-    fields.forEach((v,i)=>target.push(row(i===0?'1.2':'',i===0?'UAV CG Point':null,safe(v.label)+': '+safe(field(a('1.2'),v.key)),a('1.2'),{noStatus:true})));
-   }
-  }else if(sec.title.startsWith('2.')||sec.title.startsWith('3.')){
-   target.push(sectionRow(sec.title));
-   sec.items.forEach(item=>target.push(makeItem(item,null,item.id==='3.1'?'Setup Description: '+safe(field(a('3.1'),'setupDescription')):safe(item.title))));
-  }else if(sec.title.startsWith('5.')){
-   target.push(sectionRow(sec.title));
-   sec.items.forEach(item=>target.push(makeItem(item,null,safe(item.title)+((item.criteria||[]).length?'<br>'+item.criteria.map(safe).join('<br>'):''))));
-  }else if(sec.title.startsWith('6.')){
-   target.push(sectionRow(sec.title));
-   sec.items.forEach(item=>{
-    let text=safe(item.title)+((item.criteria||[]).length?'<br>'+item.criteria.map(safe).join('<br>'):'');
-    const ans=a(item.id);
-    if(item.id==='6.1')text+='<br>HV Battery Voltage: '+safe(field(ans,'hvVoltage'))+' &nbsp; || &nbsp; Minimum Cell Voltage: '+safe(field(ans,'minCellVoltage'));
-    if(item.id==='6.2')text+='<br>PDU SOC: '+safe(field(ans,'pduSoc'));
-    target.push(makeItem(item,null,text));
-   });
-  }else{
-   target.push(sectionRow(sec.title));
-   sec.items.forEach(item=>target.push(makeItem(item,null)));
-  }
- }
- const pageHtml=(rows)=>'<section class="dac-page">'+head()+tableOpen+rows.join('')+'</tbody></table></section>';
- const css='<style id="dac-print-layout">@page{size:A4 landscape;margin:0}.dac-pages{display:flex;flex-direction:column;align-items:center;gap:18px}.dac-page{width:297mm;height:210mm;box-sizing:border-box;padding:7mm 8.5mm;background:#fff;color:#000;font:6.1pt Arial,Helvetica,sans-serif;overflow:hidden;box-shadow:0 2px 12px #0002}.dac-head{height:16mm;display:grid;grid-template-columns:60% 40%;background:#eee;border:1px solid #000;box-sizing:border-box}.dac-brand{position:relative;display:flex;align-items:center;justify-content:center;border-right:1px solid #000;font-size:12pt;font-weight:bold}.dac-brand img{position:absolute;left:4.5mm;top:1mm;width:16mm;height:13.5mm;object-fit:contain}.dac-meta{padding:.7mm 2mm;font-size:6pt;line-height:1.12}.dac-meta div{min-height:2.7mm}.dac-table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:6pt;border:0.65pt solid #333}.dac-table th,.dac-table td{border:0;border-right:0.65pt solid #333;border-bottom:0.65pt solid #333;padding:.28mm .8mm;line-height:.98;vertical-align:middle;overflow-wrap:anywhere}.dac-table tr>*:last-child{border-right:0}.dac-table tbody tr:last-child>*{border-bottom:0}.dac-table thead th{border-bottom:0.8pt solid #222}.dac-table td[rowspan]{border-right:0.65pt solid #333}.dac-table thead th{height:7mm;background:#c6d9f1;text-align:center;font-weight:normal}.dac-section td{height:2.8mm;background:#eee;text-align:center;font-weight:bold;padding:.15mm}.dac-serial{text-align:center;white-space:nowrap}.dac-group{text-align:center;font-size:5.7pt}.dac-description{font-size:5.9pt}.dac-mark{text-align:center;font-size:9pt;font-weight:bold}.dac-remarks{font-size:5.8pt;white-space:pre-wrap}.dac-row{break-inside:avoid;page-break-inside:avoid}@media screen{.dac-page{max-width:100%;height:auto;min-height:210mm;aspect-ratio:297/210}.dac-table{font-size:clamp(5px,.58vw,6pt)}}@media print{.dac-pages{display:block}.dac-page{width:297mm;height:210mm;margin:0;padding:7mm 8.5mm;box-shadow:none;break-after:page;page-break-after:always;overflow:hidden}.dac-page:last-child{break-after:auto;page-break-after:auto}}</style>';
- $('previewContent').innerHTML=css+'<div class="dac-pages">'+pageHtml(p1)+pageHtml(p2)+'</div>';
+ $('previewContent').innerHTML='<div class="alert alert-danger" role="alert">The approved original PDF template is not available. A reconstructed substitute preview has been blocked to prevent misleading checklist output.</div>';
+ return;
 }
 // Preview remains visible and is refreshed automatically; no manual update/close controls.
 
 async function exportChecklistPdf(previewId,title){
  const activePdf=window.YETI_ACTIVE_PDF_TEMPLATE;
+ if(previewId==='previewContent'&&(!activePdf?.pdfBytes||!window.YETI_PDF_OVERLAY_RENDERER)){alert('The approved original PDF template is unavailable. Export has been blocked; no reconstructed substitute will be generated.');return}
  if(previewId==='previewContent'&&activePdf?.pdfBytes&&window.YETI_PDF_OVERLAY_RENDERER){try{const bytes=await window.YETI_PDF_OVERLAY_RENDERER.exportPdf(activePdf,activePdf.package.template,answers['9.0']?.signature,evidencePhotos.filter(p=>(p.category||'daily')==='daily'),answers,trialInfo);const blob=new Blob([bytes],{type:'application/pdf'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=String(title||'Daily-Airworthiness.pdf').replace(/[^a-z0-9._-]/gi,'_');link.click();setTimeout(()=>URL.revokeObjectURL(url),1500);return}catch(error){console.error('Original PDF overlay export failed.',error);alert('The approved source PDF could not be exported. No legacy substitute was generated. Please retry after the PDF renderer is available.');return}}
  const printWindow=window.open('','_blank');
  if(!printWindow){alert('Please allow pop-ups for this site, then select Export as PDF again.');return}
