@@ -214,3 +214,7 @@
  .submodule-layout.sidebar-expanded .checklist-tabs .sidebar-toggle span:first-child{transform:rotate(180deg)}
 }
 @media print{.checklist-sidebar-toggle,.sidebar-toggle{display:none!important}}
+
+
+/* Keep touch gestures inside signature canvases; page scrolling remains enabled everywhere else. */
+#signaturePad,#loadingSignaturePad{display:block;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overscroll-behavior:contain;}
