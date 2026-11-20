@@ -102,6 +102,13 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
     if (!response || !response.ok()) throw new Error('YETI application shell did not load.');
     await page.locator('#flightPreparationPanel').waitFor({state:'visible'});
 
+    // Global refresh button must acknowledge the click and report completion after full page load.
+    await page.locator('#refreshPageBtn').click();
+    await page.waitForLoadState('load');
+    await page.locator('#appRefreshStatus').waitFor({state:'visible'});
+    if(!(await page.locator('#appRefreshStatus').evaluate(el=>el.classList.contains('is-complete'))))throw new Error('Global refresh status did not report completion after the page loaded.');
+    if(await page.locator('#appRefreshStatusText').innerText()!=='Page refreshed successfully')throw new Error('Global refresh completion message is missing.');
+
     // SOP reading workflow.
     await page.locator('#flightTrialPreparationSopTab').click();
     const sop = page.locator('#flightTrialPreparationSopPanel');
