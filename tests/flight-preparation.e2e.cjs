@@ -182,6 +182,8 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
     if (dailyPreviewText.includes('YETI-PHASE3-QA') || dailyPreviewText.includes('Phase 3 UI Assurance') || dailyPreviewText.includes('Phase 3 automated verification remark.')) {
       throw new Error('Dynamic trial metadata or checklist remarks leaked into the original-PDF preview.');
     }
+    const rasterQuality=await page.locator('#previewContent .yeti-pdf-source-page canvas').first().evaluate(el=>({backingWidth:el.width,cssWidth:el.getBoundingClientRect().width}));
+    if(rasterQuality.backingWidth<rasterQuality.cssWidth*2.9)throw new Error('PDF preview must render at high resolution for sharp 300% zoom. '+JSON.stringify(rasterQuality));
     await page.locator('[data-pdf-zoom="in"]').click();
     if(await page.locator('#previewContent .yeti-pdf-preview-stage').evaluate(el=>el.style.zoom)!=='1.25')throw new Error('Daily PDF preview zoom-in control did not enlarge the preview.');
     if(await page.locator('#pdfPreviewZoomLevel').innerText()!=='125%')throw new Error('Daily PDF preview zoom percentage did not update.');
