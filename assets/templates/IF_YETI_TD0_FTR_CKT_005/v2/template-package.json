@@ -469,202 +469,242 @@
         {
           "id": "4.1.1",
           "title": "Cracks, dents and aesthetics",
-          "criteria": []
+          "criteria": [],
+          "subsection": "1. Port-Side Wing Chcek"
         },
         {
           "id": "4.1.2",
           "title": "Screws fitment and loose parts",
-          "criteria": []
+          "criteria": [],
+          "subsection": "1. Port-Side Wing Chcek"
         },
         {
           "id": "4.1.3",
           "title": "Antenna mounting, routing and",
-          "criteria": []
+          "criteria": [],
+          "subsection": "1. Port-Side Wing Chcek"
         },
         {
           "id": "4.1.4",
           "title": "FOD in the wing",
-          "criteria": []
+          "criteria": [],
+          "subsection": "1. Port-Side Wing Chcek"
         },
         {
           "id": "4.2.1",
           "title": "Cracks, dents and aesthetics",
-          "criteria": []
+          "criteria": [],
+          "subsection": "2. Star-Board Side Wing Chcek"
         },
         {
           "id": "4.2.2",
           "title": "Screws fitment and loose parts",
-          "criteria": []
+          "criteria": [],
+          "subsection": "2. Star-Board Side Wing Chcek"
         },
         {
           "id": "4.2.3",
           "title": "Antenna mounting, routing and",
-          "criteria": []
+          "criteria": [],
+          "subsection": "2. Star-Board Side Wing Chcek"
         },
         {
           "id": "4.2.4",
           "title": "FOD in the wing",
-          "criteria": []
+          "criteria": [],
+          "subsection": "2. Star-Board Side Wing Chcek"
         },
         {
           "id": "4.3.1",
           "title": "VTOL Motor fitment and tightness",
-          "criteria": []
+          "criteria": [],
+          "subsection": "3. VTOL Propulsion"
         },
         {
           "id": "4.3.2",
           "title": "Propeller direction (CW ; CCW), fitment and tightness",
-          "criteria": []
+          "criteria": [],
+          "subsection": "3. VTOL Propulsion"
         },
         {
           "id": "4.3.3",
           "title": "Cable ties on the VTOL arms are in place , no loose cable holders.",
-          "criteria": []
+          "criteria": [],
+          "subsection": "3. VTOL Propulsion"
         },
         {
           "id": "4.3.4",
           "title": "The cooling line is not loose at the motor inlet, motor mount and not fouling with the motor.",
-          "criteria": []
+          "criteria": [],
+          "subsection": "3. VTOL Propulsion"
         },
         {
           "id": "4.3.5",
           "title": "HV terminals and LV terminals are intact and properly insulated.",
-          "criteria": []
+          "criteria": [],
+          "subsection": "3. VTOL Propulsion"
         },
         {
           "id": "4.3.6",
           "title": "Ensure no nicks, cuts or delamination to VTOL propellers",
-          "criteria": []
+          "criteria": [],
+          "subsection": "3. VTOL Propulsion"
         },
         {
           "id": "4.3.7",
           "title": "No FOD in VTOL motors",
-          "criteria": []
+          "criteria": [],
+          "subsection": "3. VTOL Propulsion"
         },
         {
           "id": "4.4.1",
           "title": "Cable ties on the FW arms are in place , no loose cable holders.",
-          "criteria": []
+          "criteria": [],
+          "subsection": "4. FW Propulsion"
         },
         {
           "id": "4.4.2",
           "title": "HV terminals and LV terminals are intact and properly insulated.",
-          "criteria": []
+          "criteria": [],
+          "subsection": "4. FW Propulsion"
         },
         {
           "id": "4.4.3",
           "title": "FW Motor fitment and tightness",
-          "criteria": []
+          "criteria": [],
+          "subsection": "4. FW Propulsion"
         },
         {
           "id": "4.4.4",
           "title": "Propeller direction (CW ; CCW), fitment and tightness",
-          "criteria": []
+          "criteria": [],
+          "subsection": "4. FW Propulsion"
         },
         {
           "id": "4.4.6",
           "title": "No FOD in FW motors",
-          "criteria": []
+          "criteria": [],
+          "subsection": "4. FW Propulsion"
         },
         {
           "id": "4.5.1",
           "title": "No damages, dents, chipped edges and aesthetics on the tail surface and control surface hinge points",
-          "criteria": []
+          "criteria": [],
+          "subsection": "5. Tail Assembly"
         },
         {
           "id": "4.5.2",
           "title": "Control surface horn fitment and movement is ok",
-          "criteria": []
+          "criteria": [],
+          "subsection": "5. Tail Assembly"
         },
         {
           "id": "4.5.3",
           "title": "Screws fitment is proper and no loose parts",
-          "criteria": []
+          "criteria": [],
+          "subsection": "5. Tail Assembly"
         },
         {
           "id": "4.5.4",
           "title": "No FOD in Tail Assembly",
-          "criteria": []
+          "criteria": [],
+          "subsection": "5. Tail Assembly"
         },
         {
           "id": "4.6.1",
           "title": "No Cracks, dents, chipped edges, asthetics is ok. No loose cables and cable tie bases are not loose.",
-          "criteria": []
+          "criteria": [],
+          "subsection": "6. HV Floor (No-Battery Area)"
         },
         {
           "id": "4.6.2",
           "title": "LV battery fitment",
-          "criteria": []
+          "criteria": [],
+          "subsection": "6. HV Floor (No-Battery Area)"
         },
         {
           "id": "4.6.3",
           "title": "PDU fasteners are tightened.",
-          "criteria": []
+          "criteria": [],
+          "subsection": "6. HV Floor (No-Battery Area)"
         },
         {
           "id": "4.6.4",
           "title": "ESC fasteners are tightened.",
-          "criteria": []
+          "criteria": [],
+          "subsection": "6. HV Floor (No-Battery Area)"
         },
         {
           "id": "4.6.5",
           "title": "No FOD in the HV floor",
-          "criteria": []
+          "criteria": [],
+          "subsection": "6. HV Floor (No-Battery Area)"
         },
         {
           "id": "4.7.1",
           "title": "Battery locking Velcro is intact.",
-          "criteria": []
+          "criteria": [],
+          "subsection": "7. HV Floor (Battery Area)"
         },
         {
           "id": "4.7.2",
           "title": "No leakages from battery cooling system.",
-          "criteria": []
+          "criteria": [],
+          "subsection": "7. HV Floor (Battery Area)"
         },
         {
           "id": "4.7.3",
           "title": "No loose cables.",
-          "criteria": []
+          "criteria": [],
+          "subsection": "7. HV Floor (Battery Area)"
         },
         {
           "id": "4.7.4",
           "title": "Electrical connector is intact.",
-          "criteria": []
+          "criteria": [],
+          "subsection": "7. HV Floor (Battery Area)"
         },
         {
           "id": "4.7.5",
           "title": "No FOD in the battery structure.",
-          "criteria": []
+          "criteria": [],
+          "subsection": "7. HV Floor (Battery Area)"
         },
         {
           "id": "4.8.1",
           "title": "No loose cables.",
-          "criteria": []
+          "criteria": [],
+          "subsection": "8. LV Floor"
         },
         {
           "id": "4.8.2",
           "title": "GNSS antena are intact and in the correct direction.",
-          "criteria": []
+          "criteria": [],
+          "subsection": "8. LV Floor"
         },
         {
           "id": "4.9.1",
           "title": "No loose cooling pipes or its mounts & No leakage",
-          "criteria": []
+          "criteria": [],
+          "subsection": "9. Propulsion Cooling System"
         },
         {
           "id": "4.9.2",
           "title": "Ensure PWM duty cycle is not between 11 to 55%.",
-          "criteria": []
+          "criteria": [],
+          "subsection": "9. Propulsion Cooling System"
         },
         {
           "id": "4.9.3",
           "title": "Ensure reservoir is adequately filled with no leaks",
-          "criteria": []
+          "criteria": [],
+          "subsection": "9. Propulsion Cooling System"
         },
         {
           "id": "4.9.4",
           "title": "Ensure radiator is securely mounted and free from any visible damage",
-          "criteria": []
+          "criteria": [],
+          "subsection": "9. Propulsion Cooling System"
         }
       ]
     },
