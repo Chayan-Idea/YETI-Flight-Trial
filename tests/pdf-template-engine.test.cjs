@@ -62,8 +62,9 @@ assert.ok(rendererSourceForAppend.includes('append-signature-page'),'renderer mu
 assert.ok(rendererSourceForAppend.includes('yeti-pdf-signature-page'),'preview must display the appended signature page');
 assert.equal(manifest.columns.passCenterX,511.35);
 assert.ok(rendererSourceForAppend.includes('textWidth=bold.widthOfTextAtSize(st.label,size)'),'status labels must be horizontally centred within their status cells');
-assert.ok(rendererSourceForAppend.includes("ctx.textAlign='center'"),'all preview overlay text must be centre aligned');
-assert.ok(rendererSourceForAppend.includes('x:anchors.remarks.x*sx-textWidth/2'),'exported remarks must be centre aligned inside the remarks cell');
+assert.ok(rendererSourceForAppend.includes("ctx.textAlign='center'"),'status labels must remain centred');
+assert.ok(rendererSourceForAppend.includes("ctx.textAlign='left'"),'non-status preview text must be left aligned');
+assert.ok(rendererSourceForAppend.includes('x:placement.x'),'exported remarks must be left aligned with cell padding');
 const flightPreparationSource=fs.readFileSync(path.join(root,'js/flight-preparation.js'),'utf8');
 assert.ok(flightPreparationSource.includes('scheduleLivePdfPreview'),'visible PDF preview must synchronize automatically after input changes');
 assert.ok(flightPreparationSource.includes("if(category==='daily')scheduleLivePdfPreview(true)"),'Daily Airworthiness photo additions must refresh the PDF preview');
@@ -147,14 +148,15 @@ assert.deepEqual(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='8.1').
 assert.equal(v2Candidate.template.columns.passCenterX,505.24,'Pass status must use the attached PDF column geometry');
 assert.equal(v2Candidate.template.specialFields.checkerReviewer.x,588.93,'signature must map into the attached PDF signature cell');
 
-assert.ok(rendererSourceForAppend.includes('center.y*scaleY'),'measured metadata cell height must control vertical text centring in the live preview');
-assert.ok(rendererSourceForAppend.includes('center.y*sy'),'measured metadata cell height must control vertical text centring in exported PDFs');
+assert.ok(rendererSourceForAppend.includes('placement.y'),'mapped text must use the measured cell vertical centre in the live preview');
+assert.ok(rendererSourceForAppend.includes('ph-placement.y-regular.heightAtSize(size)/2'),'mapped text must use the measured cell vertical centre in exported PDFs');
 
 assert.ok(rendererSourceForAppend.includes("!m?.specialFields?.[k]"),'mapped battery values must not also be duplicated in the remarks cell');
 
 assert.ok(rendererSourceForAppend.includes('(centerY-3.35)*scaleY'),'status chips must be positioned from the calculated cell centre');
-assert.ok(rendererSourceForAppend.includes('centerY*scaleY'),'remarks must share the calculated cell centre with status chips');
-assert.ok(rendererSourceForAppend.includes('mapper?.getCellCenter(b)'),'all explicit value and metadata rectangles must use the shared cell-centre utility');
+assert.ok(rendererSourceForAppend.includes("ctx.textAlign='left'"),'non-status preview text must be left aligned');
+assert.ok(rendererSourceForAppend.includes('placement.y'),'non-status preview text must be vertically centred');
+assert.ok(rendererSourceForAppend.includes('leftTextPlacement(b,scaleX,scaleY)')&&rendererSourceForAppend.includes('leftTextPlacement(b,sx,sy)'),'all mapped value and metadata cells must use shared padded left-alignment geometry');
 
 assert.equal(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='4.1.1').subsection,'1. Port-Side Wing Chcek','candidate checklist must preserve the uploaded source subsection wording');
 assert.equal(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='4.2.1').subsection,'2. Star-Board Side Wing Chcek','candidate checklist must preserve source spelling rather than silently normalizing it');
