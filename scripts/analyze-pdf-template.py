@@ -70,7 +70,7 @@ def analyse(source: Path):
         words=page.get_text("words",sort=True)
         extraction_method="text"
         ocr_confidence=None
-        if len(words) < 4:
+        if len(words) < 12:
             words,ocr_confidence=_ocr_words(page)
             extraction_method="ocr"
         rows=_rows(page,words)
