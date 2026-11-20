@@ -314,37 +314,37 @@
     "fieldBoxes": {
       "totalWeight": {
         "page": 1,
-        "x": 209.48,
+        "x": 588.93,
         "y": 105.82,
-        "width": 283.7,
+        "width": 201.26,
         "height": 9.58
       },
       "cgX": {
         "page": 1,
-        "x": 209.48,
+        "x": 588.93,
         "y": 115.4,
-        "width": 283.7,
+        "width": 201.26,
         "height": 9.57
       },
       "cgY": {
         "page": 1,
-        "x": 209.48,
+        "x": 588.93,
         "y": 124.97,
-        "width": 283.7,
+        "width": 201.26,
         "height": 9.58
       },
       "cgZ": {
         "page": 1,
-        "x": 209.48,
+        "x": 588.93,
         "y": 134.55,
-        "width": 283.7,
+        "width": 201.26,
         "height": 9.39
       },
       "setupDescription": {
         "page": 1,
-        "x": 105.57,
+        "x": 588.93,
         "y": 182.42,
-        "width": 387.61,
+        "width": 201.26,
         "height": 9.58
       }
     },
@@ -373,9 +373,9 @@
       "checkerReviewer": {
         "page": 2,
         "x": 588.93,
-        "y": 316.47,
+        "y": 326.05,
         "width": 201.26,
-        "height": 35.82
+        "height": 26.24
       }
     },
     "signatureMode": "mapped-source-cell"
