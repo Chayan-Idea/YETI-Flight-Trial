@@ -61,9 +61,9 @@ const rendererSourceForAppend=fs.readFileSync(path.join(root,'js/pdf-overlay-ren
 assert.ok(rendererSourceForAppend.includes('append-signature-page'),'renderer must support appended signature pages for un-mapped PDFs');
 assert.ok(rendererSourceForAppend.includes('yeti-pdf-signature-page'),'preview must display the appended signature page');
 assert.equal(manifest.columns.passCenterX,511.35);
-assert.ok(rendererSourceForAppend.includes('statusWidth=bold.widthOfTextAtSize(st.label,statusSize)'),'status labels must be horizontally centred within their status cells');
+assert.ok(rendererSourceForAppend.includes('textWidth=bold.widthOfTextAtSize(st.label,size)'),'status labels must be horizontally centred within their status cells');
 assert.ok(rendererSourceForAppend.includes("ctx.textAlign='center'"),'all preview overlay text must be centre aligned');
-assert.ok(rendererSourceForAppend.includes('x:((c.remarksLeft+c.remarksRight)/2)*sx-textWidth/2'),'exported remarks must be centre aligned inside the remarks cell');
+assert.ok(rendererSourceForAppend.includes('x:anchors.remarks.x*sx-textWidth/2'),'exported remarks must be centre aligned inside the remarks cell');
 const flightPreparationSource=fs.readFileSync(path.join(root,'js/flight-preparation.js'),'utf8');
 assert.ok(flightPreparationSource.includes('scheduleLivePdfPreview'),'visible PDF preview must synchronize automatically after input changes');
 assert.ok(flightPreparationSource.includes("if(category==='daily')scheduleLivePdfPreview(true)"),'Daily Airworthiness photo additions must refresh the PDF preview');
