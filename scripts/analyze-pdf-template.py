@@ -10,8 +10,8 @@ import argparse, hashlib, json, re
 from pathlib import Path
 import fitz
 
-CHECKPOINT = re.compile(r"^\\d+(?:\\.\\d+){1,3}$")
-SECTION_NUMBER = re.compile(r"^\\d+\\.$")
+CHECKPOINT = re.compile(r"^\d+(?:\.\d+){1,3}$")
+SECTION_NUMBER = re.compile(r"^\d+\.$")
 SERIAL_X_MAX = 120
 CONTENT_X_MAX = 500
 ROW_TOLERANCE = 2.2
@@ -98,8 +98,8 @@ def analyse(source: Path):
     for parent,numbers in child_numbers.items():
         if numbers:
             numbering_gaps.extend(parent+"."+str(number) for number in range(1,max(numbers)+1) if number not in numbers)
-    full_text="\\n".join(page["text"] for page in pages)
-    doc_match=re.search(r"Doc(?:ument)?\\s*Number\\s*:\\s*([A-Za-z0-9_-]+)",full_text,re.IGNORECASE)
+    full_text="\n".join(page["text"] for page in pages)
+    doc_match=re.search(r"Doc(?:ument)?\s*Number\s*:\s*([A-Za-z0-9_-]+)",full_text,re.IGNORECASE)
     document_number=doc_match.group(1) if doc_match else None
     return {"candidateVersion":3,"documentNumber":document_number,"numberingGaps":numbering_gaps,"sourceFile":source.name,"sourceBytes":len(raw),
         "sha256":hashlib.sha256(raw).hexdigest(),"pageCount":len(document),"pages":pages,
@@ -120,7 +120,7 @@ def main():
         raise SystemExit("Input must be an existing PDF file.")
     try: result=analyse(args.pdf)
     except Exception as error: raise SystemExit(f"PDF analysis failed safely: {error}")
-    args.output.write_text(json.dumps(result,indent=2,ensure_ascii=False)+"\\n",encoding="utf-8")
+    args.output.write_text(json.dumps(result,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
     print(f"Analysed {result['pageCount']} pages; found {len(result['checkpointCandidates'])} checkpoint candidates.")
     print("Review-only candidate created; activation remains blocked pending human verification.")
 
