@@ -10,7 +10,8 @@ for(const file of [
  'js/daily-airworthiness-pdf-manifest.js',
  'js/pdf-template-manager.js',
  'js/pdf-coordinate-mapper.js',
- 'js/pdf-template-package-loader.js'
+ 'js/pdf-template-package-loader.js',
+ 'js/pdf-overlay-renderer.js'
 ])vm.runInContext(fs.readFileSync(path.join(root,file),'utf8'),context,{filename:file});
 const manifest=window.YETI_DAILY_AIRWORTHINESS_PDF_MANIFEST;
 const sections=window.YETI_DAILY_AIRWORTHINESS_TEMPLATE;
@@ -42,6 +43,14 @@ assert.throws(()=>manager.activate(manager.register(manifest,sections),false),/e
 console.log('PDF template engine checks passed: source geometry, '+ids.length+' checklist IDs, coordinate anchors, page assignment, bounds, fail-closed validation and explicit activation.');
 
 const packageLoader=window.YETI_PDF_TEMPLATE_PACKAGE;
+const overlay=window.YETI_PDF_OVERLAY_RENDERER;
+assert.equal(typeof overlay.renderPreview,'function');
+assert.equal(typeof overlay.exportPdf,'function');
+assert.equal(manifest.columns.passCenterX,511.35);
+assert.equal(manifest.columns.failCenterX,534.95);
+assert.equal(manifest.columns.notAvailableCenterX,570.01);
+const schema=JSON.parse(fs.readFileSync(path.join(root,'schemas/pdf-template-package.schema.json'),'utf8'));
+assert.equal(schema.title,'YETI PDF Checklist Template Package');
 const pkg={
  packageVersion:1,
  document:{templateId:manifest.templateId,version:manifest.version,pageCount:manifest.sourcePages,pageWidth:manifest.page.width,pageHeight:manifest.page.height,orientation:'landscape'},
