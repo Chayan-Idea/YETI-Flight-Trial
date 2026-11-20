@@ -51,9 +51,9 @@ def build(candidate_path: Path, pdf_path: Path, template_id: str, version: str):
         "rows":{},"columns":{},"signatureMode":"append-signature-page"},
       "sections":sections,
       "extractionReview":{"sourceCandidate":candidate_path.name,"checkpointCount":len(seen),
-        "duplicateIds":candidate.get("duplicateCheckpointIds",[]),
+        "duplicateIds":candidate.get("duplicateCheckpointIds",[]),\n        "numberingGaps":candidate.get("numberingGaps",[]),
         "requiresHumanReview":True,"activationAllowed":False,
-        "warnings":["Verify every extracted checkpoint and exact wording against the source PDF.",
+        "warnings":["Verify every extracted checkpoint and exact wording against the source PDF.",\n          "Investigate numbering gaps; missing IDs are never auto-created.",
           "Review section grouping and multi-line descriptions.",
           "Signature is placed on a separate appended page until a source signature cell is explicitly mapped.",
           "Photo evidence is appended on separate pages; original PDF pages remain untouched."]}
