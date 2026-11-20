@@ -147,8 +147,8 @@ assert.deepEqual(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='8.1').
 assert.equal(v2Candidate.template.columns.passCenterX,505.24,'Pass status must use the attached PDF column geometry');
 assert.equal(v2Candidate.template.specialFields.checkerReviewer.x,588.93,'signature must map into the attached PDF signature cell');
 
-assert.ok(rendererSourceForAppend.includes('(b.y+(b.height||6)/2)*scaleY'),'measured metadata cell height must control vertical text centring in the live preview');
-assert.ok(rendererSourceForAppend.includes('centerY=(b.y+(b.height||6)/2)*sy'),'measured metadata cell height must control vertical text centring in exported PDFs');
+assert.ok(rendererSourceForAppend.includes('center.y*scaleY'),'measured metadata cell height must control vertical text centring in the live preview');
+assert.ok(rendererSourceForAppend.includes('center.y*sy'),'measured metadata cell height must control vertical text centring in exported PDFs');
 
 assert.ok(rendererSourceForAppend.includes("!m?.specialFields?.[k]"),'mapped battery values must not also be duplicated in the remarks cell');
 
