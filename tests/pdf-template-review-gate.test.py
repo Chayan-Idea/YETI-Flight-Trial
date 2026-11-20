@@ -25,7 +25,7 @@ with tempfile.TemporaryDirectory() as tmp:
     review=package["extractionReview"]
     review.update({"reviewStatus":"reviewed","reviewedBy":"QA Reviewer","approvalReference":"QA-REVIEW-001",
         "sourceSha256":candidate["sha256"],"reviewedAllPages":True,"reviewedWording":True,
-        "reviewedGrouping":True,"reviewedCoordinates":True,"reviewedCheckpointIds":["1.1","1.2"],
+        "reviewedGrouping":True,"reviewedCoordinates":True,"reviewedCheckpointIds":["1.1","1.2"],"idCorrections":{},"manuallyAddedCheckpointIds":[],
         "acknowledgedNumberingGaps":[]})
     assert publisher.validate_reviewed_package(package,candidate["sha256"],candidate,root/"review.json")==["1.1","1.2"]
     invalid=json.loads(json.dumps(package));invalid["template"]["rows"].pop("1.2")
