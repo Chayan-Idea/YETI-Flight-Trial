@@ -5,15 +5,6 @@ on:
     branches: [feat/dynamic-pdf-checklist-engine]
   pull_request:
     branches: [main]
-    paths:
-      - 'assets/templates/**'
-      - 'js/pdf-*.js'
-      - 'js/daily-airworthiness-*.js'
-      - 'js/flight-preparation.js'
-      - 'tests/pdf-template-browser.e2e.cjs'
-      - 'tests/flight-preparation.e2e.cjs'
-      - '.github/workflows/pdf-staging-browser.yml'
-      - 'index.html'
   workflow_dispatch:
 
 permissions:
