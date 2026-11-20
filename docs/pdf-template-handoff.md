@@ -16,7 +16,7 @@ The operator-facing webpage does not expose a master-PDF upload control. Operato
 1. Commit the new PDF to `template-inbox/`. The candidate-analysis workflow runs automatically and uploads the extracted JSON and review-package artifact.
 2. Review the artifact against every rendered source page. Confirm checkpoint IDs, exact wording, section grouping, numbering gaps, page geometry, and whether the PDF is digitally searchable. Do not approve a partial/OCR-incomplete extraction.
 3. Open **Actions → YETI 2-Minute Quick Quality Check → Run workflow** on the `main` branch.
-4. Supply the repository PDF path, set **approve_activation** to true only after the document review is complete, enter the reviewer name/GitHub handle, and provide an approval reference (for example, the review PR or controlled document record).
+4. Supply both the repository PDF path and the separately reviewed package JSON path (inside `template-inbox/`). Set **approve_activation** to true only after document review is complete, enter the release approver name/GitHub handle, and provide an approval reference (for example, the review PR or controlled document record).
 5. The same single quality-check job re-runs extraction, rejects duplicate IDs and empty descriptions, builds an immutable versioned package, copies the original PDF into `assets/templates/<template-id>/<version>/`, updates the active package pointer, increments the service-worker cache version, and runs the existing application/module/PDF regression checks.
 6. Only if the quality gate passes does the job commit the new version and active pointer to `main`. The deployment job then publishes that checked commit to GitHub Pages in the same workflow run.
 7. The webpage fetches the new approved package, verifies the source PDF SHA-256, and rebuilds the 01B checklist from its extracted sections and checkpoints. The template-activation event resets the previous daily checklist answers and evidence while leaving other modules and Loading/Unloading data separate.
@@ -53,3 +53,22 @@ The PDF candidate workflow now emits both the extraction JSON and a `*-package.c
 ### Extraction limitations and review rules
 
 The extractor handles digitally searchable PDFs with spatially associated text. It does not claim OCR support for scanned/image-only PDFs; these must be routed to manual/OCR review and cannot be activated from an empty or partial extraction. Serial-number gaps are reported (not filled), and all extracted wording remains subject to human review. A candidate package remains blocked from activation until an approved immutable source-PDF path, page geometry, signature placement, and photo-evidence policy are reviewed.
+
+## Mandatory human-reviewed package before release
+
+The automatic extraction workflow is intentionally not allowed to approve a PDF. It creates a candidate JSON package with review attestations set to pending/false. A reviewer must copy that candidate package into `template-inbox/<document>.reviewed.json` and complete it against the original PDF before running the release workflow.
+
+Required review-package changes:
+
+- Keep `activation.status` as `candidate`; the publisher alone changes it to approved after validation.
+- Set `extractionReview.reviewStatus` to `reviewed`, enter `reviewedBy`, `approvalReference`, and retain the exact `sourceSha256` from the extraction.
+- Set `reviewedAllPages`, `reviewedWording`, `reviewedGrouping`, and `reviewedCoordinates` to true only after checking the complete PDF.
+- Set `reviewedCheckpointIds` to the exact ordered list of every extracted checkpoint ID. IDs and order must match the PDF extraction exactly; missing/extra/reordered points block release.
+- Set `acknowledgedNumberingGaps` to the exact detected gap list after investigating each gap. Do not invent a missing point.
+- Map every checklist row in `template.rows` as `[oneBasedPageNumber, yCoordinateInPoints]`. Map PASS, FAIL, N/A centres and Remarks boundaries in `template.columns`.
+- Map header and value-field boxes in `template.header`, `template.fieldBoxes` and `template.specialFields` as required. Use `signatureMode: mapped-source-cell` only when the original signature cell is accurately mapped; otherwise use `append-signature-page`.
+- Approved packages must have complete status/remarks row and column geometry even when the signature is appended. An unmapped checklist cannot be activated.
+
+Run **YETI 2-Minute Quick Quality Check** with the PDF path and reviewed-package path. The publisher re-extracts the source PDF, verifies its SHA-256, compares every checkpoint ID and order, validates each mapped cell against page dimensions, rejects incomplete review attestations, publishes the source PDF into an immutable version folder, updates the active package pointer and bumps the service-worker cache version. The existing quick quality gate then validates the active package before the Pages deployment job can run.
+
+Scanned PDFs use the OCR fallback (Tesseract) in the candidate workflow and in controlled publication runs. OCR confidence and OCR page numbers are recorded in the candidate. OCR never changes the human-review requirement; verify every character and cell manually.
