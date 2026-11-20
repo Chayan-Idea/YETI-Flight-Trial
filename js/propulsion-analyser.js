@@ -416,7 +416,7 @@
   const derivedProceedButton=el('button','btn','Proceed to Data Sorting & Filtering');derivedProceedButton.type='button';
   derivedProceedButton.addEventListener('click',()=>{
    if(!areSelectedDerivedParametersCalculated()){graphStatus.textContent='Complete every selected derived-parameter calculation before proceeding.';return;}
-   step3Derived.hidden=true;step3Filter.hidden=false;step3FilterVisible=true;saveState();step3Filter.scrollIntoView({behavior:'smooth',block:'start'});
+   step3Derived.hidden=false;step3Filter.hidden=false;step3FilterVisible=true;saveState();step3Filter.scrollIntoView({behavior:'smooth',block:'start'});
   });
   derivedProceedActions.append(derivedProceedButton);step3Derived.append(derivedProceedActions);
   const csvSection=el('section','propulsion-step-subsection propulsion-step-subsection--csv');
@@ -1431,7 +1431,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   const multiDerivedProceed=el('button','btn','Proceed to Data Sorting & Filtering');multiDerivedProceed.type='button';multiDerivedProceed.disabled=!(commonEngine.DERIVED_BY_TEST[multiLogType]||[]).every(key=>sharedDerivedAdded.has(key));
   multiDerivedProceed.addEventListener('click',()=>{
    if(!multiSession.logs.every(log=>log._phase3Ready)){csvStatus.textContent='Complete every selected derived-parameter calculation for all logs before proceeding.';return;}
-   multiAnalysisCard.hidden=true;multiFilterCard.hidden=false;multiFilterCard.scrollIntoView({behavior:'smooth',block:'start'});
+   multiAnalysisCard.hidden=false;multiFilterCard.hidden=false;multiFilterCard.scrollIntoView({behavior:'smooth',block:'start'});
   });
   multiAnalysisCard.append(sharedDerivedSection,multiDerivedProceed);
   multiFilterCard.hidden=true;
