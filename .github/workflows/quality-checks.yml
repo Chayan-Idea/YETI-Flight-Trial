@@ -55,6 +55,7 @@ jobs:
           run_check "Propulsion calculation unit tests" node tests/propulsion-analysis-engine.test.js
           run_check "Analyzer module regression tests" node tests/yeti-modules.test.js
           run_check "PDF template schema and coordinate tests" node tests/pdf-template-engine.test.cjs
+          run_check "PDF intake extractor syntax" python -m py_compile scripts/analyze-pdf-template.py tests/pdf-intake.test.py
           run_check "PDF intake extraction and fail-closed tests" python tests/pdf-intake.test.py
           echo "OVERALL: PASS — application integrity, propulsion calculations, module regression and PDF package integrity all passed." >> "$GITHUB_STEP_SUMMARY"
           echo "YETI QUICK QUALITY CHECK PASSED."
