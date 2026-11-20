@@ -12,6 +12,11 @@ on:
         required: false
         type: string
         default: ''
+      review_package_path:
+        description: Human-reviewed candidate package JSON inside template-inbox/ (required for PDF publication)
+        required: false
+        type: string
+        default: ''
       approve_activation:
         description: Explicitly approve this reviewed checklist for production activation
         required: false
@@ -55,12 +60,19 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install minimal PDF parser dependency
-        run: python -m pip install --disable-pip-version-check --no-input pymupdf
+      - name: Install PDF parser and optional OCR dependencies
+        run: |
+          python -m pip install --disable-pip-version-check --no-input pymupdf
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ inputs.pdf_path }}" ]]; then
+            python -m pip install --disable-pip-version-check --no-input pytesseract Pillow
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq tesseract-ocr
+          fi
       - name: Publish explicitly approved PDF template (optional)
         if: github.event_name == 'workflow_dispatch' && inputs.pdf_path != ''
         env:
           PDF_PATH: ${{ inputs.pdf_path }}
+          REVIEW_PACKAGE_PATH: ${{ inputs.review_package_path }}
           APPROVE_ACTIVATION: ${{ inputs.approve_activation }}
           APPROVED_BY: ${{ inputs.approved_by }}
           APPROVAL_REFERENCE: ${{ inputs.approval_reference }}
@@ -70,7 +82,13 @@ jobs:
             echo "Publication blocked: explicit approval is required." >&2
             exit 1
           fi
-          python scripts/publish-approved-pdf.py --pdf "$PDF_PATH" --approved-by "$APPROVED_BY" --approval-reference "$APPROVAL_REFERENCE"
+          if [[ -z "$REVIEW_PACKAGE_PATH" ]]; then echo "Publication blocked: a separately reviewed package path is required." >&2; exit 1; fi
+          python scripts/publish-approved-pdf.py --pdf "$PDF_PATH" --review-package "$REVIEW_PACKAGE_PATH" --approved-by "$APPROVED_BY" --approval-reference "$APPROVAL_REFERENCE"
+      - name: Reject review package without a PDF path
+        if: github.event_name == 'workflow_dispatch' && inputs.pdf_path == '' && inputs.review_package_path != ''
+        run: |
+          echo "A reviewed package cannot be published without its source PDF." >&2
+          exit 1
       - name: Reject approval without a PDF path
         if: github.event_name == 'workflow_dispatch' && inputs.pdf_path == '' && inputs.approve_activation == true
         run: |
@@ -97,8 +115,10 @@ jobs:
           run_check "Propulsion calculation unit tests" node tests/propulsion-analysis-engine.test.js
           run_check "Analyzer module regression tests" node tests/yeti-modules.test.js
           run_check "PDF template schema and coordinate tests" node tests/pdf-template-engine.test.cjs
-          run_check "PDF intake extractor syntax" python -m py_compile scripts/analyze-pdf-template.py scripts/build-pdf-review-package.py scripts/publish-approved-pdf.py tests/pdf-intake.test.py
+          run_check "Active PDF package, mapped cells and SHA-256" node tests/validate-active-pdf-package.cjs
+          run_check "PDF intake extractor syntax" python -m py_compile scripts/analyze-pdf-template.py scripts/build-pdf-review-package.py scripts/publish-approved-pdf.py tests/pdf-intake.test.py tests/pdf-template-review-gate.test.py
           run_check "PDF intake extraction and fail-closed tests" python tests/pdf-intake.test.py
+          run_check "PDF human-review and exact-cell release gate" python tests/pdf-template-review-gate.test.py
           echo "OVERALL: PASS — application integrity, propulsion calculations, module regression, dynamic PDF intake, package generation and PDF signature-mode integrity all passed." >> "$GITHUB_STEP_SUMMARY"
           echo "YETI QUICK QUALITY CHECK PASSED."
       - name: Commit approved PDF version and active pointer
