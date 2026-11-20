@@ -11,6 +11,7 @@
   const errors=[];
   if(!plain(pkg))return {valid:false,errors:['Package must be an object.']};
   if(pkg.packageVersion!==1)errors.push('Unsupported package version.');
+  if(!['candidate','approved'].includes(pkg.activation?.status))errors.push('Activation status must be candidate or approved.');
   if(!plain(pkg.document)||!pkg.document.templateId||!pkg.document.version)errors.push('Document identity/version missing.');
   if(!plain(pkg.sourcePdf)||typeof pkg.sourcePdf.path!=='string'||!pkg.sourcePdf.path.endsWith('.pdf'))errors.push('Source PDF path missing.');
   if(!/^[a-f0-9]{64}$/i.test(pkg.sourcePdf?.sha256||''))errors.push('Source PDF SHA-256 missing or invalid.');
