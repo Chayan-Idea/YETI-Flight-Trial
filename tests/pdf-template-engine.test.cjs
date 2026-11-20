@@ -157,3 +157,5 @@ assert.ok(rendererSourceForAppend.includes('(row[1]+8.165)*scaleY'),'remarks mus
 
 assert.equal(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='4.1.1').subsection,'1. Port-Side Wing Chcek','candidate checklist must preserve the uploaded source subsection wording');
 assert.equal(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='4.2.1').subsection,'2. Star-Board Side Wing Chcek','candidate checklist must preserve source spelling rather than silently normalizing it');
+
+assert.equal(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='9.0').displayId,'9','the webpage must display the uploaded PDF serial label 9 for Checker + Reviewer');
