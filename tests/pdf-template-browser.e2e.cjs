@@ -69,13 +69,18 @@ const server = http.createServer((req,res)=>{
    if(overlayPixels>0&&(minX<signatureBox.left-2||minY<signatureBox.top-2||maxX>signatureBox.right+2||maxY>signatureBox.bottom+2))throw new Error('Signature preview is outside the Checker + Reviewer cell: '+JSON.stringify({minX,minY,maxX,maxY,signatureBox}));
    if(sourcePages!==2||photoPages!==2)throw new Error('Preview must show 2 source pages plus 2 Photo Evidence pages; got '+sourcePages+' + '+photoPages);
    if(overlayPixels<10)throw new Error('Checker/Reviewer signature was not drawn in preview');
-   const exported=await renderer.exportPdf(candidate,pkg.template,signature,photos);
+   const qaAnswers={'2.1':{status:'Fail',remarks:'QA REMARK EXPORT'},'4.8.1':{status:'Pass'},'6.1':{values:{hvVoltage:'600 V',minCellVoltage:'3.4 V'}},'6.2':{values:{pduSoc:'88%'}}};
+   const qaTrialInfo={phase:'QA TRIAL PHASE',stage:'QA TRIAL STAGE',place:'QA FLIGHT PLACE',date:'2026-11-20'};
+   const exported=await renderer.exportPdf(candidate,pkg.template,signature,photos,qaAnswers,qaTrialInfo);
    const finalPdf=await pdfjs.getDocument({data:exported}).promise;
    if(finalPdf.numPages!==4)throw new Error('Export must contain 2 original pages + 2 photo pages; got '+finalPdf.numPages);
    const finalText=[];
    for(let i=1;i<=finalPdf.numPages;i++){const p=await finalPdf.getPage(i);const t=await p.getTextContent();finalText.push(t.items.map(x=>x.str).join(' '))}
    if(!finalText[0].includes(originalText[0].slice(0,30).trim())||!finalText[1].includes(originalText[1].slice(0,30).trim()))throw new Error('Original PDF text/content was not preserved on its source pages');
    if(finalText.slice(0,2).some(t=>/QA PRIVATE STATUS MARKER|QA PRIVATE REMARK MARKER|QA TRIAL METADATA MARKER/.test(t)))throw new Error('Test-only markers leaked onto the source pages during the clean-template export');
+   if(!finalText[0].includes('FAIL')||!finalText[0].includes('QA REMARK EXPORT')||!finalText[0].includes('QA TRIAL PHASE'))throw new Error('Exported status, centred remarks or trial metadata is missing from the original PDF cells');
+   if(!finalText[1].includes('PASS')||!finalText[1].includes('600 V')||!finalText[1].includes('3.4 V')||!finalText[1].includes('88%'))throw new Error('Exported second-page status or battery/PDU values are missing from their mapped cells');
+   if((finalText[1].match(/600 V/g)||[]).length!==1||(finalText[1].match(/3.4 V/g)||[]).length!==1||(finalText[1].match(/88%/g)||[]).length!==1)throw new Error('Mapped special-field values were duplicated in the Remarks column');
    if(!finalText[2].includes('PHOTO EVIDENCE')||!finalText[3].includes('PHOTO EVIDENCE'))throw new Error('Exported Photo Evidence page headings are missing');
    if(!finalText[2].includes('QA PHOTO 1')||!finalText[3].includes('QA PHOTO 5'))throw new Error('Photo Evidence captions are missing or incorrectly paginated');
    const loadingPhoto={name:'QA LOADING PHOTO MUST NOT EXPORT',category:'loading',data:photos[0].data};
