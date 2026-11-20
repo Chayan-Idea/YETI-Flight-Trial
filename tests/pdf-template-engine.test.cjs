@@ -164,3 +164,7 @@ assert.equal(v2Candidate.sourcePdf.sha256,'986ce7f835de38d78901d1bde3b569a16b083
 assert.equal(v2Candidate.document.version,'2.0.1','corrected attachment candidate must have its own version');
 assert.equal(v2Candidate.template.rows['8.1'][0],2,'Camera Functionality checkpoint 8.1 must map to page 2');
 assert.equal(v2Candidate.template.rows['4.9.1'][0],2,'4.9.1 must map to page 2 in the attached PDF');
+
+assert.equal(v2Candidate.template.fieldBoxes.totalWeight.x,588.93,'UAV weight value must be centred in its blank Remarks cell');
+assert.equal(v2Candidate.template.fieldBoxes.totalWeight.width,201.26,'UAV weight value must stay inside the Remarks cell');
+assert.equal(v2Candidate.template.specialFields.checkerReviewer.y,326.05,'signature must be mapped below the Checker + Reviewer heading, inside its blank cell');
