@@ -53,9 +53,9 @@ def analyse(source: Path):
                          (w[4].strip()=="9" or CHECKPOINT.fullmatch(w[4].strip()))),None)
             if serial:
                 ident="9.0" if serial[4].strip()=="9" else serial[4].strip()
-                serial_rows.append((row_index,ident,serial))
+                serial_rows.append((row_index,ident,serial,latest_section or f"Page {page_index+1}"))
         page_candidates=[]
-        for position,(row_index,ident,serial) in enumerate(serial_rows):
+        for position,(row_index,ident,serial,section_title) in enumerate(serial_rows):
             next_row=serial_rows[position+1][0] if position+1<len(serial_rows) else len(rows)
             content_lines=[]
             for content_row_index in range(row_index,next_row):
@@ -72,7 +72,7 @@ def analyse(source: Path):
                 "id":ident,"page":page_index+1,
                 "bbox":[round(float(v),2) for v in serial[:4]],
                 "descriptionCandidate":text,
-                "sectionTitleCandidate":latest_section or f"Page {page_index+1}",
+                "sectionTitleCandidate":section_title,
                 "sourceLines":content_lines,
                 "reviewRequired":True
             }
