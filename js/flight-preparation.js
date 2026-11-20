@@ -151,12 +151,12 @@ $('loadingCameraPhotos').addEventListener('change',e=>addPhotoFiles(e.target.fil
    target.push(sectionRow(sec.title));
    for(let ix=0;ix<sec.items.length;ix++){
     const item=sec.items[ix],prefix=item.id.split('.').slice(0,2).join('.');
-    if(item.id==='4.9.1'){p1.push('</tbody></table></section>');p2.push('<section class="dac-page">'+head()+tableOpen);}
+    const destination=item.id.startsWith('4.9.')?p2:p1;
     const prev=sec.items[ix-1],first=!prev||prev.id.split('.').slice(0,2).join('.')!==prefix;
     if(first){
      const count=sec.items.filter(x=>x.id.split('.').slice(0,2).join('.')===prefix).length;
-     target.push(makeItem(item,groupNames[prefix]||'').replace('<td class="dac-group">','<td rowspan="'+count+'" class="dac-group">'));
-    }else target.push(makeItem(item,null));
+     destination.push(makeItem(item,groupNames[prefix]||'').replace('<td class="dac-group">','<td rowspan="'+count+'" class="dac-group">'));
+    }else destination.push(makeItem(item,null));
    }
   }else if(sec.title.startsWith('1. UAV')){
    target.push(sectionRow(sec.title));
