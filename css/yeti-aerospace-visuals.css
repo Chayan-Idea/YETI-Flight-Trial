@@ -168,3 +168,45 @@ img,svg,canvas{max-width:100%}
  .top:after,.module-nav-heading:after,.module-tab:after,
  #propulsionAnalyzerPanel .propulsion-page-content>.subnav-heading:before{display:none!important}
 }
+
+
+/* Analyzer layout correction: center the working column consistently and remove the redundant title banner. */
+#propulsionAnalyzerPanel .propulsion-page-content{
+  box-sizing:border-box;
+  width:100%;
+  max-width:1100px;
+  min-width:0;
+  margin-inline:auto;
+}
+#propulsionAnalyzerPanel .propulsion-page-content>.subnav-heading{
+  display:none!important;
+}
+#propulsionAnalyzerPanel .propulsion-page-content>div{
+  box-sizing:border-box;
+  width:100%;
+  min-width:0;
+}
+#propulsionAnalyzerPanel .propulsion-analyser-workspace{
+  box-sizing:border-box;
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  justify-items:stretch;
+  width:100%;
+  max-width:1100px;
+  min-width:0;
+  margin:0 auto;
+}
+#propulsionAnalyzerPanel .propulsion-analyser-workspace>*{
+  box-sizing:border-box;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+}
+@media(max-width:760px){
+  #propulsionAnalyzerPanel .propulsion-page-content{
+    max-width:100%;
+  }
+  #propulsionAnalyzerPanel .propulsion-analyser-workspace{
+    max-width:100%;
+  }
+}
