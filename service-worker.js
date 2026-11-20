@@ -18,6 +18,7 @@ const SHELL=[
  './js/pdf-template-bootstrap.js',
  './js/flight-preparation.js',
  './js/main-navigation.js',
+ './js/page-zoom-lock.js',
  './js/flight-log-analyzer.js',
  './js/yeti-csv-processing.js',
  './js/yeti-parameter-mapping.js',
