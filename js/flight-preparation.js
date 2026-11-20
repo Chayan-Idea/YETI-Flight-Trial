@@ -322,8 +322,14 @@ window.addEventListener('yeti:pdf-template-activated',event=>{
  const nextHash=String(event.detail?.source?.package?.sourcePdf?.sha256||template.sourcePdfSha256||'unverified');
  const nextStateKey=nextId+'@'+nextVersion+'#'+nextHash;
  if(nextStateKey!==sourceKey){
-  try{localStorage.removeItem(checklistStateKey())}catch(e){}
-  answers={};trialInfo={};sourceKey=nextStateKey;expandedDailySections.clear();
+  try{
+   localStorage.removeItem(checklistStateKey());
+   const legacy=JSON.parse(localStorage.getItem(CHECKLIST_STATE_KEY)||'null');
+   if(legacy){legacy.answers={};legacy.trialInfo={};localStorage.setItem(CHECKLIST_STATE_KEY,JSON.stringify(legacy));}
+  }catch(e){}
+  answers={};trialInfo={};
+  ['uavNameId','trialPhase','trialStage','flightPlace','flightDate'].forEach(id=>{if($(id))$(id).value=''});
+  sourceKey=nextStateKey;expandedDailySections.clear();
   (async()=>{for(const photo of evidencePhotos.filter(p=>(p.category||'daily')==='daily')){try{await photoDB('delete',photo.id)}catch(e){}}
    await renderPhotoThumbs();buildPreview(true);
   })();
