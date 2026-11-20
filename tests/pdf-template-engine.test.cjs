@@ -127,3 +127,10 @@ console.log('PDF live overlay checks passed: source PDF, status labels, remarks,
 assert.ok(!fs.readFileSync(path.join(root,'index.html'),'utf8').includes('Update PDF Preview'),'manual PDF preview update button must not exist');
 assert.ok(!fs.readFileSync(path.join(root,'js/flight-preparation.js'),'utf8').includes("$('previewBtn').onclick"),'manual PDF preview update handler must not exist');
 assert.ok(!fs.readFileSync(path.join(root,'js/flight-preparation.js'),'utf8').includes("if(!$('previewPanel')?.classList.contains('show'))return"),'live preview refresh must not depend on panel visibility');
+
+const livePreviewSource=fs.readFileSync(path.join(root,'js/flight-preparation.js'),'utf8');
+assert.ok(livePreviewSource.includes('previewBuildRevision=0'),'live preview build must use a monotonic revision guard');
+assert.ok(livePreviewSource.includes('if(buildRevision!==previewBuildRevision)return'),'stale asynchronous preview builds must be discarded');
+assert.ok(livePreviewSource.includes('immediate?0:100'),'live preview should refresh within a short debounce window');
+assert.ok(rendererSourceForAppend.includes('function fitSingleLine'),'long text must fit within its assigned PDF cell without wrapping into adjacent rows');
+assert.ok(rendererSourceForAppend.includes('m?.fieldBoxes?.[key]'),'template-specific value fields must be placed in explicitly mapped cells');
