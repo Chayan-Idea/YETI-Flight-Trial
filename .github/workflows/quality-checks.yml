@@ -28,6 +28,12 @@ jobs:
         with:
           node-version: 22
 
+      - name: Set up Python for deterministic PDF intake tests
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install minimal PDF parser dependency
+        run: python -m pip install --disable-pip-version-check --no-input pymupdf
       - name: Run the single consolidated quality gate
         shell: bash
         run: |
@@ -49,6 +55,7 @@ jobs:
           run_check "Propulsion calculation unit tests" node tests/propulsion-analysis-engine.test.js
           run_check "Analyzer module regression tests" node tests/yeti-modules.test.js
           run_check "PDF template schema and coordinate tests" node tests/pdf-template-engine.test.cjs
+          run_check "PDF intake extraction and fail-closed tests" python tests/pdf-intake.test.py
           echo "OVERALL: PASS — application integrity, propulsion calculations, module regression and PDF package integrity all passed." >> "$GITHUB_STEP_SUMMARY"
           echo "YETI QUICK QUALITY CHECK PASSED."
 
