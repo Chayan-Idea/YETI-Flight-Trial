@@ -426,7 +426,13 @@
   csvStatus.setAttribute('role','status');csvStatus.setAttribute('aria-live','polite');
   const csvConfirmation=el('div','propulsion-csv-confirmations');
   const filteringReadyLabel=el('label','propulsion-csv-confirmation');filteringReadyCheckbox=document.createElement('input');filteringReadyCheckbox.type='checkbox';filteringReadyCheckbox.id='confirmFilteringSortingReady';filteringReadyLabel.append(filteringReadyCheckbox,el('span','','Apply Data Filtering & Sorting Logic'));
-  filteringReadyCheckbox.addEventListener('change',updateCsvGenerationGate);
+  filteringReadyCheckbox.addEventListener('change',()=>{
+   if(!filteringReadyCheckbox.checked&&generatedCsvText){
+    generatedCsvText='';csvDownloadButton.hidden=true;csvExportButton.disabled=false;filteredCsvPreviewHost.replaceChildren();
+    proceed.hidden=true;directReportProceed.hidden=true;csvStatus.textContent='Filtering & sorting confirmation cleared. Confirm again and regenerate the CSV.';
+   }
+   updateCsvGenerationGate();
+  });
   csvConfirmation.append(filteringReadyLabel);
   const csvExportButton=el('button','btn','Generate Filtered & Sorted CSV');csvExportButton.type='button';csvExportButton.hidden=true;
   const csvDownloadButton=el('button','btn','Download Filtered & Sorted CSV');csvDownloadButton.type='button';csvDownloadButton.hidden=true;
