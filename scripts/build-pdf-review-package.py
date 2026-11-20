@@ -20,7 +20,7 @@ def build(candidate_path: Path, pdf_path: Path, template_id: str, version: str):
     if digest != candidate["sha256"]:
         raise ValueError("Source PDF checksum differs from the extracted candidate.")
     first=candidate["pages"][0]
-    sections=[]; by_title={}
+    sections=[]; current_title=None; current_section=None
     seen=set()
     for point in candidate.get("checkpointCandidates",[]):
         ident=str(point.get("id","")).strip()
@@ -31,10 +31,11 @@ def build(candidate_path: Path, pdf_path: Path, template_id: str, version: str):
         seen.add(ident)
         title=(point.get("descriptionCandidate") or point.get("lineText") or ident).strip()
         section_title=(point.get("sectionTitleCandidate") or "Extracted Checklist").strip()
-        if section_title not in by_title:
-            by_title[section_title]={"title":section_title,"items":[]}
-            sections.append(by_title[section_title])
-        by_title[section_title]["items"].append({
+        if current_section is None or section_title != current_title:
+            current_section={"title":section_title,"items":[]}
+            sections.append(current_section)
+            current_title=section_title
+        current_section["items"].append({
             "id":ident,"title":title,"criteria":[],
             "sourcePage":point.get("page"),"sourceText":" ".join(point.get("sourceLines",[]))
         })
