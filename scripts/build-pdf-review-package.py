@@ -36,7 +36,7 @@ def build(candidate_path: Path, pdf_path: Path, template_id: str, version: str):
             sections.append(by_title[section_title])
         by_title[section_title]["items"].append({
             "id":ident,"title":title,"criteria":[],
-            "sourcePage":point.get("page"),"sourceText":point.get("lineText","")
+            "sourcePage":point.get("page"),"sourceText":" ".join(point.get("sourceLines",[]))
         })
     if not seen:
         raise ValueError("No numbered checklist checkpoints were found; scanned/image PDFs need manual/OCR review.")
