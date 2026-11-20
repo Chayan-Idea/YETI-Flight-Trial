@@ -74,8 +74,10 @@ const server = http.createServer((req,res)=>{
   await singleGraph.locator('svg').waitFor({state:'visible'});
   // Switch to the common multi-log workflow after the single-log regression passes.
   await page.locator('#propulsionLogCount').selectOption('2');
-  await Promise.all([page.waitForNavigation({waitUntil:'networkidle'}),page.locator('#confirmCommonSetupBtn').click()]);
-  if(new URL(page.url()).searchParams.get('logCount')!=='2')throw new Error('Common Analysis Setup selection was not retained after the full page refresh.');
+  // Changing log count resets the SPA workflow asynchronously; it intentionally does not reload the page.
+  await page.locator('#confirmCommonSetupBtn').click();
+  await page.locator('#propulsionCommonSetupStatus').filter({hasText:'Configuration changed. Previous sections were reset.'}).waitFor({state:'visible'});
+  if(await page.locator('#propulsionLogCount').inputValue()!=='2')throw new Error('Common Analysis Setup selection was not retained after the workflow reset.');
   await page.locator('#propulsionMultiSetupCard').waitFor({state:'visible'});
   await page.locator('#propulsionMultiUploadControls').waitFor({state:'hidden'});
   if(await page.locator('#propulsionMultiUploadControls').isVisible())throw new Error('Multi-log upload controls must remain hidden until a test type is selected.');
