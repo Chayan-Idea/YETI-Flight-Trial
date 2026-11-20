@@ -6,11 +6,11 @@
   {selector:'#trialInfoCard',src:'aerospace/fixed-wing-uav.svg',alt:'Fixed-wing UAV configuration',target:'b'},
   {selector:'#photoEvidenceCard',src:'engineering/sensor.svg',alt:'Inspection evidence'},
   {selector:'#loadingChecklistSection',src:'aerospace/flight-path.svg',alt:'Transport route and handling path',target:'.loading-title-row h2'},
-  {selector:'#flightTrialPreparationSopPanel .flight-trial-reading-header',src:'aerospace/fixed-wing-uav.svg',alt:'Fixed-wing UAV flight trial'},
+  {selector:'#flightTrialPreparationSopPanel .flight-trial-reading-header',src:'aerospace/fixed-wing-uav.svg',alt:'Fixed-wing UAV flight trial',target:'h2'},
   {selector:'#propulsionParameterSummaryCard',src:'mathematics/graph.svg',alt:'Measured propulsion parameters',target:'h3'},
   {selector:'#propulsionDerivedParameterCalculationCard',src:'mathematics/coordinate-axes.svg',alt:'Derived engineering quantities',target:'h3'},
   {selector:'#propulsionDataFilteringCard',src:'data/filtering.svg',alt:'Filtered propulsion data',target:'h3'},
-  {selector:'#propulsionGraphicalAnalysisCard',src:'data/graph.svg',alt:'Propulsion performance graph',target:'h3'},
+  {selector:'#propulsionGraphicalAnalysisCard',src:'mathematics/graph.svg',alt:'Propulsion performance graph',target:'h3'},
   {selector:'#propulsionMappingHeading',src:'data/data-mapping.svg',alt:'CSV parameter mapping',target:null},
   {selector:'#propulsionReportGenerationCard',src:'data/report.svg',alt:'Engineering validation report',target:'h3'}
  ];
@@ -37,7 +37,7 @@
  function applyStatic(){
   for(const item of sectionMap){const card=document.querySelector(item.selector);if(!card)continue;
    const target=item.target===null?card:card.querySelector(item.target||':scope > b');
-   if(target)decorate(target,item.src,item.alt,item.target===undefined);
+   if(target)decorate(target,item.src,item.alt);
   }
  }
  function applyDynamic(){
