@@ -112,7 +112,7 @@ def main():
     if count!=1: raise ValueError("Could not safely update the active PDF package pointer.")
     manifest_path.write_text(manifest,encoding="utf-8")
     sw_path=ROOT/"service-worker.js";sw=sw_path.read_text(encoding="utf-8")
-    match=re.search(r"const CACHE='yeti-flight-trial-shell-v(\\d+)';",sw)
+    match=re.search(r"const CACHE='yeti-flight-trial-shell-v(\d+)';",sw)
     if not match: raise ValueError("Could not locate service-worker cache version.")
     sw_path.write_text(sw[:match.start()]+f"const CACHE='yeti-flight-trial-shell-v{int(match.group(1))+1}';"+sw[match.end():],encoding="utf-8")
     print("APPROVED PDF TEMPLATE PUBLISHED")
