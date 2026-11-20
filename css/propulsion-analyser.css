@@ -1692,3 +1692,88 @@
  .propulsion-exact-csv-preview .propulsion-csv-search{grid-template-columns:1fr}
  .propulsion-exact-csv-preview .propulsion-csv-search-status{grid-column:1}
 }
+
+
+/* Premium colour-coded parameter identification sections — shared by 1/2/3/4-log analyzers. */
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-unified{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  background:#fff;
+}
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-unified thead tr:first-child th{
+  background:#f5f8fc;
+  color:#425a73;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.075em;
+  text-transform:uppercase;
+  padding:14px 12px;
+  border-bottom:1px solid #e3eaf2;
+}
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-unified thead tr:nth-child(2) th{
+  background:#fafbfd;
+  color:#73849a;
+  font-size:10px;
+  font-weight:750;
+  letter-spacing:.07em;
+  padding:9px 12px;
+  border-bottom:1px solid #e7edf4;
+}
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-unified tbody .propulsion-mapping-section-heading{
+  text-align:left;
+  padding:13px 16px;
+  font-size:12px;
+  font-weight:850;
+  letter-spacing:.065em;
+  border-top:1px solid var(--mapping-border);
+  border-bottom:1px solid var(--mapping-border);
+  border-left:4px solid var(--mapping-accent);
+  background:var(--mapping-tint);
+  color:var(--mapping-ink);
+}
+#propulsionUnifiedMappingStep .propulsion-mapping-section--mechanical{--mapping-accent:#347fc4;--mapping-tint:#edf5ff;--mapping-border:#d4e5f8;--mapping-ink:#245b91}
+#propulsionUnifiedMappingStep .propulsion-mapping-section--electrical{--mapping-accent:#c18a2b;--mapping-tint:#fff6e7;--mapping-border:#f0dfbd;--mapping-ink:#88601c}
+#propulsionUnifiedMappingStep .propulsion-mapping-section--thermal{--mapping-accent:#29966d;--mapping-tint:#eaf7f1;--mapping-border:#cce9dc;--mapping-ink:#216e50}
+#propulsionUnifiedMappingStep .propulsion-mapping-section--other{--mapping-accent:#9164b9;--mapping-tint:#f4eef9;--mapping-border:#e0d2ed;--mapping-ink:#704a98}
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-unified tbody tr:not(.propulsion-mapping-section-row) th.propulsion-multi-mapping-parameter{
+  width:24%;
+  padding:13px 16px;
+  background:#fff;
+  color:#263f59;
+  font-size:13px;
+  font-weight:700;
+  border-bottom:1px solid #edf1f5;
+}
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-unified tbody tr:not(.propulsion-mapping-section-row)>td{
+  padding:9px 12px;
+  background:#fff;
+  border-bottom:1px solid #edf1f5;
+}
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-unified tbody tr:not(.propulsion-mapping-section-row):hover th,
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-unified tbody tr:not(.propulsion-mapping-section-row):hover td{
+  background:#f8fbff;
+}
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-unified .propulsion-column-select{
+  width:100%;
+  min-height:42px;
+  border:1px solid #d7e1ec;
+  border-radius:9px;
+  background:#fff;
+  box-shadow:0 1px 2px rgba(20,45,70,.035);
+}
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-unified .propulsion-match-note{
+  margin:0 0 5px;
+  font-size:11px;
+  line-height:1.35;
+}
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-table-wrap{
+  border:1px solid #e0e8f0;
+  border-radius:14px;
+  box-shadow:0 4px 16px rgba(24,55,86,.045);
+}
+@media(max-width:760px){
+ #propulsionUnifiedMappingStep .propulsion-multi-mapping-unified tbody .propulsion-mapping-section-heading{padding:11px 12px}
+ #propulsionUnifiedMappingStep .propulsion-multi-mapping-unified tbody tr:not(.propulsion-mapping-section-row) th.propulsion-multi-mapping-parameter{width:auto;min-width:145px;padding:11px 10px}
+ #propulsionUnifiedMappingStep .propulsion-multi-mapping-unified tbody tr:not(.propulsion-mapping-section-row)>td{padding:8px}
+}
