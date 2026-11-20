@@ -57,8 +57,11 @@ def validate_reviewed_package(package,pdf_digest,candidate,review_path):
     document=package.get("document",{})
     template=package.get("template",{})
     page=template.get("page",{})
+    source_pages=candidate.get("pages",[])
     if document.get("pageCount")!=candidate.get("pageCount") or page.get("width")!=document.get("pageWidth") or page.get("height")!=document.get("pageHeight"):
         raise ValueError("Reviewed package page count or geometry differs from the source PDF.")
+    if not source_pages or any(p.get("width")!=page.get("width") or p.get("height")!=page.get("height") or p.get("rotation",0)!=0 for p in source_pages):
+        raise ValueError("Mixed page sizes or rotated pages require a separately normalized/reviewed coordinate map; release blocked to prevent misplaced overlays.")
     if not isinstance(template.get("rows"),dict):
         raise ValueError("A row-coordinate map is mandatory.")
     for ident in expected:
