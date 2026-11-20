@@ -1681,7 +1681,12 @@ const statsPage=el('section','propulsion-report-summary-page');
  function identifyAllMultiLogs(){if(!commonEngine)throw new Error('The common analysis engine did not load.');const count=Number(logCountSelect.value);multiSession=commonEngine.createSession(count,multiLogType);multiSession.logs.forEach((log,index)=>{const source=multiFiles[index];commonEngine.setLogData(log,{fileName:source.file.name,headers:source.headers,rows:[source.headers,...source.data]});log._headerIndex=source.headerIndex;log._dataRows=source.data;});renderMultiMappings();multiMappingHost.scrollIntoView({behavior:'smooth',block:'start'});}
  const confirmCommonSetupBtn=$id('confirmCommonSetupBtn');
  let appliedLogCount='';
+ // Track user changes until Proceed; changing away and back still requires a reset.
+ let commonSetupSelectionChanged=false;
  const confirmSetupStatus=$id('propulsionCommonSetupStatus');
+ logCountSelect?.addEventListener('change',()=>{
+  if(appliedLogCount&&String(logCountSelect.value||'')!==appliedLogCount)commonSetupSelectionChanged=true;
+ });
  const clearSingleLogWorkflow=()=>{
   input.value='';
   logType='';
@@ -1707,8 +1712,8 @@ const statsPage=el('section','propulsion-report-summary-page');
    (selectedCount==='1'?uploadCard:multiSetupCard)?.scrollIntoView({behavior:'smooth',block:'start'});
    return;
   }
-  // Re-clicking Proceed with the same applied choice should not destroy work.
-  if(selectedCount===appliedLogCount){
+  // Preserve work only when no setup selection change has occurred since the last Proceed.
+  if(!commonSetupSelectionChanged&&selectedCount===appliedLogCount){
    if(confirmSetupStatus)confirmSetupStatus.textContent='This test-log configuration is already active.';
    (selectedCount==='1'?uploadCard:multiSetupCard)?.scrollIntoView({behavior:'smooth',block:'start'});
    return;
@@ -1723,6 +1728,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    resetMultiSetup();
    setMultiMode();
    appliedLogCount=selectedCount;
+   commonSetupSelectionChanged=false;
    if(confirmSetupStatus)confirmSetupStatus.textContent=selectedCount==='1'?'Configuration changed. Previous sections were reset. Upload one test log below.':'Configuration changed. Previous sections were reset. Upload '+selectedCount+' test logs below.';
    (selectedCount==='1'?uploadCard:multiSetupCard)?.scrollIntoView({behavior:'smooth',block:'start'});
   }catch(error){
