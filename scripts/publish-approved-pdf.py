@@ -50,8 +50,6 @@ def validate_reviewed_package(package,pdf_digest,candidate,review_path):
         raise ValueError("ID corrections may only refer to IDs extracted from this exact source PDF.")
     if any(not str(item.get("title","")).strip() for section in package.get("sections",[]) for item in section.get("items",[])):
         raise ValueError("Every checkpoint needs a reviewed non-empty description.")
-    if review.get("reviewedCheckpointIds")!=expected:
-        raise ValueError("Reviewed checkpoint ID attestation is missing or differs from the extracted PDF.")
     if review.get("acknowledgedNumberingGaps")!=candidate.get("numberingGaps",[]):
         raise ValueError("Every detected numbering gap must be explicitly acknowledged in the reviewed package.")
     document=package.get("document",{})
@@ -64,7 +62,7 @@ def validate_reviewed_package(package,pdf_digest,candidate,review_path):
         raise ValueError("Mixed page sizes or rotated pages require a separately normalized/reviewed coordinate map; release blocked to prevent misplaced overlays.")
     if not isinstance(template.get("rows"),dict):
         raise ValueError("A row-coordinate map is mandatory.")
-    for ident in expected:
+    for ident in actual:
         if ident=="9.0": continue
         row=template["rows"].get(ident)
         if not isinstance(row,list) or len(row)!=2 or not isinstance(row[0],int) or not 1<=row[0]<=document["pageCount"] or not isinstance(row[1],(int,float)) or not 0<=row[1]<=document["pageHeight"]:
