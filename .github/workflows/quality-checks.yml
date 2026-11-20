@@ -12,6 +12,11 @@ on:
         required: false
         type: string
         default: ''
+      review_package_path:
+        description: Human-reviewed candidate package JSON inside template-inbox/ (required for PDF publication)
+        required: false
+        type: string
+        default: ''
       approve_activation:
         description: Explicitly approve this reviewed checklist for production activation
         required: false
@@ -61,6 +66,7 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && inputs.pdf_path != ''
         env:
           PDF_PATH: ${{ inputs.pdf_path }}
+          REVIEW_PACKAGE_PATH: ${{ inputs.review_package_path }}
           APPROVE_ACTIVATION: ${{ inputs.approve_activation }}
           APPROVED_BY: ${{ inputs.approved_by }}
           APPROVAL_REFERENCE: ${{ inputs.approval_reference }}
@@ -70,7 +76,13 @@ jobs:
             echo "Publication blocked: explicit approval is required." >&2
             exit 1
           fi
-          python scripts/publish-approved-pdf.py --pdf "$PDF_PATH" --approved-by "$APPROVED_BY" --approval-reference "$APPROVAL_REFERENCE"
+          if [[ -z "$REVIEW_PACKAGE_PATH" ]]; then echo "Publication blocked: a separately reviewed package path is required." >&2; exit 1; fi
+          python scripts/publish-approved-pdf.py --pdf "$PDF_PATH" --review-package "$REVIEW_PACKAGE_PATH" --approved-by "$APPROVED_BY" --approval-reference "$APPROVAL_REFERENCE"
+      - name: Reject review package without a PDF path
+        if: github.event_name == 'workflow_dispatch' && inputs.pdf_path == '' && inputs.review_package_path != ''
+        run: |
+          echo "A reviewed package cannot be published without its source PDF." >&2
+          exit 1
       - name: Reject approval without a PDF path
         if: github.event_name == 'workflow_dispatch' && inputs.pdf_path == '' && inputs.approve_activation == true
         run: |
