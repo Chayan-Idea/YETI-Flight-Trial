@@ -176,7 +176,7 @@
  function renderMapping(headerIndex){
   if(analysisPanel)analysisPanel.remove();
   workspace.querySelector('.propulsion-statistics-card')?.remove();workspace.querySelector('.propulsion-graphical-card')?.remove();workspace.querySelector('.propulsion-report-card')?.remove();
-  analysisPanel=el('section','propulsion-mapping-card propulsion-step-card propulsion-step-card--purple');analysisPanel.setAttribute('aria-labelledby','propulsionMappingHeading');
+  analysisPanel=el('section','propulsion-mapping-card propulsion-step-card propulsion-step-card--purple propulsion-unified-mapping-single');analysisPanel.setAttribute('aria-labelledby','propulsionMappingHeading');
   const top=el('div','propulsion-mapping-top');top.append(el('span','propulsion-step-label','STEP 02 · COLUMN IDENTIFICATION'));
   const h=el('h3','', 'Review detected parameters');h.id='propulsionMappingHeading';top.append(h);
   top.append(el('p','propulsion-mapping-description', 'Header row detected at CSV row '+(headerIndex+1)+'. Review the proposed column mapping before proceeding.'));
