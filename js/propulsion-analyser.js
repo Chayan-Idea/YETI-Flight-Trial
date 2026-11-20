@@ -82,7 +82,7 @@
   const table=document.createElement('table');table.className='propulsion-csv-preview-table propulsion-exact-csv-table';
   const maxColumns=rows.reduce((max,row)=>Math.max(max,row?.length||0),0),head=document.createElement('thead'),headRow=document.createElement('tr');
   for(let col=0;col<maxColumns;col++){const th=el('th','',String(rows[0]?.[col]??''));th.scope='col';headRow.append(th);}
-  head.append(headRow);table.append(head);const body=document.createElement('tbody');table.append(body);viewport.append(table);
+  const colgroup=document.createElement('colgroup');for(let col=0;col<maxColumns;col++){const column=document.createElement('col');column.className=col===0?'propulsion-csv-first-column':'propulsion-csv-data-column';colgroup.append(column);}table.append(colgroup);head.append(headRow);table.append(head);const body=document.createElement('tbody');table.append(body);viewport.append(table);
   const rowHeight=38,overscan=10;let matches=null,renderFrame=0,searchTimer=0,lastStart=-1,lastEnd=-1;
   const rowCount=Math.max(0,rows.length-1);
   const topSpacer=document.createElement('tr'),topCell=document.createElement('td'),bottomSpacer=document.createElement('tr'),bottomCell=document.createElement('td');
