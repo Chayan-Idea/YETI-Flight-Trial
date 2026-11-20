@@ -29,4 +29,13 @@ A PDF attachment in ChatGPT is not directly visible to GitHub Pages. The control
 ## Versioned package contents
 
 See `schemas/pdf-template-package.schema.json`. Store each immutable source PDF and package under a distinct template/version path. The package must contain the source SHA-256, page dimensions, checklist sections, stable checkpoint IDs, and explicit coordinate mappings. Do not overwrite an already published version path with different PDF bytes.
-\n\n## Review package generation\n\nThe PDF candidate workflow now emits both the extraction JSON and a `*-package.candidate.json` artifact. The package contains detected numbered checkpoint IDs, their extracted descriptions and section-heading candidates, the source checksum, page geometry, and `signatureMode: append-signature-page`. Review the artifact before publication; correct OCR/text extraction issues and section grouping manually where necessary. The candidate must remain `activation.status: candidate` until a human approves it. After approval, publish the source PDF and package under an immutable versioned asset path and update the active manifest URL.\n\n\n### Extraction limitations and review rules\n\nThe extractor handles digitally searchable PDFs with spatially associated text. It does not claim OCR support for scanned/image-only PDFs; these must be routed to manual/OCR review and cannot be activated from an empty or partial extraction. Serial-number gaps are reported (not filled), and all extracted wording remains subject to human review. A candidate package remains blocked from activation until an approved immutable source-PDF path, page geometry, signature placement, and photo-evidence policy are reviewed.\n
+
+
+## Review package generation
+
+The PDF candidate workflow now emits both the extraction JSON and a `*-package.candidate.json` artifact. The package contains detected numbered checkpoint IDs, their extracted descriptions and section-heading candidates, the source checksum, page geometry, and `signatureMode: append-signature-page`. Review the artifact before publication; correct OCR/text extraction issues and section grouping manually where necessary. The candidate must remain `activation.status: candidate` until a human approves it. After approval, publish the source PDF and package under an immutable versioned asset path and update the active manifest URL.
+
+
+### Extraction limitations and review rules
+
+The extractor handles digitally searchable PDFs with spatially associated text. It does not claim OCR support for scanned/image-only PDFs; these must be routed to manual/OCR review and cannot be activated from an empty or partial extraction. Serial-number gaps are reported (not filled), and all extracted wording remains subject to human review. A candidate package remains blocked from activation until an approved immutable source-PDF path, page geometry, signature placement, and photo-evidence policy are reviewed.
