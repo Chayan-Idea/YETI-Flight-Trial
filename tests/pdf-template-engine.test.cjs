@@ -87,7 +87,8 @@ const pkg={
  template:manifest,
  sections
 };
-assert.equal(packageLoader.validatePackage(pkg).valid,true,'well-formed package should validate');
+const baselinePackageValidation=packageLoader.validatePackage(pkg);
+assert.equal(baselinePackageValidation.valid,true,'well-formed package should validate: '+baselinePackageValidation.errors.join('; '));
 const coordinateFreePkg={...pkg,template:{page:{...manifest.page},rows:{},columns:{},signatureMode:'append-signature-page'}};
 assert.equal(packageLoader.validatePackage(coordinateFreePkg).valid,true,'new PDFs without mapped signature/status cells should validate in safe append-signature mode');
 assert.equal(manager.validate({...coordinateFreePkg.template,templateId:pkg.document.templateId,version:pkg.document.version,sourcePages:pkg.document.pageCount},sections).valid,true,'coordinate-free append-signature templates should activate after explicit package approval');
