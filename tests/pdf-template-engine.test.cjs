@@ -161,10 +161,15 @@ assert.equal(v3Package.template.specialFields.checkerReviewer.x,588.67);
 assert.equal(v3Package.template.specialFields.checkerReviewer.y,316);
 assert.equal(v3Package.template.rows['1.2'][1],173/1.5,'merged CG cell must begin at its measured source boundary');
 assert.deepEqual(JSON.parse(JSON.stringify(v3Package.template.fieldBoxes)),{
- cgX:{page:1,x:412,y:115.33333333333333,width:426,height:9.555555555555555},
- cgY:{page:1,x:412,y:124.88888888888889,width:426,height:9.555555555555555},
- cgZ:{page:1,x:412,y:134.44444444444446,width:426,height:9.555555555555555}
-},'CG X, Y and Z must each map to their own source row');
+ cgX:{page:1,x:588.67,y:115.33333333333333,width:201.33000000000004,height:9.555555555555555},
+ cgY:{page:1,x:588.67,y:124.88888888888889,width:201.33000000000004,height:9.555555555555555},
+ cgZ:{page:1,x:588.67,y:134.44444444444446,width:201.33000000000004,height:9.555555555555555}
+},'CG X, Y and Z must each map to their own row in the merged Remarks cell');
+for(const key of ['cgX','cgY','cgZ']){
+ const box=v3Package.template.fieldBoxes[key];
+ assert.equal(box.x,v3Package.template.columns.remarksLeft,'CG values must start in the merged Remarks cell');
+ assert.ok(Math.abs(box.x+box.width-v3Package.template.columns.remarksRight)<0.01,'CG values must end at the merged Remarks cell boundary');
+}
 for(const key of ['cgX','cgY','cgZ']){
  const box=v3Package.template.fieldBoxes[key];
  assert.equal(box.page,1);
