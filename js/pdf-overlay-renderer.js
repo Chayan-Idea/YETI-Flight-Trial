@@ -4,11 +4,21 @@
  let pdfJsPromise=null,pdfLibPromise=null,previewRevision=0,previewZoom=1;
   const MIN_PREVIEW_ZOOM=.75,MAX_PREVIEW_ZOOM=3;
   function clampZoom(value){return Math.min(MAX_PREVIEW_ZOOM,Math.max(MIN_PREVIEW_ZOOM,Number(value)||1))}
-  function applyPreviewZoom(container,anchorX,anchorY,previousZoom){
+  function applyPreviewZoom(container){
    const stage=container?.querySelector('.yeti-pdf-preview-stage');if(!stage)return;
-   const old=previousZoom||Number(stage.style.zoom)||1;stage.style.zoom=String(previewZoom);container.dataset.previewZoom=String(previewZoom);
+   stage.style.zoom=String(previewZoom);container.dataset.previewZoom=String(previewZoom);
    const label=document.getElementById('pdfPreviewZoomLevel');if(label)label.textContent=Math.round(previewZoom*100)+'%';
-   if(Number.isFinite(anchorX)&&Number.isFinite(anchorY)&&old>0){const ratio=previewZoom/old;container.scrollLeft=(container.scrollLeft+anchorX)*ratio-anchorX;container.scrollTop=(container.scrollTop+anchorY)*ratio-anchorY;}
+  }
+  function zoomAround(container,value,clientX,clientY){
+   if(!container)return previewZoom;
+   const rect=container.getBoundingClientRect(),old=previewZoom;
+   const localX=Number.isFinite(clientX)?clientX-rect.left:container.clientWidth/2;
+   const localY=Number.isFinite(clientY)?clientY-rect.top:container.clientHeight/2;
+   const focalX=(container.scrollLeft+localX)/old,focalY=(container.scrollTop+localY)/old;
+   previewZoom=clampZoom(value);applyPreviewZoom(container);
+   container.scrollLeft=Math.max(0,focalX*previewZoom-localX);
+   container.scrollTop=Math.max(0,focalY*previewZoom-localY);
+   return previewZoom;
   }
   function bindTouchZoom(container){
    if(!container||container.dataset.touchZoomBound==='1')return;container.dataset.touchZoomBound='1';container.style.touchAction='none';
@@ -18,21 +28,27 @@
    const point=e=>({x:e.clientX,y:e.clientY});
    container.addEventListener('pointerdown',e=>{
     if(e.pointerType==='mouse'&&e.button!==0)return;
-    container.setPointerCapture?.(e.pointerId);pointers.set(e.pointerId,point(e));
-    const pts=[...pointers.values()];
+    try{container.setPointerCapture?.(e.pointerId)}catch(_error){}
+    pointers.set(e.pointerId,point(e));const pts=[...pointers.values()];
     if(pts.length===1){gesture={type:'pan',x:pts[0].x,y:pts[0].y,left:container.scrollLeft,top:container.scrollTop};container.classList.add('pdf-pan-active')}
-    else if(pts.length===2){const center=mid(pts[0],pts[1]),rect=container.getBoundingClientRect();gesture={type:'pinch',distance:Math.max(1,dist(pts[0],pts[1])),zoom:previewZoom,centerX:center.x-rect.left,centerY:center.y-rect.top,midX:center.x,midY:center.y,left:container.scrollLeft,top:container.scrollTop};container.classList.remove('pdf-pan-active')}
+    else if(pts.length===2){const center=mid(pts[0],pts[1]),rect=container.getBoundingClientRect();gesture={type:'pinch',distance:Math.max(1,dist(pts[0],pts[1])),zoom:previewZoom,midX:center.x,midY:center.y,focalX:(container.scrollLeft+center.x-rect.left)/previewZoom,focalY:(container.scrollTop+center.y-rect.top)/previewZoom};container.classList.remove('pdf-pan-active')}
     e.preventDefault();
    });
    container.addEventListener('pointermove',e=>{
     if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,point(e));const pts=[...pointers.values()];
-    if(pts.length>=2&&gesture?.type==='pinch'){const center=mid(pts[0],pts[1]),rect=container.getBoundingClientRect(),previous=previewZoom;previewZoom=clampZoom(gesture.zoom*dist(pts[0],pts[1])/gesture.distance);applyPreviewZoom(container,gesture.centerX,gesture.centerY,previous);container.scrollLeft+=(center.x-gesture.midX);container.scrollTop+=(center.y-gesture.midY);e.preventDefault();}
-    else if(pts.length===1&&gesture?.type==='pan'){container.scrollLeft=gesture.left-(pts[0].x-gesture.x);container.scrollTop=gesture.top-(pts[0].y-gesture.y);e.preventDefault();}
+    if(pts.length>=2&&gesture?.type==='pinch'){
+     const center=mid(pts[0],pts[1]),rect=container.getBoundingClientRect();
+     previewZoom=clampZoom(gesture.zoom*dist(pts[0],pts[1])/gesture.distance);applyPreviewZoom(container);
+     container.scrollLeft=Math.max(0,gesture.focalX*previewZoom-(center.x-rect.left));
+     container.scrollTop=Math.max(0,gesture.focalY*previewZoom-(center.y-rect.top));e.preventDefault();
+    }else if(pts.length===1&&gesture?.type==='pan'){
+     container.scrollLeft=gesture.left-(pts[0].x-gesture.x);container.scrollTop=gesture.top-(pts[0].y-gesture.y);e.preventDefault();
+    }
    });
    const finish=e=>{pointers.delete(e.pointerId);if(pointers.size===0){gesture=null;container.classList.remove('pdf-pan-active')}else if(pointers.size===1){const p=[...pointers.values()][0];gesture={type:'pan',x:p.x,y:p.y,left:container.scrollLeft,top:container.scrollTop};}};
    container.addEventListener('pointerup',finish);container.addEventListener('pointercancel',finish);container.addEventListener('lostpointercapture',finish);
   }
-  function setPreviewZoom(container,value,anchorX,anchorY){const previous=previewZoom;previewZoom=clampZoom(value);applyPreviewZoom(container,anchorX,anchorY,previous);return previewZoom}
+  function setPreviewZoom(container,value,anchorX,anchorY){return zoomAround(container,value,anchorX,anchorY)}
   function getPreviewZoom(){return previewZoom}
  function loadScript(url,test){
   if(test())return Promise.resolve();
