@@ -382,7 +382,30 @@
         "height": 26.67
       }
     },
-    "signatureMode": "mapped-source-cell"
+    "signatureMode": "mapped-source-cell",
+    "fieldBoxes": {
+      "cgX": {
+        "page": 1,
+        "x": 412,
+        "y": 115.33333333333333,
+        "width": 426,
+        "height": 9.555555555555555
+      },
+      "cgY": {
+        "page": 1,
+        "x": 412,
+        "y": 124.88888888888889,
+        "width": 426,
+        "height": 9.555555555555555
+      },
+      "cgZ": {
+        "page": 1,
+        "x": 412,
+        "y": 134.44444444444446,
+        "width": 426,
+        "height": 9.555555555555555
+      }
+    }
   },
   "sections": [
     {
