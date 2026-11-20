@@ -156,6 +156,8 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
     await page.locator('#galleryPhotos').setInputFiles({name:'phase3-daily-evidence.png',mimeType:'image/png',buffer:tinyPng});
     await page.locator('#photoThumbs img').first().waitFor({state:'visible'});
     if (!(await page.locator('#photoStatus').innerText()).includes('1 photo(s) added')) throw new Error('Daily photo evidence was not saved and rendered.');
+    await page.locator('#photoThumbs textarea[data-photo-remark]').first().fill('Wing root inspection: no visible cracks or deformation.');
+    await page.locator('#photoThumbs textarea[data-photo-remark]').first().evaluate(el=>el.dispatchEvent(new Event('change',{bubbles:true})));
 
     await page.locator('#previewBtn').click();
     await page.locator('#previewContent .yeti-pdf-source-page').nth(1).waitFor({state:'attached'});
@@ -166,7 +168,7 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
       throw new Error('Dynamic trial metadata or checklist remarks leaked into the original-PDF preview.');
     }
     const dailyPhotoPages=await page.locator('#previewContent .yeti-pdf-photo-page').count();
-    if (dailyPhotoPages!==1 || !dailyPreviewText.includes('PHOTO EVIDENCE') || !dailyPreviewText.includes('phase3-daily-evidence.png')) throw new Error('Daily photo evidence is missing from the original-PDF preview. Photo pages: '+dailyPhotoPages+'; preview text: '+dailyPreviewText.slice(-500));
+    if (dailyPhotoPages!==1 || !dailyPreviewText.includes('PHOTO EVIDENCE') || !dailyPreviewText.includes('phase3-daily-evidence.png') || !dailyPreviewText.includes('Wing root inspection: no visible cracks or deformation.')) throw new Error('Daily photo evidence is missing from the original-PDF preview. Photo pages: '+dailyPhotoPages+'; preview text: '+dailyPreviewText.slice(-500));
     await exportOriginalPdfDownload(page, '#pdfBtn', 'YETI_PHASE3_DAILY_QA');
 
     // Verify browser refresh preserves daily answers, metadata and IndexedDB photo evidence.
