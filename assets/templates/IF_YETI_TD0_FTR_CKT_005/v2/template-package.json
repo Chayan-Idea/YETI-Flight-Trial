@@ -1,9 +1,11 @@
 {
   "packageVersion": 1,
   "activation": {
-    "status": "candidate",
-    "approvedAt": null,
-    "approvalNote": "Review-only package prepared from the exact newly attached 2-page PDF (51,986 bytes). Includes source checkpoint 8.1 Camera Functionality. Human review and actual source PDF upload to GitHub are required before activation."
+    "status": "approved",
+    "approvedAt": "2026-11-20T19:20:00+05:30",
+    "approvedBy": "Chayan Bandyopadhyay",
+    "approvalReference": "User instruction in conversation on 2026-11-20 to proceed through deployment; GitHub PR #70",
+    "approvalNote": "The user explicitly instructed to proceed through deployment after uploading the exact reference PDF. Source checksum independently verified against the uploaded GitHub asset."
   },
   "document": {
     "templateId": "IF_YETI_TD0_FTR_CKT_005",
@@ -21,7 +23,7 @@
     "templateId": "IF_YETI_TD0_FTR_CKT_005",
     "version": "2.0.1",
     "sourcePages": 2,
-    "sourceFile": "YETI TD0 Trial Checklist - DAC Format(1).pdf",
+    "sourceFile": "YETI TD0 Trial Checklist - DAC Format.pdf",
     "page": {
       "width": 842,
       "height": 595,
