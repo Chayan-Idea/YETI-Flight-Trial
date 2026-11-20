@@ -882,7 +882,9 @@ const statsPage=el('section','propulsion-report-summary-page');
  }
  function resetAnalysis(){
   if(analysisPanel){analysisPanel.remove();analysisPanel=null}
-  // Step 03 is created after parameter identification and must not survive a log-type reset.
+  // All downstream cards are created dynamically after parameter identification.
+  // Remove both Step 03 cards as well as later steps when the setup selection changes.
+  workspace.querySelector('#propulsionDerivedParameterCalculationCard')?.remove();
   workspace.querySelector('#propulsionDataFilteringCard')?.remove();
   workspace.querySelector('#propulsionParameterSummaryCard')?.remove();
   workspace.querySelector('.propulsion-graphical-card')?.remove();
