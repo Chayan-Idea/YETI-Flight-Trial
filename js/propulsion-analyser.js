@@ -182,41 +182,54 @@
   top.append(el('p','propulsion-mapping-description', 'Header row detected at CSV row '+(headerIndex+1)+'. Review the proposed column mapping before proceeding.'));
   analysisPanel.append(top);
   const mappingGroups=[
-   {title:'Mechanical Parameter Identification',keys:['thrust','torque','commandRpm','actualRpm'],style:'mechanical'},
-   {title:'Electrical Parameter Identification',keys:['voltage','current'],style:'electrical'},
-   {title:'Thermal Parameter Identification',keys:['escTemperature','motorTemperature'],style:'thermal'},
-   {title:'Other Parameter Identification',keys:['accelerationX','accelerationY','accelerationZ'],style:'other'}
+   {title:'Mechanical',keys:['thrust','torque','commandRpm','actualRpm']},
+   {title:'Electrical',keys:['voltage','current']},
+   {title:'Thermal',keys:['escTemperature','motorTemperature']},
+   {title:'Other',keys:['accelerationX','accelerationY','accelerationZ']}
   ];
+  const singleMappingTableWrap=el('div','propulsion-multi-mapping-table-wrap');
+  const singleMappingTable=el('table','propulsion-multi-mapping-table propulsion-multi-mapping-unified');
+  const singleMappingHead=document.createElement('thead'),singleMappingGroupHead=document.createElement('tr'),singleMappingSubHead=document.createElement('tr');
+  const singleGroupHead=el('th','','PARAMETER GROUP'),singleParameterHead=el('th','','PARAMETER');
+  singleGroupHead.rowSpan=2;singleParameterHead.rowSpan=2;singleGroupHead.scope='col';singleParameterHead.scope='col';
+  singleMappingGroupHead.append(singleGroupHead,singleParameterHead);
+  const singleLogHead=el('th','','LOG 1 · '+(currentFile?.name||'Uploaded CSV'));singleLogHead.scope='colgroup';singleMappingGroupHead.append(singleLogHead);
+  const singleColumnHead=el('th','','CSV COLUMN MAPPING');singleColumnHead.scope='col';singleMappingSubHead.append(singleColumnHead);
+  singleMappingHead.append(singleMappingGroupHead,singleMappingSubHead);singleMappingTable.append(singleMappingHead);
+  const singleMappingBody=document.createElement('tbody'),singleActiveKeys=new Set(activeSpecs('mapping').map(spec=>spec.key));
   mappingGroups.forEach(group=>{
-   const subsection=el('section','propulsion-mapping-subsection propulsion-mapping-subsection--'+group.style);
-   subsection.append(el('h4','propulsion-mapping-subsection-title',group.title));
-   const grid=el('div','propulsion-mapping-list');
-   activeSpecs('mapping').filter(spec=>group.keys.includes(spec.key)).forEach(s=>{
-   const item=el('label','propulsion-mapping-row');const parameterEnabled=isParameterAvailable(s.key,'mapping');if(!parameterEnabled){item.classList.add('is-parameter-disabled');item.setAttribute('aria-disabled','true');}item.append(el('span','propulsion-mapping-label',s.label));
-   const select=el('select','propulsion-column-select');select.dataset.key=s.key;select.disabled=!parameterEnabled;
-   const empty=document.createElement('option');empty.value='';empty.textContent='Not detected — select a column';select.append(empty);
-   headerRow.forEach((name,index)=>{const opt=document.createElement('option');opt.value=String(index);opt.textContent=name;select.append(opt)});
-   const current=mapping[s.key].selected;select.value=current===''?'':String(current);
-   if(mapping[s.key].candidates.length>1){item.append(el('span','propulsion-match-note','Multiple possible matches — verify selection'))}
-   else if(current===''){item.append(el('span','propulsion-match-note warning','No automatic match — choose manually'))}
-   item.append(select);select.addEventListener('change',()=>{
-    mapping[s.key].selected=select.value===''?'':Number(select.value);
-    if(confirmed){
-     calculatedParameterDefinitions.forEach(parameter=>calculatedParameterControls[parameter.key]?.retry?.click());
-     headerRow=headerRow.slice(0,originalHeaderCount);analysisRows=dataRows.slice();calculatedParameterKeys=[];
-     confirmed=false;step3FilterVisible=false;step3Visible=false;step4Visible=false;step5Visible=false;reportDirectVisible=false;
-     step3Filter.hidden=true;step3.hidden=true;step4.hidden=true;step5.hidden=true;
-     next.hidden=true;next.replaceChildren();confirm.disabled=false;confirm.textContent='Mapping Confirmed';
-     proceed.hidden=true;directReportProceed.hidden=true;
-     invalidateGeneratedCsv('Step 02 mapping changed. Confirm the updated mapping and regenerate the Filtered & Sorted CSV.');
-    }
-    validateMapping();saveState()
+   const groupKeys=group.keys.filter(key=>singleActiveKeys.has(key));
+   groupKeys.forEach((key,index)=>{
+    const spec=specs.find(item=>item.key===key);if(!spec)return;
+    const row=document.createElement('tr'),parameterCell=el('th','propulsion-multi-mapping-parameter',spec.label);
+    if(index===0){const groupCell=el('td','propulsion-multi-mapping-group',group.title);groupCell.rowSpan=groupKeys.length;groupCell.scope='rowgroup';row.append(groupCell);}
+    parameterCell.scope='row';row.append(parameterCell);
+    const mappingCell=document.createElement('td'),parameterEnabled=isParameterAvailable(key,'mapping');
+    const select=el('select','propulsion-column-select');select.dataset.key=key;select.setAttribute('aria-label',spec.label+' CSV column mapping');select.disabled=!parameterEnabled;
+    const empty=document.createElement('option');empty.value='';empty.textContent='Not detected — select a column';select.append(empty);
+    headerRow.forEach((name,columnIndex)=>{const option=document.createElement('option');option.value=String(columnIndex);option.textContent=name;select.append(option);});
+    const current=mapping[key].selected;select.value=current===''?'':String(current);
+    if(mapping[key].candidates.length>1)mappingCell.append(el('div','propulsion-match-note','Multiple possible matches — verify selection'));
+    else if(current==='')mappingCell.append(el('div','propulsion-match-note warning','No automatic match — choose manually'));
+    if(!parameterEnabled){mappingCell.classList.add('is-parameter-disabled');mappingCell.setAttribute('aria-disabled','true');}
+    mappingCell.append(select);
+    select.addEventListener('change',()=>{
+     mapping[key].selected=select.value===''?'':Number(select.value);
+     if(confirmed){
+      calculatedParameterDefinitions.forEach(parameter=>calculatedParameterControls[parameter.key]?.retry?.click());
+      headerRow=headerRow.slice(0,originalHeaderCount);analysisRows=dataRows.slice();calculatedParameterKeys=[];
+      confirmed=false;step3FilterVisible=false;step3Visible=false;step4Visible=false;step5Visible=false;reportDirectVisible=false;
+      step3Filter.hidden=true;step3.hidden=true;step4.hidden=true;step5.hidden=true;
+      next.hidden=true;next.replaceChildren();confirm.disabled=false;confirm.textContent='Mapping Confirmed';
+      proceed.hidden=true;directReportProceed.hidden=true;
+      invalidateGeneratedCsv('Step 02 mapping changed. Confirm the updated mapping and regenerate the Filtered & Sorted CSV.');
+     }
+     validateMapping();saveState();
+    });
+    row.append(mappingCell);singleMappingBody.append(row);
    });
-   grid.append(item);
-   });
-   subsection.append(grid);
-   analysisPanel.append(subsection);
   });
+  singleMappingTable.append(singleMappingBody);singleMappingTableWrap.append(singleMappingTable);analysisPanel.append(singleMappingTableWrap);
   const summary=el('div','propulsion-mapping-summary');summary.id='propulsionMappingSummary';analysisPanel.append(summary);
   const actions=el('div','propulsion-actions');const confirm=el('button','btn','Mapping Confirmed');confirm.type='button';confirm.id='confirmPropulsionMappingBtn';confirm.disabled=true;actions.append(confirm);
   const rescan=el('button','btn alt','Re-identify columns');rescan.type='button';rescan.addEventListener('click',()=>{try{detect(parseCSV(parseCSVText,chooseDelimiter(parseCSVText)))}catch(e){showError(e.message)}});actions.append(rescan);analysisPanel.append(actions);
