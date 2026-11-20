@@ -150,7 +150,7 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
     await page.locator('#previewBtn').click();
     await page.locator('#previewContent .dac-pages').waitFor({state:'attached'});
     const dailyPreviewText = await page.locator('#previewContent').innerText();
-    if (!dailyPreviewText.includes('YETI-PHASE3-QA') || !dailyPreviewText.includes('Phase 3 automated verification remark.')) {
+    if (!dailyPreviewText.includes('Phase 3 UI Assurance') || !dailyPreviewText.includes('Phase 3 automated verification remark.')) {
       throw new Error('Daily Airworthiness preview did not include the entered trial information and checklist remarks.');
     }
     await exportPreview(page, '#pdfBtn', 'Daily Airworthiness Checklist', 'YETI_PHASE3_DAILY_QA');
