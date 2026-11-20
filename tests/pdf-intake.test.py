@@ -102,6 +102,7 @@ if shutil.which("tesseract"):
         ocr_candidate = MODULE.analyse(scanned)
         assert ocr_candidate["ocrPages"] == [1]
         assert ocr_candidate["pages"][0]["extractionMethod"] == "ocr"
+        assert ocr_candidate["pages"][0]["textLines"], "OCR should return spatially positioned words"
         assert ocr_candidate["requiresHumanReview"] is True
         assert ocr_candidate["activationAllowed"] is False
 
