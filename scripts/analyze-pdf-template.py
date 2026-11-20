@@ -89,14 +89,26 @@ def analyse(source: Path):
             "checkpointCandidates":page_candidates,"drawingCount":len(page.get_drawings())})
     ids=[item["id"] for item in checkpoints]
     duplicates=sorted({ident for ident in ids if ids.count(ident)>1})
-    return {"candidateVersion":3,"sourceFile":source.name,"sourceBytes":len(raw),
+    child_numbers={}
+    for ident in ids:
+        parts=ident.split(".")
+        if len(parts)>1 and parts[-1].isdigit():
+            child_numbers.setdefault(".".join(parts[:-1]),set()).add(int(parts[-1]))
+    numbering_gaps=[]
+    for parent,numbers in child_numbers.items():
+        if numbers:
+            numbering_gaps.extend(parent+"."+str(number) for number in range(min(numbers),max(numbers)+1) if number not in numbers)
+    full_text="\\n".join(page["text"] for page in pages)
+    doc_match=re.search(r"Doc(?:ument)?\\s*Number\\s*:\\s*([A-Za-z0-9_-]+)",full_text,re.IGNORECASE)
+    document_number=doc_match.group(1) if doc_match else None
+    return {"candidateVersion":3,"documentNumber":document_number,"numberingGaps":numbering_gaps,"sourceFile":source.name,"sourceBytes":len(raw),
         "sha256":hashlib.sha256(raw).hexdigest(),"pageCount":len(document),"pages":pages,
         "checkpointCandidates":checkpoints,"duplicateCheckpointIds":duplicates,
         "requiresHumanReview":True,"activationAllowed":False,
         "reviewChecklist":["Compare every extracted ID and description with the rendered source PDF.",
             "Review multi-line and merged-cell text; spatial association is a candidate, not semantic interpretation.",
             "Confirm no checklist row is missing or merged with a neighbouring row.",
-            "Review scanned/image-only pages separately; OCR is not silently assumed.",
+            "Review scanned/image-only pages separately; OCR is not silently assumed.",\n            "Investigate numbering gaps without inventing missing checklist items.",
             "Map status, remarks, signature and evidence areas explicitly before approval."]}
 
 def main():
