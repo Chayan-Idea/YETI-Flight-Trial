@@ -122,38 +122,44 @@ function fromGviz(payload){if(payload.status==='error')throw Error(payload.error
 let evidencePhotos=[];const PHOTO_DB='yeti-photo-evidence',PHOTO_STORE='photos';function openPhotoDB(){return new Promise((resolve,reject)=>{let req=indexedDB.open(PHOTO_DB,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(PHOTO_STORE))req.result.createObjectStore(PHOTO_STORE,{keyPath:'id',autoIncrement:true})};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}async function photoDB(action,value){let db=await openPhotoDB();return new Promise((resolve,reject)=>{let tx=db.transaction(PHOTO_STORE,action==='getAll'?'readonly':'readwrite'),store=tx.objectStore(PHOTO_STORE),req=action==='getAll'?store.getAll():action==='add'?store.add(value):store.delete(value);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);tx.oncomplete=()=>db.close()})}function photoData(file){return new Promise((resolve,reject)=>{let fr=new FileReader();fr.onload=()=>resolve(fr.result);fr.onerror=reject;fr.readAsDataURL(file)})}async function renderPhotoThumbs(){try{evidencePhotos=await photoDB('getAll')}catch(e){$('photoStatus').textContent='Photo storage is unavailable in this browser.';return}let dailyPhotos=evidencePhotos.filter(p=>(p.category||'daily')==='daily');$('photoStatus').textContent=dailyPhotos.length+' photo(s) added. Photos will appear after the checklist in the PDF.';$('photoThumbs').innerHTML=dailyPhotos.map(p=>'<div class="photo-thumb"><img src="'+p.data+'" alt="'+esc(p.name)+'"><div class="muted">'+esc(p.name)+'</div><button class="btn alt" data-remove-photo="'+p.id+'">Remove</button></div>').join('');if($('loadingPhotoThumbs')){let loadingPhotos=evidencePhotos.filter(p=>p.category==='loading');$('loadingPhotoStatus').textContent=loadingPhotos.length+' photo(s) added.';$('loadingPhotoThumbs').innerHTML=loadingPhotos.map(p=>'<div class="photo-thumb"><img src="'+p.data+'" alt="'+esc(p.name)+'"><div class="muted">'+esc(p.name)+'</div><button class="btn alt" data-remove-photo="'+p.id+'">Remove</button></div>').join('')}}async function addPhotoFiles(files,category='daily'){for(let file of Array.from(files||[])){if(!file.type.startsWith('image/'))continue;let data=await photoData(file);try{let img=await createImageBitmap(file),scale=Math.min(1,1600/Math.max(img.width,img.height)),canvas=document.createElement('canvas');canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);data=canvas.toDataURL('image/jpeg',.82);img.close?.()}catch(e){}await photoDB('add',{name:file.name,data,category,addedAt:new Date().toISOString()})}await renderPhotoThumbs();$('cameraPhotos').value='';$('galleryPhotos').value='';if($('loadingCameraPhotos'))$('loadingCameraPhotos').value='';if($('loadingGalleryPhotos'))$('loadingGalleryPhotos').value=''}$('cameraPhotos').addEventListener('change',e=>addPhotoFiles(e.target.files).catch(()=>{$('photoStatus').textContent='Unable to save photos. Check available browser storage.'}));$('galleryPhotos').addEventListener('change',e=>addPhotoFiles(e.target.files).catch(()=>{$('photoStatus').textContent='Unable to save photos. Check available browser storage.'}));$('photoThumbs').addEventListener('click',async e=>{let id=e.target.dataset.removePhoto;if(!id)return;await photoDB('delete',Number(id));await renderPhotoThumbs()});
 $('loadingCameraPhotos').addEventListener('change',e=>addPhotoFiles(e.target.files,'loading').catch(()=>{$('loadingPhotoStatus').textContent='Unable to save photos.'}));$('loadingGalleryPhotos').addEventListener('change',e=>addPhotoFiles(e.target.files,'loading').catch(()=>{$('loadingPhotoStatus').textContent='Unable to save photos.'}));$('loadingPhotoThumbs').addEventListener('click',async e=>{let id=e.target.dataset.removePhoto;if(!id)return;await photoDB('delete',Number(id));await renderPhotoThumbs()});async function buildPreview(skipPhotoRefresh=false){
  if(!skipPhotoRefresh)await renderPhotoThumbs();
- const now=new Date();
- const all=sections.flatMap(sec=>sec.items);
- const statusItems=all.filter(item=>item.id!=='9.0'&&item.id!=='3.1'&&!sections.find(sec=>sec.items.includes(item))?.title.startsWith('1. UAV Specification'));
- const statusRecorded=statusItems.filter(item=>['Pass','Fail','Not Available'].includes(answers[item.id]?.status)).length;
- const cell=v=>esc(v||'');
- const meta=(label,value)=>'<div><b>'+label+':</b> '+cell(value)+'</div>';
- let html='<div class="print-document"><div class="print-doc-head"><div class="print-logo-panel"><img src="assets/ideaforge-logo.png" alt="ideaForge logo"></div><h2>'+cell(window.YETI_DAILY_AIRWORTHINESS_DOCUMENT?.title||"Daily Airworthiness Checklist")+'</h2><div class="print-doc-meta"><b>Doc Number: '+cell(window.YETI_DAILY_AIRWORTHINESS_DOCUMENT?.documentNumber||"IF_YETI_TD0_FTR_CKT_005")+'</b>'+meta('UAV Name / ID',trialInfo.uavNameId)+meta('Trial Phase',trialInfo.phase)+meta('Trial Stage',trialInfo.stage)+meta('Flight Place',trialInfo.place)+meta('Flight Date',trialInfo.date)+'</div></div>';
- html+='<table class="print-checklist"><colgroup><col style="width:6%"><col style="width:24%"><col style="width:39%"><col style="width:13%"><col style="width:18%"></colgroup><thead><tr><th>Sl. No</th><th colspan="2">Checklist</th><th>Result</th><th>Remarks</th></tr></thead><tbody>';
- for(const sec of sections){
-  html+='<tr class="print-section-row"><td colspan="5">'+cell(sec.title)+'</td></tr>';
-  for(const group of groupedItems(sec,sec.items)){
-   html+='<tr class="print-subsection-row"><td colspan="5">'+cell(group.name)+'</td></tr>';
-   for(const item of group.items){
-    const ans=answers[item.id]||{};
-    if(item.id==='9.0'){
-     html+='<tr class="print-item-row"><td class="print-serial">9</td><td colspan="4"><b>Overall Remarks</b><div class="print-remarks">'+cell(ans.remarks)+'</div>'+(ans.signature?'<div class="print-other-label">Checker / Reviewer Signature</div><img class="print-signature" src="'+ans.signature+'" alt="Checker / Reviewer signature">':'<div class="print-empty-note">Signature not entered</div>')+'</td></tr>';
-     continue;
-    }
-    const isSpec=sec.title.startsWith('1. UAV Specification');
-    const isSetup=item.id==='3.1';
-    const values=(item.valueFields||[]).map(field=>field.label+': '+(ans.values?.[field.key]||'')).filter(value=>!value.endsWith(': ')).join(' | ');
-    const criteria=(item.criteria||[]).join('; ');
-    const check=value=>ans.status===value?'✓':'';
-    const checkpoint=isSetup?cell(ans.values?.setupDescription||''):cell(item.title);
-    const criterionText=[cell(criteria),cell(values)].filter(Boolean).join('<br>');const descriptionCells=(!checkpoint||!criterionText)?'<td colspan="2">'+[checkpoint,criterionText].filter(Boolean).join('<br>')+'</td>':'<td>'+checkpoint+'</td><td>'+criterionText+'</td>';
-    const resultStyle=ans.status==='Pass'?'background-color:#d9f0df!important;color:#146c36!important;border:2px solid #8bc99c!important;box-shadow:inset 0 0 0 100px #d9f0df!important;':ans.status==='Fail'?'background-color:#fde2e2!important;color:#a51f2b!important;border:2px solid #e5a0a5!important;box-shadow:inset 0 0 0 100px #fde2e2!important;':ans.status==='Not Available'?'background-color:#343a40!important;color:#ffffff!important;border:2px solid #20252a!important;box-shadow:inset 0 0 0 100px #343a40!important;':'';const resultBadge=ans.status?'<span class="print-result-badge" style="display:inline-block;min-width:76px;padding:5px 7px;border-radius:5px;text-align:center;font-size:9px;font-weight:900;letter-spacing:.03em;text-transform:uppercase;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;forced-color-adjust:none!important;'+resultStyle+'">'+cell(ans.status)+'</span>':'';html+='<tr class="print-item-row '+(item.id==='4.9.1'?'print-page-break-before':'')+'"><td class="print-serial">'+cell(item.id)+'</td>'+descriptionCells+'<td class="print-result">'+(isSpec||isSetup?'':resultBadge)+'</td><td class="print-remarks">'+cell(ans.remarks)+'</td></tr>';
+ const doc=window.YETI_DAILY_AIRWORTHINESS_DOCUMENT||{};
+ const safe=v=>esc(v==null?'':String(v));
+ const metadata=[['Trial Phase',trialInfo.phase],['Trial Stage',trialInfo.stage],['Flight Place',trialInfo.place],['Flight Date',trialInfo.date]];
+ const splitAt='4.9.1';
+ const flat=sections.flatMap(sec=>groupedItems(sec,sec.items).flatMap(group=>group.items.map((item,index)=>({sec,group,item,index,groupSize:group.items.length}))));
+ const pages=[flat.filter(row=>row.item.id!==splitAt && flat.findIndex(x=>x.item.id===splitAt)>flat.indexOf(row)),flat.filter(row=>flat.indexOf(row)>=flat.findIndex(x=>x.item.id===splitAt))];
+ const pageHeader=()=>'<div class="dac-master-head"><div class="dac-title-cell"><img src="assets/ideaforge-logo.png" alt="ideaForge"><h2>'+safe(doc.title||'Daily Airworthiness Checklist')+'</h2></div><div class="dac-meta-cell"><b>Doc Number: '+safe(doc.documentNumber||'IF_YETI_TD0_FTR_CKT_005')+'</b>'+metadata.map(([k,v])=>'<div><b>'+k+' :</b> '+safe(v)+'</div>').join('')+'</div></div>';
+ const tableHead='<table class="dac-table"><colgroup><col style="width:7%"><col style="width:17%"><col style="width:42%"><col style="width:4.5%"><col style="width:4.5%"><col style="width:7%"><col style="width:18%"></colgroup><thead><tr><th>Sl. No</th><th colspan="2">Checklist</th><th>Pass</th><th>Fail</th><th>Not Available</th><th>Remarks</th></tr></thead><tbody>';
+ const renderRows=rows=>{
+  let out='';
+  for(let i=0;i<rows.length;){
+   const row=rows[i],{sec,group,item}=row,ans=answers[item.id]||{};
+   if(row.index===0){
+    const groupRows=rows.slice(i).filter(x=>x.sec===sec&&x.group===group);
+    const count=groupRows.length;
+    const groupCell='<td class="dac-group" rowspan="'+count+'">'+safe(group.name)+'</td>';
+    const spec=sec.title.startsWith('1. UAV Specification');
+    const setup=item.id==='3.1';
+    const values=(item.valueFields||[]).map(field=>field.label+' : '+(ans.values?.[field.key]||'')).filter(x=>!x.endsWith(': ')).join('<br>');
+    const criteria=(item.criteria||[]).map(safe).join('<br>');
+    const checkpoint=setup?safe(ans.values?.setupDescription||item.title):safe(item.title);
+    const desc=[checkpoint,criteria,values].filter(Boolean).join('<br>');
+    const statusCell=status=>ans.status===status?'✓':'';
+    const result=spec||setup?'<td></td><td></td><td></td>':'<td class="dac-mark">'+statusCell('Pass')+'</td><td class="dac-mark">'+statusCell('Fail')+'</td><td class="dac-mark">'+statusCell('Not Available')+'</td>';
+    out+='<tr><td class="dac-serial">'+safe(item.id)+'</td>'+groupCell+'<td class="dac-description">'+desc+'</td>'+result+'<td class="dac-remarks">'+safe(ans.remarks)+'</td></tr>';
+   }else{
+    const spec=sec.title.startsWith('1. UAV Specification'),setup=item.id==='3.1';
+    const values=(item.valueFields||[]).map(field=>field.label+' : '+(ans.values?.[field.key]||'')).filter(x=>!x.endsWith(': ')).join('<br>');
+    const desc=[safe(item.title),(item.criteria||[]).map(safe).join('<br>'),values].filter(Boolean).join('<br>');
+    const result=spec||setup?'<td></td><td></td><td></td>':'<td class="dac-mark">'+(ans.status==='Pass'?'✓':'')+'</td><td class="dac-mark">'+(ans.status==='Fail'?'✓':'')+'</td><td class="dac-mark">'+(ans.status==='Not Available'?'✓':'')+'</td>';
+    out+='<tr><td class="dac-serial">'+safe(item.id)+'</td><td class="dac-description">'+desc+'</td>'+result+'<td class="dac-remarks">'+safe(ans.remarks)+'</td></tr>';
    }
+   i++;
   }
- }
- html+='</tbody></table><div class="print-footer"><span>Checklist status recorded: '+statusRecorded+' / '+statusItems.length+'</span></div>';
- const photos=evidencePhotos.filter(photo=>(photo.category||'daily')==='daily');
- if(photos.length)html+='<section class="print-photo-section"><h3>PHOTO EVIDENCE ('+photos.length+')</h3><div class="print-photo-grid">'+photos.map((photo,index)=>'<div class="print-photo"><img src="'+photo.data+'" alt="Photo evidence '+(index+1)+'"><small>'+(index+1)+'. '+cell(photo.name)+'</small></div>').join('')+'</div></section>';
+  return out;
+ };
+ let html='<style id="dac-print-layout">@page{size:A4 landscape;margin:0}.dac-pages{display:flex;flex-direction:column;align-items:center;gap:22px}.dac-page{width:297mm;height:210mm;box-sizing:border-box;padding:7mm 8mm;background:#fff;color:#000;font-family:Arial,Helvetica,sans-serif;overflow:hidden;box-shadow:0 2px 14px #0002}.dac-master-head{height:42mm;display:grid;grid-template-columns:60% 40%;border:1px solid #000;box-sizing:border-box}.dac-title-cell{position:relative;display:flex;align-items:center;justify-content:center;border-right:1px solid #000;background:#eee}.dac-title-cell img{position:absolute;left:5mm;top:50%;transform:translateY(-50%);width:24mm;max-height:22mm;object-fit:contain}.dac-title-cell h2{font-size:17pt;margin:0;text-align:center}.dac-meta-cell{background:#eee;padding:2mm 3mm;font-size:8pt;line-height:1.4}.dac-meta-cell>div{min-height:5mm}.dac-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:7.2pt}.dac-table th,.dac-table td{border:1px solid #000;padding:1.1mm 1.2mm;vertical-align:middle;line-height:1.12;overflow-wrap:anywhere}.dac-table thead th{height:9mm;background:#c6d9f1;text-align:center;font-weight:700}.dac-table .dac-serial{text-align:center;white-space:nowrap}.dac-table .dac-group{text-align:center;font-size:6.7pt}.dac-table .dac-description{font-size:6.8pt}.dac-table .dac-mark{text-align:center;font-size:11pt;font-weight:bold}.dac-table .dac-remarks{font-size:6.8pt;white-space:pre-wrap}.dac-table tr{break-inside:avoid;page-break-inside:avoid}.dac-page+.dac-page{break-before:page;page-break-before:always}@media screen{.dac-page{max-width:100%;height:auto;min-height:210mm;aspect-ratio:297/210}.dac-table{font-size:clamp(5px,.72vw,7.2pt)}}@media print{.dac-pages{display:block}.dac-page{width:297mm;height:210mm;margin:0;padding:7mm 8mm;box-shadow:none;break-after:page;page-break-after:always}.dac-page:last-child{break-after:auto;page-break-after:auto}}</style><div class="dac-pages">';
+ for(const rows of pages){if(!rows.length)continue;html+='<section class="dac-page">'+pageHeader()+tableHead+renderRows(rows)+'</tbody></table></section>'}
  html+='</div>';
  $('previewContent').innerHTML=html;
 }
@@ -170,7 +176,7 @@ async function exportChecklistPdf(previewId,title){
   content.querySelectorAll('button').forEach(el=>el.remove());
   const base=document.createElement('base');base.href=location.href;
   const styles=`
-   @page{size:A4 landscape;margin:9mm}
+   @page{size:A4 landscape;margin:0}
    *{box-sizing:border-box;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
    html,body{margin:0;padding:0;width:100%;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif}
    body{padding:0;orphans:3;widows:3}
