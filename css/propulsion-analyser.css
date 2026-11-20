@@ -1981,3 +1981,23 @@
   .propulsion-analyser-workspace{row-gap:14px;column-gap:14px}
   .propulsion-analyser-workspace > #propulsionMultiMappingHost{gap:14px}
 }
+
+
+/* Make the derived-calculation gate unmistakable while preserving the normal enabled button style. */
+.propulsion-derived-proceed:disabled,
+.propulsion-derived-proceed[aria-disabled="true"]{
+  background:#e1e5ea!important;
+  background-image:none!important;
+  border:1px solid #aeb8c4!important;
+  color:#596575!important;
+  opacity:1!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9)!important;
+  filter:grayscale(1)!important;
+  cursor:not-allowed!important;
+  text-shadow:none!important;
+  pointer-events:none;
+}
+.propulsion-derived-proceed:not(:disabled){
+  filter:none;
+  opacity:1;
+}

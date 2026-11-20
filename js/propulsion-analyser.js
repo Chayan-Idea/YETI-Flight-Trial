@@ -261,7 +261,7 @@
   let derivedReadyCheckbox=null,filteringReadyCheckbox=null;
   const areSelectedDerivedParametersCalculated=()=>{const selected=Object.entries(calculatedParameterControls).filter(([,control])=>control.checkbox.checked);return selected.length>0&&selected.every(([key])=>calculatedParameterKeys.includes(key));};
   const updateCsvGenerationGate=()=>{csvExportButton.hidden=!(filteringReadyCheckbox?.checked&&areSelectedDerivedParametersCalculated());};
-  const updateDerivedProceedGate=()=>{derivedProceedButton.disabled=!areSelectedDerivedParametersCalculated();};
+  const updateDerivedProceedGate=()=>{const ready=areSelectedDerivedParametersCalculated();derivedProceedButton.disabled=!ready;derivedProceedButton.setAttribute('aria-disabled',String(!ready));derivedProceedButton.title=ready?'Continue to Data Sorting & Filtering.':'Select at least one derived parameter and successfully Calculate and Add it to the log to continue.';};
   const resetCsvConfirmationCheckboxes=()=>{
    // Resolve by live DOM ID as well as the retained references so the visible controls always reset.
    const derived=document.getElementById('confirmDerivedParametersReady')||derivedReadyCheckbox;
@@ -413,7 +413,7 @@
   derivedSection.append(calculatedParameters);
   step3Derived.append(derivedSection);
   const derivedProceedActions=el('div','propulsion-actions');
-  const derivedProceedButton=el('button','btn','Proceed to Data Sorting & Filtering');derivedProceedButton.type='button';derivedProceedButton.disabled=true;
+  const derivedProceedButton=el('button','btn propulsion-derived-proceed','Proceed to Data Sorting & Filtering');derivedProceedButton.type='button';derivedProceedButton.disabled=true;derivedProceedButton.setAttribute('aria-disabled','true');derivedProceedButton.title='Select at least one derived parameter and successfully Calculate and Add it to the log to continue.';
   derivedProceedButton.addEventListener('click',()=>{
    if(!areSelectedDerivedParametersCalculated()){graphStatus.textContent='Complete every selected derived-parameter calculation before proceeding.';return;}
    step3Derived.hidden=false;step3Filter.hidden=false;step3FilterVisible=true;saveState();step3Filter.scrollIntoView({behavior:'smooth',block:'start'});
@@ -1246,7 +1246,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    const allCalculated=selected.every(key=>sharedDerivedAdded.has(key));
    const ready=selected.length>0&&allCalculated;
    multiSession.logs.forEach(log=>{log._phase3Ready=ready;});
-   if(typeof multiDerivedProceed!=='undefined')multiDerivedProceed.disabled=!ready;
+   if(typeof multiDerivedProceed!=='undefined'){multiDerivedProceed.disabled=!ready;multiDerivedProceed.setAttribute('aria-disabled',String(!ready));multiDerivedProceed.title=ready?'Continue to Data Sorting & Filtering.':'Select at least one derived parameter and successfully Calculate and Add it to all logs to continue.';}
    updateMultiGraphAvailability();
   };
   (['mechanicalPower','electricalPower','specificThrust']).forEach(key=>{
@@ -1428,7 +1428,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   const multiProceedInApp=el('button','btn','Proceed with In App Analysis');multiProceedInApp.type='button';multiProceedInApp.hidden=true;
   const multiProceedReport=el('button','btn alt','Proceed with Report Generation');multiProceedReport.type='button';multiProceedReport.hidden=true;
   multiProceedActions.hidden=true;multiProceedActions.append(multiProceedInApp,multiProceedReport);
-  const multiDerivedProceed=el('button','btn','Proceed to Data Sorting & Filtering');multiDerivedProceed.type='button';multiDerivedProceed.disabled=!(commonEngine.DERIVED_BY_TEST[multiLogType]||[]).every(key=>sharedDerivedAdded.has(key));
+  const multiDerivedProceed=el('button','btn propulsion-derived-proceed','Proceed to Data Sorting & Filtering');multiDerivedProceed.type='button';multiDerivedProceed.disabled=true;multiDerivedProceed.setAttribute('aria-disabled','true');multiDerivedProceed.title='Select at least one derived parameter and successfully Calculate and Add it to all logs to continue.';
   multiDerivedProceed.addEventListener('click',()=>{
    if(!multiSession.logs.every(log=>log._phase3Ready)){csvStatus.textContent='Complete every selected derived-parameter calculation for all logs before proceeding.';return;}
    multiAnalysisCard.hidden=false;multiFilterCard.hidden=false;multiFilterCard.scrollIntoView({behavior:'smooth',block:'start'});
