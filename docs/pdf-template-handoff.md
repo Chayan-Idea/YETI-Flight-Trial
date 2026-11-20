@@ -63,7 +63,7 @@ Required review-package changes:
 - Keep `activation.status` as `candidate`; the publisher alone changes it to approved after validation.
 - Set `extractionReview.reviewStatus` to `reviewed`, enter `reviewedBy`, `approvalReference`, and retain the exact `sourceSha256` from the extraction.
 - Set `reviewedAllPages`, `reviewedWording`, `reviewedGrouping`, and `reviewedCoordinates` to true only after checking the complete PDF.
-- Set `reviewedCheckpointIds` to the exact ordered list of every extracted checkpoint ID. IDs and order must match the PDF extraction exactly; missing/extra/reordered points block release.
+- Set `reviewedCheckpointIds` to the exact ordered list of every reviewed checkpoint ID. Extracted points must remain in source order. OCR ID corrections must be listed in `idCorrections`; manually recovered missed points must be listed in `manuallyAddedCheckpointIds`. Unexplained deletions, additions or reordering block release.
 - Set `acknowledgedNumberingGaps` to the exact detected gap list after investigating each gap. Do not invent a missing point.
 - Map every checklist row in `template.rows` as `[oneBasedPageNumber, yCoordinateInPoints]`. Map PASS, FAIL, N/A centres and Remarks boundaries in `template.columns`.
 - Map header and value-field boxes in `template.header`, `template.fieldBoxes` and `template.specialFields` as required. Use `signatureMode: mapped-source-cell` only when the original signature cell is accurately mapped; otherwise use `append-signature-page`.
