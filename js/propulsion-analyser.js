@@ -195,7 +195,7 @@
   singleMappingGroupHead.append(singleParameterHead);
   const singleLogHead=el('th','','LOG 1 · '+(selectedFile?.name||'Uploaded CSV'));singleLogHead.scope='colgroup';singleMappingGroupHead.append(singleLogHead);
   const singleColumnHead=el('th','','CSV COLUMN MAPPING');singleColumnHead.scope='col';singleMappingSubHead.append(singleColumnHead);
-  singleMappingHead.append(singleMappingGroupHead,singleMappingSubHead);singleMappingTable.append(singleMappingHead);
+  singleMappingHead.append(singleMappingGroupHead,singleMappingSubHead);const singleCols=document.createElement('colgroup'),singleParamCol=document.createElement('col'),singleMapCol=document.createElement('col');singleParamCol.style.width='34%';singleMapCol.style.width='66%';singleCols.append(singleParamCol,singleMapCol);singleMappingTable.append(singleCols,singleMappingHead);
   const singleMappingBody=document.createElement('tbody'),singleActiveKeys=new Set(activeSpecs('mapping').map(spec=>spec.key));
   mappingGroups.forEach(group=>{
    const groupKeys=group.keys.filter(key=>singleActiveKeys.has(key));
@@ -947,15 +947,16 @@ const statsPage=el('section','propulsion-report-summary-page');
   const mappings=logs.map((log,index)=>{const mapping=getMultiMappingDefaults(multiFiles[index].headers);log._uiMapping=mapping;engineSetMapping(log,mapping);return mapping;});
   const tableWrap=el('div','propulsion-multi-mapping-table-wrap'),table=el('table','propulsion-multi-mapping-table propulsion-multi-mapping-unified'),thead=document.createElement('thead');
   const groupHead=document.createElement('tr'),subHead=document.createElement('tr');
-  const groupTh=el('th','','PARAMETER GROUP'),parameterTh=el('th','','PARAMETER');groupTh.rowSpan=2;parameterTh.rowSpan=2;groupTh.scope='col';parameterTh.scope='col';groupHead.append(groupTh,parameterTh);
+  const parameterTh=el('th','','PARAMETER');parameterTh.rowSpan=2;parameterTh.scope='col';groupHead.append(parameterTh);
   logs.forEach((log,index)=>{const th=el('th','','LOG '+(index+1)+' · '+multiFiles[index].file.name);th.colSpan=1;th.scope='colgroup';groupHead.append(th);const mapping=el('th','','CSV COLUMN MAPPING');mapping.scope='col';subHead.append(mapping);});
   thead.append(groupHead,subHead);table.append(thead);
+  const columnGroup=document.createElement('colgroup'),parameterColumn=document.createElement('col');parameterColumn.style.width='26%';columnGroup.append(parameterColumn);for(let i=0;i<logs.length;i++){const mappingColumn=document.createElement('col');mappingColumn.style.width=(74/logs.length)+'%';columnGroup.append(mappingColumn);}table.insertBefore(columnGroup,thead);
   const tbody=document.createElement('tbody'),activeKeys=new Set(multiActiveSpecs().map(spec=>spec.key));
   groups.forEach(group=>{
    const groupKeys=group.keys.filter(key=>activeKeys.has(key));
    if(!groupKeys.length)return;
    const sectionRow=el('tr','propulsion-mapping-section-row propulsion-mapping-section--'+group.title.toLowerCase());
-   const sectionCell=el('th','propulsion-mapping-section-heading',group.title.toUpperCase()+' PARAMETERS');sectionCell.colSpan=logs.length+2;sectionCell.scope='colgroup';sectionRow.append(sectionCell);tbody.append(sectionRow);
+   const sectionCell=el('th','propulsion-mapping-section-heading',group.title.toUpperCase()+' PARAMETERS');sectionCell.colSpan=logs.length+1;sectionCell.scope='colgroup';sectionRow.append(sectionCell);tbody.append(sectionRow);
    groupKeys.forEach(key=>{
     const spec=specs.find(item=>item.key===key),row=document.createElement('tr'),parameterCell=el('th','propulsion-multi-mapping-parameter',spec.label);
     parameterCell.scope='row';row.append(parameterCell);
