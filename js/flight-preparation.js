@@ -109,7 +109,7 @@ const BASE=[
 ]},
 {title:"9. Other details",items:[{id:"9.0",title:"Checker + Reviewer",criteria:[]}]}
 ];
-let sections=structuredClone(BASE),sourceKey='default-pdf-template',answers={},trialInfo={};
+let sections=structuredClone(window.YETI_DAILY_AIRWORTHINESS_TEMPLATE||BASE),sourceKey='IF_YETI_TD0_FTR_CKT_005',answers={},trialInfo={};
 const $=x=>document.getElementById(x),answerKey=()=> 'yeti-answers:'+sourceKey;
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function stats(){let a=sections.flatMap(s=>s.items),d=a.filter(i=>answers[i.id]?.status),p=a.filter(i=>answers[i.id]?.status==='Pass'),f=a.filter(i=>answers[i.id]?.status==='Fail');$('total').textContent=a.length;$('done').textContent=d.length;$('pass').textContent=p.length;$('fail').textContent=f.length;$('bar').style.width=(a.length?100*d.length/a.length:0)+'%'}
@@ -128,7 +128,7 @@ $('loadingCameraPhotos').addEventListener('change',e=>addPhotoFiles(e.target.fil
  const statusRecorded=statusItems.filter(item=>['Pass','Fail','Not Available'].includes(answers[item.id]?.status)).length;
  const cell=v=>esc(v||'');
  const meta=(label,value)=>'<div><b>'+label+':</b> '+cell(value)+'</div>';
- let html='<div class="print-document"><div class="print-doc-head"><div class="print-logo-panel"><img src="assets/ideaforge-logo.png" alt="ideaForge logo"></div><h2>Daily Airworthiness Checklist</h2><div class="print-doc-meta"><b>Doc Number: IF_YETI_TD0_FTR_CKT_005</b>'+meta('UAV Name / ID',trialInfo.uavNameId)+meta('Trial Phase',trialInfo.phase)+meta('Trial Stage',trialInfo.stage)+meta('Flight Place',trialInfo.place)+meta('Flight Date',trialInfo.date)+'</div></div>';
+ let html='<div class="print-document"><div class="print-doc-head"><div class="print-logo-panel"><img src="assets/ideaforge-logo.png" alt="ideaForge logo"></div><h2>'+cell(window.YETI_DAILY_AIRWORTHINESS_DOCUMENT?.title||"Daily Airworthiness Checklist")+'</h2><div class="print-doc-meta"><b>Doc Number: '+cell(window.YETI_DAILY_AIRWORTHINESS_DOCUMENT?.documentNumber||"IF_YETI_TD0_FTR_CKT_005")+'</b>'+meta('UAV Name / ID',trialInfo.uavNameId)+meta('Trial Phase',trialInfo.phase)+meta('Trial Stage',trialInfo.stage)+meta('Flight Place',trialInfo.place)+meta('Flight Date',trialInfo.date)+'</div></div>';
  html+='<table class="print-checklist"><colgroup><col style="width:6%"><col style="width:24%"><col style="width:39%"><col style="width:13%"><col style="width:18%"></colgroup><thead><tr><th>Sl. No</th><th colspan="2">Checklist</th><th>Result</th><th>Remarks</th></tr></thead><tbody>';
  for(const sec of sections){
   html+='<tr class="print-section-row"><td colspan="5">'+cell(sec.title)+'</td></tr>';
