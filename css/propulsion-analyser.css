@@ -1777,3 +1777,40 @@
  #propulsionUnifiedMappingStep .propulsion-multi-mapping-unified tbody tr:not(.propulsion-mapping-section-row) th.propulsion-multi-mapping-parameter{width:auto;min-width:145px;padding:11px 10px}
  #propulsionUnifiedMappingStep .propulsion-multi-mapping-unified tbody tr:not(.propulsion-mapping-section-row)>td{padding:8px}
 }
+
+
+/* Final mapping-table alignment: no redundant group column; equal log columns. */
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-unified{
+  width:100%!important;
+  min-width:0;
+  table-layout:fixed!important;
+  border-collapse:separate!important;
+  border-spacing:0!important;
+}
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-unified thead th,
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-unified tbody th,
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-unified tbody td{
+  box-sizing:border-box;
+  overflow-wrap:anywhere;
+}
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-unified thead tr:first-child th:first-child{
+  text-align:left;
+}
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-unified thead tr:first-child th:not(:first-child){
+  text-align:center;
+}
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-unified tbody tr:not(.propulsion-mapping-section-row)>th.propulsion-multi-mapping-parameter{
+  width:auto!important;
+  min-width:0;
+}
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-unified tbody tr:not(.propulsion-mapping-section-row)>td{
+  min-width:0;
+}
+#propulsionUnifiedMappingStep .propulsion-multi-mapping-unified .propulsion-column-select{
+  display:block;
+  width:100%!important;
+  max-width:100%;
+}
+#propulsionUnifiedMappingStep .propulsion-mapping-section-heading{
+  width:auto!important;
+}
