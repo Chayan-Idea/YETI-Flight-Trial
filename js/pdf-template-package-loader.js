@@ -20,9 +20,11 @@
   const ids=(pkg.sections||[]).flatMap(s=>(s.items||[]).map(i=>i.id));
   if(!ids.length)errors.push('No checklist checkpoints found.');
   if(new Set(ids).size!==ids.length)errors.push('Duplicate checkpoint IDs found.');
-  for(const id of ids.filter(id=>id!=='9.0')){
-   const row=pkg.template?.rows?.[id];
-   if(!Array.isArray(row)||row[0]<1||row[0]>pkg.document.pageCount||row[1]<0||row[1]>pkg.document.pageHeight)errors.push('Missing/invalid coordinate mapping: '+id);
+  if(pkg.template?.signatureMode!=='append-signature-page'){
+   for(const id of ids.filter(id=>id!=='9.0')){
+    const row=pkg.template?.rows?.[id];
+    if(!Array.isArray(row)||row[0]<1||row[0]>pkg.document.pageCount||row[1]<0||row[1]>pkg.document.pageHeight)errors.push('Missing/invalid coordinate mapping: '+id);
+   }
   }
   return {valid:errors.length===0,errors,checkpointCount:ids.length};
  }
