@@ -49,8 +49,10 @@ with tempfile.TemporaryDirectory() as directory:
     simple_page.insert_text((50, 130), "1.2", fontsize=10)
     simple_page.insert_text((230, 130), "Check propulsion system", fontsize=10)
     simple_page.insert_text((400, 145), "2. NEXT SECTION", fontsize=12)
-    simple_page.insert_text((50, 165), "2.3", fontsize=10)
-    simple_page.insert_text((230, 165), "Confirm safety equipment", fontsize=10)
+    simple_page.insert_text((50, 160), "2.1", fontsize=10)
+    simple_page.insert_text((230, 160), "Confirm emergency equipment", fontsize=10)
+    simple_page.insert_text((50, 180), "2.3", fontsize=10)
+    simple_page.insert_text((230, 180), "Confirm safety equipment", fontsize=10)
     simple_doc.save(simple)
     simple_candidate = MODULE.analyse(simple)
     candidate_path = Path(directory) / "simple-candidate.json"
@@ -70,7 +72,8 @@ with tempfile.TemporaryDirectory() as directory:
     assert package["sections"][0]["items"][0]["title"] == "Inspect airframe condition and verify all fasteners"
     assert package["sections"][0]["items"][1]["title"] == "Check propulsion system"
     assert package["sections"][1]["title"] == "NEXT SECTION"
-    assert package["sections"][1]["items"][0]["id"] == "2.3"
+    assert package["sections"][1]["items"][0]["id"] == "2.1"
+    assert package["sections"][1]["items"][1]["id"] == "2.3"
     assert package["extractionReview"]["numberingGaps"] == ["2.2"]
     try:
         BUILDER.build(candidate_path, Path(directory) / "missing.pdf", "TEST_TEMPLATE", "1.0.0")
