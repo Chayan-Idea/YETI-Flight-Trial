@@ -26,6 +26,7 @@ const server = http.createServer((req,res)=>{
   const response=await page.goto('http://127.0.0.1:'+server.address().port+'/',{waitUntil:'networkidle'});
   if(!response?.ok())throw new Error('YETI staging shell failed to load');
   await page.waitForFunction(()=>window.YETI_ACTIVE_PDF_TEMPLATE&&document.querySelectorAll('#list .item').length===62,{timeout:15000});
+  await page.waitForFunction(()=>document.querySelectorAll('#previewContent .yeti-pdf-source-page').length===2,{timeout:20000});
   const result=await page.evaluate(async()=>{
    const loader=window.YETI_PDF_TEMPLATE_PACKAGE,renderer=window.YETI_PDF_OVERLAY_RENDERER;
    if(!loader||!renderer)throw new Error('PDF template loader or renderer is missing');
