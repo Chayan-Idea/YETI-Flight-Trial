@@ -324,40 +324,13 @@ window.addEventListener('yeti:pdf-template-activated',event=>{
  const nextStateKey=nextId+'@'+nextVersion+'#'+nextHash;
  let previousActiveKey=null;try{previousActiveKey=localStorage.getItem('yeti-active-daily-template-version')}catch(e){}
  const isTemplateReplacement=previousActiveKey!==nextStateKey;
- // Daily template replacement must clear only daily checklist responses. Loading/unloading is a separate workflow and must survive a PDF version change.
- let preservedLoadingState={loadingAnswers:structuredClone(loadingAnswers),loadingMeta:Object.fromEntries(['loadingUavNameId','loadingFrom','unloadingAt','loadingDate','loadingTime'].map(id=>[id,$(id)?.value||'']))};
+ // A PDF template replacement resets only Daily Airworthiness data. Loading/Unloading is an independent checklist and must remain intact.
+ const preservedLoadingState={
+  loadingAnswers:structuredClone(loadingAnswers),
+  loadingMeta:Object.fromEntries(['loadingUavNameId','loadingFrom','unloadingAt','loadingDate','loadingTime'].map(id=>[id,$(id)?.value||'']))
+ };
  if(isTemplateReplacement){
-  try{
-   const previousState=JSON.parse(localStorage.getItem(checklistStateKey())||'null');
-   if(previousState){
-    preservedLoadingState.loadingAnswers=previousState.loadingAnswers||preservedLoadingState.loadingAnswers;
-    preservedLoadingState.loadingMeta=previousState.loadingMeta||preservedLoadingState.loadingMeta;
-   }
-   localStorage.removeItem(checklistStateKey());
-   const legacy=JSON.parse(localStorage.getItem(CHECKLIST_STATE_KEY)||'null');
-   if(legacy){legacy.answers={};legacy.trialInfo={};localStorage.setItem(CHECKLIST_STATE_KEY,JSON.stringify(legacy));}
-  }catch(e){}
-  answers={};trialInfo={};
-  ['uavNameId','trialPhase','trialStage','flightPlace','flightDate'].forEach(id=>{if($(id))$(id).value=''});
-  const dailySignature=$('signaturePad');if(dailySignature)dailySignature.getContext('2d').clearRect(0,0,dailySignature.width,dailySignature.height);
-  expandedDailySections.clear();
-  (async()=>{for(const photo of evidencePhotos.filter(p=>(p.category||'daily')==='daily')){try{await photoDB('delete',p.id)}catch(e){}}
-   await renderPhotoThumbs();await buildPreview();
-  })();
- }
- sourceKey=nextStateKey;
- try{localStorage.setItem('yeti-active-daily-template-version',nextStateKey)}catch(e){}
- if(isTemplateReplacement){
-  try{localStorage.setItem(checklistStateKey(),JSON.stringify({answers:{},trialInfo:{},loadingAnswers:preservedLoadingState.loadingAnswers,loadingMeta:preservedLoadingState.loadingMeta}))}catch(e){}
- }
- try{localStorage.setItem('yeti-active-daily-template-version',nextStateKey)}catch(e){}
- sections=structuredClone(template.checklistSections);
- restoreChecklistState();
-  try{
-   localStorage.removeItem(checklistStateKey());
-   const legacy=JSON.parse(localStorage.getItem(CHECKLIST_STATE_KEY)||'null');
-   if(legacy){legacy.answers={};legacy.trialInfo={};localStorage.setItem(CHECKLIST_STATE_KEY,JSON.stringify(legacy));}
-  }catch(e){}
+  try{localStorage.removeItem(checklistStateKey())}catch(e){}
   answers={};trialInfo={};
   ['uavNameId','trialPhase','trialStage','flightPlace','flightDate'].forEach(id=>{if($(id))$(id).value=''});
   const dailySignature=$('signaturePad');if(dailySignature)dailySignature.getContext('2d').clearRect(0,0,dailySignature.width,dailySignature.height);
@@ -366,10 +339,19 @@ window.addEventListener('yeti:pdf-template-activated',event=>{
    await renderPhotoThumbs();await buildPreview();
   })();
  }
-
- // Template activation is asynchronous; rehydrate the trial-information controls after restoring the version-scoped session.
+ sourceKey=nextStateKey;
+ try{localStorage.setItem('yeti-active-daily-template-version',nextStateKey)}catch(e){}
+ if(isTemplateReplacement){
+  try{localStorage.setItem(checklistStateKey(),JSON.stringify({answers:{},trialInfo:{},loadingAnswers:preservedLoadingState.loadingAnswers,loadingMeta:preservedLoadingState.loadingMeta}))}catch(e){}
+ }
+ sections=structuredClone(template.checklistSections);
+ restoreChecklistState();
+ // Rehydrate visible controls after the asynchronous template activation and render both independent checklists from the restored state.
  [['uavNameId','uavNameId'],['trialPhase','phase'],['trialStage','stage'],['flightPlace','place'],['flightDate','date']].forEach(([id,key])=>{if($(id))$(id).value=trialInfo[key]||''});
  render();
+ renderLoadingChecklist();
  refreshDailyChecklistCounters();
+ refreshLoadingCounters();
  buildPreview(true);
+ buildLoadingPreview(true);
 });
