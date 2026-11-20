@@ -416,7 +416,7 @@
   const derivedProceedButton=el('button','btn','Proceed to Data Sorting & Filtering');derivedProceedButton.type='button';
   derivedProceedButton.addEventListener('click',()=>{
    if(!areSelectedDerivedParametersCalculated()){graphStatus.textContent='Complete every selected derived-parameter calculation before proceeding.';return;}
-   step3Derived.hidden=true;step3Filter.hidden=false;step3FilterVisible=true;saveState();step3Filter.scrollIntoView({behavior:'smooth',block:'start'});
+   step3Derived.hidden=false;step3Filter.hidden=false;step3FilterVisible=true;saveState();step3Filter.scrollIntoView({behavior:'smooth',block:'start'});
   });
   derivedProceedActions.append(derivedProceedButton);step3Derived.append(derivedProceedActions);
   const csvSection=el('section','propulsion-step-subsection propulsion-step-subsection--csv');
@@ -816,7 +816,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   proceed.addEventListener('click',()=>{if(!confirmed)return;showParameterSummary();});
   const showParameterSummary=()=>{
    if(!confirmed)return;
-   step3FilterVisible=false;reportDirectVisible=false;step3Visible=true;step4Visible=false;step5Visible=false;analysisPanel.hidden=false;step3Derived.hidden=true;step3Filter.hidden=false;step3.hidden=false;step4.hidden=true;step5.hidden=true;step3.replaceChildren();
+   step3FilterVisible=false;reportDirectVisible=false;step3Visible=true;step4Visible=false;step5Visible=false;analysisPanel.hidden=false;step3Derived.hidden=false;step3Filter.hidden=false;step3.hidden=false;step4.hidden=true;step5.hidden=true;step3.replaceChildren();
    step3.append(el('span','propulsion-step-label','STEP 05 · PARAMETER SUMMARY'));
    step3.append(el('h3','','Mapped Parameter Statistics'));
    step3.append(el('p','propulsion-statistics-description','All statistics below use only the generated Filtered & Sorted CSV dataset ('+analysisRows.length.toLocaleString()+' rows).'));
@@ -1431,7 +1431,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   const multiDerivedProceed=el('button','btn','Proceed to Data Sorting & Filtering');multiDerivedProceed.type='button';multiDerivedProceed.disabled=!(commonEngine.DERIVED_BY_TEST[multiLogType]||[]).every(key=>sharedDerivedAdded.has(key));
   multiDerivedProceed.addEventListener('click',()=>{
    if(!multiSession.logs.every(log=>log._phase3Ready)){csvStatus.textContent='Complete every selected derived-parameter calculation for all logs before proceeding.';return;}
-   multiAnalysisCard.hidden=true;multiFilterCard.hidden=false;multiFilterCard.scrollIntoView({behavior:'smooth',block:'start'});
+   multiAnalysisCard.hidden=false;multiFilterCard.hidden=false;multiFilterCard.scrollIntoView({behavior:'smooth',block:'start'});
   });
   multiAnalysisCard.append(sharedDerivedSection,multiDerivedProceed);
   multiFilterCard.hidden=true;
@@ -1494,7 +1494,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   reportNextActions.append(reportNext);multiGraphCard.append(reportNextActions);
   multiProceedInApp.addEventListener('click',()=>{
    if(!multiSession.logs.every(log=>log._phase3Ready&&log._phase3Filtered)){return;}
-   multiFilterCard.hidden=false;multiAnalysisCard.hidden=true;multiFilterCard.scrollIntoView({behavior:'smooth',block:'start'});
+   multiFilterCard.hidden=false;multiAnalysisCard.hidden=false;multiFilterCard.scrollIntoView({behavior:'smooth',block:'start'});
    summaryBody.replaceChildren();
    const timestampAliases=['timestamp','time_stamp','datetime','date_time','date time','time','utc_time','local_time','sample_time','logged_at','date'];
    const parameterMap=new Map();
@@ -1535,7 +1535,7 @@ const statsPage=el('section','propulsion-report-summary-page');
     });
     summaryBody.append(tr);
    });
-   multiFilterCard.hidden=true;multiSummaryCard.hidden=false;multiGraphCard.hidden=true;multiSummaryCard.scrollIntoView({behavior:'smooth',block:'start'});
+   multiFilterCard.hidden=false;multiAnalysisCard.hidden=false;multiSummaryCard.hidden=false;multiGraphCard.hidden=true;multiSummaryCard.scrollIntoView({behavior:'smooth',block:'start'});
   });
   summaryNext.addEventListener('click',()=>{
    multiGraphCard.hidden=false;summaryNext.disabled=true;summaryNext.textContent='Graphical Analysis Selected';
