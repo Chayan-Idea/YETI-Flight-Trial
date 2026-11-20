@@ -695,7 +695,7 @@
      plotButton.click();
    });
     const step5=el('section','propulsion-report-card propulsion-step-card propulsion-step-card--purple');step5.id='propulsionReportGenerationCard';step5.hidden=true;
-  const returnToDataFiltering=()=>{step3FilterVisible=true;analysisPanel.hidden=false;step3Derived.hidden=false;step3Filter.hidden=false;saveState();step3Filter.scrollIntoView({behavior:'smooth',block:'start'});};
+  const returnToDataFiltering=()=>{reportDirectVisible=false;step3FilterVisible=true;step3Visible=false;step4Visible=false;step5Visible=false;analysisPanel.hidden=false;step3Derived.hidden=true;step3Filter.hidden=false;step3.hidden=true;step4.hidden=true;step5.hidden=true;reportProceed.disabled=false;reportProceed.textContent='Proceed to Generate Report';saveState();step3Filter.scrollIntoView({behavior:'smooth',block:'start'});};
   const addReturnButton=(parent)=>{const actions=el('div','propulsion-actions');const button=el('button','btn alt','Return to Data Filtering & Sorting');button.type='button';button.addEventListener('click',returnToDataFiltering);actions.append(button);parent.append(actions);return button;};
   step5.append(el('span','propulsion-step-label','STEP 07 · REPORT GENERATION'));
   const reportBuilder=el('div','propulsion-report-builder');
@@ -812,11 +812,11 @@ const statsPage=el('section','propulsion-report-summary-page');
    next.hidden=true;next.replaceChildren();proceed.hidden=true;directReportProceed.hidden=true;step3Derived.hidden=false;step3Filter.hidden=true;step3.hidden=true;step3FilterVisible=false;updateDerivedProceedGate();saveState();
    saveState();
   });
-  directReportProceed.addEventListener('click',()=>{if(!confirmed||!generatedCsvText)return;reportDirectVisible=true;step3Visible=false;step4Visible=false;step5Visible=true;analysisPanel.hidden=false;step3Derived.hidden=false;step3Filter.hidden=false;step5.hidden=false;saveState();step5.scrollIntoView({behavior:'smooth',block:'start'});});
+  directReportProceed.addEventListener('click',()=>{if(!confirmed||!generatedCsvText)return;reportDirectVisible=true;step3Visible=false;step4Visible=false;step5Visible=true;analysisPanel.hidden=false;step3Derived.hidden=true;step3Filter.hidden=false;step3.hidden=true;step4.hidden=true;step5.hidden=false;saveState();step5.scrollIntoView({behavior:'smooth',block:'start'});});
   proceed.addEventListener('click',()=>{if(!confirmed)return;showParameterSummary();});
   const showParameterSummary=()=>{
    if(!confirmed)return;
-   step3FilterVisible=false;reportDirectVisible=false;step3Visible=true;step4Visible=false;step5Visible=false;analysisPanel.hidden=false;step3Derived.hidden=false;step3Filter.hidden=false;step3.hidden=false;step3.replaceChildren();
+   step3FilterVisible=false;reportDirectVisible=false;step3Visible=true;step4Visible=false;step5Visible=false;analysisPanel.hidden=false;step3Derived.hidden=true;step3Filter.hidden=false;step3.hidden=false;step4.hidden=true;step5.hidden=true;step3.replaceChildren();
    step3.append(el('span','propulsion-step-label','STEP 05 · PARAMETER SUMMARY'));
    step3.append(el('h3','','Mapped Parameter Statistics'));
    step3.append(el('p','propulsion-statistics-description','All statistics below use only the generated Filtered & Sorted CSV dataset ('+analysisRows.length.toLocaleString()+' rows).'));
@@ -1546,7 +1546,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    multiReportCard.scrollIntoView({behavior:'smooth',block:'start'});
   });
   multiProceedReport.addEventListener('click',()=>{
-   multiReportCard.refreshPreview?.();multiReportCard.hidden=false;multiAnalysisCard.hidden=false;multiFilterCard.hidden=false;
+   multiReportCard.refreshPreview?.();multiReportCard.hidden=false;multiFilterCard.hidden=true;multiSummaryCard.hidden=true;multiGraphCard.hidden=true;
    multiReportCard.scrollIntoView({behavior:'smooth',block:'start'});
   });
   updateMultiGraphAvailability();
