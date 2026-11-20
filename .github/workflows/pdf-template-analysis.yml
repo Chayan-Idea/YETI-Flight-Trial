@@ -37,7 +37,6 @@ jobs:
           python-version: '3.12'
       - name: Install OCR and PDF analysis dependencies
         run: |
-          sudo apt-get update -qq
           sudo apt-get install -y -qq tesseract-ocr
           python -m pip install --disable-pip-version-check pymupdf pytesseract Pillow
       - name: Run searchable and scanned-PDF extraction regression tests
