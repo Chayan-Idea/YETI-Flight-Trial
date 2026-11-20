@@ -69,7 +69,7 @@ const server = http.createServer((req,res)=>{
    if(overlayPixels>0&&(minX<signatureBox.left-2||minY<signatureBox.top-2||maxX>signatureBox.right+2||maxY>signatureBox.bottom+2))throw new Error('Signature preview is outside the Checker + Reviewer cell: '+JSON.stringify({minX,minY,maxX,maxY,signatureBox}));
    if(sourcePages!==2||photoPages!==2)throw new Error('Preview must show 2 source pages plus 2 Photo Evidence pages; got '+sourcePages+' + '+photoPages);
    if(overlayPixels<10)throw new Error('Checker/Reviewer signature was not drawn in preview');
-   const qaAnswers={'2.1':{status:'Fail',remarks:'QA REMARK EXPORT'},'4.8.1':{status:'Pass'},'6.1':{values:{hvVoltage:'600 V',minCellVoltage:'3.4 V'}},'6.2':{values:{pduSoc:'88%'}}};
+   const qaAnswers={'2.1':{status:'Fail',remarks:'QA REMARK EXPORT'},'4.9.1':{status:'Pass'},'6.1':{values:{hvVoltage:'600 V',minCellVoltage:'3.4 V'}},'6.2':{values:{pduSoc:'88%'}}};
    const qaTrialInfo={phase:'QA TRIAL PHASE',stage:'QA TRIAL STAGE',place:'QA FLIGHT PLACE',date:'2026-11-20'};
    const exported=await renderer.exportPdf(candidate,pkg.template,signature,photos,qaAnswers,qaTrialInfo);
    const finalPdf=await pdfjs.getDocument({data:exported}).promise;
