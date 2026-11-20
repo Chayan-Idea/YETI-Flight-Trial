@@ -826,9 +826,9 @@
         {
           "id": "8.1",
           "title": "Camera Functionality",
-          "criteria": [],
-          "subsection": "Camera Functionality",
-          "description": "Camera placed and working ok."
+          "criteria": [
+            "Camera placed and working ok."
+          ]
         },
         {
           "id": "8.2",
