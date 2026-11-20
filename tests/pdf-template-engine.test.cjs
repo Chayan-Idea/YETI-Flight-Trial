@@ -62,6 +62,7 @@ const pkg={
 assert.equal(packageLoader.validatePackage(pkg).valid,true,'well-formed package should validate');
 assert.equal(packageLoader.validatePackage({...pkg,sourcePdf:{path:'source.pdf',sha256:'bad'}}).valid,false,'missing source checksum must be rejected');
 assert.equal(packageLoader.validatePackage({...pkg,sections:[...sections,{title:'Duplicate',items:[{id:'1.1',title:'duplicate'}]}]}).valid,false,'duplicate checkpoint package must be rejected');
+assert.throws(()=>packageLoader.activate({package:{activation:{status:'candidate'}},validation:{valid:true},pdfBytes:new ArrayBuffer(8)},true),/review-only/,'candidate packages must never activate, even when a caller passes approval');
 
 const versions=manager.listVersions(manifest.templateId);
 assert.ok(versions.some(v=>v.version===manifest.version),'registered baseline version must be retained');
