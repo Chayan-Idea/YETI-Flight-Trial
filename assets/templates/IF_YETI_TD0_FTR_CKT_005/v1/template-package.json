@@ -3,7 +3,7 @@
   "activation": {
     "status": "approved",
     "approvedAt": "2026-11-20",
-    "approvalNote": "Final-release instruction: retain checkpoint 8.1 Camera Functionality (Video recording is ok.) in the approved 62-checkpoint YETI master checklist. This v1 package remains bound to the original two-page source PDF whose checksum and 8.1 row coordinates were verified. The separately uploaded 61-entry PDF is a dynamic extraction test candidate and is not silently substituted for this approved source."
+    "approvalNote": "Final PDF selected by user on 2026-11-20: YETI TD0 Trial DAC Format(3).pdf. The uploaded file is byte-for-byte identical to the approved repository source PDF (SHA-256 03fe8f45e83b081669c4386585004a351ddcb2d8a14923854bafc36436d79560; 67,339 bytes; 2 pages; A4 landscape 842 x 595 pt). It contains 62 checklist entries across 9 sections, including 8.1 Camera Functionality — Video recording is ok. This exact source and its verified coordinate map are the active final template version 1.0.0."
   },
   "document": {
     "templateId": "IF_YETI_TD0_FTR_CKT_005",
