@@ -53,6 +53,7 @@ const schema=JSON.parse(fs.readFileSync(path.join(root,'schemas/pdf-template-pac
 assert.equal(schema.title,'YETI PDF Checklist Template Package');
 const pkg={
  packageVersion:1,
+ activation:{status:'approved'},
  document:{templateId:manifest.templateId,version:manifest.version,pageCount:manifest.sourcePages,pageWidth:manifest.page.width,pageHeight:manifest.page.height,orientation:'landscape'},
  sourcePdf:{path:'assets/templates/dac/source.pdf',sha256:'a'.repeat(64)},
  template:manifest,
