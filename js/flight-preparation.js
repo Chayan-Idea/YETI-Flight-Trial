@@ -136,18 +136,20 @@ async function buildPreview(skipPhotoRefresh=false){
  $('previewContent').innerHTML='<div class="alert alert-danger" role="alert">The approved original PDF template is not available. A reconstructed substitute preview has been blocked to prevent misleading checklist output.</div>';
  return;
 }
-// PDF preview zoom controls for the 01B Daily Airworthiness preview.
+// Full-screen floating PDF viewer and touch-first zoom/pan controls for 01B.
 (function(){
- const host=$('previewContent');
- const controls=document.getElementById('pdfPreviewZoomControls');
- if(!host||!controls||controls.dataset.ready==='1')return;
- controls.dataset.ready='1';
- const renderer=()=>window.YETI_PDF_OVERLAY_RENDERER;
+ const host=$('previewContent'),panel=$('previewPanel'),controls=document.getElementById('pdfPreviewZoomControls');
+ if(!host||!panel||!controls||controls.dataset.ready==='1')return;controls.dataset.ready='1';
+ const renderer=()=>window.YETI_PDF_OVERLAY_RENDERER,expand=document.getElementById('pdfPreviewExpand'),close=document.getElementById('pdfPreviewClose');
+ function setExpanded(on){panel.classList.toggle('pdf-preview-expanded',on);document.body.classList.toggle('pdf-viewer-open',on);if(expand){expand.textContent=on?'Restore':'Expand';expand.setAttribute('aria-label',on?'Restore PDF preview':'Expand PDF preview');}if(close)close.hidden=!on;if(on){requestAnimationFrame(()=>buildPreview(true))}else{renderer()?.setPreviewZoom(host,1)}}
  controls.addEventListener('click',e=>{
-  const action=e.target.closest('[data-pdf-zoom]')?.dataset.pdfZoom;if(!action||!renderer())return;
-  const current=renderer().getPreviewZoom();
+  const target=e.target.closest('[data-pdf-zoom],[data-pdf-expand]');if(!target||!renderer())return;
+  if(target.hasAttribute('data-pdf-expand')){setExpanded(!panel.classList.contains('pdf-preview-expanded'));return}
+  const action=target.dataset.pdfZoom,current=renderer().getPreviewZoom();
   renderer().setPreviewZoom(host,action==='in'?current+.25:action==='out'?current-.25:1);
  });
+ close?.addEventListener('click',()=>setExpanded(false));
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&panel.classList.contains('pdf-preview-expanded'))setExpanded(false)});
  renderer()?.setPreviewZoom(host,1);
 })();
 // Preview remains visible and is refreshed automatically; no manual update/close controls.
