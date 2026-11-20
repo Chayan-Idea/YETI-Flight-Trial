@@ -76,30 +76,37 @@
  function createExactCsvPreview(titleText,rows,metaText){
   const card=el('section','propulsion-csv-preview-card propulsion-step-card propulsion-step-card--green propulsion-exact-csv-preview');
   const heading=el('div','propulsion-step-label','CSV FILE PREVIEW'),title=el('h3','',titleText),meta=el('p','propulsion-csv-preview-meta',metaText||((rows.length-1).toLocaleString()+' data rows'));
-  const searchWrap=el('div','propulsion-csv-search'),search=document.createElement('input');search.type='search';search.className='propulsion-csv-search-input';search.placeholder='Search all rows and columns...';search.setAttribute('aria-label','Search this CSV preview');
-  const searchStatus=el('span','propulsion-csv-search-status','');searchWrap.append(search,searchStatus);
+  const searchWrap=el('div','propulsion-csv-search');
+  const columnSelect=document.createElement('select');columnSelect.className='propulsion-csv-column-select';columnSelect.setAttribute('aria-label','Select CSV column to search');columnSelect.append(new Option('Select column to search…',''));
+  const maxColumns=rows.reduce((max,row)=>Math.max(max,row?.length||0),0);
+  for(let col=0;col<maxColumns;col++){const name=String(rows[0]?.[col]??'').trim()||('Column '+(col+1));columnSelect.append(new Option(name,String(col)));}
+  const search=document.createElement('input');search.type='search';search.className='propulsion-csv-search-input';search.placeholder='Select a column first';search.setAttribute('aria-label','Search selected CSV column');search.disabled=true;
+  const searchButton=el('button','btn alt propulsion-csv-search-button','Search');searchButton.type='button';searchButton.disabled=true;
+  const searchStatus=el('span','propulsion-csv-search-status','Select a column to enable search.');
+  searchWrap.append(columnSelect,search,searchButton,searchStatus);
   const viewport=el('div','propulsion-csv-preview-viewport');viewport.tabIndex=0;viewport.setAttribute('role','region');viewport.setAttribute('aria-label',titleText);
   const table=document.createElement('table');table.className='propulsion-csv-preview-table propulsion-exact-csv-table';
-  const maxColumns=rows.reduce((max,row)=>Math.max(max,row?.length||0),0),head=document.createElement('thead'),headRow=document.createElement('tr');
+  const head=document.createElement('thead'),headRow=document.createElement('tr');
   for(let col=0;col<maxColumns;col++){const th=el('th','',String(rows[0]?.[col]??''));th.scope='col';headRow.append(th);}
   const colgroup=document.createElement('colgroup');for(let col=0;col<maxColumns;col++){const column=document.createElement('col');column.className=col===0?'propulsion-csv-first-column':'propulsion-csv-data-column';colgroup.append(column);}table.append(colgroup);head.append(headRow);table.append(head);const body=document.createElement('tbody');table.append(body);viewport.append(table);
-  const rowHeight=38,overscan=10;let matches=null,renderFrame=0,searchTimer=0,lastStart=-1,lastEnd=-1;
+  const rowHeight=38,overscan=10;let highlightedRows=new Set(),renderFrame=0,searchTimer=0,lastStart=-1,lastEnd=-1;
   const rowCount=Math.max(0,rows.length-1);
   const topSpacer=document.createElement('tr'),topCell=document.createElement('td'),bottomSpacer=document.createElement('tr'),bottomCell=document.createElement('td');
   topSpacer.className=bottomSpacer.className='propulsion-csv-virtual-spacer';
   [topCell,bottomCell].forEach(cell=>{cell.colSpan=Math.max(1,maxColumns);cell.setAttribute('aria-hidden','true');cell.style.cssText='padding:0!important;border:0!important;line-height:0!important;'});
   topSpacer.append(topCell);bottomSpacer.append(bottomCell);
-  const currentCount=()=>matches?matches.length:rowCount;
-  const sourceIndex=visibleIndex=>matches?matches[visibleIndex]:visibleIndex;
-  const makeRow=index=>{const row=rows[index+1]||[],tr=document.createElement('tr');tr.className='propulsion-csv-virtual-row';tr.dataset.rowIndex=String(index+1);for(let col=0;col<maxColumns;col++){const value=String(row[col]??''),cell=el(col===0?'th':'td','',value);if(col===0)cell.scope='row';cell.title=value;tr.append(cell);}return tr;};
-  const render=()=>{renderFrame=0;const total=currentCount(),visible=Math.max(1,Math.ceil((viewport.clientHeight||460)/rowHeight)),start=Math.max(0,Math.floor(viewport.scrollTop/rowHeight)-overscan),end=Math.min(total,start+visible+overscan*2);if(start===lastStart&&end===lastEnd)return;lastStart=start;lastEnd=end;topCell.style.height=(start*rowHeight)+'px';bottomCell.style.height=(Math.max(0,total-end)*rowHeight)+'px';const fragment=document.createDocumentFragment();fragment.append(topSpacer);for(let i=start;i<end;i++)fragment.append(makeRow(sourceIndex(i)));fragment.append(bottomSpacer);body.replaceChildren(fragment);};
+  const makeRow=index=>{const row=rows[index+1]||[],tr=document.createElement('tr');tr.className='propulsion-csv-virtual-row';tr.dataset.rowIndex=String(index+1);if(highlightedRows.has(index))tr.classList.add('propulsion-csv-search-match');for(let col=0;col<maxColumns;col++){const value=String(row[col]??''),cell=el(col===0?'th':'td','',value);if(col===0)cell.scope='row';cell.title=value;tr.append(cell);}return tr;};
+  const render=()=>{renderFrame=0;const total=rowCount,visible=Math.max(1,Math.ceil((viewport.clientHeight||460)/rowHeight)),start=Math.max(0,Math.floor(viewport.scrollTop/rowHeight)-overscan),end=Math.min(total,start+visible+overscan*2);if(start===lastStart&&end===lastEnd)return;lastStart=start;lastEnd=end;topCell.style.height=(start*rowHeight)+'px';bottomCell.style.height=(Math.max(0,total-end)*rowHeight)+'px';const fragment=document.createDocumentFragment();fragment.append(topSpacer);for(let i=start;i<end;i++)fragment.append(makeRow(i));fragment.append(bottomSpacer);body.replaceChildren(fragment);};
   const scheduleRender=()=>{if(!renderFrame)renderFrame=requestAnimationFrame(render);};
-  const updateSearch=()=>{const query=search.value.trim().toLocaleLowerCase();matches=null;if(query){matches=[];for(let i=0;i<rowCount;i++){const row=rows[i+1]||[];for(let col=0;col<maxColumns;col++){if(String(row[col]??'').toLocaleLowerCase().includes(query)){matches.push(i);break;}}}}searchStatus.textContent=query?currentCount().toLocaleString()+' matching row(s) of '+rowCount.toLocaleString():rowCount.toLocaleString()+' data rows';viewport.scrollTop=0;lastStart=lastEnd=-1;scheduleRender();};
+  const executeSearch=()=>{const col=Number(columnSelect.value),query=search.value.trim().toLocaleLowerCase();highlightedRows=new Set();if(!columnSelect.value||!query){searchStatus.textContent=!columnSelect.value?'Select a column to enable search.':'Enter a value to search.';lastStart=lastEnd=-1;scheduleRender();return;}for(let i=0;i<rowCount;i++){if(String(rows[i+1]?.[col]??'').toLocaleLowerCase().includes(query))highlightedRows.add(i);}searchStatus.textContent=highlightedRows.size.toLocaleString()+' matching row(s) highlighted in '+rowCount.toLocaleString()+' total rows';lastStart=lastEnd=-1;viewport.scrollTop=0;if(highlightedRows.size){const first=highlightedRows.values().next().value;viewport.scrollTop=Math.max(0,first*rowHeight-(viewport.clientHeight||460)/2);}scheduleRender();};
+  columnSelect.addEventListener('change',()=>{search.disabled=!columnSelect.value;searchButton.disabled=!columnSelect.value;search.placeholder=columnSelect.value?'Enter value to find in selected column':'Select a column first';search.value='';highlightedRows.clear();searchStatus.textContent=columnSelect.value?'Enter a value, then click Search.':'Select a column to enable search.';lastStart=lastEnd=-1;scheduleRender();});
+  searchButton.addEventListener('click',executeSearch);
+  search.addEventListener('keydown',event=>{if(event.key==='Enter'&&!searchButton.disabled)executeSearch();});
+  search.addEventListener('input',()=>{window.clearTimeout(searchTimer);searchTimer=window.setTimeout(()=>{if(!search.value.trim()){highlightedRows.clear();searchStatus.textContent=rowCount.toLocaleString()+' data rows';lastStart=lastEnd=-1;scheduleRender();}},120);});
   viewport.addEventListener('scroll',scheduleRender,{passive:true});
-  search.addEventListener('input',()=>{window.clearTimeout(searchTimer);searchTimer=window.setTimeout(updateSearch,120);});
   card.append(heading,title,meta,searchWrap,viewport);
   const container=el('div','propulsion-csv-preview-disclosure'),toggle=el('button','btn alt propulsion-csv-preview-toggle','Show CSV Preview');toggle.type='button';toggle.setAttribute('aria-expanded','false');card.hidden=true;
-  toggle.addEventListener('click',()=>{const opening=card.hidden;card.hidden=!opening;toggle.textContent=opening?'Hide CSV Preview':'Show CSV Preview';toggle.setAttribute('aria-expanded',String(opening));if(opening){if(!searchStatus.textContent)updateSearch();else{lastStart=lastEnd=-1;scheduleRender();}}});
+  toggle.addEventListener('click',()=>{const opening=card.hidden;card.hidden=!opening;toggle.textContent=opening?'Hide CSV Preview':'Show CSV Preview';toggle.setAttribute('aria-expanded',String(opening));if(opening){lastStart=lastEnd=-1;scheduleRender();}});
   container.append(toggle,card);return container;
  }
  function renderCsvPreview(text){
