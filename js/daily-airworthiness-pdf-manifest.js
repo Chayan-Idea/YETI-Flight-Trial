@@ -36,6 +36,6 @@ window.YETI_DAILY_AIRWORTHINESS_PDF_MANIFEST={
   hvVoltage:{page:2,x:596,y:169.0,width:70,height:7},
   minimumCellVoltage:{page:2,x:682,y:169.0,width:90,height:7},
   pduSoc:{page:2,x:596,y:178.0,width:80,height:7},
-  checkerReviewer:{page:2,x:594,y:323,width:196,height:36}
+  checkerReviewer:{page:2,x:573.9,y:294.99,width:216.28,height:25.68}
  }
 };
