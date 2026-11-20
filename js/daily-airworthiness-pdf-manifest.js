@@ -1,8 +1,8 @@
-/* Coordinate map measured from YETI TD0 Trial DAC Format.pdf (A4 landscape, 842 x 595 pt).
+/* Active package pointer: checksum-verified YETI TD0 Trial Checklist - DAC Format.pdf v2.0.1 (A4 landscape, 842 x 595 pt).
  * PDF coordinates use a top-left origin to match PDF text extraction and preview placement.
  * This file describes source geometry; it does not redraw the source document.
  */
-window.YETI_DAILY_AIRWORTHINESS_PDF_PACKAGE_URL="./assets/templates/IF_YETI_TD0_FTR_CKT_005/v1/template-package.json";
+window.YETI_DAILY_AIRWORTHINESS_PDF_PACKAGE_URL="./assets/templates/IF_YETI_TD0_FTR_CKT_005/v2/template-package.json";
 window.YETI_DAILY_AIRWORTHINESS_PDF_MANIFEST={
  schemaVersion:1,
  templateId:"IF_YETI_TD0_FTR_CKT_005",

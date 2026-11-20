@@ -1,0 +1,36 @@
+name: YETI PDF Browser Release Validation
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [feat/complete-pdf-template-workflow]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: yeti-pdf-browser-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-validation:
+    name: Real-browser PDF preview and export validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out candidate
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright test runtime
+        run: npm install --no-save --no-package-lock playwright
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Test live PDF preview, signature, photo evidence and export
+        run: node tests/pdf-template-browser.e2e.cjs
+      - name: Test application navigation and runtime integrity
+        run: node tests/browser-smoke.cjs

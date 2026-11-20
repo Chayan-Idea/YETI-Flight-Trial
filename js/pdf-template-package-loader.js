@@ -27,6 +27,12 @@
     if(!Array.isArray(row)||row[0]<1||row[0]>pkg.document.pageCount||row[1]<0||row[1]>pkg.document.pageHeight)errors.push('Missing/invalid coordinate mapping: '+id);
    }
   }
+  for(const groupName of ['header','fieldBoxes','specialFields']){
+   for(const [key,box] of Object.entries(pkg.template?.[groupName]||{})){
+    const width=box?.width??(groupName==='header'?250:NaN),height=box?.height??(groupName==='header'?7:NaN);
+    if(!plain(box)||!Number.isInteger(box.page)||box.page<1||box.page>pkg.document.pageCount||!Number.isFinite(box.x)||!Number.isFinite(box.y)||!Number.isFinite(width)||!Number.isFinite(height)||box.x<0||box.y<0||width<=0||height<=0||box.x+width>pkg.document.pageWidth+0.5||box.y+height>pkg.document.pageHeight+0.5)errors.push('Missing or out-of-page cell geometry: '+groupName+'.'+key);
+   }
+  }
   return {valid:errors.length===0,errors,checkpointCount:ids.length};
  }
  async function load(packageUrl){

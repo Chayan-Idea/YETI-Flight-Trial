@@ -62,8 +62,12 @@ assert.ok(rendererSourceForAppend.includes('append-signature-page'),'renderer mu
 assert.ok(rendererSourceForAppend.includes('yeti-pdf-signature-page'),'preview must display the appended signature page');
 assert.equal(manifest.columns.passCenterX,511.35);
 assert.ok(rendererSourceForAppend.includes('statusWidth=bold.widthOfTextAtSize(st.label,statusSize)'),'status labels must be horizontally centred within their status cells');
-assert.ok(rendererSourceForAppend.includes("ctx.textAlign='left'"),'remarks must remain left aligned in the remarks cell');
-assert.ok(fs.readFileSync(path.join(root,'js/flight-preparation.js'),'utf8').includes('scheduleLivePdfPreview'),'visible PDF preview must synchronize automatically after input changes');
+assert.ok(rendererSourceForAppend.includes("ctx.textAlign='center'"),'all preview overlay text must be centre aligned');
+assert.ok(rendererSourceForAppend.includes('x:((c.remarksLeft+c.remarksRight)/2)*sx-textWidth/2'),'exported remarks must be centre aligned inside the remarks cell');
+const flightPreparationSource=fs.readFileSync(path.join(root,'js/flight-preparation.js'),'utf8');
+assert.ok(flightPreparationSource.includes('scheduleLivePdfPreview'),'visible PDF preview must synchronize automatically after input changes');
+assert.ok(flightPreparationSource.includes("if(category==='daily')scheduleLivePdfPreview(true)"),'Daily Airworthiness photo additions must refresh the PDF preview');
+assert.ok(flightPreparationSource.includes("['trialPhase','trialStage','flightPlace','flightDate']"),'trial information fields must refresh the PDF preview');
 assert.equal(manifest.columns.failCenterX,534.95);
 assert.equal(manifest.columns.notAvailableCenterX,570.01);
 const schema=JSON.parse(fs.readFileSync(path.join(root,'schemas/pdf-template-package.schema.json'),'utf8'));
@@ -83,7 +87,8 @@ const pkg={
  template:manifest,
  sections
 };
-assert.equal(packageLoader.validatePackage(pkg).valid,true,'well-formed package should validate');
+const baselinePackageValidation=packageLoader.validatePackage(pkg);
+assert.equal(baselinePackageValidation.valid,true,'well-formed package should validate: '+baselinePackageValidation.errors.join('; '));
 const coordinateFreePkg={...pkg,template:{page:{...manifest.page},rows:{},columns:{},signatureMode:'append-signature-page'}};
 assert.equal(packageLoader.validatePackage(coordinateFreePkg).valid,true,'new PDFs without mapped signature/status cells should validate in safe append-signature mode');
 assert.equal(manager.validate({...coordinateFreePkg.template,templateId:pkg.document.templateId,version:pkg.document.version,sourcePages:pkg.document.pageCount},sections).valid,true,'coordinate-free append-signature templates should activate after explicit package approval');
@@ -119,3 +124,47 @@ assert.ok(rendererSource.includes('a?.remarks'),'remarks must be overlaid in the
 assert.ok(rendererSource.includes('trial?.phase'),'trial metadata must be overlaid using approved header coordinates');
 assert.ok(rendererSource.includes('minimumCellVoltage'),'minimum cell voltage must map to its approved special-field coordinates');
 console.log('PDF live overlay checks passed: source PDF, status labels, remarks, trial metadata, mapped battery values, signature and daily photo evidence.');
+
+assert.ok(!fs.readFileSync(path.join(root,'index.html'),'utf8').includes('Update PDF Preview'),'manual PDF preview update button must not exist');
+assert.ok(!fs.readFileSync(path.join(root,'js/flight-preparation.js'),'utf8').includes("$('previewBtn').onclick"),'manual PDF preview update handler must not exist');
+assert.ok(!fs.readFileSync(path.join(root,'js/flight-preparation.js'),'utf8').includes("if(!$('previewPanel')?.classList.contains('show'))return"),'live preview refresh must not depend on panel visibility');
+
+const livePreviewSource=fs.readFileSync(path.join(root,'js/flight-preparation.js'),'utf8');
+assert.ok(livePreviewSource.includes('previewBuildRevision=0'),'live preview build must use a monotonic revision guard');
+assert.ok(livePreviewSource.includes('if(buildRevision!==previewBuildRevision)return'),'stale asynchronous preview builds must be discarded');
+assert.ok(livePreviewSource.includes('immediate?0:100'),'live preview should refresh within a short debounce window');
+assert.ok(rendererSourceForAppend.includes('function fitSingleLine'),'long text must fit within its assigned PDF cell without wrapping into adjacent rows');
+assert.ok(rendererSourceForAppend.includes('m?.fieldBoxes?.[key]'),'template-specific value fields must be placed in explicitly mapped cells');
+
+const v2Candidate=JSON.parse(fs.readFileSync(path.join(root,'assets/templates/IF_YETI_TD0_FTR_CKT_005/v2/template-package.json'),'utf8'));
+const v2Validation=packageLoader.validatePackage(v2Candidate);
+assert.equal(v2Validation.valid,true,'uploaded PDF v2 candidate must pass structural and cell-bound validation: '+v2Validation.errors.join('; '));
+assert.equal(v2Candidate.activation.status,'approved','the explicitly approved checksum-verified PDF must be active for release validation');
+assert.equal(v2Validation.checkpointCount,62,'attached PDF must retain 61 numbered checklist points plus the Checker/Reviewer entry');
+assert.equal(v2Candidate.template.rows['4.8.1'][0],2,'4.8.1 must map to page 2 in the newly uploaded PDF');
+assert.equal(v2Candidate.template.rows['4.9.1'][0],2,'4.9.1 must map to page 2 in the newly uploaded PDF');
+assert.deepEqual(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='8.1').criteria,['Camera placed and working ok.'],'source checkpoint 8.1 Camera Functionality and its criterion must be retained');
+assert.equal(v2Candidate.template.columns.passCenterX,505.24,'Pass status must use the attached PDF column geometry');
+assert.equal(v2Candidate.template.specialFields.checkerReviewer.x,588.93,'signature must map into the attached PDF signature cell');
+
+assert.ok(rendererSourceForAppend.includes('(b.y+(b.height||6)/2)*scaleY'),'measured metadata cell height must control vertical text centring in the live preview');
+assert.ok(rendererSourceForAppend.includes('centerY=(b.y+(b.height||6)/2)*sy'),'measured metadata cell height must control vertical text centring in exported PDFs');
+
+assert.ok(rendererSourceForAppend.includes("!m?.specialFields?.[k]"),'mapped battery values must not also be duplicated in the remarks cell');
+
+assert.ok(rendererSourceForAppend.includes('(row[1]+4.815)*scaleY'),'status chips must be vertically centred in each checklist row');
+assert.ok(rendererSourceForAppend.includes('(row[1]+8.165)*scaleY'),'remarks must be vertically centred in each checklist row');
+
+assert.equal(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='4.1.1').subsection,'1. Port-Side Wing Chcek','candidate checklist must preserve the uploaded source subsection wording');
+assert.equal(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='4.2.1').subsection,'2. Star-Board Side Wing Chcek','candidate checklist must preserve source spelling rather than silently normalizing it');
+
+assert.equal(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='9.0').displayId,'9','the webpage must display the uploaded PDF serial label 9 for Checker + Reviewer');
+
+assert.equal(v2Candidate.sourcePdf.sha256,'986ce7f835de38d78901d1bde3b569a16b083fc93ec382e199ee2ae1aa9122a8','candidate must identify the exact PDF attached in this conversation');
+assert.equal(v2Candidate.document.version,'2.0.1','corrected attachment candidate must have its own version');
+assert.equal(v2Candidate.template.rows['8.1'][0],2,'Camera Functionality checkpoint 8.1 must map to page 2');
+assert.equal(v2Candidate.template.rows['4.9.1'][0],2,'4.9.1 must map to page 2 in the attached PDF');
+
+assert.equal(v2Candidate.template.fieldBoxes.totalWeight.x,588.93,'UAV weight value must be centred in its blank Remarks cell');
+assert.equal(v2Candidate.template.fieldBoxes.totalWeight.width,201.26,'UAV weight value must stay inside the Remarks cell');
+assert.equal(v2Candidate.template.specialFields.checkerReviewer.y,326.05,'signature must be mapped below the Checker + Reviewer heading, inside its blank cell');
