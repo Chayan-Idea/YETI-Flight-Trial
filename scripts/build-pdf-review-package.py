@@ -24,7 +24,7 @@ def build(candidate_path: Path, pdf_path: Path, template_id: str, version: str):
     seen=set()
     for point in candidate.get("checkpointCandidates",[]):
         ident=str(point.get("id","")).strip()
-        if not re.fullmatch(r"\\d+(?:\\.\\d+){1,3}",ident):
+        if not re.fullmatch(r"\d+(?:\.\d+){1,3}",ident):
             continue
         if ident in seen:
             raise ValueError("Duplicate checkpoint ID prevents package generation: "+ident)
@@ -46,7 +46,7 @@ def build(candidate_path: Path, pdf_path: Path, template_id: str, version: str):
       "document":{"templateId":template_id,"version":version,"pageCount":candidate["pageCount"],
         "pageWidth":first["width"],"pageHeight":first["height"],
         "orientation":"landscape" if first["width"]>=first["height"] else "portrait"},
-      "sourcePdf":{"path":str(pdf_path).replace("\\\\","/"),"sha256":digest},
+      "sourcePdf":{"path":str(pdf_path).replace("\\","/"),"sha256":digest},
       "template":{"page":{"width":first["width"],"height":first["height"],"unit":"pt"},
         "rows":{},"columns":{},"signatureMode":"append-signature-page"},
       "sections":sections,
@@ -66,7 +66,7 @@ def main():
     parser.add_argument("--output",type=Path,default=Path("template-package.candidate.json"))
     args=parser.parse_args()
     package=build(args.candidate,args.pdf,args.template_id,args.version)
-    args.output.write_text(json.dumps(package,indent=2,ensure_ascii=False)+"\\n",encoding="utf-8")
+    args.output.write_text(json.dumps(package,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
     print(f"Review-only package generated: {len(package['sections'])} sections, {package['extractionReview']['checkpointCount']} checkpoints.")
     print("Activation remains blocked until wording, section grouping and output layout are reviewed.")
 
