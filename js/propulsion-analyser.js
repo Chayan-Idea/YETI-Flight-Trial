@@ -1565,7 +1565,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    points.forEach(point=>add('circle',{cx:sx(point.x),cy:sy(point.y),r:3.5,fill:color,stroke:'#fff','stroke-width':.8}));
   });
   let legendX=L;
-  series.forEach(item=>{const color=multiColors[item.index%multiColors.length],name='LOG '+(item.index+1);add('line',{x1:legendX,y1:18,x2:legendX+24,y2:18,stroke:color,'stroke-width':4,'stroke-linecap':'round'});add('text',{x:legendX+30,y:22,fill:'#334155','font-size':12,'font-weight':700},name);legendX+=95;});
+  series.filter(item=>!multiHiddenLogIds.has(String(item.log.id))).forEach(item=>{const color=multiColors[item.index%multiColors.length],name='LOG '+(item.index+1);add('line',{x1:legendX,y1:18,x2:legendX+24,y2:18,stroke:color,'stroke-width':4,'stroke-linecap':'round'});add('text',{x:legendX+30,y:22,fill:'#334155','font-size':12,'font-weight':700},name);legendX+=95;});
   plotHost.replaceChildren(svg);
   const guide=add('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#d97706','stroke-width':1.5,'stroke-dasharray':'5 4','pointer-events':'none'});
   const selectedMarkers=new Map(visibleSeries.map(item=>[item.index,add('circle',{cx:L,cy:T,r:7,fill:'#fff',stroke:multiColors[item.index%multiColors.length],'stroke-width':3,'pointer-events':'none',visibility:'hidden'})]));
@@ -1597,7 +1597,7 @@ const statsPage=el('section','propulsion-report-summary-page');
      if(marker)marker.setAttribute('visibility','hidden');
      const unavailable=el('td','','No valid plotted point');unavailable.colSpan=2;row.append(unavailable);
     }
-    const actionCell=document.createElement('td');const toggle=el('button','btn alt propulsion-log-visibility-toggle',hidden?'Unhide':'Hide');toggle.type='button';toggle.setAttribute('aria-pressed',String(!hidden));toggle.setAttribute('aria-label',(hidden?'Unhide':'Hide')+' LOG '+(item.index+1)+' on graph');toggle.addEventListener('click',()=>{if(hidden)multiHiddenLogIds.delete(String(item.log.id));else multiHiddenLogIds.add(String(item.log.id));const current=Number(slider.value)||0;drawMultiComparison(ui);if(!slider.disabled)slider.oninput?.call(slider,{target:slider});});actionCell.append(toggle);row.append(actionCell);
+    const actionCell=document.createElement('td');const toggle=el('button','btn alt propulsion-log-visibility-toggle',hidden?'Unhide':'Hide');toggle.type='button';toggle.setAttribute('aria-pressed',String(!hidden));toggle.setAttribute('aria-label',(hidden?'Unhide':'Hide')+' LOG '+(item.index+1)+' on graph');toggle.addEventListener('click',()=>{if(hidden)multiHiddenLogIds.delete(String(item.log.id));else multiHiddenLogIds.add(String(item.log.id));const current=Number(slider.value)||0;drawMultiComparison(ui);if(!slider.disabled){slider.value=String(current);slider.oninput?.();}});actionCell.append(toggle);row.append(actionCell);
     tbody.append(row);
    });
    table.append(tbody);tableWrap.append(table);readout.append(tableWrap);
