@@ -73,74 +73,25 @@
 
  function filterRowsWithReturnTail(rows,rpmIndex,headerCount=0){return csvProcessing.filterRowsWithReturnTail(rows,rpmIndex,headerCount);}
 
+ function createExactCsvPreview(titleText,rows,metaText){
+  const card=el('section','propulsion-csv-preview-card propulsion-step-card propulsion-step-card--green propulsion-exact-csv-preview');
+  const heading=el('div','propulsion-step-label','CSV FILE PREVIEW'),title=el('h3','',titleText),meta=el('p','propulsion-csv-preview-meta',metaText||((rows.length-1).toLocaleString()+' data rows'));
+  const searchWrap=el('div','propulsion-csv-search'),search=document.createElement('input');search.type='search';search.className='propulsion-csv-search-input';search.placeholder='Search all rows and columns...';search.setAttribute('aria-label','Search this CSV preview');
+  const searchStatus=el('span','propulsion-csv-search-status','');searchWrap.append(search,searchStatus);
+  const viewport=el('div','propulsion-csv-preview-viewport');viewport.tabIndex=0;viewport.setAttribute('role','region');viewport.setAttribute('aria-label',titleText);
+  const table=document.createElement('table');table.className='propulsion-csv-preview-table propulsion-exact-csv-table';
+  const maxColumns=Math.max(0,...rows.map(row=>row.length)),head=document.createElement('thead'),headRow=document.createElement('tr');
+  for(let col=0;col<maxColumns;col++){const th=el('th','',String(rows[0]?.[col]??''));th.scope='col';headRow.append(th);}
+  head.append(headRow);table.append(head);const body=document.createElement('tbody');table.append(body);viewport.append(table);
+  const render=()=>{const query=search.value.trim().toLocaleLowerCase(),fragment=document.createDocumentFragment();let matches=0;
+   rows.slice(1).forEach((row,index)=>{const cells=Array.from({length:maxColumns},(_,col)=>String(row?.[col]??''));if(query&&!cells.some(value=>value.toLocaleLowerCase().includes(query)))return;matches++;const tr=document.createElement('tr');tr.dataset.rowIndex=String(index+1);cells.forEach((value,col)=>{const cell=el(col===0?'th':'td','',value);if(col===0)cell.scope='row';cell.title=value;tr.append(cell);});fragment.append(tr);});
+   body.replaceChildren(fragment);searchStatus.textContent=query?matches.toLocaleString()+' matching row(s) of '+Math.max(0,rows.length-1).toLocaleString():(rows.length-1).toLocaleString()+' data rows';viewport.scrollTop=0;viewport.scrollLeft=0;};
+  search.addEventListener('input',render);render();card.append(heading,title,meta,searchWrap,viewport);return card;
+ }
  function renderCsvPreview(text){
-  if(csvPreviewPanel)csvPreviewPanel.remove();
-  const rows=parseCSV(text,chooseDelimiter(text));
-  if(!rows.length)return;
-  const maxColumns=Math.max(0,...rows.map(row=>row.length));
-  const headerIndex=findHeader(rows);
-  const actualRpmIndex=headerIndex>=0?rows[headerIndex].map((name,index)=>({index,score:scoreHeader(name,specs.find(s=>s.key==='actualRpm').aliases)})).filter(item=>item.score>=65).sort((a,b)=>b.score-a.score)[0]?.index:-1;
-  const filteredRows=actualRpmIndex<0?null:filterRowsWithReturnTail(rows,actualRpmIndex,headerIndex+1);
-  csvPreviewPanel=el('section','propulsion-csv-preview-card propulsion-step-card propulsion-step-card--green');
-  csvPreviewPanel.id='propulsionCsvPreview';
-  csvPreviewPanel.setAttribute('aria-labelledby','propulsionCsvPreviewHeading');
-  const heading=el('div','propulsion-step-label','CSV FILE PREVIEW');
-  const title=el('h3','','Complete CSV Preview');title.id='propulsionCsvPreviewHeading';
-  const info=el('p','propulsion-csv-preview-meta','');
-  const searchBar=el('div','propulsion-csv-search');
-  const timestampSearch=document.createElement('input');timestampSearch.type='text';timestampSearch.className='propulsion-csv-search-input';timestampSearch.placeholder='Paste timestamp to find matching row';timestampSearch.setAttribute('aria-label','Search CSV by timestamp');
-  const searchButton=el('button','btn alt','Search Timestamp');searchButton.type='button';
-  const searchStatus=el('span','propulsion-csv-search-status','');
-  searchBar.append(timestampSearch,searchButton,searchStatus);
-  const viewport=el('div','propulsion-csv-preview-viewport');viewport.setAttribute('role','region');viewport.setAttribute('aria-label','CSV data preview');viewport.tabIndex=0;
-  const table=document.createElement('table');table.className='propulsion-csv-preview-table';
-  const thead=document.createElement('thead'),headRow=document.createElement('tr');
-  const rowHead=el('th','','ROW');rowHead.scope='col';headRow.append(rowHead);
-  for(let col=0;col<maxColumns;col++){const th=el('th','','COLUMN '+(col+1));th.scope='col';headRow.append(th)}
-  thead.append(headRow);table.append(thead);
-  const tbody=document.createElement('tbody');table.append(tbody);viewport.append(table);
-  const rawToggle=el('button','btn alt','Show Uploaded Raw CSV File');rawToggle.type='button';rawToggle.id='showUploadedRawCsvBtn';
-  const previewActions=el('div','propulsion-actions propulsion-csv-preview-toggle-actions');
-  previewActions.append(rawToggle);
-  identifyActions=el('div','propulsion-actions propulsion-csv-preview-actions');identifyActions.append(start);identifyActions.hidden=true;
-  let activeView='',visibleRows=[];
-  const timestampAliases=['timestamp','time_stamp','datetime','date_time','date time','time','utc_time','local_time','sample_time','logged_at','date'];
-  const timestampColumn=headerIndex>=0?(rows[headerIndex].map((name,index)=>({index,score:scoreHeader(name,timestampAliases)})).filter(item=>item.score>=65).sort((a,b)=>b.score-a.score)[0]?.index??0):0;
-  const searchTimestamp=()=>{
-   const query=timestampSearch.value.trim();
-   tbody.querySelectorAll('tr.csv-timestamp-match').forEach(row=>row.classList.remove('csv-timestamp-match'));
-   if(!query){searchStatus.textContent='Enter a timestamp to search.';return}
-   const matches=[];
-   visibleRows.forEach((row,index)=>{if(index>headerIndex&&String(row[timestampColumn]??'').trim()===query)matches.push(index)});
-   if(!matches.length){searchStatus.textContent='No exact timestamp match found.';return}
-   virtualPreview?.scrollTo(matches[0]);requestAnimationFrame(()=>matches.forEach(index=>virtualPreview?.getRow(index)?.classList.add('csv-timestamp-match')));
-   searchStatus.textContent=matches.length.toLocaleString()+' matching row(s) found; first match brought into view.';
-  };
-  searchButton.addEventListener('click',searchTimestamp);
-  timestampSearch.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();searchTimestamp()}});
-  let virtualPreview=null;
-  const renderRows=(viewRows,viewName)=>{
-   visibleRows=viewRows;searchStatus.textContent='';timestampSearch.value='';
-   if(virtualPreview)virtualPreview.setRows(visibleRows);else virtualPreview=createVirtualCsvRows(viewport,tbody,visibleRows,maxColumns);
-   title.textContent=viewName==='raw'?'Uploaded Raw CSV File':'Data Filtered CSV File';
-   info.textContent=viewRows.length.toLocaleString()+' rows · '+maxColumns.toLocaleString()+' columns · Virtual preview; complete dataset retained · '+(viewName==='raw'?'Original uploaded file, unchanged':'Rows with Actual RPM equal to zero or below removed');
-   viewport.setAttribute('aria-label',viewName==='raw'?'Uploaded raw CSV data preview':'Data filtered CSV preview');
-   activeView=viewName;csvPreviewPanel.hidden=false;
-   rawToggle.textContent=viewName==='raw'?'Hide Uploaded Raw CSV File':'Show Uploaded Raw CSV File';
-   rawToggle.setAttribute('aria-expanded',String(viewName==='raw'));
-   requestAnimationFrame(setFreezeOffsets);
-  };
-  const hidePreview=()=>{csvPreviewPanel.hidden=true;activeView='';rawToggle.textContent='Show Uploaded Raw CSV File';rawToggle.setAttribute('aria-expanded','false')};
-  rawToggle.addEventListener('click',()=>{if(activeView==='raw'&&!csvPreviewPanel.hidden)hidePreview();else renderRows(rows,'raw')});
-  function graphStatusSafeMessage(){info.textContent='Filtered preview unavailable: Actual RPM column could not be identified in this CSV. Please verify the column header.';title.textContent='Data Filtered CSV File';csvPreviewPanel.hidden=false;identifyActions.hidden=true;activeView='filtered';}
-  if(uploadCard){uploadCard.insertAdjacentElement('afterend',previewActions);previewActions.insertAdjacentElement('afterend',csvPreviewPanel);}
-  else{workspace.insertBefore(previewActions,workspace.firstChild);previewActions.insertAdjacentElement('afterend',csvPreviewPanel);}
-  csvPreviewPanel.append(heading,title,info,searchBar,viewport);
-  csvPreviewPanel.hidden=true;
-  csvPreviewPanel.insertAdjacentElement('afterend',identifyActions);identifyActions.hidden=false;
-  const setFreezeOffsets=()=>{const header=headRow.getBoundingClientRect(),first=tbody.rows[0]?.getBoundingClientRect(),rowIndexWidth=headRow.cells[0]?.getBoundingClientRect().width;if(header.height)viewport.style.setProperty('--csv-header-height',header.height+'px');if(first?.height)viewport.style.setProperty('--csv-row1-height',first.height+'px');if(rowIndexWidth)viewport.style.setProperty('--csv-first-col-width',rowIndexWidth+'px');};
-  requestAnimationFrame(setFreezeOffsets);
-  if(typeof ResizeObserver!=='undefined'){const freezeObserver=new ResizeObserver(()=>{virtualPreview?.refresh();setFreezeOffsets()});freezeObserver.observe(viewport);freezeObserver.observe(table);}
+  csvPreviewPanel?.remove();const rows=parseCSV(text,chooseDelimiter(text));if(!rows.length)return;
+  csvPreviewPanel=createExactCsvPreview('Uploaded Raw CSV File',rows,'Original uploaded CSV · '+rows.length.toLocaleString()+' rows · Read-only');csvPreviewPanel.id='propulsionCsvPreview';
+  if(uploadCard)uploadCard.insertAdjacentElement('afterend',csvPreviewPanel);else workspace.insertBefore(csvPreviewPanel,workspace.firstChild);
  }
  const STANDARD_GRAVITY=9.80665;
  const accelerationParameterKeys=new Set(['accelerationX','accelerationY','accelerationZ']);
@@ -431,6 +382,7 @@
   const csvExportButton=el('button','btn','Generate Filtered & Sorted CSV');csvExportButton.type='button';csvExportButton.hidden=true;
   const csvDownloadButton=el('button','btn','Download Filtered & Sorted CSV');csvDownloadButton.type='button';csvDownloadButton.hidden=true;
   let generatedCsvText='';
+  const filteredCsvPreviewHost=el('div','propulsion-csv-preview-stack');csvSection.append(filteredCsvPreviewHost);
   csvDownloadButton.addEventListener('click',()=>{if(!generatedCsvText)return;const blob=new Blob([generatedCsvText],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const link=document.createElement('a');const base=(selectedFile?.name||'propulsion_log.csv').replace(/\.csv$/i,'');link.href=url;link.download=base+'_filtered_sorted.csv';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);csvStatus.textContent='Filtered & sorted CSV downloaded.';});
   const csvActions=el('div','propulsion-actions propulsion-csv-actions');csvActions.append(csvExportButton,csvDownloadButton);
   csvSection.append(csvConfirmation,csvStatus,csvActions);
@@ -915,7 +867,7 @@ const statsPage=el('section','propulsion-report-summary-page');
     const file=fileInput.files?.[0];if(!file){multiFiles[index]=null;statusEl.textContent='No file selected';updateMultiUploadGate();return;}
     if(!/\.csv$/i.test(file.name)||file.size===0){fileInput.value='';multiFiles[index]=null;statusEl.textContent='Invalid or empty CSV file';updateMultiUploadGate();return;}
     statusEl.textContent='Reading '+file.name+'…';
-    try{const text=await file.text(),rows=parseCSV(text,chooseDelimiter(text));if(rows.length<2)throw new Error('CSV must contain a header and data rows.');const headerIndex=findHeader(rows);if(headerIndex<0)throw new Error('Could not detect a recognizable parameter header in the first 10 rows.');const headers=rows[headerIndex].map((value,col)=>String(value??'').trim()||('Column '+(col+1))),data=rows.slice(headerIndex+1).filter(row=>row.some(value=>String(value??'').trim()!==''));if(!data.length)throw new Error('No data rows were found below the detected header.');multiFiles[index]={file,text,rows,headerIndex,headers,data};statusEl.textContent=file.name+' · '+data.length.toLocaleString()+' data rows';}
+    try{const text=await file.text(),rows=parseCSV(text,chooseDelimiter(text));if(rows.length<2)throw new Error('CSV must contain a header and data rows.');const headerIndex=findHeader(rows);if(headerIndex<0)throw new Error('Could not detect a recognizable parameter header in the first 10 rows.');const headers=rows[headerIndex].map((value,col)=>String(value??'').trim()||('Column '+(col+1))),data=rows.slice(headerIndex+1).filter(row=>row.some(value=>String(value??'').trim()!==''));if(!data.length)throw new Error('No data rows were found below the detected header.');multiFiles[index]={file,text,rows,headerIndex,headers,data};statusEl.textContent=file.name+' · '+data.length.toLocaleString()+' data rows';card.parentElement?.querySelector(':scope > .propulsion-exact-csv-preview[data-log-preview="'+index+'"]')?.remove();const rawPreview=createExactCsvPreview('RAW CSV PREVIEW · LOG '+(index+1),rows,file.name+' · Original uploaded CSV · Read-only');rawPreview.dataset.logPreview=String(index);card.insertAdjacentElement('afterend',rawPreview);}
     catch(error){multiFiles[index]=null;statusEl.textContent=error.message||'Unable to read this CSV';fileInput.value='';}updateMultiUploadGate();
    });
    card.append(title,hint,fileInput,statusEl);multiUploadGrid.append(card);
@@ -1370,7 +1322,7 @@ const statsPage=el('section','propulsion-report-summary-page');
      const download=el('button','btn','Download CSV');download.type='button';
      actions.append(download);
      download.addEventListener('click',()=>{const blob=new Blob([file.csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=file.name;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);csvStatus.textContent='Downloaded '+file.name+'.';});
-     card.append(title,info,actions);generatedCsvFilesHost.append(card);
+     card.append(title,info,actions,createExactCsvPreview('FILTERED & SORTED CSV PREVIEW · LOG '+(index+1),file.rows,file.name+' · Exact generated CSV · Read-only'));generatedCsvFilesHost.append(card);
     });
     multiSession.logs.forEach(log=>{log._phase3Ready=true;});updateMultiReadiness();
     csvExportButton.hidden=true;
