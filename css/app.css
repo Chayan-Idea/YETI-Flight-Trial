@@ -240,3 +240,21 @@
 #previewPanel.pdf-preview-expanded .yeti-pdf-preview-stage{width:100%;min-width:max-content}
 body.pdf-viewer-open{overflow:hidden!important;overscroll-behavior:none}
 @media(max-width:620px){#previewPanel.pdf-preview-expanded{padding:5px!important;gap:5px!important}#previewPanel.pdf-preview-expanded>div:first-child{padding:6px;flex-wrap:wrap}#previewPanel.pdf-preview-expanded>div:first-child h2{font-size:13px}#previewPanel.pdf-preview-expanded .pdf-preview-toolbar{gap:4px}#previewPanel.pdf-preview-expanded .pdf-preview-toolbar .btn{min-width:40px;min-height:42px;padding:7px 9px}}
+
+/* Global page-refresh feedback: visible across every YETI module and viewport. */
+.app-refresh-status{position:fixed;top:0;left:0;right:0;z-index:200000;background:#fff;color:#174f7d;border-bottom:1px solid #c9dced;box-shadow:0 3px 14px #102f5720;padding:0 14px 9px}
+.app-refresh-status[hidden]{display:none!important}
+.app-refresh-status-track{height:4px;margin:0 -14px 8px;background:#e7eff7;overflow:hidden}
+.app-refresh-status-track span{display:block;width:38%;height:100%;background:#2685d8;animation:yeti-refresh-progress 1.15s ease-in-out infinite alternate}
+.app-refresh-status-message{max-width:1120px;margin:0 auto;display:flex;align-items:center;gap:9px;min-height:25px;font-size:12px;font-weight:750;letter-spacing:.01em}
+.app-refresh-status-icon{font-size:17px;line-height:1;animation:yeti-refresh-spin 1s linear infinite}
+.app-refresh-status.is-complete .app-refresh-status-track span{width:100%;background:#169b62;animation:none}
+.app-refresh-status.is-complete .app-refresh-status-icon{color:#16834a;animation:none}
+.app-refresh-status.is-complete .app-refresh-status-icon:before{content:'✓'}
+.app-refresh-status.is-complete .app-refresh-status-icon{font-size:0}
+.app-refresh-status.is-complete .app-refresh-status-icon:before{font-size:17px}
+.app-refresh-status.is-error .app-refresh-status-track span{width:100%;background:#c33;animation:none}
+#refreshPageBtn:disabled{opacity:.78;cursor:wait}
+@keyframes yeti-refresh-progress{from{transform:translateX(-105%)}to{transform:translateX(265%)}}
+@keyframes yeti-refresh-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.app-refresh-status-track span,.app-refresh-status-icon{animation:none!important}}
