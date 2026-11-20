@@ -59,6 +59,13 @@ assert.equal(manifest.columns.failCenterX,534.95);
 assert.equal(manifest.columns.notAvailableCenterX,570.01);
 const schema=JSON.parse(fs.readFileSync(path.join(root,'schemas/pdf-template-package.schema.json'),'utf8'));
 assert.equal(schema.title,'YETI PDF Checklist Template Package');
+const approvedPackage=JSON.parse(fs.readFileSync(path.join(root,'assets/templates/IF_YETI_TD0_FTR_CKT_005/v1/template-package.json'),'utf8'));
+assert.equal(approvedPackage.sourcePdf.path,'assets/templates/YETI TD0 Trial DAC Format.pdf','the final selected PDF must be the active source asset');
+assert.equal(approvedPackage.sourcePdf.sha256,'03fe8f45e83b081669c4386585004a351ddcb2d8a14923854bafc36436d79560','the final selected PDF must match the verified source checksum');
+const approvedIds=approvedPackage.sections.flatMap(section=>section.items.map(item=>item.id));
+assert.equal(approvedIds.length,62,'final approved checklist must contain 62 checkpoints');
+assert.ok(approvedIds.includes('8.1'),'final approved checklist must include restored Camera Functionality checkpoint 8.1');
+assert.equal(approvedPackage.activation.status,'approved','final selected PDF package must be approved');
 const pkg={
  packageVersion:1,
  activation:{status:'approved'},
