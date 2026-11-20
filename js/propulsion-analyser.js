@@ -259,7 +259,7 @@
   ];
   calculatedParameterControls={};
   let derivedReadyCheckbox=null,filteringReadyCheckbox=null;
-  const areSelectedDerivedParametersCalculated=()=>Object.entries(calculatedParameterControls).filter(([,control])=>control.checkbox.checked).every(([key])=>calculatedParameterKeys.includes(key));
+  const areSelectedDerivedParametersCalculated=()=>{const selected=Object.entries(calculatedParameterControls).filter(([,control])=>control.checkbox.checked);return selected.length>0&&selected.every(([key])=>calculatedParameterKeys.includes(key));};
   const updateCsvGenerationGate=()=>{csvExportButton.hidden=!(filteringReadyCheckbox?.checked&&areSelectedDerivedParametersCalculated());};
   const updateDerivedProceedGate=()=>{derivedProceedButton.disabled=!areSelectedDerivedParametersCalculated();};
   const resetCsvConfirmationCheckboxes=()=>{
@@ -413,7 +413,7 @@
   derivedSection.append(calculatedParameters);
   step3Derived.append(derivedSection);
   const derivedProceedActions=el('div','propulsion-actions');
-  const derivedProceedButton=el('button','btn','Proceed to Data Sorting & Filtering');derivedProceedButton.type='button';
+  const derivedProceedButton=el('button','btn','Proceed to Data Sorting & Filtering');derivedProceedButton.type='button';derivedProceedButton.disabled=true;
   derivedProceedButton.addEventListener('click',()=>{
    if(!areSelectedDerivedParametersCalculated()){graphStatus.textContent='Complete every selected derived-parameter calculation before proceeding.';return;}
    step3Derived.hidden=false;step3Filter.hidden=false;step3FilterVisible=true;saveState();step3Filter.scrollIntoView({behavior:'smooth',block:'start'});
@@ -1244,9 +1244,9 @@ const statsPage=el('section','propulsion-report-summary-page');
   const updateMultiReadiness=()=>{
    const selected=Object.keys(sharedDerivedChecks).filter(key=>sharedDerivedChecks[key].checked);
    const allCalculated=selected.every(key=>sharedDerivedAdded.has(key));
-   const ready=allCalculated;
+   const ready=selected.length>0&&allCalculated;
    multiSession.logs.forEach(log=>{log._phase3Ready=ready;});
-   if(typeof multiDerivedProceed!=='undefined')multiDerivedProceed.disabled=!(commonEngine.DERIVED_BY_TEST[multiLogType]||[]).every(key=>sharedDerivedAdded.has(key));
+   if(typeof multiDerivedProceed!=='undefined')multiDerivedProceed.disabled=!ready;
    updateMultiGraphAvailability();
   };
   (['mechanicalPower','electricalPower','specificThrust']).forEach(key=>{
