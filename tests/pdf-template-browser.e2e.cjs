@@ -46,7 +46,7 @@ const server = http.createServer((req,res)=>{
    await renderer.renderPreview(mount,candidate,pkg.template,signature,photos);
    const sourcePages=mount.querySelectorAll('.yeti-pdf-source-page').length;
    const photoPages=mount.querySelectorAll('.yeti-pdf-photo-page').length;
-   const overlay=mount.querySelector('.yeti-pdf-source-page canvas:nth-child(2)');
+   const overlay=mount.querySelectorAll('.yeti-pdf-source-page')[1].querySelector('canvas:nth-child(2)');
    const overlayData=overlay.getContext('2d').getImageData(0,0,overlay.width,overlay.height).data;
    let overlayPixels=0;for(let i=3;i<overlayData.length;i+=4)if(overlayData[i]>0)overlayPixels++;
    if(sourcePages!==2||photoPages!==2)throw new Error('Preview must show 2 source pages plus 2 Photo Evidence pages; got '+sourcePages+' + '+photoPages);
@@ -60,6 +60,9 @@ const server = http.createServer((req,res)=>{
    if(finalText.slice(0,2).some(t=>/QA PRIVATE STATUS MARKER|QA PRIVATE REMARK MARKER|QA TRIAL METADATA MARKER/.test(t)))throw new Error('Disallowed dynamic checklist content leaked onto original PDF pages');
    if(!finalText[2].includes('PHOTO EVIDENCE')||!finalText[3].includes('PHOTO EVIDENCE'))throw new Error('Exported Photo Evidence page headings are missing');
    if(!finalText[2].includes('QA PHOTO 1')||!finalText[3].includes('QA PHOTO 5'))throw new Error('Photo Evidence captions are missing or incorrectly paginated');
+   const loadingPhoto={name:'QA LOADING PHOTO MUST NOT EXPORT',category:'loading',data:photos[0].data};
+   const filtered=renderer.safePhotos([...photos,loadingPhoto]);
+   if(filtered.length!==5||filtered.some(p=>p.category==='loading'))throw new Error('Loading/unloading photos must be excluded from Daily Airworthiness Photo Evidence');
    const candidateStatus=pkg.activation.status;
    return {templateId:pkg.document.templateId,packageStatus:candidateStatus,checksumVerified:true,checkpointCount:candidate.validation.checkpointCount,originalPdfPages:original.numPages,previewSourcePages:sourcePages,previewPhotoPages:photoPages,signaturePreviewPixels:overlayPixels,exportedPages:finalPdf.numPages,exportPhotoCaptions:[finalText[2],finalText[3]]};
   });
