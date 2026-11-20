@@ -145,6 +145,8 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
     await page.locator('#collapse').click();
     if (await page.locator('#list details.section[open]').count() !== 0) throw new Error('Daily checklist Collapse All did not close every section.');
 
+    const dailyTouchAction=await page.locator('#signaturePad').evaluate(el=>getComputedStyle(el).touchAction);
+    if(dailyTouchAction!=='none')throw new Error('Daily signature canvas must disable browser touch gestures; got '+dailyTouchAction);
     await drawSignature(page, '#signaturePad');
     await page.locator('#clearSignature').click();
     const clearedDailyPixels = await page.locator('#signaturePad').evaluate(el => {
@@ -207,6 +209,8 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
     await page.locator('#loadingCollapse').click();
     if (await page.locator('#loadingList details.loading-accordion[open]').count() !== 0) throw new Error('Loading checklist Collapse All did not close every section.');
 
+    const loadingTouchAction=await page.locator('#loadingSignaturePad').evaluate(el=>getComputedStyle(el).touchAction);
+    if(loadingTouchAction!=='none')throw new Error('Loading signature canvas must disable browser touch gestures; got '+loadingTouchAction);
     await drawSignature(page, '#loadingSignaturePad');
     await page.locator('#clearLoadingSignature').click();
     const clearedLoadingPixels = await page.locator('#loadingSignaturePad').evaluate(el => {
