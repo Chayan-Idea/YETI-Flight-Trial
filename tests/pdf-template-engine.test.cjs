@@ -9,7 +9,8 @@ for(const file of [
  'js/daily-airworthiness-template.js',
  'js/daily-airworthiness-pdf-manifest.js',
  'js/pdf-template-manager.js',
- 'js/pdf-coordinate-mapper.js'
+ 'js/pdf-coordinate-mapper.js',
+ 'js/pdf-template-package-loader.js'
 ])vm.runInContext(fs.readFileSync(path.join(root,file),'utf8'),context,{filename:file});
 const manifest=window.YETI_DAILY_AIRWORTHINESS_PDF_MANIFEST;
 const sections=window.YETI_DAILY_AIRWORTHINESS_TEMPLATE;
@@ -39,3 +40,15 @@ assert.equal(invalid.validation.valid,false,'incomplete coordinate map must be r
 assert.throws(()=>manager.activate(invalid,true),/invalid PDF template/);
 assert.throws(()=>manager.activate(manager.register(manifest,sections),false),/explicit approval/);
 console.log('PDF template engine checks passed: source geometry, '+ids.length+' checklist IDs, coordinate anchors, page assignment, bounds, fail-closed validation and explicit activation.');
+
+const packageLoader=window.YETI_PDF_TEMPLATE_PACKAGE;
+const pkg={
+ packageVersion:1,
+ document:{templateId:manifest.templateId,version:manifest.version,pageCount:manifest.sourcePages,pageWidth:manifest.page.width,pageHeight:manifest.page.height,orientation:'landscape'},
+ sourcePdf:{path:'assets/templates/dac/source.pdf',sha256:'a'.repeat(64)},
+ template:manifest,
+ sections
+};
+assert.equal(packageLoader.validatePackage(pkg).valid,true,'well-formed package should validate');
+assert.equal(packageLoader.validatePackage({...pkg,sourcePdf:{path:'source.pdf',sha256:'bad'}}).valid,false,'missing source checksum must be rejected');
+assert.equal(packageLoader.validatePackage({...pkg,sections:[...sections,{title:'Duplicate',items:[{id:'1.1',title:'duplicate'}]}]}).valid,false,'duplicate checkpoint package must be rejected');
