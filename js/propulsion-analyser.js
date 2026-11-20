@@ -1202,10 +1202,15 @@ const statsPage=el('section','propulsion-report-summary-page');
    multiSession.logs.forEach(log=>{log._phase3Ready=ready;});
    updateMultiGraphAvailability();
   };
-  (commonEngine.DERIVED_BY_TEST[multiLogType]||[]).forEach(key=>{
+  (['mechanicalPower','electricalPower','specificThrust']).forEach(key=>{
    const parameterName=key==='mechanicalPower'?'Mechanical Power':key==='electricalPower'?'Electrical Power':'Specific Thrust';
    const card=el('div','propulsion-calculated-parameter');card.dataset.parameterKey=key;
    const details=el('div','propulsion-calculated-parameter-details'),label=el('label','propulsion-calculated-parameter-label'),check=document.createElement('input');check.type='checkbox';check.value=key;check.setAttribute('aria-label','Calculate '+parameterName+' for all logs');
+   const requiredMappings=key==='mechanicalPower'?['torque','actualRpm']:key==='electricalPower'?['voltage','current']:['thrust','voltage','current'];
+   const testTypeSupports=(commonEngine.DERIVED_BY_TEST[multiLogType]||[]).includes(key);
+   const missingByLog=multiSession.logs.map(log=>({id:log.id,missing:requiredMappings.filter(name=>!Number.isInteger(log.mapping?.[name]))})).filter(item=>item.missing.length);
+   const unavailableReason=!testTypeSupports?(multiLogType==='thrust'&&key==='mechanicalPower'?'Mechanical Power requires Torque, which is not part of a Thrust test.':multiLogType==='torque'&&key==='specificThrust'?'Specific Thrust requires Thrust, which is not part of a Torque test.':parameterName+' is not supported for the selected test type.'):missingByLog.length?'Required mapping(s) missing: '+missingByLog.map(item=>'Log '+item.id+' — '+item.missing.join(', ')).join('; '):'';
+   const parameterUnavailable=!!unavailableReason;
    label.append(check,el('strong','',parameterName));
    const formulaLabel=el('span','propulsion-calculated-formula-label','FORMULA'),formula=el('div','propulsion-calculated-formula');
    if(key==='mechanicalPower'){
@@ -1213,7 +1218,7 @@ const statsPage=el('section','propulsion-report-summary-page');
     const fraction=el('span','propulsion-formula-fraction propulsion-formula-conversion');fraction.setAttribute('role','math');fraction.append(el('span','propulsion-formula-numerator','2π'),el('span','propulsion-formula-denominator','60'));formula.append(fraction);
    }else if(key==='electricalPower')formula.textContent='Electrical Power (W) = DC Voltage (V) × DC Current (A)';
    else{const equation=el('span','propulsion-formula-equation','Specific Thrust (N/W) = '),fraction=el('span','propulsion-formula-fraction');fraction.setAttribute('role','math');fraction.append(el('span','propulsion-formula-numerator','Thrust (N)'),el('span','propulsion-formula-denominator','Electrical Power (W)'));formula.append(equation,fraction);}
-   const note=el('div','propulsion-calculated-mapping-note','Inputs are taken from each log’s confirmed Step 02 parameter mapping.');
+   const note=el('div','propulsion-calculated-mapping-note',parameterUnavailable?'UNAVAILABLE: '+unavailableReason:'Inputs are taken from each log’s confirmed Step 02 parameter mapping.');
    details.append(label,formulaLabel,formula,note);
    const calculate=el('button','btn alt propulsion-calculated-action','Calculate and Add to All logs');calculate.type='button';calculate.disabled=true;
    calculate.title='Select the parameter and apply filtering to every log before calculating.';
@@ -1221,7 +1226,8 @@ const statsPage=el('section','propulsion-report-summary-page');
    addedStatus.setAttribute('role','status');addedStatus.setAttribute('aria-live','polite');
    const retry=el('button','btn alt propulsion-calculated-retry','Retry');retry.type='button';retry.hidden=true;
    sharedDerivedChecks[key]=check;sharedDerivedActions[key]={calculate,addedStatus,retry};
-   const updateAction=()=>{calculate.disabled=!check.checked||sharedDerivedAdded.has(key);calculate.title=check.checked?'Calculate this parameter for every filtered log.':'Select the checkbox to enable this calculation.';};
+   const updateAction=()=>{calculate.disabled=parameterUnavailable||!check.checked||sharedDerivedAdded.has(key);calculate.title=parameterUnavailable?unavailableReason:check.checked?'Calculate this parameter for every filtered log.':'Select the checkbox to enable this calculation.';};
+   check.addEventListener('click',event=>{if(parameterUnavailable){event.preventDefault();event.stopPropagation();window.alert(parameterName+' cannot be selected. '+unavailableReason);}});
    check.addEventListener('change',()=>{
     if(!check.checked){sharedDerivedAdded.delete(key);addedStatus.hidden=true;retry.hidden=true;calculate.hidden=false;calculate.textContent='Calculate and Add to Log file';card.classList.remove('is-added-to-graph');}
     multiSession.logs.forEach(log=>{log._phase3Ready=false;log._derivedKeys=[...sharedDerivedAdded];if(log._phase3Filtered)commonEngine.calculateLog(log,multiLogType,log._derivedKeys);if(log._phase3Card)renderMultiLogPreview(log,log._phase3Card._phase3Controls.tableHost,log._derivedKeys);});
@@ -1276,6 +1282,7 @@ const statsPage=el('section','propulsion-report-summary-page');
     note.textContent='Calculation reset. Select the parameter and calculate it again for all logs.';
     updateMultiReadiness();updateMultiCsvGate();
    });
+   if(parameterUnavailable){card.classList.add('is-parameter-unavailable');check.setAttribute('aria-describedby','');calculate.disabled=true;calculate.title=unavailableReason;}
    card.append(details,calculate,addedStatus,retry);sharedDerivedCards.append(card);
   });
   sharedDerivedSection.append(sharedDerivedCards);
