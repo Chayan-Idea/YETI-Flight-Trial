@@ -108,7 +108,8 @@ def analyse(source: Path):
         "reviewChecklist":["Compare every extracted ID and description with the rendered source PDF.",
             "Review multi-line and merged-cell text; spatial association is a candidate, not semantic interpretation.",
             "Confirm no checklist row is missing or merged with a neighbouring row.",
-            "Review scanned/image-only pages separately; OCR is not silently assumed.",\n            "Investigate numbering gaps without inventing missing checklist items.",
+            "Review scanned/image-only pages separately; OCR is not silently assumed.",
+            "Investigate numbering gaps without inventing missing checklist items.",
             "Map status, remarks, signature and evidence areas explicitly before approval."]}
 
 def main():
