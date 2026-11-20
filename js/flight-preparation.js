@@ -122,34 +122,33 @@ function fromGviz(payload){if(payload.status==='error')throw Error(payload.error
 let evidencePhotos=[];const PHOTO_DB='yeti-photo-evidence',PHOTO_STORE='photos';function openPhotoDB(){return new Promise((resolve,reject)=>{let req=indexedDB.open(PHOTO_DB,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(PHOTO_STORE))req.result.createObjectStore(PHOTO_STORE,{keyPath:'id',autoIncrement:true})};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}async function photoDB(action,value){let db=await openPhotoDB();return new Promise((resolve,reject)=>{let tx=db.transaction(PHOTO_STORE,action==='getAll'?'readonly':'readwrite'),store=tx.objectStore(PHOTO_STORE),req=action==='getAll'?store.getAll():action==='add'?store.add(value):store.delete(value);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);tx.oncomplete=()=>db.close()})}function photoData(file){return new Promise((resolve,reject)=>{let fr=new FileReader();fr.onload=()=>resolve(fr.result);fr.onerror=reject;fr.readAsDataURL(file)})}async function renderPhotoThumbs(){try{evidencePhotos=await photoDB('getAll')}catch(e){$('photoStatus').textContent='Photo storage is unavailable in this browser.';return}let dailyPhotos=evidencePhotos.filter(p=>(p.category||'daily')==='daily');$('photoStatus').textContent=dailyPhotos.length+' photo(s) added. Photos will appear after the checklist in the PDF.';$('photoThumbs').innerHTML=dailyPhotos.map(p=>'<div class="photo-thumb"><img src="'+p.data+'" alt="'+esc(p.name)+'"><div class="muted">'+esc(p.name)+'</div><button class="btn alt" data-remove-photo="'+p.id+'">Remove</button></div>').join('');if($('loadingPhotoThumbs')){let loadingPhotos=evidencePhotos.filter(p=>p.category==='loading');$('loadingPhotoStatus').textContent=loadingPhotos.length+' photo(s) added.';$('loadingPhotoThumbs').innerHTML=loadingPhotos.map(p=>'<div class="photo-thumb"><img src="'+p.data+'" alt="'+esc(p.name)+'"><div class="muted">'+esc(p.name)+'</div><button class="btn alt" data-remove-photo="'+p.id+'">Remove</button></div>').join('')}}async function addPhotoFiles(files,category='daily'){for(let file of Array.from(files||[])){if(!file.type.startsWith('image/'))continue;let data=await photoData(file);try{let img=await createImageBitmap(file),scale=Math.min(1,1600/Math.max(img.width,img.height)),canvas=document.createElement('canvas');canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);data=canvas.toDataURL('image/jpeg',.82);img.close?.()}catch(e){}await photoDB('add',{name:file.name,data,category,addedAt:new Date().toISOString()})}await renderPhotoThumbs();$('cameraPhotos').value='';$('galleryPhotos').value='';if($('loadingCameraPhotos'))$('loadingCameraPhotos').value='';if($('loadingGalleryPhotos'))$('loadingGalleryPhotos').value=''}$('cameraPhotos').addEventListener('change',e=>addPhotoFiles(e.target.files).catch(()=>{$('photoStatus').textContent='Unable to save photos. Check available browser storage.'}));$('galleryPhotos').addEventListener('change',e=>addPhotoFiles(e.target.files).catch(()=>{$('photoStatus').textContent='Unable to save photos. Check available browser storage.'}));$('photoThumbs').addEventListener('click',async e=>{let id=e.target.dataset.removePhoto;if(!id)return;await photoDB('delete',Number(id));await renderPhotoThumbs()});
 $('loadingCameraPhotos').addEventListener('change',e=>addPhotoFiles(e.target.files,'loading').catch(()=>{$('loadingPhotoStatus').textContent='Unable to save photos.'}));$('loadingGalleryPhotos').addEventListener('change',e=>addPhotoFiles(e.target.files,'loading').catch(()=>{$('loadingPhotoStatus').textContent='Unable to save photos.'}));$('loadingPhotoThumbs').addEventListener('click',async e=>{let id=e.target.dataset.removePhoto;if(!id)return;await photoDB('delete',Number(id));await renderPhotoThumbs()});async function buildPreview(skipPhotoRefresh=false){
  if(!skipPhotoRefresh)await renderPhotoThumbs();
+ const now=new Date();
  const all=sections.flatMap(sec=>sec.items);
  const statusItems=all.filter(item=>item.id!=='9.0'&&item.id!=='3.1'&&!sections.find(sec=>sec.items.includes(item))?.title.startsWith('1. UAV Specification'));
  const statusRecorded=statusItems.filter(item=>['Pass','Fail','Not Available'].includes(answers[item.id]?.status)).length;
  const cell=v=>esc(v||'');
- const doc=window.YETI_DAILY_AIRWORTHINESS_DOCUMENT||{};
- const metadata=[['Trial Phase',trialInfo.phase],['Trial Stage',trialInfo.stage],['Flight Place',trialInfo.place],['Flight Date',trialInfo.date]];
- let html='<div class="print-document print-source-faithful"><table class="print-master-header"><tr><td class="print-master-title"><div class="print-master-brand"><img src="assets/ideaforge-logo.png" alt="ideaForge"></div><h2>'+cell(doc.title||'Daily Airworthiness Checklist')+'</h2></td><td class="print-master-meta"><b>Doc Number: '+cell(doc.documentNumber||'IF_YETI_TD0_FTR_CKT_005')+'</b>'+metadata.map(([k,v])=>'<div><b>'+k+' :</b> '+cell(v)+'</div>').join('')+'</td></tr></table>';
- html+='<table class="print-checklist print-master-table"><colgroup><col style="width:6%"><col style="width:14%"><col style="width:39%"><col style="width:3.5%"><col style="width:3.5%"><col style="width:6.5%"><col style="width:27.5%"></colgroup><thead><tr><th>Sl. No</th><th colspan="2">Checklist</th><th>Pass</th><th>Fail</th><th>Not Available</th><th>Remarks</th></tr></thead><tbody>';
+ const meta=(label,value)=>'<div><b>'+label+':</b> '+cell(value)+'</div>';
+ let html='<div class="print-document"><div class="print-doc-head"><div class="print-logo-panel"><img src="assets/ideaforge-logo.png" alt="ideaForge logo"></div><h2>'+cell(window.YETI_DAILY_AIRWORTHINESS_DOCUMENT?.title||"Daily Airworthiness Checklist")+'</h2><div class="print-doc-meta"><b>Doc Number: '+cell(window.YETI_DAILY_AIRWORTHINESS_DOCUMENT?.documentNumber||"IF_YETI_TD0_FTR_CKT_005")+'</b>'+meta('UAV Name / ID',trialInfo.uavNameId)+meta('Trial Phase',trialInfo.phase)+meta('Trial Stage',trialInfo.stage)+meta('Flight Place',trialInfo.place)+meta('Flight Date',trialInfo.date)+'</div></div>';
+ html+='<table class="print-checklist"><colgroup><col style="width:6%"><col style="width:24%"><col style="width:39%"><col style="width:13%"><col style="width:18%"></colgroup><thead><tr><th>Sl. No</th><th colspan="2">Checklist</th><th>Result</th><th>Remarks</th></tr></thead><tbody>';
  for(const sec of sections){
-  html+='<tr class="print-section-row"><td colspan="7">'+cell(sec.title)+'</td></tr>';
+  html+='<tr class="print-section-row"><td colspan="5">'+cell(sec.title)+'</td></tr>';
   for(const group of groupedItems(sec,sec.items)){
-   const rows=group.items;
-   rows.forEach((item,index)=>{
+   html+='<tr class="print-subsection-row"><td colspan="5">'+cell(group.name)+'</td></tr>';
+   for(const item of group.items){
     const ans=answers[item.id]||{};
     if(item.id==='9.0'){
-     html+='<tr class="print-item-row print-review-row"><td class="print-serial">9</td><td colspan="2"><b>Checker + Reviewer</b><div class="print-remarks">'+cell(ans.remarks)+'</div>'+(ans.signature?'<img class="print-signature" src="'+ans.signature+'" alt="Checker / Reviewer signature">':'')+'</td><td colspan="4" class="print-review-signature">'+(ans.signature?'<span>Signature recorded</span>':'')+'</td></tr>';
-     return;
+     html+='<tr class="print-item-row"><td class="print-serial">9</td><td colspan="4"><b>Overall Remarks</b><div class="print-remarks">'+cell(ans.remarks)+'</div>'+(ans.signature?'<div class="print-other-label">Checker / Reviewer Signature</div><img class="print-signature" src="'+ans.signature+'" alt="Checker / Reviewer signature">':'<div class="print-empty-note">Signature not entered</div>')+'</td></tr>';
+     continue;
     }
     const isSpec=sec.title.startsWith('1. UAV Specification');
     const isSetup=item.id==='3.1';
     const values=(item.valueFields||[]).map(field=>field.label+': '+(ans.values?.[field.key]||'')).filter(value=>!value.endsWith(': ')).join(' | ');
     const criteria=(item.criteria||[]).join('; ');
-    const description=[isSetup?cell(ans.values?.setupDescription||''):cell(item.title),cell(criteria),cell(values)].filter(Boolean).join('<br>');
-    const mark=status=>ans.status===status?'✓':'';
-    const resultCells=isSpec||isSetup?'<td></td><td></td><td></td>':'<td class="print-mark">'+mark('Pass')+'</td><td class="print-mark">'+mark('Fail')+'</td><td class="print-mark">'+mark('Not Available')+'</td>';
-    const groupCell=index===0?'<td class="print-category" rowspan="'+rows.length+'">'+cell(group.name)+'</td>':'';
-    html+='<tr class="print-item-row"><td class="print-serial">'+cell(item.id)+'</td>'+groupCell+'<td class="print-description">'+description+'</td>'+resultCells+'<td class="print-remarks">'+cell(ans.remarks)+'</td></tr>';
-   });
+    const check=value=>ans.status===value?'✓':'';
+    const checkpoint=isSetup?cell(ans.values?.setupDescription||''):cell(item.title);
+    const criterionText=[cell(criteria),cell(values)].filter(Boolean).join('<br>');const descriptionCells=(!checkpoint||!criterionText)?'<td colspan="2">'+[checkpoint,criterionText].filter(Boolean).join('<br>')+'</td>':'<td>'+checkpoint+'</td><td>'+criterionText+'</td>';
+    const resultStyle=ans.status==='Pass'?'background-color:#d9f0df!important;color:#146c36!important;border:2px solid #8bc99c!important;box-shadow:inset 0 0 0 100px #d9f0df!important;':ans.status==='Fail'?'background-color:#fde2e2!important;color:#a51f2b!important;border:2px solid #e5a0a5!important;box-shadow:inset 0 0 0 100px #fde2e2!important;':ans.status==='Not Available'?'background-color:#343a40!important;color:#ffffff!important;border:2px solid #20252a!important;box-shadow:inset 0 0 0 100px #343a40!important;':'';const resultBadge=ans.status?'<span class="print-result-badge" style="display:inline-block;min-width:76px;padding:5px 7px;border-radius:5px;text-align:center;font-size:9px;font-weight:900;letter-spacing:.03em;text-transform:uppercase;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;forced-color-adjust:none!important;'+resultStyle+'">'+cell(ans.status)+'</span>':'';html+='<tr class="print-item-row '+(item.id==='4.9.1'?'print-page-break-before':'')+'"><td class="print-serial">'+cell(item.id)+'</td>'+descriptionCells+'<td class="print-result">'+(isSpec||isSetup?'':resultBadge)+'</td><td class="print-remarks">'+cell(ans.remarks)+'</td></tr>';
+   }
   }
  }
  html+='</tbody></table><div class="print-footer"><span>Checklist status recorded: '+statusRecorded+' / '+statusItems.length+'</span></div>';
@@ -161,7 +160,7 @@ $('loadingCameraPhotos').addEventListener('change',e=>addPhotoFiles(e.target.fil
 $('previewBtn').onclick=async()=>{$('previewPanel').classList.add('show');await buildPreview();$('previewPanel').scrollIntoView({behavior:'smooth',block:'start'})};
 $('closePreview').onclick=()=>{$('previewPanel').classList.remove('show')};
 
-function exportChecklistPdf(previewId,title){
+async function exportChecklistPdf(previewId,title){
  const printWindow=window.open('','_blank');
  if(!printWindow){alert('Please allow pop-ups for this site, then select Export as PDF again.');return}
  try{
@@ -171,33 +170,7 @@ function exportChecklistPdf(previewId,title){
   content.querySelectorAll('button').forEach(el=>el.remove());
   const base=document.createElement('base');base.href=location.href;
   const styles=`
-   
-   @page{size:A4 landscape;margin:8mm}
-   .print-source-faithful{width:100%;max-width:none;font-family:Arial,Helvetica,sans-serif;color:#000}
-   .print-master-header{width:100%;border-collapse:collapse;table-layout:fixed;margin:0;border:1px solid #000}
-   .print-master-header td{border:1px solid #000;background:#eee;padding:3px 5px;vertical-align:middle}
-   .print-master-title{width:60%;height:48mm;position:relative;text-align:center}
-   .print-master-title h2{font-size:17pt;margin:0;font-weight:700}
-   .print-master-brand{position:absolute;left:5mm;top:50%;transform:translateY(-50%);width:19mm;height:19mm;display:flex;align-items:center;justify-content:center}
-   .print-master-brand img{max-width:100%;max-height:100%;object-fit:contain}
-   .print-master-meta{width:40%;font-size:8pt;line-height:1.35;font-weight:400;padding-left:2mm!important}
-   .print-master-meta>div{min-height:4mm}
-   .print-master-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:7.2pt;margin:0}
-   .print-master-table th,.print-master-table td{border:1px solid #000;padding:1.15mm 1.2mm;vertical-align:middle;overflow-wrap:anywhere;line-height:1.12}
-   .print-master-table thead th{background:#c6d9f1!important;text-align:center;font-weight:700;white-space:normal}
-   .print-master-table .print-section-row td{background:#eee!important;text-align:center;font-weight:700;padding:1mm}
-   .print-master-table .print-category{text-align:center;white-space:pre-line;font-size:6.7pt}
-   .print-master-table .print-serial{text-align:center;white-space:nowrap;font-size:6.7pt}
-   .print-master-table .print-description{font-size:6.8pt}
-   .print-master-table .print-mark{text-align:center;font-size:11pt;font-weight:700}
-   .print-master-table .print-remarks{font-size:6.8pt;min-height:5mm}
-   .print-master-table tr{break-inside:avoid;page-break-inside:avoid}
-   .print-master-table thead{display:table-header-group}
-   .print-master-table .print-review-row td{height:14mm}
-   .print-review-signature{text-align:center}
-   .print-master-table .print-signature{max-width:45mm;max-height:16mm;object-fit:contain}
-   .print-photo-section{break-before:page;page-break-before:always}
-
+   @page{size:A4 landscape;margin:9mm}
    *{box-sizing:border-box;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
    html,body{margin:0;padding:0;width:100%;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif}
    body{padding:0;orphans:3;widows:3}
