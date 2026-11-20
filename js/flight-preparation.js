@@ -171,7 +171,7 @@ $('loadingCameraPhotos').addEventListener('change',e=>addPhotoFiles(e.target.fil
    sec.items.forEach(item=>target.push(makeItem(item,null,item.id==='3.1'?'Setup Description: '+safe(field(a('3.1'),'setupDescription')):safe(item.title))));
   }else if(sec.title.startsWith('5.')){
    target.push(sectionRow(sec.title));
-   sec.items.forEach(item=>target.push(makeItem(item,null,safe(item.title)+(item.criteria||[]).length?'<br>'+item.criteria.map(safe).join('<br>'):'')));
+   sec.items.forEach(item=>target.push(makeItem(item,null,safe(item.title)+((item.criteria||[]).length?'<br>'+item.criteria.map(safe).join('<br>'):''))));
   }else if(sec.title.startsWith('6.')){
    target.push(sectionRow(sec.title));
    sec.items.forEach(item=>{
