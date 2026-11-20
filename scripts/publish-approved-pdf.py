@@ -29,10 +29,25 @@ def validate_reviewed_package(package,pdf_digest,candidate,review_path):
         raise ValueError("Reviewed package must identify its reviewer and review record.")
     if review.get("sourceSha256")!=pdf_digest or package.get("sourcePdf",{}).get("sha256")!=pdf_digest:
         raise ValueError("Reviewed package checksum does not match the supplied PDF.")
-    expected=[str(p.get("id","")).strip() for p in candidate.get("checkpointCandidates",[])]
+    expected=[str(point.get("id","")).strip() for point in candidate.get("checkpointCandidates",[])]
     actual=[str(item.get("id","")).strip() for section in package.get("sections",[]) for item in section.get("items",[])]
-    if not expected or actual!=expected:
-        raise ValueError("Reviewed checkpoint IDs/order must exactly match the source-bound extraction. Correct the review package before release.")
+    corrections=review.get("idCorrections",{})
+    additions=review.get("manuallyAddedCheckpointIds",[])
+    if not isinstance(corrections,dict) or not isinstance(additions,list):
+        raise ValueError("ID correction/addition review records must be structured values.")
+    corrected=[str(corrections.get(ident,ident)).strip() for ident in expected]
+    if not expected or len(actual)!=len(set(actual)) or review.get("reviewedCheckpointIds")!=actual:
+        raise ValueError("Reviewed checkpoint IDs must be unique and explicitly attested in displayed order.")
+    # Extracted points must remain in their original order. A reviewer may explicitly correct OCR IDs or insert manually verified missed points.
+    cursor=0
+    for ident in corrected:
+        try: cursor=actual.index(ident,cursor)+1
+        except ValueError: raise ValueError("A source-extracted checkpoint is missing or reordered in the reviewed package: "+ident)
+    extras=[ident for ident in actual if ident not in corrected]
+    if set(extras)!=set(additions) or len(extras)!=len(additions):
+        raise ValueError("Every manually added checkpoint must be explicitly listed in manuallyAddedCheckpointIds.")
+    if set(corrections)-set(expected):
+        raise ValueError("ID corrections may only refer to IDs extracted from this exact source PDF.")
     if any(not str(item.get("title","")).strip() for section in package.get("sections",[]) for item in section.get("items",[])):
         raise ValueError("Every checkpoint needs a reviewed non-empty description.")
     if review.get("reviewedCheckpointIds")!=expected:
