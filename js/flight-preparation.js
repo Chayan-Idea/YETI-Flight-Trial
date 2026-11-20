@@ -329,6 +329,7 @@ window.addEventListener('yeti:pdf-template-activated',event=>{
   }catch(e){}
   answers={};trialInfo={};
   ['uavNameId','trialPhase','trialStage','flightPlace','flightDate'].forEach(id=>{if($(id))$(id).value=''});
+  const dailySignature=$('signaturePad');if(dailySignature)dailySignature.getContext('2d').clearRect(0,0,dailySignature.width,dailySignature.height);
   sourceKey=nextStateKey;expandedDailySections.clear();
   (async()=>{for(const photo of evidencePhotos.filter(p=>(p.category||'daily')==='daily')){try{await photoDB('delete',photo.id)}catch(e){}}
    await renderPhotoThumbs();buildPreview(true);
