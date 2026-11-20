@@ -20,7 +20,7 @@ def analyse(source: Path):
     if document.is_encrypted and not document.authenticate(""):
         raise ValueError("Encrypted PDFs are not supported for automatic extraction.")
     pages, checkpoints = [], []
-    latest_section_by_page = {}
+    latest_section = None
     for page_index, page in enumerate(document):
         words = page.get_text("words", sort=True)
         blocks = page.get_text("dict")["blocks"]
@@ -42,10 +42,10 @@ def analyse(source: Path):
             for index, word in enumerate(line_words):
                 token = word[4].strip()
                 line_text = " ".join(w[4] for w in line_words).strip()
-                if SECTION_NUMBER.fullmatch(token):
+                if SECTION_NUMBER.fullmatch(token) and float(word[0]) > 250:
                     heading = " ".join(w[4] for w in line_words[index + 1:]).strip()
                     if heading:
-                        latest_section_by_page[page_index + 1] = heading
+                        latest_section = heading
                     continue
                 # Checkpoint IDs live in the left serial-number column. Numeric
                 # thresholds embedded in descriptions (e.g. 13.9 V or 3.3 V)
@@ -65,7 +65,7 @@ def analyse(source: Path):
                     "bbox": [round(float(value), 2) for value in word[:4]],
                     "lineText": " ".join(w[4] for w in line_words),
                     "descriptionCandidate": description,
-                    "sectionTitleCandidate": latest_section_by_page.get(page_index + 1, f"Page {page_index + 1}"),
+                    "sectionTitleCandidate": latest_section or f"Page {page_index + 1}",
                     "block": key[0], "line": key[1]
                 }
                 checkpoints.append(item)
