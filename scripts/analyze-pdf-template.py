@@ -47,7 +47,10 @@ def analyse(source: Path):
                     if heading:
                         latest_section_by_page[page_index + 1] = heading
                     continue
-                if not CHECKPOINT.fullmatch(token):
+                # Checkpoint IDs live in the left serial-number column. Numeric
+                # thresholds embedded in descriptions (e.g. 13.9 V or 3.3 V)
+                # must never be misclassified as checklist IDs.
+                if not CHECKPOINT.fullmatch(token) or float(word[0]) > 120:
                     continue
                 description = " ".join(w[4] for w in line_words[index + 1:]).strip()
                 item = {
