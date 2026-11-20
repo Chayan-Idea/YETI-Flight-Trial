@@ -50,11 +50,18 @@ def analyse(source: Path):
                 # Checkpoint IDs live in the left serial-number column. Numeric
                 # thresholds embedded in descriptions (e.g. 13.9 V or 3.3 V)
                 # must never be misclassified as checklist IDs.
-                if not CHECKPOINT.fullmatch(token) or float(word[0]) > 120:
+                if float(word[0]) > 120:
                     continue
-                description = " ".join(w[4] for w in line_words[index + 1:]).strip()
+                if token == "9":
+                    checkpoint_id = "9.0"
+                    description = "Other details"
+                elif CHECKPOINT.fullmatch(token):
+                    checkpoint_id = token
+                    description = " ".join(w[4] for w in line_words[index + 1:]).strip()
+                else:
+                    continue
                 item = {
-                    "id": token, "page": page_index + 1,
+                    "id": checkpoint_id, "page": page_index + 1,
                     "bbox": [round(float(value), 2) for value in word[:4]],
                     "lineText": " ".join(w[4] for w in line_words),
                     "descriptionCandidate": description,
