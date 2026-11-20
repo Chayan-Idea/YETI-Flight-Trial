@@ -239,10 +239,14 @@
   const proceed=el('button','btn','Proceed with In App Analysis');proceed.type='button';proceed.id='proceedToParameterSummaryBtn';proceed.hidden=true;const directReportProceed=el('button','btn alt','Proceed with Report Generation');directReportProceed.type='button';directReportProceed.id='proceedToReportGenerationChoiceBtn';directReportProceed.hidden=true;
   const step3=el('section','propulsion-statistics-card propulsion-step-card propulsion-step-card--green');step3.id='propulsionParameterSummaryCard';step3.hidden=true;
   workspace.insertBefore(analysisPanel,workspace.querySelector('.propulsion-local-note'));
+  const step3Derived=el('section','propulsion-step-card propulsion-step-card--green');step3Derived.id='propulsionDerivedParameterCalculationCard';step3Derived.hidden=true;
+  step3Derived.append(el('span','propulsion-step-label','STEP 03 · DERIVED PARAMETER CALCULATION'));
+  step3Derived.append(el('h3','','Derived Parameter Identification & Calculation'));
+  step3Derived.append(el('p','propulsion-statistics-description','Select the derived parameters you need, review their formulas and calculate row-wise values before proceeding.'));
   const step3Filter=el('section','propulsion-step-card propulsion-step-card--orange');step3Filter.id='propulsionDataFilteringCard';step3Filter.hidden=true;
-  step3Filter.append(el('span','propulsion-step-label','STEP 03 · DATA FILTERING & SORTING'));
-  step3Filter.append(el('h3','','Data Filtering & Sorting'));
-  step3Filter.append(el('p','propulsion-statistics-description','Select calculated parameters to add row-wise derived data columns. Formula definitions and calculation actions will be enabled as each formula is provided.'));
+  step3Filter.append(el('span','propulsion-step-label','STEP 04 · DATA SORTING & FILTERING'));
+  step3Filter.append(el('h3','','Data Sorting & Filtering'));
+  step3Filter.append(el('p','propulsion-statistics-description','Apply the existing Actual RPM validity filter and chronological timestamp sorting to prepare the final CSV.'));
   const derivedSection=el('section','propulsion-step-subsection propulsion-step-subsection--derived');
   derivedSection.append(el('h4','','Derived Parameter Identification & Calculation'));
   derivedSection.append(el('p','propulsion-subsection-description','Select derived parameters, review their mapped inputs and calculate row-wise values.'));
@@ -255,7 +259,9 @@
   ];
   calculatedParameterControls={};
   let derivedReadyCheckbox=null,filteringReadyCheckbox=null;
-  const updateCsvGenerationGate=()=>{csvExportButton.hidden=!(derivedReadyCheckbox?.checked&&filteringReadyCheckbox?.checked);};
+  const areSelectedDerivedParametersCalculated=()=>Object.entries(calculatedParameterControls).filter(([,control])=>control.checkbox.checked).every(([key])=>calculatedParameterKeys.includes(key));
+  const updateCsvGenerationGate=()=>{csvExportButton.hidden=!(filteringReadyCheckbox?.checked&&areSelectedDerivedParametersCalculated());};
+  const updateDerivedProceedGate=()=>{derivedProceedButton.disabled=!areSelectedDerivedParametersCalculated();};
   const resetCsvConfirmationCheckboxes=()=>{
    // Resolve by live DOM ID as well as the retained references so the visible controls always reset.
    const derived=document.getElementById('confirmDerivedParametersReady')||derivedReadyCheckbox;
@@ -268,7 +274,7 @@
   const invalidateGeneratedCsv=(message)=>{
    // Any edit within Step 03 invalidates every downstream analysis/report section immediately.
    step3Visible=false;step4Visible=false;step5Visible=false;reportDirectVisible=false;
-   step3.hidden=true;step4.hidden=true;step5.hidden=true;
+   step3.hidden=true;step4.hidden=true;step5.hidden=true;step3Derived.hidden=false;step3Filter.hidden=true;step3FilterVisible=false;
    step3.replaceChildren();
    csvExportButton.disabled=false;
    resetCsvConfirmationCheckboxes();
@@ -321,7 +327,7 @@
    retry.type='button';retry.hidden=true;retry.disabled=!parameterEnabled;
    retry.title='Enable this calculation again.';
    calculatedParameterControls[parameter.key]={checkbox,calculate,retry,updateMappingNote};
-   checkbox.addEventListener('change',()=>{calculate.disabled=addedToGraph||!checkbox.checked;invalidateGeneratedCsv('Derived parameter selection changed. Generate Filtered & Sorted CSV again to apply the latest selections.');saveState();});
+   checkbox.addEventListener('change',()=>{calculate.disabled=addedToGraph||!checkbox.checked;invalidateGeneratedCsv('Derived parameter selection changed. Review the calculations before proceeding to Data Sorting & Filtering.');updateDerivedProceedGate();saveState();});
    retry.addEventListener('click',()=>{
     // A Retry is a derived-parameter edit: immediately invalidate the CSV confirmation gate and downstream output.
     invalidateGeneratedCsv('A derived parameter was reset. Review the derived parameters and re-confirm both CSV preparation checkboxes before generating the file again.');
@@ -338,6 +344,7 @@
     retry.hidden=true;
     card.classList.remove('is-added-to-graph');
     calculatedParameterKeys=calculatedParameterKeys.filter(key=>key!==parameter.key);
+    updateDerivedProceedGate();
     const derivedIndex=headerRow.indexOf(parameter.name);
     if(derivedIndex>=originalHeaderCount){
      headerRow.splice(derivedIndex,1);
@@ -399,22 +406,34 @@
     retry.hidden=false;
     checkbox.disabled=true;
     card.classList.add('is-added-to-graph');
-    saveState();
+    updateDerivedProceedGate();saveState();
    });
    card.append(details,calculate,addedStatus,retry);calculatedParameters.append(card);
   });
   derivedSection.append(calculatedParameters);
-  step3Filter.append(derivedSection);
+  step3Derived.append(derivedSection);
+  const derivedProceedActions=el('div','propulsion-actions');
+  const derivedProceedButton=el('button','btn','Proceed to Data Sorting & Filtering');derivedProceedButton.type='button';
+  derivedProceedButton.addEventListener('click',()=>{
+   if(!areSelectedDerivedParametersCalculated()){graphStatus.textContent='Complete every selected derived-parameter calculation before proceeding.';return;}
+   step3Derived.hidden=true;step3Filter.hidden=false;step3FilterVisible=true;saveState();step3Filter.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+  derivedProceedActions.append(derivedProceedButton);step3Derived.append(derivedProceedActions);
   const csvSection=el('section','propulsion-step-subsection propulsion-step-subsection--csv');
   csvSection.append(el('h4','','CSV Generation with Filtered & Sorted Data'));
   csvSection.append(el('p','propulsion-subsection-description','Export rows after applying the Actual RPM validity filter, chronological timestamp sorting where available, and all calculated derived-parameter columns.'));
   const csvStatus=el('p','propulsion-csv-export-status','Ready to generate from '+analysisRows.length.toLocaleString()+' identified data rows and '+headerRow.length.toLocaleString()+' available columns.');
   csvStatus.setAttribute('role','status');csvStatus.setAttribute('aria-live','polite');
   const csvConfirmation=el('div','propulsion-csv-confirmations');
-  const derivedReadyLabel=el('label','propulsion-csv-confirmation');derivedReadyCheckbox=document.createElement('input');derivedReadyCheckbox.type='checkbox';derivedReadyCheckbox.id='confirmDerivedParametersReady';derivedReadyLabel.append(derivedReadyCheckbox,el('span','','Required Derived Parameters identified, calculated, added to log file'));
   const filteringReadyLabel=el('label','propulsion-csv-confirmation');filteringReadyCheckbox=document.createElement('input');filteringReadyCheckbox.type='checkbox';filteringReadyCheckbox.id='confirmFilteringSortingReady';filteringReadyLabel.append(filteringReadyCheckbox,el('span','','Apply Data Filtering & Sorting Logic'));
-  [derivedReadyCheckbox,filteringReadyCheckbox].forEach(input=>input.addEventListener('change',updateCsvGenerationGate));
-  csvConfirmation.append(derivedReadyLabel,filteringReadyLabel);
+  filteringReadyCheckbox.addEventListener('change',()=>{
+   if(!filteringReadyCheckbox.checked&&generatedCsvText){
+    generatedCsvText='';csvDownloadButton.hidden=true;csvExportButton.disabled=false;filteredCsvPreviewHost.replaceChildren();
+    proceed.hidden=true;directReportProceed.hidden=true;csvStatus.textContent='Filtering & sorting confirmation cleared. Confirm again and regenerate the CSV.';
+   }
+   updateCsvGenerationGate();
+  });
+  csvConfirmation.append(filteringReadyLabel);
   const csvExportButton=el('button','btn','Generate Filtered & Sorted CSV');csvExportButton.type='button';csvExportButton.hidden=true;
   const csvDownloadButton=el('button','btn','Download Filtered & Sorted CSV');csvDownloadButton.type='button';csvDownloadButton.hidden=true;
   let generatedCsvText='';
@@ -455,11 +474,12 @@
    csvStatus.textContent='Filtered & sorted CSV prepared: '+exportRows.length.toLocaleString()+' filtered rows and '+headerRow.length.toLocaleString()+' columns. Derived columns included where calculated. Download is available.';csvExportButton.disabled=true;csvDownloadButton.hidden=false;proceed.hidden=false;directReportProceed.hidden=false;saveState();
   });
   step3Filter.append(csvSection);
-  const filterActions=el('div','propulsion-actions');filterActions.append(proceed,directReportProceed);
+  const filterActions=el('div','propulsion-actions');filterActions.append(proceed,directReportProceed);step3Filter.append(filterActions);
+  workspace.insertBefore(step3Derived,workspace.querySelector('.propulsion-local-note'));
   workspace.insertBefore(step3Filter,workspace.querySelector('.propulsion-local-note'));
   workspace.insertBefore(step3,workspace.querySelector('.propulsion-local-note'));
   const step4=el('section','propulsion-graphical-card propulsion-step-card propulsion-step-card--blue');step4.id='propulsionGraphicalAnalysisCard';step4.hidden=true;
-  step4.append(el('span','propulsion-step-label','STEP 05 · GRAPHICAL ANALYSIS'));step4.append(el('h3','','Graphical Analysis'));
+  step4.append(el('span','propulsion-step-label','STEP 06 · GRAPHICAL ANALYSIS'));step4.append(el('h3','','Graphical Analysis'));
   step4.append(el('p','propulsion-statistics-description','Select any two numeric CSV columns to plot their relationship.'));
   const graphControls=el('div','propulsion-graph-controls');
   const makeAxisField=(labelText,id)=>{const label=el('label','propulsion-graph-field',labelText);const select=el('select','propulsion-column-select');select.id=id;const empty=document.createElement('option');empty.value='';empty.textContent='Select a CSV column';select.append(empty);const mappedIndices=new Set(specs.filter(spec=>mapping[spec.key]&&mapping[spec.key].selected!==''&&mapping[spec.key].selected!==undefined).map(spec=>Number(mapping[spec.key].selected)));calculatedParameterKeys.forEach(key=>{const derivedName=calculatedParameterDefinitions.find(parameter=>parameter.key===key)?.name;const derivedIndex=derivedName?headerRow.indexOf(derivedName):-1;if(derivedIndex>=0)mappedIndices.add(derivedIndex)});const numericIndices=new Set(headerRow.map((_,index)=>index).filter(index=>analysisRows.some(row=>{const raw=String(row[index]??'').trim();return raw!==''&&Number.isFinite(Number(raw))})));headerRow.forEach((name,index)=>{
@@ -675,9 +695,9 @@
      plotButton.click();
    });
     const step5=el('section','propulsion-report-card propulsion-step-card propulsion-step-card--purple');step5.id='propulsionReportGenerationCard';step5.hidden=true;
-  const returnToDataFiltering=()=>{reportDirectVisible=false;step3FilterVisible=true;step3Visible=false;step4Visible=false;step5Visible=false;analysisPanel.hidden=false;step3Filter.hidden=false;step3.hidden=true;step4.hidden=true;step5.hidden=true;reportProceed.disabled=false;reportProceed.textContent='Proceed to Generate Report';saveState();step3Filter.scrollIntoView({behavior:'smooth',block:'start'});};
+  const returnToDataFiltering=()=>{reportDirectVisible=false;step3FilterVisible=true;step3Visible=false;step4Visible=false;step5Visible=false;analysisPanel.hidden=false;step3Derived.hidden=true;step3Filter.hidden=false;step3.hidden=true;step4.hidden=true;step5.hidden=true;reportProceed.disabled=false;reportProceed.textContent='Proceed to Generate Report';saveState();step3Filter.scrollIntoView({behavior:'smooth',block:'start'});};
   const addReturnButton=(parent)=>{const actions=el('div','propulsion-actions');const button=el('button','btn alt','Return to Data Filtering & Sorting');button.type='button';button.addEventListener('click',returnToDataFiltering);actions.append(button);parent.append(actions);return button;};
-  step5.append(el('span','propulsion-step-label','STEP 06 · REPORT GENERATION'));
+  step5.append(el('span','propulsion-step-label','STEP 07 · REPORT GENERATION'));
   const reportBuilder=el('div','propulsion-report-builder');
   const reportForm=el('div','propulsion-report-form');
   reportForm.append(el('h3','','Test Identification'));
@@ -789,15 +809,15 @@ const statsPage=el('section','propulsion-report-summary-page');
    analysisRows=dataRows.filter(row=>!isZeroActualRpm(row));
    confirmed=true;calculatedParameterDefinitions.forEach(parameter=>calculatedParameterControls[parameter.key]?.updateMappingNote());confirm.disabled=true;confirm.textContent='Mapping Confirmed';
    // The 1-log workflow does not need a duplicate green mapping-confirmation summary.
-   next.hidden=true;next.replaceChildren();proceed.hidden=true;directReportProceed.hidden=true;step3Filter.append(filterActions);step3.hidden=true;step3Filter.hidden=false;step3FilterVisible=true;saveState();
+   next.hidden=true;next.replaceChildren();proceed.hidden=true;directReportProceed.hidden=true;step3Derived.hidden=false;step3Filter.hidden=true;step3.hidden=true;step3FilterVisible=false;updateDerivedProceedGate();saveState();
    saveState();
   });
-  directReportProceed.addEventListener('click',()=>{if(!confirmed||!generatedCsvText)return;reportDirectVisible=true;step3Visible=false;step4Visible=false;step5Visible=true;analysisPanel.hidden=false;step3Filter.hidden=false;step3.hidden=true;step4.hidden=true;step5.hidden=false;saveState();step5.scrollIntoView({behavior:'smooth',block:'start'});});
+  directReportProceed.addEventListener('click',()=>{if(!confirmed||!generatedCsvText)return;reportDirectVisible=true;step3Visible=false;step4Visible=false;step5Visible=true;analysisPanel.hidden=false;step3Derived.hidden=true;step3Filter.hidden=false;step3.hidden=true;step4.hidden=true;step5.hidden=false;saveState();step5.scrollIntoView({behavior:'smooth',block:'start'});});
   proceed.addEventListener('click',()=>{if(!confirmed)return;showParameterSummary();});
   const showParameterSummary=()=>{
    if(!confirmed)return;
-   step3FilterVisible=false;reportDirectVisible=false;step3Visible=true;step4Visible=false;step5Visible=false;analysisPanel.hidden=false;step3Filter.hidden=false;step3.hidden=false;step4.hidden=true;step5.hidden=true;step3.replaceChildren();
-   step3.append(el('span','propulsion-step-label','STEP 04 · PARAMETER SUMMARY'));
+   step3FilterVisible=false;reportDirectVisible=false;step3Visible=true;step4Visible=false;step5Visible=false;analysisPanel.hidden=false;step3Derived.hidden=true;step3Filter.hidden=false;step3.hidden=false;step4.hidden=true;step5.hidden=true;step3.replaceChildren();
+   step3.append(el('span','propulsion-step-label','STEP 05 · PARAMETER SUMMARY'));
    step3.append(el('h3','','Mapped Parameter Statistics'));
    step3.append(el('p','propulsion-statistics-description','All statistics below use only the generated Filtered & Sorted CSV dataset ('+analysisRows.length.toLocaleString()+' rows).'));
    const tableWrap=el('div','propulsion-statistics-table-wrap');
@@ -979,7 +999,7 @@ const statsPage=el('section','propulsion-report-summary-page');
  }
 
  // Phase 3: independent per-log filtering/calculation and comparative graphing.
- let multiAnalysisCard=null,multiGraphCard=null,multiReportCard=null,multiGraphState={points:[],series:[],xKey:'',yKey:'',xMin:null,xMax:null};
+ let multiAnalysisCard=null,multiFilterCard=null,multiGraphCard=null,multiReportCard=null,multiGraphState={points:[],series:[],xKey:'',yKey:'',xMin:null,xMax:null};
  const multiColors=['#287fbd','#dc8123','#26966f','#8b5fc7'];
  function multiFieldOptions(){
   const raw=multiActiveSpecs().map(spec=>({key:spec.key,label:spec.label,derived:false}));
@@ -1212,19 +1232,21 @@ const statsPage=el('section','propulsion-report-summary-page');
 
  function renderMultiAnalysisWorkspace(){
   if(!multiMappingConfirmed||!multiSession||!multiMappingHost)return;
-  multiAnalysisCard?.remove();multiGraphCard?.remove();multiReportCard?.remove();
-  multiAnalysisCard=el('section','propulsion-phase3-card propulsion-step-card propulsion-step-card--orange');multiAnalysisCard.id='propulsionPhase3AnalysisCard';
-  multiAnalysisCard.append(el('div','propulsion-step-label','STEP 03 · DATA FILTERING & DERIVED PARAMETER CALCULATION'),el('h3','','Data Filtering & Derived Parameter Calculation'),el('p','propulsion-mapping-description','Select derived parameters once for the complete test session. Apply the Actual RPM validity filter independently to each log, then calculate and add each selected parameter to every filtered log.'));
+  multiAnalysisCard?.remove();multiFilterCard?.remove();multiGraphCard?.remove();multiReportCard?.remove();
+  multiAnalysisCard=el('section','propulsion-phase3-card propulsion-step-card propulsion-step-card--green');multiAnalysisCard.id='propulsionPhase3AnalysisCard';
+  multiAnalysisCard.append(el('div','propulsion-step-label','STEP 03 · DERIVED PARAMETER CALCULATION'),el('h3','','Derived Parameter Calculation'),el('p','propulsion-mapping-description','Select the derived parameters you need and calculate them for every uploaded log using the confirmed Step 02 mappings.'));
+  multiFilterCard=el('section','propulsion-phase3-card propulsion-step-card propulsion-step-card--orange');multiFilterCard.id='propulsionPhase4FilteringCard';
+  multiFilterCard.append(el('div','propulsion-step-label','STEP 04 · DATA SORTING & FILTERING'),el('h3','','Data Sorting & Filtering'),el('p','propulsion-mapping-description','Apply the Actual RPM validity filter and chronological timestamp sorting before generating the final CSV files.'));
   const sharedDerivedSection=el('section','propulsion-step-subsection propulsion-step-subsection--derived');
   sharedDerivedSection.append(el('h4','','Derived Parameter Identification & Calculation'),el('p','propulsion-subsection-description','Check a parameter and use its Calculate and Add to Log File action, just like the Single-Log Analyser. The calculation is applied to every uploaded log using that log’s confirmed Step 02 mappings.'));
   const sharedDerivedCards=el('div','propulsion-calculated-parameters');
   const sharedDerivedChecks={},sharedDerivedAdded=new Set(),sharedDerivedActions={};
   const updateMultiReadiness=()=>{
-   const allFiltered=multiSession.logs.every(log=>log._phase3Filtered);
    const selected=Object.keys(sharedDerivedChecks).filter(key=>sharedDerivedChecks[key].checked);
    const allCalculated=selected.every(key=>sharedDerivedAdded.has(key));
-   const ready=allFiltered&&allCalculated;
+   const ready=allCalculated;
    multiSession.logs.forEach(log=>{log._phase3Ready=ready;});
+   if(typeof multiDerivedProceed!=='undefined')multiDerivedProceed.disabled=!(commonEngine.DERIVED_BY_TEST[multiLogType]||[]).every(key=>sharedDerivedAdded.has(key));
    updateMultiGraphAvailability();
   };
   (['mechanicalPower','electricalPower','specificThrust']).forEach(key=>{
@@ -1255,21 +1277,18 @@ const statsPage=el('section','propulsion-report-summary-page');
    check.addEventListener('click',event=>{if(parameterUnavailable){event.preventDefault();event.stopPropagation();window.alert(parameterName+' cannot be selected. '+unavailableReason);}});
    check.addEventListener('change',()=>{
     if(!check.checked){sharedDerivedAdded.delete(key);addedStatus.hidden=true;retry.hidden=true;calculate.hidden=false;calculate.textContent='Calculate and Add to Log file';card.classList.remove('is-added-to-graph');}
-    multiSession.logs.forEach(log=>{log._phase3Ready=false;log._derivedKeys=[...sharedDerivedAdded];if(log._phase3Filtered)commonEngine.calculateLog(log,multiLogType,log._derivedKeys);if(log._phase3Card)renderMultiLogPreview(log,log._phase3Card._phase3Controls.tableHost,log._derivedKeys);});
-    if(!check.checked){derivedReadyCheckbox.checked=false;filteringReadyCheckbox.checked=false;generatedMultiCsvFiles=[];generatedCsvFilesHost.replaceChildren();csvExportButton.hidden=true;csvExportButton.disabled=false;}
+    multiSession.logs.forEach(log=>{log._phase3Ready=false;log._derivedKeys=[...sharedDerivedAdded];log.filteredRows=(log.sourceRows||[]).map(row=>row.slice());log._phase3Filtered=false;if(log._derivedKeys.length)commonEngine.calculateLog(log,multiLogType,log._derivedKeys);else log.calculatedRows=[];if(log._phase3Card)renderMultiLogPreview(log,log._phase3Card._phase3Controls.tableHost,log._derivedKeys);});
+    if(!check.checked){filteringReadyCheckbox.checked=false;generatedMultiCsvFiles=[];generatedCsvFilesHost.replaceChildren();csvExportButton.hidden=true;csvExportButton.disabled=false;}
     updateAction();updateMultiReadiness();updateMultiCsvGate();
    });
    calculate.addEventListener('click',()=>{
     try{
-     // Match the single-log workflow: a calculation action must process its source
-     // data, not silently stop because one of the multi-log filters was not clicked.
-     // Apply the RPM validity filter independently to every log when needed.
+     // Derived calculations run against the original uploaded rows.
+     // Step 04 applies RPM filtering and timestamp sorting only after user opt-in.
      multiSession.logs.forEach(log=>{
-      if(!log._phase3Filtered){
-       if(!Number.isInteger(log.mapping?.actualRpm))throw new Error('Log '+log.id+' is missing its confirmed Actual RPM mapping.');
-       commonEngine.filterLog(log,{actualRpmIndex:log.mapping.actualRpm});
-       log._phase3Filtered=true;
-      }
+      if(!Number.isInteger(log.mapping?.actualRpm))throw new Error('Log '+log.id+' is missing its confirmed Actual RPM mapping.');
+      log.filteredRows=(log.sourceRows||[]).map(row=>row.slice());
+      log._phase3Filtered=false;
      });
      const required=key==='mechanicalPower'?['torque','actualRpm']:key==='electricalPower'?['voltage','current']:['thrust','voltage','current'];
      for(const log of multiSession.logs){
@@ -1286,7 +1305,7 @@ const statsPage=el('section','propulsion-report-summary-page');
       if(log._phase3Card){
        const controls=log._phase3Card._phase3Controls;
        renderMultiLogPreview(log,controls.tableHost,keys);
-       controls.summary.textContent=Math.max(0,log.filteredRows.length-1).toLocaleString()+' data rows retained · '+Math.max(0,log.sourceRows.length-log.filteredRows.length).toLocaleString()+' data rows removed (Actual RPM ≤ 0) · '+keys.length+' derived parameter(s) calculated and added to this log file.';
+       controls.summary.textContent=Math.max(0,log.calculatedRows.length-1).toLocaleString()+' source data rows · '+keys.length+' derived parameter(s) calculated and added to this log file. Filtering and sorting will be applied in Step 04.';
       }
      });
      sharedDerivedAdded.add(key);
@@ -1301,9 +1320,9 @@ const statsPage=el('section','propulsion-report-summary-page');
    });
    retry.addEventListener('click',()=>{
     sharedDerivedAdded.delete(key);check.disabled=false;check.checked=false;calculate.hidden=false;calculate.disabled=true;calculate.textContent='Calculate and Add to All logs';calculate.title='Select the parameter and apply filtering to every log before calculating.';addedStatus.hidden=true;retry.hidden=true;card.classList.remove('is-added-to-graph');
-    multiSession.logs.forEach(log=>{log._phase3Ready=false;log._derivedKeys=[...sharedDerivedAdded];if(log._phase3Filtered)commonEngine.calculateLog(log,multiLogType,log._derivedKeys);if(log._phase3Card){renderMultiLogPreview(log,log._phase3Card._phase3Controls.tableHost,log._derivedKeys);log._phase3Card._phase3Controls.summary.textContent='Derived parameter reset. Recalculate the selected parameters for all logs.';}});
+    multiSession.logs.forEach(log=>{log._phase3Ready=false;log._derivedKeys=[...sharedDerivedAdded];log.filteredRows=(log.sourceRows||[]).map(row=>row.slice());log._phase3Filtered=false;if(log._derivedKeys.length)commonEngine.calculateLog(log,multiLogType,log._derivedKeys);else log.calculatedRows=[];if(log._phase3Card){renderMultiLogPreview(log,log._phase3Card._phase3Controls.tableHost,log._derivedKeys);log._phase3Card._phase3Controls.summary.textContent='Derived parameter reset. Recalculate the selected parameters for all logs.';}});
     Object.entries(sharedDerivedActions).forEach(([otherKey,action])=>{if(otherKey!==key)action.calculate.disabled=!sharedDerivedChecks[otherKey].checked||sharedDerivedAdded.has(otherKey);});
-    derivedReadyCheckbox.checked=false;filteringReadyCheckbox.checked=false;generatedMultiCsvFiles=[];generatedCsvFilesHost.replaceChildren();csvExportButton.hidden=true;csvExportButton.disabled=false;
+    filteringReadyCheckbox.checked=false;generatedMultiCsvFiles=[];generatedCsvFilesHost.replaceChildren();csvExportButton.hidden=true;csvExportButton.disabled=false;
     note.textContent='Calculation reset. Select the parameter and calculate it again for all logs.';
     updateMultiReadiness();updateMultiCsvGate();
    });
@@ -1316,9 +1335,8 @@ const statsPage=el('section','propulsion-report-summary-page');
   csvSection.append(el('h4','','CSV Generation with Filtered & Sorted Data'));
   csvSection.append(el('p','propulsion-subsection-description','Generate one consolidated CSV containing every uploaded log, with the Actual RPM validity filter, chronological timestamp sorting where available, and all calculated derived-parameter columns.'));
   const csvConfirmation=el('div','propulsion-csv-confirmations');
-  const derivedReadyLabel=el('label','propulsion-csv-confirmation'),derivedReadyCheckbox=document.createElement('input');derivedReadyCheckbox.type='checkbox';derivedReadyCheckbox.id='confirmMultiDerivedParametersReady';derivedReadyLabel.append(derivedReadyCheckbox,el('span','','Required Derived Parameters identified, calculated, added to log file'));
   const filteringReadyLabel=el('label','propulsion-csv-confirmation'),filteringReadyCheckbox=document.createElement('input');filteringReadyCheckbox.type='checkbox';filteringReadyCheckbox.id='confirmMultiFilteringSortingReady';filteringReadyLabel.append(filteringReadyCheckbox,el('span','','Apply Data Filtering & Sorting Logic'));
-  csvConfirmation.append(derivedReadyLabel,filteringReadyLabel);
+  csvConfirmation.append(filteringReadyLabel);
   const csvStatus=el('p','propulsion-csv-export-status','Complete the derived-parameter calculations, then confirm both preparation steps to generate the consolidated CSV.');
   csvStatus.setAttribute('role','status');csvStatus.setAttribute('aria-live','polite');
   const csvActions=el('div','propulsion-actions propulsion-csv-actions');
@@ -1328,11 +1346,26 @@ const statsPage=el('section','propulsion-report-summary-page');
   let generatedMultiCsvFiles=[];
   const updateMultiCsvGate=()=>{
    const allDerived=(commonEngine.DERIVED_BY_TEST[multiLogType]||[]).every(key=>sharedDerivedAdded.has(key));
-   const ready=allDerived&&derivedReadyCheckbox.checked&&filteringReadyCheckbox.checked;
+   const ready=allDerived&&filteringReadyCheckbox.checked;
    csvExportButton.hidden=!(ready&&!generatedMultiCsvFiles.length);
-   if(derivedReadyCheckbox.checked&&!allDerived)csvStatus.textContent='Not ready: calculate every required derived parameter above and wait for the success status on each one.';
+   if(filteringReadyCheckbox.checked&&!allDerived)csvStatus.textContent='Not ready: calculate every required derived parameter in Step 03 before generating the CSV.';
   };
-  [derivedReadyCheckbox,filteringReadyCheckbox].forEach(input=>input.addEventListener('change',updateMultiCsvGate));
+  filteringReadyCheckbox.addEventListener('change',()=>{
+   if(filteringReadyCheckbox.checked){
+    const selectedKeys=[...sharedDerivedAdded];
+    multiSession.logs.forEach(log=>{
+     commonEngine.filterLog(log,{actualRpmIndex:log.mapping.actualRpm});
+     log._phase3Filtered=true;
+     if(selectedKeys.length)commonEngine.calculateLog(log,multiLogType,selectedKeys);
+     log._derivedKeys=selectedKeys.slice();log._phase3Ready=true;
+     if(log._phase3Card){const controls=log._phase3Card._phase3Controls;renderMultiLogPreview(log,controls.tableHost,selectedKeys);controls.summary.textContent=Math.max(0,log.filteredRows.length-1).toLocaleString()+' filtered data rows · '+selectedKeys.length+' derived parameter(s) retained. Timestamp sorting will be applied when generating CSV.';}
+    });
+   }else{
+    generatedMultiCsvFiles=[];generatedCsvFilesHost.replaceChildren();
+    multiSession.logs.forEach(log=>{log.filteredRows=(log.sourceRows||[]).map(row=>row.slice());log._phase3Filtered=false;log._phase3Ready=false;commonEngine.calculateLog(log,multiLogType,[...sharedDerivedAdded]);if(log._phase3Card)renderMultiLogPreview(log,log._phase3Card._phase3Controls.tableHost,[...sharedDerivedAdded]);});
+   }
+   updateMultiReadiness();updateMultiCsvGate();
+  });
   csvExportButton.addEventListener('click',()=>{
    try{
     const requiredKeys=commonEngine.DERIVED_BY_TEST[multiLogType]||[];
@@ -1381,12 +1414,13 @@ const statsPage=el('section','propulsion-report-summary-page');
     csvExportButton.hidden=true;
     csvStatus.textContent='Successfully generated '+prepared.length+' separate CSV files. Download each log using its Download CSV button.';
     // Keep the continuation actions inside Step 03 and explicitly expose the action container and both choices.
-    multiAnalysisCard.append(multiProceedActions);
+    multiFilterCard.append(multiProceedActions);
     multiProceedActions.hidden=false;multiProceedInApp.hidden=false;multiProceedReport.hidden=false;
     multiProceedActions.scrollIntoView({behavior:'smooth',block:'nearest'});
    }catch(error){csvStatus.textContent='CSV generation failed: '+(error.message||'Unable to prepare the individual CSV files.');csvStatus.setAttribute('role','alert');}
   });
   csvSection.append(csvConfirmation,csvStatus,csvActions,generatedCsvFilesHost);
+  multiFilterCard.append(csvSection);
   // Create the continuation controls before inserting them into Step 03.
   // Referencing these const bindings earlier triggers a temporal-dead-zone error
   // and aborts the entire workspace render after Step 02 mapping confirmation.
@@ -1394,9 +1428,15 @@ const statsPage=el('section','propulsion-report-summary-page');
   const multiProceedInApp=el('button','btn','Proceed with In App Analysis');multiProceedInApp.type='button';multiProceedInApp.hidden=true;
   const multiProceedReport=el('button','btn alt','Proceed with Report Generation');multiProceedReport.type='button';multiProceedReport.hidden=true;
   multiProceedActions.hidden=true;multiProceedActions.append(multiProceedInApp,multiProceedReport);
-  multiAnalysisCard.append(sharedDerivedSection,csvSection,multiProceedActions);
+  const multiDerivedProceed=el('button','btn','Proceed to Data Sorting & Filtering');multiDerivedProceed.type='button';multiDerivedProceed.disabled=!(commonEngine.DERIVED_BY_TEST[multiLogType]||[]).every(key=>sharedDerivedAdded.has(key));
+  multiDerivedProceed.addEventListener('click',()=>{
+   if(!multiSession.logs.every(log=>log._phase3Ready)){csvStatus.textContent='Complete every selected derived-parameter calculation for all logs before proceeding.';return;}
+   multiAnalysisCard.hidden=true;multiFilterCard.hidden=false;multiFilterCard.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+  multiAnalysisCard.append(sharedDerivedSection,multiDerivedProceed);
+  multiFilterCard.hidden=true;
   const graph=el('section','propulsion-phase3-graph-card propulsion-step-card propulsion-step-card--blue');graph.id='propulsionPhase4GraphCard';
-  graph.append(el('div','propulsion-step-label','STEP 05 · COMPARATIVE GRAPHICAL ANALYSIS'),el('h3','','Compare Multiple Logs on Common Axes'),el('p','propulsion-mapping-description','Select one common X-axis parameter and one common Y-axis parameter. All processed logs will be superimposed on the same graph using a distinct colour for each log. Use the slider to explore individual data points.'));
+  graph.append(el('div','propulsion-step-label','STEP 06 · COMPARATIVE GRAPHICAL ANALYSIS'),el('h3','','Compare Multiple Logs on Common Axes'),el('p','propulsion-mapping-description','Select one common X-axis parameter and one common Y-axis parameter. All processed logs will be superimposed on the same graph using a distinct colour for each log. Use the slider to explore individual data points.'));
   const controls=el('div','propulsion-phase3-graph-controls');
   const makeGraphSelect=(label,id)=>{const wrap=el('label','propulsion-phase3-control',label),select=document.createElement('select');select.className='propulsion-column-select';select.id=id;wrap.append(select);controls.append(wrap);return select;};
   const xSelect=makeGraphSelect('X AXIS PARAMETER','multiGraphXAxis'),ySelect=makeGraphSelect('Y AXIS PARAMETER','multiGraphYAxis');
@@ -1439,21 +1479,22 @@ const statsPage=el('section','propulsion-report-summary-page');
   graph.append(controls,status,plotHost,explorer);
   multiGraphCard=graph;
     const multiSummaryCard=el('section','propulsion-statistics-card propulsion-step-card propulsion-step-card--green');multiSummaryCard.id='propulsionMultiParameterSummaryCard';multiSummaryCard.hidden=true;
-  multiSummaryCard.append(el('span','propulsion-step-label','STEP 04 · PARAMETER SUMMARY'),el('h3','','Comparative Parameter Summary'),el('p','propulsion-statistics-description','Review the maximum recorded value and corresponding timestamp for each mapped parameter in every processed log. All values are calculated from each log’s filtered and sorted dataset.'));
+  multiSummaryCard.append(el('span','propulsion-step-label','STEP 05 · PARAMETER SUMMARY'),el('h3','','Comparative Parameter Summary'),el('p','propulsion-statistics-description','Review the maximum recorded value and corresponding timestamp for each mapped parameter in every processed log. All values are calculated from each log’s filtered and sorted dataset.'));
   const summaryValueNote=el('p','propulsion-subsection-description','MAXIMUM VALUES — Every numerical value shown in the Log columns is the maximum recorded value for that parameter in the respective log. The timestamp shown is when that maximum occurred.');summaryValueNote.setAttribute('role','note');
   const summaryWrap=el('div','propulsion-statistics-table-wrap'),summaryTable=document.createElement('table');summaryTable.className='propulsion-statistics-table propulsion-multi-summary-table';
   const summaryHead=document.createElement('thead'),summaryHeadRow=document.createElement('tr');
   ['PARAMETER',...multiSession.logs.map((_,index)=>'LOG '+(index+1))].forEach(label=>summaryHeadRow.append(el('th','',label)));summaryHead.append(summaryHeadRow);summaryTable.append(summaryHead);
   const summaryBody=document.createElement('tbody');summaryTable.append(summaryBody);summaryWrap.append(summaryTable);multiSummaryCard.append(summaryValueNote,summaryWrap);
   const summaryActions=el('div','propulsion-actions'),summaryNext=el('button','btn','Proceed to Graphical Analysis');summaryNext.type='button';summaryActions.append(summaryNext);multiSummaryCard.append(summaryActions);
-  multiMappingHost.append(multiAnalysisCard,multiSummaryCard,multiGraphCard);
+  multiMappingHost.append(multiAnalysisCard,multiFilterCard,multiSummaryCard,multiGraphCard);
   multiSummaryCard.hidden=true;multiGraphCard.hidden=true;
   buildMultiLogReportCard();
   multiReportCard.hidden=true;
   const reportNextActions=el('div','propulsion-actions'),reportNext=el('button','btn','Proceed to Generate Report');reportNext.type='button';reportNext.id='proceedToMultiGenerateReportBtn';
   reportNextActions.append(reportNext);multiGraphCard.append(reportNextActions);
   multiProceedInApp.addEventListener('click',()=>{
-   if(!multiSession.logs.every(log=>log._phase3Ready)){return;}
+   if(!multiSession.logs.every(log=>log._phase3Ready&&log._phase3Filtered)){return;}
+   multiFilterCard.hidden=false;multiAnalysisCard.hidden=true;multiFilterCard.scrollIntoView({behavior:'smooth',block:'start'});
    summaryBody.replaceChildren();
    const timestampAliases=['timestamp','time_stamp','datetime','date_time','date time','time','utc_time','local_time','sample_time','logged_at','date'];
    const parameterMap=new Map();
@@ -1494,7 +1535,7 @@ const statsPage=el('section','propulsion-report-summary-page');
     });
     summaryBody.append(tr);
    });
-   multiSummaryCard.hidden=false;multiGraphCard.hidden=true;multiSummaryCard.scrollIntoView({behavior:'smooth',block:'start'});
+   multiFilterCard.hidden=true;multiSummaryCard.hidden=false;multiGraphCard.hidden=true;multiSummaryCard.scrollIntoView({behavior:'smooth',block:'start'});
   });
   summaryNext.addEventListener('click',()=>{
    multiGraphCard.hidden=false;summaryNext.disabled=true;summaryNext.textContent='Graphical Analysis Selected';
@@ -1505,7 +1546,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    multiReportCard.scrollIntoView({behavior:'smooth',block:'start'});
   });
   multiProceedReport.addEventListener('click',()=>{
-   multiReportCard.refreshPreview?.();multiReportCard.hidden=false;multiSummaryCard.hidden=true;multiGraphCard.hidden=true;
+   multiReportCard.refreshPreview?.();multiReportCard.hidden=false;multiFilterCard.hidden=true;multiSummaryCard.hidden=true;multiGraphCard.hidden=true;
    multiReportCard.scrollIntoView({behavior:'smooth',block:'start'});
   });
   updateMultiGraphAvailability();
