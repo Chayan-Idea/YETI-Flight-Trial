@@ -955,7 +955,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    const groupKeys=group.keys.filter(key=>activeKeys.has(key));
    if(!groupKeys.length)return;
    const sectionRow=el('tr','propulsion-mapping-section-row propulsion-mapping-section--'+group.title.toLowerCase());
-   const sectionCell=el('th','propulsion-mapping-section-heading',group.title.toUpperCase()+' PARAMETERS');sectionCell.colSpan=logs.length+1;sectionCell.scope='colgroup';sectionRow.append(sectionCell);tbody.append(sectionRow);
+   const sectionCell=el('th','propulsion-mapping-section-heading',group.title.toUpperCase()+' PARAMETERS');sectionCell.colSpan=logs.length+2;sectionCell.scope='colgroup';sectionRow.append(sectionCell);tbody.append(sectionRow);
    groupKeys.forEach(key=>{
     const spec=specs.find(item=>item.key===key),row=document.createElement('tr'),parameterCell=el('th','propulsion-multi-mapping-parameter',spec.label);
     parameterCell.scope='row';row.append(parameterCell);
