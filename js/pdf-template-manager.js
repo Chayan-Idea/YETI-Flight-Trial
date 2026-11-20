@@ -18,10 +18,10 @@
   Object.entries(template?.columns||{}).forEach(([key,value])=>{if(!Number.isFinite(value)||value<0||value>template.page.width)errors.push('Invalid column coordinate: '+key)});
   return {valid:errors.length===0,errors,checkpointCount:ids.length,coordinateCount:Object.keys(rows).length};
  }
- let active=null,activeValidation=null;
+ let active=null,activeValidation=null;const registry=new Map();
  function register(template,sections){
   const candidate=clone(template);candidate.checklistSections=clone(sections||[]);const validation=validate(candidate,candidate.checklistSections);
-  return {template:candidate,validation,status:validation.valid?'validated':'rejected'};
+  const registration={template:candidate,validation,status:validation.valid?'validated':'rejected'};if(validation.valid)registry.set(candidate.templateId+'@'+candidate.version,registration);return registration;
  }
  function activate(registration,approval){
   if(!registration?.validation?.valid)throw new Error('Cannot activate an invalid PDF template.');
@@ -30,7 +30,9 @@
   return getActiveTemplate();
  }
  function getActiveTemplate(){return active?{template:active,validation:activeValidation}:null}
- root.YETI_PDF_TEMPLATE_MANAGER=Object.freeze({validate,register,activate,getActiveTemplate});
+ function listVersions(templateId){return [...registry.entries()].filter(([key])=>key.startsWith(templateId+'@')).map(([key,value])=>({version:value.template.version,status:value.status,valid:value.validation.valid})).sort((a,b)=>a.version.localeCompare(b.version,undefined,{numeric:true}))}
+ function activateVersion(templateId,version,approval){const entry=registry.get(templateId+'@'+version);if(!entry)throw new Error('Requested template version is not registered.');return activate(entry,approval)}
+ root.YETI_PDF_TEMPLATE_MANAGER=Object.freeze({validate,register,activate,getActiveTemplate,listVersions,activateVersion});
  const initial=register(root.YETI_DAILY_AIRWORTHINESS_PDF_MANIFEST,root.YETI_DAILY_AIRWORTHINESS_TEMPLATE);
  root.YETI_PDF_TEMPLATE_STATUS={templateId:initial.template.templateId,version:initial.template.version,...initial.validation};
  if(initial.validation.valid)activate(initial,true);
