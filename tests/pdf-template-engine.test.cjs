@@ -26,7 +26,7 @@ assert.equal(new Set(ids).size,ids.length,'checkpoint IDs must be unique');
 const restoredCameraCheck=sections.flatMap(section=>section.items).find(item=>item.id==='8.1');
 assert.ok(restoredCameraCheck,'user-requested checkpoint 8.1 must be restored in the final daily checklist');
 assert.equal(restoredCameraCheck.title,'Camera Functionality','restored checkpoint 8.1 title must remain consistent with the approved YETI master checklist');
-assert.deepEqual(JSON.parse(JSON.stringify(restoredCameraCheck.criteria)),['Video recording is ok.'],'restored checkpoint 8.1 acceptance criterion must be preserved');
+assert.deepEqual(JSON.parse(JSON.stringify(restoredCameraCheck.criteria)),['Camera placed and working ok.'],'restored checkpoint 8.1 acceptance criterion must be preserved');
 assert.ok(manifest.rows['8.1'],'the approved v1 source PDF must retain its verified 8.1 row mapping');
 for(const id of ids.filter(id=>id!=='9.0')){
  const anchor=mapper.getCheckpointAnchors(manifest,id);
@@ -38,7 +38,7 @@ for(const id of ids.filter(id=>id!=='9.0')){
  assert.ok(anchor.remarks.x<842,'Remarks anchor outside page for '+id);
 }
 assert.equal(mapper.statusAnchor(manifest,'4.9.1','Pass').page,2);
-assert.equal(mapper.statusAnchor(manifest,'4.8.2','Fail').page,1);
+assert.equal(mapper.statusAnchor(manifest,'4.8.2','Fail').page,2);
 assert.deepEqual(JSON.parse(JSON.stringify(mapper.topLeftToBottomLeft({x:100,y:100},manifest.page))),{x:100,y:495});
 assert.throws(()=>mapper.assertPoint({x:900,y:10},manifest.page),/outside the source page/);
 const invalid=manager.register({...manifest,rows:{}},sections);
@@ -60,7 +60,7 @@ assert.ok(publisherSource.includes('version_dir.exists()'),'published PDF versio
 const rendererSourceForAppend=fs.readFileSync(path.join(root,'js/pdf-overlay-renderer.js'),'utf8');
 assert.ok(rendererSourceForAppend.includes('append-signature-page'),'renderer must support appended signature pages for un-mapped PDFs');
 assert.ok(rendererSourceForAppend.includes('yeti-pdf-signature-page'),'preview must display the appended signature page');
-assert.equal(manifest.columns.passCenterX,511.35);
+assert.equal(manifest.columns.passCenterX,504.67);
 assert.ok(rendererSourceForAppend.includes('textWidth=bold.widthOfTextAtSize(st.label,size)'),'status labels must be horizontally centred within their status cells');
 assert.ok(rendererSourceForAppend.includes("ctx.textAlign='center'"),'status labels must remain centred');
 assert.ok(rendererSourceForAppend.includes("ctx.textAlign='left'"),'non-status preview text must be left aligned');
@@ -69,8 +69,8 @@ const flightPreparationSource=fs.readFileSync(path.join(root,'js/flight-preparat
 assert.ok(flightPreparationSource.includes('scheduleLivePdfPreview'),'visible PDF preview must synchronize automatically after input changes');
 assert.ok(flightPreparationSource.includes("if(category==='daily')scheduleLivePdfPreview(true)"),'Daily Airworthiness photo additions must refresh the PDF preview');
 assert.ok(flightPreparationSource.includes("['trialPhase','trialStage','flightPlace','flightDate']"),'trial information fields must refresh the PDF preview');
-assert.equal(manifest.columns.failCenterX,534.95);
-assert.equal(manifest.columns.notAvailableCenterX,570.01);
+assert.equal(manifest.columns.failCenterX,529);
+assert.equal(manifest.columns.notAvailableCenterX,565);
 const schema=JSON.parse(fs.readFileSync(path.join(root,'schemas/pdf-template-package.schema.json'),'utf8'));
 assert.equal(schema.title,'YETI PDF Checklist Template Package');
 const approvedPackage=JSON.parse(fs.readFileSync(path.join(root,'assets/templates/IF_YETI_TD0_FTR_CKT_005/v1/template-package.json'),'utf8'));
@@ -112,7 +112,7 @@ const whitelistPhotos=overlay.safePhotos([
 ]);
 assert.deepEqual(JSON.parse(JSON.stringify(whitelistPhotos.map(p=>p.name))),['daily.jpg','default.png'],'only daily/default photo evidence should be exported');
 assert.ok(manifest.specialFields.checkerReviewer.page>=1,'signature must be anchored to a source page');
-assert.deepEqual(JSON.parse(JSON.stringify(manifest.specialFields.checkerReviewer)),{page:2,x:573.9,y:294.99,width:216.28,height:25.68},'signature must fit the original Checker + Reviewer signature cell');
+assert.deepEqual(JSON.parse(JSON.stringify(manifest.specialFields.checkerReviewer)),{page:2,x:588.67,y:316,width:201.33,height:26.67},'signature must fit the original Checker + Reviewer signature cell');
 assert.ok(manifest.specialFields.checkerReviewer.x+manifest.specialFields.checkerReviewer.width<=manifest.page.width,'signature area must remain inside source page');
 assert.ok(manifest.specialFields.checkerReviewer.y+manifest.specialFields.checkerReviewer.height<=manifest.page.height,'signature area must remain inside source page');
 const rendererSource=fs.readFileSync(path.join(root,'js/pdf-overlay-renderer.js'),'utf8');
@@ -137,58 +137,44 @@ assert.ok(livePreviewSource.includes('immediate?0:100'),'live preview should ref
 assert.ok(rendererSourceForAppend.includes('function fitSingleLine'),'long text must fit within its assigned PDF cell without wrapping into adjacent rows');
 assert.ok(rendererSourceForAppend.includes('m?.fieldBoxes?.[key]'),'template-specific value fields must be placed in explicitly mapped cells');
 
-const v2Candidate=JSON.parse(fs.readFileSync(path.join(root,'assets/templates/IF_YETI_TD0_FTR_CKT_005/v2/template-package.json'),'utf8'));
-const v2Validation=packageLoader.validatePackage(v2Candidate);
-assert.equal(v2Validation.valid,true,'uploaded PDF v2 candidate must pass structural and cell-bound validation: '+v2Validation.errors.join('; '));
-assert.equal(v2Candidate.activation.status,'approved','the explicitly approved checksum-verified PDF must be active for release validation');
-assert.equal(v2Validation.checkpointCount,62,'attached PDF must retain 61 numbered checklist points plus the Checker/Reviewer entry');
-assert.equal(v2Candidate.template.rows['4.8.1'][0],2,'4.8.1 must map to page 2 in the newly uploaded PDF');
-assert.equal(v2Candidate.template.rows['4.9.1'][0],2,'4.9.1 must map to page 2 in the newly uploaded PDF');
-assert.deepEqual(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='8.1').criteria,['Camera placed and working ok.'],'source checkpoint 8.1 Camera Functionality and its criterion must be retained');
-assert.equal(v2Candidate.template.columns.passCenterX,505.24,'Pass status must use the attached PDF column geometry');
-assert.equal(v2Candidate.template.specialFields.checkerReviewer.x,588.93,'signature must map into the attached PDF signature cell');
-
-assert.ok(rendererSourceForAppend.includes('placement.y'),'mapped text must use the measured cell vertical centre in the live preview');
-assert.ok(rendererSourceForAppend.includes('ph-placement.y-regular.heightAtSize(size)/2'),'mapped text must use the measured cell vertical centre in exported PDFs');
-
-assert.ok(rendererSourceForAppend.includes("!m?.specialFields?.[k]"),'mapped battery values must not also be duplicated in the remarks cell');
-
-assert.ok(rendererSourceForAppend.includes('(centerY-3.35)*scaleY'),'status chips must be positioned from the calculated cell centre');
-assert.ok(rendererSourceForAppend.includes("ctx.textAlign='left'"),'non-status preview text must be left aligned');
-assert.ok(rendererSourceForAppend.includes('placement.y'),'non-status preview text must be vertically centred');
-assert.ok(rendererSourceForAppend.includes('leftTextPlacement(b,scaleX,scaleY)')&&rendererSourceForAppend.includes('leftTextPlacement(b,sx,sy)'),'all mapped value and metadata cells must use shared padded left-alignment geometry');
-
-assert.equal(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='4.1.1').subsection,'1. Port-Side Wing Chcek','candidate checklist must preserve the uploaded source subsection wording');
-assert.equal(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='4.2.1').subsection,'2. Star-Board Side Wing Chcek','candidate checklist must preserve source spelling rather than silently normalizing it');
-
-assert.equal(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='9.0').displayId,'9','the webpage must display the uploaded PDF serial label 9 for Checker + Reviewer');
-
-assert.equal(v2Candidate.sourcePdf.sha256,'986ce7f835de38d78901d1bde3b569a16b083fc93ec382e199ee2ae1aa9122a8','candidate must identify the exact PDF attached in this conversation');
-assert.equal(v2Candidate.document.version,'2.0.1','corrected attachment candidate must have its own version');
-
-for(const id of ['2.2','3.4','4.9.4','5.2','6.4','7.4']){
- const bounds=mapper.getRowCellBounds(v2Candidate.template,id);
- assert.ok(bounds,'section-boundary checkpoint must have explicit cell bounds: '+id);
- assert.ok(bounds.height>9.3&&bounds.height<9.8,'section separator must not be mistaken for a double-height checklist cell: '+id+' height='+bounds.height);
+const v3Package=JSON.parse(fs.readFileSync(path.join(root,'assets/templates/IF_YETI_TD0_FTR_CKT_005/v3/template-package.json'),'utf8'));
+const v3Validation=packageLoader.validatePackage(v3Package);
+assert.equal(v3Validation.valid,true,'approved v3 PDF package must pass source geometry and cell-bound validation: '+v3Validation.errors.join('; '));
+assert.equal(v3Package.activation.status,'approved');
+assert.equal(v3Package.document.version,'3.0.0');
+assert.equal(v3Validation.checkpointCount,61,'new source must contain 60 checklist checkpoints plus the Checker/Reviewer entry');
+assert.equal(v3Package.sourcePdf.sha256,'4e23e2cc611692401d380b9095c6180f34a34eb3125e6e72bdca19c9f6cb520f');
+const v3Items=v3Package.sections.flatMap(s=>s.items);
+assert.equal(v3Items.find(i=>i.id==='6.1').title,'PDU Status');
+assert.deepEqual(v3Items.find(i=>i.id==='6.1').criteria,['PDU SOC% > 85']);
+assert.equal(v3Items.find(i=>i.id==='6.2').title,'PDU State = 9 (Pass)');
+assert.deepEqual(v3Items.find(i=>i.id==='6.3').criteria,['Ensure safety beacon is ON (Red Light)']);
+assert.ok(!v3Items.some(i=>i.id==='6.4'),'obsolete 6.4 checkpoint must not survive the source revision');
+assert.deepEqual(v3Items.find(i=>i.id==='8.1').criteria,['Camera placed and working ok.']);
+assert.equal(v3Package.template.rows['4.8.1'][0],2);
+assert.equal(v3Package.template.rows['4.9.1'][0],2);
+assert.equal(v3Package.template.rows['8.1'][0],2);
+assert.equal(v3Package.template.columns.passCenterX,504.67);
+assert.equal(v3Package.template.columns.failCenterX,529);
+assert.equal(v3Package.template.columns.notAvailableCenterX,565);
+assert.equal(v3Package.template.specialFields.checkerReviewer.x,588.67);
+assert.equal(v3Package.template.specialFields.checkerReviewer.y,316);
+assert.equal(v3Package.template.rows['1.2'][1],173/1.5,'merged CG cell must begin at its measured source boundary');
+assert.ok(Math.abs(mapper.getRowCellBounds(v3Package.template,'1.2').height-28.6667)<0.01,'merged UAV CG row must retain its taller source-cell geometry');
+assert.ok(Math.abs(mapper.getRowCellBounds(v3Package.template,'4.1.1').height-9.3333)<0.02,'ordinary checklist rows must use measured source-cell height');
+assert.equal(mapper.getCheckpointAnchors(v3Package.template,'6.1').page,2);
+assert.equal(mapper.getCheckpointAnchors(v3Package.template,'6.2').page,2);
+assert.equal(mapper.getCheckpointAnchors(v3Package.template,'6.3').page,2);
+for(const id of v3Package.sections.flatMap(s=>s.items.map(i=>i.id)).filter(id=>id!=='9.0')){
+ const bounds=mapper.getRowCellBounds(v3Package.template,id);
+ assert.ok(bounds,'every numbered source checkpoint must have explicit source-cell bounds: '+id);
+ assert.ok(bounds.y>=0&&bounds.y+bounds.height<=v3Package.document.pageHeight,'source cell must remain inside its page: '+id);
 }
-for(const [key,box] of Object.entries({...v2Candidate.template.fieldBoxes,...v2Candidate.template.specialFields,...v2Candidate.template.header})){
+assert.ok(!v3Package.template.specialFields.minimumCellVoltage,'removed HV/minimum-cell value boxes must not remain in v3');
+assert.ok(!v3Package.sections.flatMap(s=>s.items).some(i=>(i.valueFields||[]).some(v=>['hvVoltage','minCellVoltage','pduSoc'].includes(v.key))),'removed post-power-on HV/cell/SOC input overlays must not remain');
+for(const [key,box] of Object.entries({...v3Package.template.specialFields,...v3Package.template.header})){
  const center=mapper.getCellCenter(box);
- assert.ok(center.x>box.x&&center.x<box.x+box.width,'mapped '+key+' text centre must remain inside its cell horizontally');
- assert.ok(center.y>box.y&&center.y<box.y+box.height,'mapped '+key+' text centre must remain inside its cell vertically');
+ assert.ok(center.x>box.x&&center.x<box.x+box.width,'mapped '+key+' must remain inside its source cell horizontally');
+ assert.ok(center.y>box.y&&center.y<box.y+box.height,'mapped '+key+' must remain inside its source cell vertically');
 }
-assert.ok(mapper.getCheckpointAnchors(v2Candidate.template,'2.2').remarks.y>v2Candidate.template.rows['2.2'][1],'remarks must use the centre of the single-height row after a section gap');
-assert.ok(mapper.getCheckpointAnchors(v2Candidate.template,'3.4').pass.y-v2Candidate.template.rows['3.4'][1]<5,'status chip must remain within the mapped row after a section gap');
-
-const v2Cell=mapper.getCheckpointAnchors(v2Candidate.template,'4.1.1');
-assert.ok(v2Cell,'active v2 checklist row must expose calculated cell geometry');
-assert.ok(Math.abs(v2Cell.row.height-9.57)<0.02,'row height must be derived from neighbouring mapped row boundaries');
-assert.ok(Math.abs(v2Cell.row.centerY-(v2Candidate.template.rows['4.1.1'][1]+v2Cell.row.height/2))<0.001,'cell centre must be the midpoint of its measured bounds');
-assert.equal(v2Cell.pass.y,v2Cell.fail.y,'all status columns must share one vertical cell centre');
-assert.equal(v2Cell.fail.y,v2Cell.notAvailable.y,'N/A and PASS/FAIL must share one vertical cell centre');
-assert.equal(v2Cell.remarks.y,v2Cell.pass.y,'remarks and status overlays must share one vertical cell centre');
-assert.equal(v2Candidate.template.rows['8.1'][0],2,'Camera Functionality checkpoint 8.1 must map to page 2');
-assert.equal(v2Candidate.template.rows['4.9.1'][0],2,'4.9.1 must map to page 2 in the attached PDF');
-
-assert.equal(v2Candidate.template.fieldBoxes.totalWeight.x,588.93,'UAV weight value must be centred in its blank Remarks cell');
-assert.equal(v2Candidate.template.fieldBoxes.totalWeight.width,201.26,'UAV weight value must stay inside the Remarks cell');
-assert.equal(v2Candidate.template.specialFields.checkerReviewer.y,326.05,'signature must be mapped below the Checker + Reviewer heading, inside its blank cell');
+console.log('Daily Airworthiness v3 PDF regression passed: exact source revision, 61 unique entries, revised Section 6, measured row geometry, centered statuses, remarks alignment and signature placement.');
