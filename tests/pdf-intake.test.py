@@ -36,4 +36,32 @@ with tempfile.TemporaryDirectory() as directory:
     except ValueError as error:
         assert "valid PDF header" in str(error)
 
-print("PDF intake extraction tests passed: numbered IDs, descriptions, duplicates, SHA-256 and fail-closed review.")
+
+    # A clean single-checkpoint source builds a coordinate-free, review-only package.
+    simple = Path(directory) / "simple.pdf"
+    simple_doc = fitz.open()
+    simple_page = simple_doc.new_page(width=612, height=792)
+    simple_page.insert_text((40, 60), "1. DAILY CHECKS", fontsize=12)
+    simple_page.insert_text((50, 90), "1.1 Inspect airframe condition", fontsize=10)
+    simple_doc.save(simple)
+    simple_candidate = MODULE.analyse(simple)
+    candidate_path = Path(directory) / "simple-candidate.json"
+    candidate_path.write_text(__import__("json").dumps(simple_candidate), encoding="utf-8")
+    BUILDER_SPEC = importlib.util.spec_from_file_location("yeti_pdf_package_builder", ROOT / "scripts/build-pdf-review-package.py")
+    BUILDER = importlib.util.module_from_spec(BUILDER_SPEC)
+    BUILDER_SPEC.loader.exec_module(BUILDER)
+    package = BUILDER.build(candidate_path, simple, "TEST_TEMPLATE", "1.0.0")
+    assert package["activation"]["status"] == "candidate"
+    assert package["activation"]["reviewRequired"] is True
+    assert package["template"]["signatureMode"] == "append-signature-page"
+    assert package["template"]["rows"] == {}
+    assert package["sections"][0]["title"] == "DAILY CHECKS"
+    assert package["sections"][0]["items"][0]["id"] == "1.1"
+    assert package["sections"][0]["items"][0]["title"] == "Inspect airframe condition"
+    try:
+        BUILDER.build(candidate_path, Path(directory) / "missing.pdf", "TEST_TEMPLATE", "1.0.0")
+        raise AssertionError("Missing PDF source should be rejected")
+    except ValueError:
+        pass
+
+print("PDF intake extraction tests passed: numbered IDs, descriptions, duplicates, SHA-256 and fail-closed review, section inference and coordinate-free package generation.")
