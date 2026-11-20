@@ -151,3 +151,6 @@ assert.ok(rendererSourceForAppend.includes('(b.y+(b.height||6)/2)*scaleY'),'meas
 assert.ok(rendererSourceForAppend.includes('centerY=(b.y+(b.height||6)/2)*sy'),'measured metadata cell height must control vertical text centring in exported PDFs');
 
 assert.ok(rendererSourceForAppend.includes("!m?.specialFields?.[k]"),'mapped battery values must not also be duplicated in the remarks cell');
+
+assert.ok(rendererSourceForAppend.includes('(row[1]+4.815)*scaleY'),'status chips must be vertically centred in each checklist row');
+assert.ok(rendererSourceForAppend.includes('(row[1]+8.165)*scaleY'),'remarks must be vertically centred in each checklist row');
