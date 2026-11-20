@@ -1,0 +1,170 @@
+/* YETI Aerospace Workspace — Phases 2–4.
+   Presentation-only layer. No application markup, IDs, data attributes or scripts are changed. */
+:root{
+ --yeti-grid:rgba(31,91,125,.045);
+}
+body{
+ background-image:linear-gradient(var(--yeti-grid) 1px,transparent 1px),linear-gradient(90deg,var(--yeti-grid) 1px,transparent 1px);
+ background-size:32px 32px;
+ background-position:center top;
+}
+.top{position:relative;isolation:isolate;overflow:hidden}
+.top:after{
+ content:"";position:absolute;z-index:-1;right:max(22px,calc((100vw - 1460px)/2));top:50%;
+ width:clamp(110px,16vw,220px);height:100px;transform:translateY(-50%);
+ opacity:.14;pointer-events:none;
+ background:url("../assets/illustrations/aerospace/airframe-outline.svg") center/contain no-repeat;
+}
+.module-nav-heading{
+ position:relative;padding:15px 18px 14px 20px;margin-bottom:16px;
+ border:1px solid var(--yeti-line);border-left:4px solid #1687a5;border-radius:12px;
+ background:linear-gradient(110deg,rgba(255,255,255,.98),rgba(239,247,250,.96));
+ box-shadow:var(--yeti-shadow);
+}
+.module-nav-heading:after{
+ content:"";position:absolute;right:14px;bottom:8px;width:86px;height:42px;
+ opacity:.14;pointer-events:none;background:url("../assets/illustrations/aerospace/flight-control-schematic.svg") center/contain no-repeat;
+}
+.module-nav-heading h2{margin:4px 0}
+.module-tabs{align-items:stretch}
+.module-tab{min-height:82px;position:relative;overflow:hidden}
+.module-tab:after{
+ content:"";position:absolute;right:14px;bottom:8px;width:54px;height:30px;
+ opacity:.07;pointer-events:none;background:url("../assets/illustrations/aerospace/flight-control-schematic.svg") center/contain no-repeat;
+}
+.module-tab.active:after{opacity:.15;filter:brightness(0) invert(1)}
+#flightPreparationPanel,#propulsionAnalyzerPanel{min-width:0}
+#flightPreparationPanel .submodule-layout{gap:16px;align-items:start}
+#flightPreparationPanel .checklist-tabs{box-shadow:var(--yeti-shadow)}
+#flightPreparationPanel .submodule-content{min-width:0}
+#flightPreparationPanel .checklist-tab-panel{min-width:0}
+#flightPreparationPanel .vv-themed-checklist>.card,
+#flightPreparationPanel .loading-section,
+#flightPreparationPanel .flight-trial-reading-document,
+#flightPreparationPanel .flight-trial-reading-section{
+ border-color:var(--yeti-line);border-radius:var(--yeti-radius);
+}
+#flightPreparationPanel .vv-themed-checklist>.card,
+#flightPreparationPanel .loading-section{
+ background:linear-gradient(145deg,#fff 0%,#fbfcfe 100%);
+ box-shadow:var(--yeti-shadow);
+}
+#flightPreparationPanel .vv-themed-checklist h2,
+#flightPreparationPanel .loading-section h2,
+#flightPreparationPanel .flight-trial-reading-document>h2{
+ color:var(--yeti-ink);letter-spacing:-.025em;
+}
+#flightPreparationPanel .flight-trial-reading-document{
+ position:relative;overflow:hidden;
+ background:linear-gradient(180deg,#fff 0%,#fbfcfd 100%);
+ box-shadow:var(--yeti-shadow);
+}
+#flightPreparationPanel .flight-trial-reading-header{
+ background:linear-gradient(110deg,#f5fafc,#fff);
+ border-bottom:1px solid var(--yeti-line);
+}
+#flightPreparationPanel .flight-trial-reading-section{
+ position:relative;min-width:0;background:#fff;
+ box-shadow:0 2px 9px rgba(19,43,67,.025);
+}
+#flightPreparationPanel .flight-trial-reading-section>h3{
+ color:#174b68;border-bottom:1px solid #dce7ed;
+}
+#flightPreparationPanel .flight-trial-reading-table-wrap{
+ max-width:100%;border:1px solid #d9e3ea;border-radius:9px;
+}
+#flightPreparationPanel .flight-trial-reading-table-wrap table{
+ border-collapse:separate;border-spacing:0;
+}
+#flightPreparationPanel .flight-trial-reading-table-wrap thead th{
+ position:sticky;top:0;z-index:1;background:#eaf2f6;color:#294b65;
+}
+#flightPreparationPanel .loading-route-card,
+#flightPreparationPanel .loading-signature-card,
+#flightPreparationPanel .loading-photo-card,
+#flightPreparationPanel .daily-signature-card,
+#flightPreparationPanel .photo-evidence-card{
+ border:1px solid var(--yeti-line);border-radius:11px;background:#fff;
+}
+#flightPreparationPanel .stats .stat,
+#flightPreparationPanel .loading-stats>div{
+ min-width:0;box-shadow:0 2px 8px rgba(19,43,67,.035);
+}
+#flightPreparationPanel .tools input,
+#flightPreparationPanel .fields input,
+#flightPreparationPanel .fields select,
+#flightPreparationPanel .loading-route-grid input,
+#flightPreparationPanel .loading-meta-grid input{
+ min-height:40px;
+}
+#flightPreparationPanel .section,
+#flightPreparationPanel .subsection{
+ border-color:#d9e3ea;border-radius:10px;box-shadow:0 2px 8px rgba(19,43,67,.025);
+}
+#flightPreparationPanel .section summary{
+ background:linear-gradient(90deg,#f7fafc,#fff);
+}
+#flightPreparationPanel .section[open]>summary{
+ border-bottom:1px solid #e3eaf0;color:#173d59;
+}
+#flightPreparationPanel .item{min-width:0}
+#flightPreparationPanel .item:focus-within{
+ outline:2px solid rgba(8,127,157,.16);outline-offset:-2px;
+}
+#flightPreparationPanel .preview-panel{
+ border-color:#cbd9e3;box-shadow:var(--yeti-shadow);
+}
+#flightPreparationPanel .preview-panel>div:first-child{
+ gap:12px;flex-wrap:wrap;
+}
+#flightPreparationPanel canvas{max-width:100%;touch-action:pan-y}
+#propulsionAnalyzerPanel .propulsion-page-content{
+ position:relative;isolation:isolate;
+}
+#propulsionAnalyzerPanel .propulsion-page-content>.subnav-heading{
+ position:relative;border-bottom:1px solid #d9e4eb;
+}
+#propulsionAnalyzerPanel .propulsion-page-content>.subnav-heading:before{
+ content:"";position:absolute;right:8px;top:50%;width:108px;height:66px;
+ transform:translateY(-50%);opacity:.13;pointer-events:none;
+ background:url("../assets/illustrations/aerospace/flight-control-schematic.svg") center/contain no-repeat;
+}
+#propulsionAnalyzerPanel .propulsion-local-note{
+ padding:11px 13px;border:1px solid #dce6ec;border-radius:9px;background:#f7fafc;
+}
+button:disabled{cursor:not-allowed}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{
+ outline:3px solid rgba(8,127,157,.32);outline-offset:2px;
+}
+table{max-width:100%}
+img,svg,canvas{max-width:100%}
+@media(max-width:900px){
+ main{padding-left:16px;padding-right:16px}
+ #flightPreparationPanel .submodule-layout{gap:12px}
+}
+@media(max-width:760px){
+ .top:after{right:8px;width:94px;height:65px;opacity:.09}
+ .module-nav-heading{padding:13px 14px}
+ .module-nav-heading:after{width:58px;opacity:.09}
+ #flightPreparationPanel .checklist-tabs{min-width:0}
+ #flightPreparationPanel .flight-trial-reading-table-wrap{overflow-x:auto}
+ #flightPreparationPanel .flight-trial-reading-table-wrap table{min-width:620px}
+ #flightPreparationPanel .tools{align-items:stretch}
+ #flightPreparationPanel .tools input{min-width:100%}
+ #flightPreparationPanel .preview-panel{padding:13px}
+ #propulsionAnalyzerPanel .propulsion-page-content>.subnav-heading:before{width:72px;height:48px;opacity:.09}
+}
+@media(max-width:480px){
+ main{padding-left:12px;padding-right:12px}
+ .module-tab{padding:12px}
+ .module-nav-heading:after{display:none}
+ #propulsionAnalyzerPanel .propulsion-page-content>.subnav-heading:before{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}
+}
+@media print{
+ body{background:#fff!important}
+ .top:after,.module-nav-heading:after,.module-tab:after,
+ #propulsionAnalyzerPanel .propulsion-page-content>.subnav-heading:before{display:none!important}
+}
