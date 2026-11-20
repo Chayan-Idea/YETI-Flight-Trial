@@ -16,7 +16,7 @@
    .filter(row=>row.page===pageNumber&&Number.isFinite(row.top)).sort((a,b)=>a.top-b.top);
  }
  function typicalRowHeight(rows){
-  const gaps=[];for(let i=1;i<rows.length;i++){const d=rows[i].top-rows[i-1].top;if(d>0.5&&d<20)gaps.push(d)}
+  const gaps=[];for(let i=1;i<rows.length;i++){const d=rows[i].top-rows[i-1].top;if(d>0.5&&d<=12)gaps.push(d)}
   if(!gaps.length)return 9.58;
   gaps.sort((a,b)=>a-b);return gaps[Math.floor(gaps.length/2)];
  }
@@ -25,7 +25,7 @@
   const page=Number(row[0]),top=Number(row[1]),rows=pageRows(manifest,page),index=rows.findIndex(item=>item.id===id);
   if(!Number.isFinite(top)||index<0)return null;
   const typical=typicalRowHeight(rows),next=rows[index+1];
-  const height=next&&next.top-top>0.5&&next.top-top<20?next.top-top:typical;
+  const nextGap=next?next.top-top:NaN;\n  // Section separators create ~19 pt gaps (two checklist rows). Never mistake them for one tall cell.\n  const height=Number.isFinite(manifest?.rowGeometry?.defaultHeight)?Number(manifest.rowGeometry.defaultHeight):(nextGap>0.5&&nextGap<=12?nextGap:typical);
   const pageWidth=Number(manifest?.page?.width),pageHeight=Number(manifest?.page?.height);
   if(!Number.isFinite(pageWidth)||!Number.isFinite(pageHeight)||height<=0)return null;
   return {page,x:0,y:top,width:pageWidth,height,centerX:pageWidth/2,centerY:top+height/2};
