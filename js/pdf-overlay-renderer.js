@@ -30,6 +30,15 @@
   photos.forEach((photo,index)=>{const cell=document.createElement('div');cell.style.cssText='border:1px solid #777;min-width:0;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1%;overflow:hidden';const img=document.createElement('img');img.src=photo.data;img.alt=photo.name||'Photo evidence '+(index+1);img.style.cssText='width:100%;height:85%;object-fit:contain';const caption=document.createElement('div');caption.textContent=photo.name||('Photo '+(index+1));caption.style.cssText='font-size:10px;text-align:center;max-width:100%;overflow-wrap:anywhere;padding-top:4px';cell.append(img,caption);grid.appendChild(cell)});
   page.append(title,grid);container.appendChild(page);
  }
+ function appendSignaturePreview(container,signature,width,height){
+  const page=document.createElement('section');page.className='yeti-pdf-signature-page';
+  page.style.cssText='box-sizing:border-box;width:'+width+'px;height:'+height+'px;max-width:100%;margin:0 auto 18px;padding:5%;background:#fff;border:1px solid #bbb;box-shadow:0 2px 12px #0002;color:#111;font-family:Arial,sans-serif;display:flex;flex-direction:column';
+  const title=document.createElement('h2');title.textContent='CHECKER / REVIEWER SIGNATURE';title.style.cssText='text-align:center;font-size:18px;margin:0 0 8%';
+  const slot=document.createElement('div');slot.style.cssText='flex:1;border:1px solid #777;display:flex;align-items:center;justify-content:center;padding:4%';
+  const image=document.createElement('img');image.src=signature;image.alt='Saved Checker / Reviewer signature';image.style.cssText='max-width:90%;max-height:90%;object-fit:contain';slot.appendChild(image);
+  const note=document.createElement('p');note.textContent='Signature record appended because this PDF has no reviewed signature-cell mapping.';note.style.cssText='font-size:10px;text-align:center;color:#555;margin:3% 0 0';
+  page.append(title,slot,note);container.appendChild(page);
+ }
  async function renderPreview(container,candidate,manifest,signature,photos){
   const [pdfjs]=await libraries();container.innerHTML='';
   const pdf=await pdfjs.getDocument({data:candidate.pdfBytes.slice(0)}).promise;
@@ -43,6 +52,7 @@
    wrap.append(canvas,overlay);container.appendChild(wrap);await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
    if(signature&&signatureBox(manifest)?.page===index)await drawSignaturePreview(overlay.getContext('2d'),signature,manifest,index,scale);
   }
+  if(signature&&!signatureBox(manifest)&&manifest?.signatureMode==='append-signature-page')appendSignaturePreview(container,signature,pageWidth,pageHeight);
   const cleanPhotos=safePhotos(photos);
   for(let i=0;i<cleanPhotos.length;i+=4)photoPage(container,cleanPhotos.slice(i,i+4),pageWidth,pageHeight);
  }
@@ -55,6 +65,15 @@
     const width=image.width*fit,height=image.height*fit;
     pages[box.page-1].drawImage(image,{x:box.x+(box.width-width)/2,y:manifest.page.height-box.y-box.height+(box.height-height)/2,width,height});
    }
+  }
+  if(signature&&!signatureBox(manifest)&&manifest?.signatureMode==='append-signature-page'){
+   const page=doc.addPage([manifest.page.width,manifest.page.height]);
+   const font=await doc.embedFont(PDFLib.StandardFonts.HelveticaBold),regular=await doc.embedFont(PDFLib.StandardFonts.Helvetica);
+   page.drawText('CHECKER / REVIEWER SIGNATURE',{x:28,y:manifest.page.height-42,size:14,font});
+   page.drawRectangle({x:28,y:manifest.page.height*.25,width:manifest.page.width-56,height:manifest.page.height*.55,borderWidth:.8,borderColor:PDFLib.rgb(.35,.35,.35)});
+   const image=await doc.embedPng(dataBytes(signature)),maxW=manifest.page.width-100,maxH=manifest.page.height*.45,fit=Math.min(maxW/image.width,maxH/image.height),width=image.width*fit,height=image.height*fit;
+   page.drawImage(image,{x:(manifest.page.width-width)/2,y:(manifest.page.height-height)/2,width,height});
+   page.drawText('Appended signature record — no source-PDF signature cell was mapped.',{x:28,y:18,size:7,font:regular});
   }
   const cleanPhotos=safePhotos(photos);
   for(let i=0;i<cleanPhotos.length;i+=4){
