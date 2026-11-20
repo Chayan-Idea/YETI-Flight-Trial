@@ -80,7 +80,7 @@ def validate_reviewed_package(package,pdf_digest,candidate,review_path):
             raise ValueError("Mapped signature mode requires a reviewed Checker/Reviewer source-cell box.")
     elif mode!="append-signature-page":
         raise ValueError("Choose a reviewed source-cell signature map or explicit append-signature-page mode.")
-    return expected
+    return actual
 
 def main():
     parser=argparse.ArgumentParser()
