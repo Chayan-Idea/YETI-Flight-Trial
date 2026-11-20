@@ -226,3 +226,17 @@
 #previewContent{max-width:100%;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
 #previewContent .yeti-pdf-preview-stage{width:100%;transform-origin:top left}
 @media(max-width:620px){.pdf-preview-toolbar{width:100%;justify-content:flex-start}.pdf-preview-toolbar .btn{min-width:46px;min-height:46px;font-size:16px}.pdf-zoom-level{min-width:54px;font-size:13px}}
+
+/* Floating 01B PDF workspace: full viewport, true two-axis pan and pinch zoom. */
+#previewContent{position:relative;min-width:0;min-height:320px;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:none;cursor:grab;background:#dce3eb}
+#previewContent.pdf-pan-active{cursor:grabbing}
+#previewContent .yeti-pdf-preview-stage{width:100%;min-width:max-content;transform-origin:top left}
+#previewContent .yeti-pdf-source-page,#previewContent .yeti-pdf-photo-page{flex-shrink:0}
+#previewPanel.pdf-preview-expanded{position:fixed!important;inset:0!important;z-index:100000!important;width:100vw!important;height:100vh!important;height:100dvh!important;max-width:none!important;max-height:none!important;min-height:0!important;margin:0!important;padding:10px!important;border:0!important;border-radius:0!important;box-sizing:border-box!important;display:flex!important;flex-direction:column!important;gap:8px!important;overflow:hidden!important;background:#e8edf3!important}
+#previewPanel.pdf-preview-expanded>div:first-child{position:relative;flex:0 0 auto;display:flex!important;align-items:center;gap:8px;padding:8px 10px;background:#fff;border:1px solid #cbd6e2;border-radius:10px}
+#previewPanel.pdf-preview-expanded>div:first-child h2{margin:0;font-size:16px}
+#previewPanel.pdf-preview-expanded #previewContent{flex:1 1 auto;width:100%;height:auto;min-height:0;max-height:none;overflow:auto;border:1px solid #b8c5d3;border-radius:8px}
+#previewPanel.pdf-preview-expanded .pdf-preview-toolbar{margin-left:auto!important}
+#previewPanel.pdf-preview-expanded .yeti-pdf-preview-stage{width:100%;min-width:max-content}
+body.pdf-viewer-open{overflow:hidden!important;overscroll-behavior:none}
+@media(max-width:620px){#previewPanel.pdf-preview-expanded{padding:5px!important;gap:5px!important}#previewPanel.pdf-preview-expanded>div:first-child{padding:6px;flex-wrap:wrap}#previewPanel.pdf-preview-expanded>div:first-child h2{font-size:13px}#previewPanel.pdf-preview-expanded .pdf-preview-toolbar{gap:4px}#previewPanel.pdf-preview-expanded .pdf-preview-toolbar .btn{min-width:40px;min-height:42px;padding:7px 9px}}
