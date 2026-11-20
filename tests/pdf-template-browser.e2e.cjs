@@ -27,6 +27,7 @@ const server = http.createServer((req,res)=>{
   if(!response?.ok())throw new Error('YETI staging shell failed to load');
   await page.waitForFunction(()=>{const active=window.YETI_ACTIVE_PDF_TEMPLATE;return active&&document.querySelectorAll('#list .item').length===active.validation.checkpointCount},{timeout:15000});
   await page.locator('#dailyTabBtn').click();
+  await page.locator('#expand').click();
   if(await page.locator('#previewBtn').count()!==0)throw new Error('Manual Update PDF Preview button must not exist');
   await page.waitForFunction(()=>document.querySelectorAll('#previewContent .yeti-pdf-source-page').length===window.YETI_ACTIVE_PDF_TEMPLATE.package.document.pageCount,{timeout:20000});
   await page.locator('#list select[data-id="2.1"][data-k="status"]').selectOption('Pass');
