@@ -30,7 +30,7 @@
   if(!response.ok)throw new Error('Template package fetch failed: '+response.status);
   const pkg=await response.json(),validation=validatePackage(pkg);
   if(!validation.valid)throw new Error('Template rejected: '+validation.errors.join(' '));
-  const pdfUrl=new URL(pkg.sourcePdf.path,new URL(packageUrl,root.location.href));
+  const pdfUrl=new URL(pkg.sourcePdf.path,root.location.href);
   const pdfResponse=await fetch(pdfUrl.href,{cache:'no-store'});
   if(!pdfResponse.ok)throw new Error('Source PDF fetch failed: '+pdfResponse.status);
   const bytes=await pdfResponse.arrayBuffer();
