@@ -124,7 +124,7 @@ $('loadingCameraPhotos').addEventListener('change',e=>addPhotoFiles(e.target.fil
  if(!skipPhotoRefresh)await renderPhotoThumbs();
  try{evidencePhotos=await photoDB('getAll')}catch(e){}
  const activePdf=window.YETI_ACTIVE_PDF_TEMPLATE;
- if(activePdf?.pdfBytes&&window.YETI_PDF_OVERLAY_RENDERER){try{await window.YETI_PDF_OVERLAY_RENDERER.renderPreview($('previewContent'),activePdf,activePdf.package.template,answers['9.0']?.signature,evidencePhotos.filter(p=>(p.category||'daily')==='daily'));return}catch(error){console.error('Source PDF preview unavailable.',error);$('previewContent').innerHTML='<div class="alert alert-danger" role="alert">The approved source PDF preview could not be rendered. The original-PDF preview has been stopped to prevent a misleading substitute.</div>';return}}
+ if(activePdf?.pdfBytes&&window.YETI_PDF_OVERLAY_RENDERER){try{await window.YETI_PDF_OVERLAY_RENDERER.renderPreview($('previewContent'),activePdf,activePdf.package.template,answers['9.0']?.signature,evidencePhotos.filter(p=>(p.category||'daily')==='daily'),answers,trialInfo);return}catch(error){console.error('Source PDF preview unavailable.',error);$('previewContent').innerHTML='<div class="alert alert-danger" role="alert">The approved source PDF preview could not be rendered. The original-PDF preview has been stopped to prevent a misleading substitute.</div>';return}}
  const doc=window.YETI_DAILY_AIRWORTHINESS_DOCUMENT||{};
  const safe=v=>esc(v==null?'':String(v));
  const meta=[['Trial Phase',trialInfo.phase],['Trial Stage',trialInfo.stage],['Flight Place',trialInfo.place],['Flight Date',trialInfo.date]];
@@ -198,7 +198,7 @@ $('closePreview').onclick=()=>{$('previewPanel').classList.remove('show')};
 
 async function exportChecklistPdf(previewId,title){
  const activePdf=window.YETI_ACTIVE_PDF_TEMPLATE;
- if(previewId==='previewContent'&&activePdf?.pdfBytes&&window.YETI_PDF_OVERLAY_RENDERER){try{const bytes=await window.YETI_PDF_OVERLAY_RENDERER.exportPdf(activePdf,activePdf.package.template,answers['9.0']?.signature,evidencePhotos.filter(p=>(p.category||'daily')==='daily'));const blob=new Blob([bytes],{type:'application/pdf'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=String(title||'Daily-Airworthiness.pdf').replace(/[^a-z0-9._-]/gi,'_');link.click();setTimeout(()=>URL.revokeObjectURL(url),1500);return}catch(error){console.error('Original PDF overlay export failed.',error);alert('The approved source PDF could not be exported. No legacy substitute was generated. Please retry after the PDF renderer is available.');return}}
+ if(previewId==='previewContent'&&activePdf?.pdfBytes&&window.YETI_PDF_OVERLAY_RENDERER){try{const bytes=await window.YETI_PDF_OVERLAY_RENDERER.exportPdf(activePdf,activePdf.package.template,answers['9.0']?.signature,evidencePhotos.filter(p=>(p.category||'daily')==='daily'),answers,trialInfo);const blob=new Blob([bytes],{type:'application/pdf'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=String(title||'Daily-Airworthiness.pdf').replace(/[^a-z0-9._-]/gi,'_');link.click();setTimeout(()=>URL.revokeObjectURL(url),1500);return}catch(error){console.error('Original PDF overlay export failed.',error);alert('The approved source PDF could not be exported. No legacy substitute was generated. Please retry after the PDF renderer is available.');return}}
  const printWindow=window.open('','_blank');
  if(!printWindow){alert('Please allow pop-ups for this site, then select Export as PDF again.');return}
  try{
