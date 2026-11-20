@@ -190,9 +190,9 @@
   const singleMappingTableWrap=el('div','propulsion-multi-mapping-table-wrap');
   const singleMappingTable=el('table','propulsion-multi-mapping-table propulsion-multi-mapping-unified');
   const singleMappingHead=document.createElement('thead'),singleMappingGroupHead=document.createElement('tr'),singleMappingSubHead=document.createElement('tr');
-  const singleGroupHead=el('th','','PARAMETER GROUP'),singleParameterHead=el('th','','PARAMETER');
-  singleGroupHead.rowSpan=2;singleParameterHead.rowSpan=2;singleGroupHead.scope='col';singleParameterHead.scope='col';
-  singleMappingGroupHead.append(singleGroupHead,singleParameterHead);
+  const singleParameterHead=el('th','','PARAMETER');
+  singleParameterHead.rowSpan=2;singleParameterHead.scope='col';
+  singleMappingGroupHead.append(singleParameterHead);
   const singleLogHead=el('th','','LOG 1 · '+(selectedFile?.name||'Uploaded CSV'));singleLogHead.scope='colgroup';singleMappingGroupHead.append(singleLogHead);
   const singleColumnHead=el('th','','CSV COLUMN MAPPING');singleColumnHead.scope='col';singleMappingSubHead.append(singleColumnHead);
   singleMappingHead.append(singleMappingGroupHead,singleMappingSubHead);singleMappingTable.append(singleMappingHead);
@@ -201,7 +201,7 @@
    const groupKeys=group.keys.filter(key=>singleActiveKeys.has(key));
    if(!groupKeys.length)return;
    const sectionRow=el('tr','propulsion-mapping-section-row propulsion-mapping-section--'+group.title.toLowerCase());
-   const sectionCell=el('th','propulsion-mapping-section-heading',group.title.toUpperCase()+' PARAMETERS');sectionCell.colSpan=3;sectionCell.scope='colgroup';sectionRow.append(sectionCell);singleMappingBody.append(sectionRow);
+   const sectionCell=el('th','propulsion-mapping-section-heading',group.title.toUpperCase()+' PARAMETERS');sectionCell.colSpan=2;sectionCell.scope='colgroup';sectionRow.append(sectionCell);singleMappingBody.append(sectionRow);
    groupKeys.forEach(key=>{
     const spec=specs.find(item=>item.key===key);if(!spec)return;
     const row=document.createElement('tr'),parameterCell=el('th','propulsion-multi-mapping-parameter',spec.label);
