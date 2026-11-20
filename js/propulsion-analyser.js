@@ -1015,7 +1015,7 @@ const statsPage=el('section','propulsion-report-summary-page');
 
  function buildMultiLogReportCard(){
   const card=el('section','propulsion-phase4-report-card propulsion-step-card propulsion-step-card--green');card.id='propulsionPhase4ReportCard';
-  card.append(el('div','propulsion-step-label','STEP 06 · MULTI-LOG REPORT GENERATION'),el('h3','','Generate Comparative Test Validation Report'),el('p','propulsion-mapping-description','Enter test identification details independently for each log. Test Report Type and Test Objective are entered once and apply to every log in the comparative test.'));
+  card.append(el('div','propulsion-step-label','STEP 07 · MULTI-LOG REPORT GENERATION'),el('h3','','Generate Comparative Test Validation Report'),el('p','propulsion-mapping-description','Enter test identification details independently for each log. Test Report Type and Test Objective are entered once and apply to every log in the comparative test.'));
   const fieldsByLog=multiSession.logs.map(()=>({}));
   const form=el('div','propulsion-phase4-report-form propulsion-phase4-report-form--multi');
   const tableWrap=el('div','propulsion-phase4-report-input-table-wrap');
