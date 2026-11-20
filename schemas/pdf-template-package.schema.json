@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "YETI PDF Checklist Template Package",
+  "type": "object",
+  "required": [
+    "packageVersion",
+    "activation",
+    "document",
+    "sourcePdf",
+    "template",
+    "sections"
+  ],
+  "properties": {
+    "packageVersion": {
+      "const": 1
+    },
+    "activation": {
+      "type": "object",
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "candidate",
+            "approved"
+          ]
+        },
+        "approvedBy": {
+          "type": "string"
+        },
+        "approvalReference": {
+          "type": "string"
+        }
+      }
+    },
+    "document": {
+      "type": "object",
+      "required": [
+        "templateId",
+        "version",
+        "pageCount",
+        "pageWidth",
+        "pageHeight"
+      ],
+      "properties": {
+        "templateId": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "pageCount": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pageWidth": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "pageHeight": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "orientation": {
+          "enum": [
+            "portrait",
+            "landscape"
+          ]
+        }
+      }
+    },
+    "sourcePdf": {
+      "type": "object",
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "\\.pdf$"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        }
+      }
+    },
+    "template": {
+      "type": "object",
+      "required": [
+        "page",
+        "rows",
+        "columns"
+      ],
+      "properties": {
+        "page": {
+          "type": "object",
+          "required": [
+            "width",
+            "height",
+            "unit"
+          ]
+        },
+        "rows": {
+          "type": "object"
+        },
+        "columns": {
+          "type": "object"
+        },
+        "signatureMode": {
+          "enum": [
+            "mapped-source-cell",
+            "append-signature-page"
+          ]
+        }
+      }
+    },
+    "sections": {
+      "type": "array"
+    }
+  },
+  "additionalProperties": false
+}

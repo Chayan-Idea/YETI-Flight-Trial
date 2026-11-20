@@ -2,7 +2,7 @@ name: YETI 2-Minute Quick Quality Check
 
 on:
   push:
-    branches: [main]
+    branches: [main, feat/dynamic-pdf-checklist-engine]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -28,11 +28,18 @@ jobs:
         with:
           node-version: 22
 
-      - name: Run the only quality check
+      - name: Set up Python for deterministic PDF intake tests
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install minimal PDF parser dependency
+        run: python -m pip install --disable-pip-version-check --no-input pymupdf
+      - name: Run the single consolidated quality gate
         shell: bash
         run: |
           set -euo pipefail
           echo "## YETI 2-Minute Quick Quality Check" >> "$GITHUB_STEP_SUMMARY"
+          echo "One job; deterministic, dependency-light checks; no separate browser-verification workflow." >> "$GITHUB_STEP_SUMMARY"
           run_check() {
             label="$1"
             shift
@@ -47,7 +54,10 @@ jobs:
           run_check "Application structure, assets and JavaScript syntax" node scripts/validate-app.mjs
           run_check "Propulsion calculation unit tests" node tests/propulsion-analysis-engine.test.js
           run_check "Analyzer module regression tests" node tests/yeti-modules.test.js
-          echo "OVERALL: PASS — all quick checks completed." >> "$GITHUB_STEP_SUMMARY"
+          run_check "PDF template schema and coordinate tests" node tests/pdf-template-engine.test.cjs
+          run_check "PDF intake extractor syntax" python -m py_compile scripts/analyze-pdf-template.py scripts/build-pdf-review-package.py tests/pdf-intake.test.py
+          run_check "PDF intake extraction and fail-closed tests" python tests/pdf-intake.test.py
+          echo "OVERALL: PASS — application integrity, propulsion calculations, module regression, dynamic PDF intake, package generation and PDF signature-mode integrity all passed." >> "$GITHUB_STEP_SUMMARY"
           echo "YETI QUICK QUALITY CHECK PASSED."
 
   deploy-production:

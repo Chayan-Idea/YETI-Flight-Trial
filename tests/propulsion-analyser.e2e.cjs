@@ -33,6 +33,8 @@ const server = http.createServer((req,res)=>{
     await page.locator('#propulsionAnalyzerTab').click();
   checkpoint('propulsion analyzer opened');
   await page.locator('#propulsionLogCount').selectOption('1');
+  await page.locator('#confirmCommonSetupBtn').click();
+  await page.locator('#propulsionLogTypePicker').waitFor({state:'visible'});
   await page.locator('#propulsionLogTypePicker input[value="thrust"]').evaluate(el=>{el.checked=true;el.dispatchEvent(new Event('change',{bubbles:true}));});
   await page.locator('#propulsionLogUploadArea').waitFor({state:'visible'});
   const singleCsv='thrust,command_rpm,actual_rpm,dc_voltage_v,dc_current_a,motor_temperature_c,esc_temperature_c,acceleration_x,acceleration_y,acceleration_z\n100,1000,980,50,10,40,35,0.1,0.2,0.3\n110,1100,1080,50,11,41,36,0.2,0.3,0.4\n90,900,0,50,10,39,34,0.0,0.1,0.2\n';
@@ -48,7 +50,8 @@ const server = http.createServer((req,res)=>{
   const specific=page.locator('.propulsion-calculated-parameter[data-parameter-key="overallEfficiency"]');
   await specific.locator('input[type="checkbox"]').check();
   await specific.locator('button').filter({hasText:'Calculate and Add to Log file'}).click();
-  await page.locator('#confirmDerivedParametersReady').check();
+  // The current single-log Step 03 uses an explicit continuation action instead of the retired derived-ready confirmation checkbox.
+  await page.locator('#propulsionDerivedParameterCalculationCard .propulsion-derived-proceed').click();
   await page.locator('#confirmFilteringSortingReady').check();
   const csvGenerate=page.locator('#propulsionDataFilteringCard button').filter({hasText:'Generate Filtered & Sorted CSV'});
   await csvGenerate.waitFor({state:'visible'});
@@ -71,8 +74,10 @@ const server = http.createServer((req,res)=>{
   await singleGraph.locator('svg').waitFor({state:'visible'});
   // Switch to the common multi-log workflow after the single-log regression passes.
   await page.locator('#propulsionLogCount').selectOption('2');
-  await Promise.all([page.waitForNavigation({waitUntil:'networkidle'}),page.locator('#confirmCommonSetupBtn').click()]);
-  if(new URL(page.url()).searchParams.get('logCount')!=='2')throw new Error('Common Analysis Setup selection was not retained after the full page refresh.');
+  // Changing log count resets the SPA workflow asynchronously; it intentionally does not reload the page.
+  await page.locator('#confirmCommonSetupBtn').click();
+  await page.locator('#propulsionCommonSetupStatus').filter({hasText:'Configuration changed. Previous sections were reset.'}).waitFor({state:'visible'});
+  if(await page.locator('#propulsionLogCount').inputValue()!=='2')throw new Error('Common Analysis Setup selection was not retained after the workflow reset.');
   await page.locator('#propulsionMultiSetupCard').waitFor({state:'visible'});
   await page.locator('#propulsionMultiUploadControls').waitFor({state:'hidden'});
   if(await page.locator('#propulsionMultiUploadControls').isVisible())throw new Error('Multi-log upload controls must remain hidden until a test type is selected.');
@@ -335,7 +340,10 @@ const server = http.createServer((req,res)=>{
   // Verify the same unified mapping-table layout for 3-log and 4-log analysis.
   for (const count of [3,4]) {
    await page.locator('#propulsionLogCount').selectOption(String(count));
-   await Promise.all([page.waitForNavigation({waitUntil:'networkidle'}),page.locator('#confirmCommonSetupBtn').click()]);
+   // Log-count changes reset the single-page application in place; no navigation event is expected.
+   await page.locator('#confirmCommonSetupBtn').click();
+   await page.locator('#propulsionCommonSetupStatus').filter({hasText:'Configuration changed. Previous sections were reset.'}).waitFor({state:'visible'});
+   if(await page.locator('#propulsionLogCount').inputValue()!==String(count))throw new Error(count+'-log configuration was not retained after the asynchronous reset.');
    await page.locator('#propulsionMultiSetupCard').waitFor({state:'visible'});
    await page.locator('#propulsionMultiLogTypePicker input[value="thrust"]').evaluate(el=>{el.checked=true;el.dispatchEvent(new Event('change',{bubbles:true}));});
    const multiUploads=page.locator('#propulsionMultiUploadGrid input[type="file"]');

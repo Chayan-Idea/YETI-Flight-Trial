@@ -1,0 +1,774 @@
+{
+  "packageVersion": 1,
+  "activation": {
+    "status": "approved",
+    "approvedAt": "2026-11-20",
+    "approvalNote": "Final PDF selected by user on 2026-11-20: YETI TD0 Trial DAC Format(3).pdf. The uploaded file is byte-for-byte identical to the approved repository source PDF (SHA-256 03fe8f45e83b081669c4386585004a351ddcb2d8a14923854bafc36436d79560; 67,339 bytes; 2 pages; A4 landscape 842 x 595 pt). It contains 62 checklist entries across 9 sections, including 8.1 Camera Functionality — Video recording is ok. This exact source and its verified coordinate map are the active final template version 1.0.0."
+  },
+  "document": {
+    "templateId": "IF_YETI_TD0_FTR_CKT_005",
+    "version": "1.0.0",
+    "pageCount": 2,
+    "pageWidth": 842,
+    "pageHeight": 595,
+    "orientation": "landscape"
+  },
+  "sourcePdf": {
+    "path": "assets/templates/YETI TD0 Trial DAC Format.pdf",
+    "sha256": "03fe8f45e83b081669c4386585004a351ddcb2d8a14923854bafc36436d79560"
+  },
+  "template": {
+    "page": {
+      "width": 842,
+      "height": 595,
+      "unit": "pt"
+    },
+    "rows": {
+      "1.1": [
+        1,
+        103.07
+      ],
+      "1.2": [
+        1,
+        121.82
+      ],
+      "2.1": [
+        1,
+        149.93
+      ],
+      "2.2": [
+        1,
+        159.3
+      ],
+      "3.1": [
+        1,
+        178.05
+      ],
+      "3.2": [
+        1,
+        187.42
+      ],
+      "3.3": [
+        1,
+        196.79
+      ],
+      "3.4": [
+        1,
+        206.16
+      ],
+      "4.1.1": [
+        1,
+        224.91
+      ],
+      "4.1.2": [
+        1,
+        234.28
+      ],
+      "4.1.3": [
+        1,
+        243.65
+      ],
+      "4.1.4": [
+        1,
+        253.02
+      ],
+      "4.2.1": [
+        1,
+        262.4
+      ],
+      "4.2.2": [
+        1,
+        271.77
+      ],
+      "4.2.3": [
+        1,
+        281.14
+      ],
+      "4.2.4": [
+        1,
+        290.51
+      ],
+      "4.3.1": [
+        1,
+        299.88
+      ],
+      "4.3.2": [
+        1,
+        309.26
+      ],
+      "4.3.3": [
+        1,
+        318.63
+      ],
+      "4.3.4": [
+        1,
+        328
+      ],
+      "4.3.5": [
+        1,
+        337.37
+      ],
+      "4.3.6": [
+        1,
+        346.74
+      ],
+      "4.3.7": [
+        1,
+        356.12
+      ],
+      "4.4.1": [
+        1,
+        365.49
+      ],
+      "4.4.2": [
+        1,
+        374.86
+      ],
+      "4.4.3": [
+        1,
+        384.23
+      ],
+      "4.4.4": [
+        1,
+        393.6
+      ],
+      "4.4.6": [
+        1,
+        402.98
+      ],
+      "4.5.1": [
+        1,
+        412.35
+      ],
+      "4.5.2": [
+        1,
+        421.72
+      ],
+      "4.5.3": [
+        1,
+        431.09
+      ],
+      "4.5.4": [
+        1,
+        440.46
+      ],
+      "4.6.1": [
+        1,
+        449.84
+      ],
+      "4.6.2": [
+        1,
+        459.21
+      ],
+      "4.6.3": [
+        1,
+        468.58
+      ],
+      "4.6.4": [
+        1,
+        477.95
+      ],
+      "4.6.5": [
+        1,
+        487.32
+      ],
+      "4.7.1": [
+        1,
+        496.7
+      ],
+      "4.7.2": [
+        1,
+        506.07
+      ],
+      "4.7.3": [
+        1,
+        515.44
+      ],
+      "4.7.4": [
+        1,
+        524.81
+      ],
+      "4.7.5": [
+        1,
+        534.18
+      ],
+      "4.8.1": [
+        1,
+        543.56
+      ],
+      "4.8.2": [
+        1,
+        552.93
+      ],
+      "4.9.1": [
+        2,
+        93.7
+      ],
+      "4.9.2": [
+        2,
+        103.07
+      ],
+      "4.9.3": [
+        2,
+        112.44
+      ],
+      "4.9.4": [
+        2,
+        121.82
+      ],
+      "5.1": [
+        2,
+        140.56
+      ],
+      "5.2": [
+        2,
+        149.93
+      ],
+      "6.1": [
+        2,
+        168.68
+      ],
+      "6.2": [
+        2,
+        178.05
+      ],
+      "6.3": [
+        2,
+        187.42
+      ],
+      "6.4": [
+        2,
+        196.79
+      ],
+      "7.1": [
+        2,
+        215.54
+      ],
+      "7.2": [
+        2,
+        224.91
+      ],
+      "7.3": [
+        2,
+        234.28
+      ],
+      "7.4": [
+        2,
+        243.65
+      ],
+      "8.1": [
+        2,
+        262.4
+      ],
+      "8.2": [
+        2,
+        271.77
+      ],
+      "8.3": [
+        2,
+        281.14
+      ]
+    },
+    "columns": {
+      "passCenterX": 511.35,
+      "failCenterX": 534.95,
+      "notAvailableCenterX": 570.01,
+      "remarksLeft": 573.9,
+      "remarksRight": 790.18
+    },
+    "specialFields": {
+      "hvVoltage": {
+        "page": 2,
+        "x": 596,
+        "y": 169,
+        "width": 70,
+        "height": 7
+      },
+      "minimumCellVoltage": {
+        "page": 2,
+        "x": 682,
+        "y": 169,
+        "width": 90,
+        "height": 7
+      },
+      "pduSoc": {
+        "page": 2,
+        "x": 596,
+        "y": 178,
+        "width": 80,
+        "height": 7
+      },
+      "checkerReviewer": {
+        "page": 2,
+        "x": 573.9,
+        "y": 294.99,
+        "width": 216.28,
+        "height": 25.68
+      }
+    },
+    "header": {
+      "documentNumber": {
+        "page": 1,
+        "x": 500.7,
+        "y": 37.8
+      },
+      "trialPhase": {
+        "page": 1,
+        "x": 500.7,
+        "y": 46.6
+      },
+      "trialStage": {
+        "page": 1,
+        "x": 500.7,
+        "y": 55.4
+      },
+      "flightPlace": {
+        "page": 1,
+        "x": 500.7,
+        "y": 64.2
+      },
+      "flightDate": {
+        "page": 1,
+        "x": 500.7,
+        "y": 73
+      }
+    }
+  },
+  "sections": [
+    {
+      "title": "1. UAV Specification",
+      "items": [
+        {
+          "id": "1.1",
+          "title": "UAV Weight",
+          "criteria": [],
+          "valueFields": [
+            {
+              "key": "totalWeight",
+              "label": "UAV Total weight",
+              "placeholder": "Enter UAV total weight"
+            }
+          ]
+        },
+        {
+          "id": "1.2",
+          "title": "UAV CG Point",
+          "criteria": [],
+          "valueFields": [
+            {
+              "key": "cgX",
+              "label": "Along X / Longitudinal Axis",
+              "placeholder": "Enter X-axis CG"
+            },
+            {
+              "key": "cgY",
+              "label": "Along Y / Lateral Axis",
+              "placeholder": "Enter Y-axis CG"
+            },
+            {
+              "key": "cgZ",
+              "label": "Along Z / Vertical Axis",
+              "placeholder": "Enter Z-axis CG"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "2. Safety & Crew",
+      "items": [
+        {
+          "id": "2.1",
+          "title": "Safety, V&V, Integration, Autopilot, FTI, and Propulsion teams are present.",
+          "criteria": []
+        },
+        {
+          "id": "2.2",
+          "title": "Team is briefed on flight trial emergency procedures.",
+          "criteria": []
+        }
+      ]
+    },
+    {
+      "title": "3. General Setup",
+      "items": [
+        {
+          "id": "3.1",
+          "title": "Setup Description",
+          "criteria": [],
+          "valueFields": [
+            {
+              "key": "setupDescription",
+              "label": "Setup Description",
+              "placeholder": "Enter setup description"
+            }
+          ]
+        },
+        {
+          "id": "3.2",
+          "title": "UAV positioned at the center of the test area & test area is clear.",
+          "criteria": []
+        },
+        {
+          "id": "3.3",
+          "title": "Fire extinguisher, first-aid kit, and emergency tools available and accessible.",
+          "criteria": []
+        },
+        {
+          "id": "3.4",
+          "title": "DG placed at safe & appropriate distance considering noise and safety hazards; dedicated junction boxes installed at required locations.",
+          "criteria": []
+        }
+      ]
+    },
+    {
+      "title": "4. Airframe & Structure",
+      "items": [
+        {
+          "id": "4.1.1",
+          "title": "Cracks, dents and aesthetics",
+          "criteria": []
+        },
+        {
+          "id": "4.1.2",
+          "title": "Screws fitment and loose parts",
+          "criteria": []
+        },
+        {
+          "id": "4.1.3",
+          "title": "Antenna mounting, routing and",
+          "criteria": []
+        },
+        {
+          "id": "4.1.4",
+          "title": "FOD in the wing",
+          "criteria": []
+        },
+        {
+          "id": "4.2.1",
+          "title": "Cracks, dents and aesthetics",
+          "criteria": []
+        },
+        {
+          "id": "4.2.2",
+          "title": "Screws fitment and loose parts",
+          "criteria": []
+        },
+        {
+          "id": "4.2.3",
+          "title": "Antenna mounting, routing and",
+          "criteria": []
+        },
+        {
+          "id": "4.2.4",
+          "title": "FOD in the wing",
+          "criteria": []
+        },
+        {
+          "id": "4.3.1",
+          "title": "VTOL Motor fitment and tightness",
+          "criteria": []
+        },
+        {
+          "id": "4.3.2",
+          "title": "Propeller direction (CW ; CCW), fitment and tightness",
+          "criteria": []
+        },
+        {
+          "id": "4.3.3",
+          "title": "Cable ties on the VTOL arms are in place , no loose cable holders.",
+          "criteria": []
+        },
+        {
+          "id": "4.3.4",
+          "title": "The cooling line is not loose at the motor inlet, motor mount and not fouling with the motor.",
+          "criteria": []
+        },
+        {
+          "id": "4.3.5",
+          "title": "HV terminals and LV terminals are intact and properly insulated.",
+          "criteria": []
+        },
+        {
+          "id": "4.3.6",
+          "title": "Ensure no nicks, cuts or delamination to VTOL propellers",
+          "criteria": []
+        },
+        {
+          "id": "4.3.7",
+          "title": "No FOD in VTOL motors",
+          "criteria": []
+        },
+        {
+          "id": "4.4.1",
+          "title": "Cable ties on the FW arms are in place , no loose cable holders.",
+          "criteria": []
+        },
+        {
+          "id": "4.4.2",
+          "title": "HV terminals and LV terminals are intact and properly insulated.",
+          "criteria": []
+        },
+        {
+          "id": "4.4.3",
+          "title": "FW Motor fitment and tightness",
+          "criteria": []
+        },
+        {
+          "id": "4.4.4",
+          "title": "Propeller direction (CW ; CCW), fitment and tightness",
+          "criteria": []
+        },
+        {
+          "id": "4.4.6",
+          "title": "No FOD in FW motors",
+          "criteria": []
+        },
+        {
+          "id": "4.5.1",
+          "title": "No damages, dents, chipped edges and aesthetics on the tail surface and control surface hinge points",
+          "criteria": []
+        },
+        {
+          "id": "4.5.2",
+          "title": "Control surface horn fitment and movement is ok",
+          "criteria": []
+        },
+        {
+          "id": "4.5.3",
+          "title": "Screws fitment is proper and no loose parts",
+          "criteria": []
+        },
+        {
+          "id": "4.5.4",
+          "title": "No FOD in Tail Assembly",
+          "criteria": []
+        },
+        {
+          "id": "4.6.1",
+          "title": "No Cracks, dents, chipped edges, asthetics is ok. No loose cables and cable tie bases are not loose.",
+          "criteria": []
+        },
+        {
+          "id": "4.6.2",
+          "title": "LV battery fitment",
+          "criteria": []
+        },
+        {
+          "id": "4.6.3",
+          "title": "PDU fasteners are tightened.",
+          "criteria": []
+        },
+        {
+          "id": "4.6.4",
+          "title": "ESC fasteners are tightened.",
+          "criteria": []
+        },
+        {
+          "id": "4.6.5",
+          "title": "No FOD in the HV floor",
+          "criteria": []
+        },
+        {
+          "id": "4.7.1",
+          "title": "Battery locking Velcro is intact.",
+          "criteria": []
+        },
+        {
+          "id": "4.7.2",
+          "title": "No leakages from battery cooling system.",
+          "criteria": []
+        },
+        {
+          "id": "4.7.3",
+          "title": "No loose cables.",
+          "criteria": []
+        },
+        {
+          "id": "4.7.4",
+          "title": "Electrical connector is intact.",
+          "criteria": []
+        },
+        {
+          "id": "4.7.5",
+          "title": "No FOD in the battery structure.",
+          "criteria": []
+        },
+        {
+          "id": "4.8.1",
+          "title": "No loose cables.",
+          "criteria": []
+        },
+        {
+          "id": "4.8.2",
+          "title": "GNSS antena are intact and in the correct direction.",
+          "criteria": []
+        },
+        {
+          "id": "4.9.1",
+          "title": "No loose cooling pipes or its mounts & No leakage",
+          "criteria": []
+        },
+        {
+          "id": "4.9.2",
+          "title": "Ensure PWM duty cycle is not between 11 to 55%.",
+          "criteria": []
+        },
+        {
+          "id": "4.9.3",
+          "title": "Ensure reservoir is adequately filled with no leaks",
+          "criteria": []
+        },
+        {
+          "id": "4.9.4",
+          "title": "Ensure radiator is securely mounted and free from any visible damage",
+          "criteria": []
+        }
+      ]
+    },
+    {
+      "title": "5. Battery & PDU Check (Before Power On)",
+      "items": [
+        {
+          "id": "5.1",
+          "title": "LV Battery Voltage",
+          "criteria": [
+            "The Voltage should be between 12 V to 13.9 V."
+          ],
+          "valueFields": [
+            {
+              "key": "lvVoltage",
+              "label": "LV Battery Voltage (V)",
+              "placeholder": "Enter measured voltage in V"
+            }
+          ]
+        },
+        {
+          "id": "5.2",
+          "title": "HV Battery Voltage",
+          "criteria": [
+            "Before installing on the aircraft, check all the batteries voltage should read zero voltage."
+          ],
+          "valueFields": [
+            {
+              "key": "hvPreInstallVoltage",
+              "label": "HV Battery Voltage (V)",
+              "placeholder": "Enter measured voltage in V"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "6. Battery & PDU Check (After Power On)",
+      "items": [
+        {
+          "id": "6.1",
+          "title": "HV Battery Status",
+          "criteria": [
+            "HV battery voltage > 560 ; The min cell voltage > 3.3"
+          ],
+          "valueFields": [
+            {
+              "key": "hvVoltage",
+              "label": "HV Battery Voltage",
+              "placeholder": "Enter voltage"
+            },
+            {
+              "key": "minCellVoltage",
+              "label": "Minimum Cell Voltage",
+              "placeholder": "Enter minimum cell voltage"
+            }
+          ]
+        },
+        {
+          "id": "6.2",
+          "title": "PDU Status",
+          "criteria": [
+            "PDU SOC% > 85"
+          ],
+          "valueFields": [
+            {
+              "key": "pduSoc",
+              "label": "PDU SOC",
+              "placeholder": "Enter SOC (%)"
+            }
+          ]
+        },
+        {
+          "id": "6.3",
+          "title": "PDU State = 9 (Pass)",
+          "criteria": []
+        },
+        {
+          "id": "6.4",
+          "title": "Beacon Functionality",
+          "criteria": [
+            "Ensure safety beacon is ON (Red Light)"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "7. Avionics & Software",
+      "items": [
+        {
+          "id": "7.1",
+          "title": "Flight controller powered ON; firmware version verified.",
+          "criteria": []
+        },
+        {
+          "id": "7.2",
+          "title": "FTI sensors are calibrated and reporting correctly",
+          "criteria": []
+        },
+        {
+          "id": "7.3",
+          "title": "GCS Status Check (Green Light)",
+          "criteria": []
+        },
+        {
+          "id": "7.4",
+          "title": "Communication link established with GCS.",
+          "criteria": []
+        }
+      ]
+    },
+    {
+      "title": "8. Data recording and transmission",
+      "items": [
+        {
+          "id": "8.1",
+          "title": "Camera Functionality",
+          "criteria": [
+            "Video recording is ok."
+          ]
+        },
+        {
+          "id": "8.2",
+          "title": "Sound Meter Functionality",
+          "criteria": [
+            "Sound recording is ok"
+          ]
+        },
+        {
+          "id": "8.3",
+          "title": "Communication Check",
+          "criteria": [
+            "Communication check completed with pilot and responsible team members."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "9. Other details",
+      "items": [
+        {
+          "id": "9.0",
+          "title": "Checker + Reviewer",
+          "criteria": []
+        }
+      ]
+    }
+  ]
+}

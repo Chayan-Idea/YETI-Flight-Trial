@@ -61,6 +61,16 @@ async function drawSignature(page, selector) {
   if (result.pixels < 10) throw new Error('Signature drawing did not produce visible canvas data: ' + selector + ' (' + JSON.stringify(result) + ')');
 }
 
+async function exportOriginalPdfDownload(page, buttonSelector, promptName) {
+  page.once('dialog', dialog => dialog.accept(promptName));
+  const downloadPromise=page.waitForEvent('download',{timeout:15000});
+  await page.locator(buttonSelector).click();
+  const download=await downloadPromise;
+  if(!download.suggestedFilename().toLowerCase().endsWith('.pdf'))throw new Error('Original PDF export did not produce a PDF download.');
+  const filePath=await download.path();
+  if(!filePath||fs.statSync(filePath).size<1000)throw new Error('Original PDF export is empty or incomplete.');
+}
+
 async function exportPreview(page, buttonSelector, expectedHeading, promptName) {
   page.once('dialog', dialog => dialog.accept(promptName));
   const popupPromise = page.waitForEvent('popup', { timeout:10000 });
@@ -148,12 +158,16 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
     if (!(await page.locator('#photoStatus').innerText()).includes('1 photo(s) added')) throw new Error('Daily photo evidence was not saved and rendered.');
 
     await page.locator('#previewBtn').click();
-    await page.locator('#previewContent .print-document').waitFor({state:'attached'});
+    await page.locator('#previewContent .yeti-pdf-source-page').nth(1).waitFor({state:'attached'});
+    // The preview button starts asynchronous PDF.js rendering; wait for the appended evidence page, not merely an earlier source-page canvas.
+    await page.locator('#previewContent .yeti-pdf-photo-page').waitFor({state:'attached'});
     const dailyPreviewText = await page.locator('#previewContent').innerText();
-    if (!dailyPreviewText.includes('YETI-PHASE3-QA') || !dailyPreviewText.includes('Phase 3 automated verification remark.')) {
-      throw new Error('Daily Airworthiness preview did not include the entered trial information and checklist remarks.');
+    if (dailyPreviewText.includes('YETI-PHASE3-QA') || dailyPreviewText.includes('Phase 3 UI Assurance') || dailyPreviewText.includes('Phase 3 automated verification remark.')) {
+      throw new Error('Dynamic trial metadata or checklist remarks leaked into the original-PDF preview.');
     }
-    await exportPreview(page, '#pdfBtn', 'Daily Airworthiness Checklist', 'YETI_PHASE3_DAILY_QA');
+    const dailyPhotoPages=await page.locator('#previewContent .yeti-pdf-photo-page').count();
+    if (dailyPhotoPages!==1 || !dailyPreviewText.includes('PHOTO EVIDENCE') || !dailyPreviewText.includes('phase3-daily-evidence.png')) throw new Error('Daily photo evidence is missing from the original-PDF preview. Photo pages: '+dailyPhotoPages+'; preview text: '+dailyPreviewText.slice(-500));
+    await exportOriginalPdfDownload(page, '#pdfBtn', 'YETI_PHASE3_DAILY_QA');
 
     // Verify browser refresh preserves daily answers, metadata and IndexedDB photo evidence.
     await page.reload({waitUntil:'networkidle'});
