@@ -21,22 +21,56 @@
  function answerRemark(a,id,m){return [a?.remarks,rowValueText(a,id,m)].filter(Boolean).join(' | ')}
  function fitSingleLine(text,maxWidth,baseSize,measure,minSize){let value=String(text),size=baseSize;while(size>minSize&&measure(value,size)>maxWidth)size=Math.max(minSize,size-.25);if(measure(value,size)>maxWidth){const suffix='…';while(value.length&&measure(value+suffix,size)>maxWidth)value=value.slice(0,-1);value=value?value+suffix:suffix}return {text:value,size}}
  function drawLivePreview(ctx,m,answers,trial,scaleX,scaleY,pageIndex){
-  const rows=m?.rows||{},c=m?.columns||{};
-  for(const [id,a] of Object.entries(answers||{})){if(!a||id==='9.0')continue;const row=rows[id];if(!row||row[0]!==pageIndex)continue;const st=STATUS_STYLE[a.status];
-   if(st){const center=a.status==='Pass'?c.passCenterX:a.status==='Fail'?c.failCenterX:c.notAvailableCenterX;const x=(center-st.width/2)*scaleX,y=(row[1]+4.815)*scaleY,w=st.width*scaleX,h=6.7*scaleY;ctx.save();ctx.fillStyle=st.fill;ctx.fillRect(x,y,w,h);ctx.fillStyle='#fff';ctx.font='bold '+(a.status==='Not Available'?3.7:4.7)*scaleY+'px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(st.label,x+w/2,y+h/2,w-2);ctx.restore()}
-   const remark=answerRemark(a,id,m);if(remark&&Number.isFinite(c.remarksLeft)&&Number.isFinite(c.remarksRight)){ctx.save();const max=(c.remarksRight-c.remarksLeft-5)*scaleX,fit=fitSingleLine(remark,max,4.5*scaleY,(v,s)=>{ctx.font=s+'px Arial';return ctx.measureText(v).width},3.4*scaleY);ctx.font=fit.size+'px Arial';ctx.fillStyle='#111';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(fit.text,((c.remarksLeft+c.remarksRight)/2)*scaleX,(row[1]+8.165)*scaleY);ctx.restore()}
-   for(const [key,value] of Object.entries(a.values||{})){const b=m?.fieldBoxes?.[key]||m?.specialFields?.[key]||(key==='minCellVoltage'?m?.specialFields?.minimumCellVoltage:null);if(b&&b.page===pageIndex&&value!==''&&value!==null&&value!==undefined){ctx.save();const max=(b.width||100)*scaleX,fit=fitSingleLine(String(value),max,5.5*scaleY,(v,s)=>{ctx.font=s+'px Arial';return ctx.measureText(v).width},3.4*scaleY);ctx.font=fit.size+'px Arial';ctx.fillStyle='#111';ctx.textBaseline='middle';ctx.textAlign='center';ctx.fillText(fit.text,(b.x+(b.width||100)/2)*scaleX,(b.y+(b.height||7)/2)*scaleY);ctx.restore()}}
+  const c=m?.columns||{},mapper=root.YETI_PDF_COORDINATE_MAPPER;
+  for(const [id,a] of Object.entries(answers||{})){
+   if(!a||id==='9.0')continue;
+   const anchors=mapper?.getCheckpointAnchors(m,id);if(!anchors||anchors.page!==pageIndex)continue;
+   const centerY=anchors.row.centerY,st=STATUS_STYLE[a.status];
+   if(st){
+    const anchor=a.status==='Pass'?anchors.pass:a.status==='Fail'?anchors.fail:a.status==='Not Available'?anchors.notAvailable:null;
+    if(anchor){const w=st.width*scaleX,h=6.7*scaleY,x=(anchor.x-st.width/2)*scaleX,y=(centerY-3.35)*scaleY;
+     ctx.save();ctx.fillStyle=st.fill;ctx.fillRect(x,y,w,h);ctx.fillStyle='#fff';ctx.font='bold '+(a.status==='Not Available'?3.7:4.7)*scaleY+'px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(st.label,x+w/2,y+h/2,w-2);ctx.restore();
+    }
+   }
+   const remark=answerRemark(a,id,m);
+   if(remark&&Number.isFinite(c.remarksLeft)&&Number.isFinite(c.remarksRight)){
+    const max=(c.remarksRight-c.remarksLeft-5)*scaleX,fit=fitSingleLine(remark,max,4.5*scaleY,(v,s)=>{ctx.font=s+'px Arial';return ctx.measureText(v).width},3.4*scaleY);
+    ctx.save();ctx.font=fit.size+'px Arial';ctx.fillStyle='#111';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(fit.text,anchors.remarks.x*scaleX,centerY*scaleY);ctx.restore();
+   }
+   for(const [key,value] of Object.entries(a.values||{})){
+    const b=m?.fieldBoxes?.[key]||m?.specialFields?.[key]||(key==='minCellVoltage'?m?.specialFields?.minimumCellVoltage:null);
+    if(b&&b.page===pageIndex&&value!==''&&value!==null&&value!==undefined){ctx.save();const max=(b.width||100)*scaleX,fit=fitSingleLine(String(value),max,5.5*scaleY,(v,s)=>{ctx.font=s+'px Arial';return ctx.measureText(v).width},3.4*scaleY);ctx.font=fit.size+'px Arial';ctx.fillStyle='#111';ctx.textBaseline='middle';ctx.textAlign='center';ctx.fillText(fit.text,(b.x+(b.width||100)/2)*scaleX,(b.y+(b.height||7)/2)*scaleY);ctx.restore();}
+   }
   }
-  const h=m?.header||{},meta={trialPhase:trial?.phase,trialStage:trial?.stage,flightPlace:trial?.place,flightDate:trial?.date};for(const [key,value] of Object.entries(meta)){const b=h[key];if(b&&b.page===pageIndex&&value){ctx.save();const max=(b.width||250)*scaleX,fit=fitSingleLine(String(value),max,5.5*scaleY,(v,size)=>{ctx.font=size+'px Arial';return ctx.measureText(v).width},3.4*scaleY);ctx.font=fit.size+'px Arial';ctx.fillStyle='#111';ctx.textBaseline='middle';ctx.textAlign='center';ctx.fillText(fit.text,(b.x+(b.width||250)/2)*scaleX,(b.y+(b.height||6)/2)*scaleY);ctx.restore()}}
+  const h=m?.header||{},meta={trialPhase:trial?.phase,trialStage:trial?.stage,flightPlace:trial?.place,flightDate:trial?.date};
+  for(const [key,value] of Object.entries(meta)){const b=h[key];if(b&&b.page===pageIndex&&value){ctx.save();const max=(b.width||250)*scaleX,fit=fitSingleLine(String(value),max,5.5*scaleY,(v,size)=>{ctx.font=size+'px Arial';return ctx.measureText(v).width},3.4*scaleY);ctx.font=fit.size+'px Arial';ctx.fillStyle='#111';ctx.textBaseline='middle';ctx.textAlign='center';ctx.fillText(fit.text,(b.x+(b.width||250)/2)*scaleX,(b.y+(b.height||6)/2)*scaleY);ctx.restore();}}
  }
  function drawLiveExport(doc,m,answers,trial,PDFLib,bold,regular){
-  const pages=doc.getPages(),rows=m?.rows||{},c=m?.columns||{},baseW=m?.page?.width||pages[0]?.getWidth()||1,baseH=m?.page?.height||pages[0]?.getHeight()||1;
-  for(const [id,a] of Object.entries(answers||{})){if(!a||id==='9.0')continue;const row=rows[id];if(!row||!pages[row[0]-1])continue;const page=pages[row[0]-1],pw=page.getWidth(),ph=page.getHeight(),sx=pw/baseW,sy=ph/baseH,y=row[1]*sy,st=STATUS_STYLE[a.status];
-   if(st){const center=a.status==='Pass'?c.passCenterX:a.status==='Fail'?c.failCenterX:c.notAvailableCenterX,x=(center-st.width/2)*sx,fill=a.status==='Pass'?PDFLib.rgb(.086,.514,.29):a.status==='Fail'?PDFLib.rgb(.706,.137,.196):PDFLib.rgb(.451,.451,.451);page.drawRectangle({x,y:ph-y-11.515*sy,width:st.width*sx,height:6.7*sy,color:fill,borderColor:fill,borderWidth:.3*sx});const statusSize=(a.status==='Not Available'?3.7:4.7)*sy,statusWidth=bold.widthOfTextAtSize(st.label,statusSize),statusHeight=bold.heightAtSize(statusSize);page.drawText(st.label,{x:x+(st.width*sx-statusWidth)/2,y:ph-y-11.515*sy+(6.7*sy-statusHeight)/2+statusHeight*.18,size:statusSize,font:bold,color:PDFLib.rgb(1,1,1)})}
-   const remark=answerRemark(a,id,m);if(remark&&Number.isFinite(c.remarksLeft)&&Number.isFinite(c.remarksRight)){const max=(c.remarksRight-c.remarksLeft-5)*sx,fit=fitSingleLine(remark,max,4.5*sy,(v,size)=>regular.widthOfTextAtSize(v,size),3.4*sy),size=fit.size,textWidth=regular.widthOfTextAtSize(fit.text,size);page.drawText(fit.text,{x:((c.remarksLeft+c.remarksRight)/2)*sx-textWidth/2,y:ph-(y+8.165*sy)-regular.heightAtSize(size)/2,size,font:regular,color:PDFLib.rgb(.05,.05,.05)});}
-   for(const [key,value] of Object.entries(a.values||{})){const b=m?.fieldBoxes?.[key]||m?.specialFields?.[key]||(key==='minCellVoltage'?m?.specialFields?.minimumCellVoltage:null);if(b&&b.page===row[0]&&value!==''&&value!==null&&value!==undefined){const max=(b.width||100)*sx,fit=fitSingleLine(String(value),max,5.5*sy,(v,size)=>regular.widthOfTextAtSize(v,size),3.4*sy),size=fit.size,textWidth=regular.widthOfTextAtSize(fit.text,size);page.drawText(fit.text,{x:(b.x+(b.width||100)/2)*sx-textWidth/2,y:ph-(b.y+(b.height||7)/2)*sy-size*.35,size,font:regular,color:PDFLib.rgb(.05,.05,.05)});}}
+  const pages=doc.getPages(),c=m?.columns||{},baseW=m?.page?.width||pages[0]?.getWidth()||1,baseH=m?.page?.height||pages[0]?.getHeight()||1,mapper=root.YETI_PDF_COORDINATE_MAPPER;
+  for(const [id,a] of Object.entries(answers||{})){
+   if(!a||id==='9.0')continue;
+   const anchors=mapper?.getCheckpointAnchors(m,id);if(!anchors||!pages[anchors.page-1])continue;
+   const page=pages[anchors.page-1],pw=page.getWidth(),ph=page.getHeight(),sx=pw/baseW,sy=ph/baseH,centerY=anchors.row.centerY*sy,st=STATUS_STYLE[a.status];
+   if(st){
+    const anchor=a.status==='Pass'?anchors.pass:a.status==='Fail'?anchors.fail:a.status==='Not Available'?anchors.notAvailable:null;
+    if(anchor){const x=(anchor.x-st.width/2)*sx,boxHeight=6.7*sy,boxY=ph-centerY-boxHeight/2,fill=a.status==='Pass'?PDFLib.rgb(.086,.514,.29):a.status==='Fail'?PDFLib.rgb(.706,.137,.196):PDFLib.rgb(.451,.451,.451);
+     page.drawRectangle({x,y:boxY,width:st.width*sx,height:boxHeight,color:fill,borderColor:fill,borderWidth:.3*sx});
+     const size=(a.status==='Not Available'?3.7:4.7)*sy,textWidth=bold.widthOfTextAtSize(st.label,size),textHeight=bold.heightAtSize(size);
+     page.drawText(st.label,{x:x+(st.width*sx-textWidth)/2,y:boxY+(boxHeight-textHeight)/2+textHeight*.12,size,font:bold,color:PDFLib.rgb(1,1,1)});
+    }
+   }
+   const remark=answerRemark(a,id,m);
+   if(remark&&Number.isFinite(c.remarksLeft)&&Number.isFinite(c.remarksRight)){
+    const max=(c.remarksRight-c.remarksLeft-5)*sx,fit=fitSingleLine(remark,max,4.5*sy,(v,size)=>regular.widthOfTextAtSize(v,size),3.4*sy),size=fit.size,textWidth=regular.widthOfTextAtSize(fit.text,size);
+    page.drawText(fit.text,{x:anchors.remarks.x*sx-textWidth/2,y:ph-centerY-regular.heightAtSize(size)/2,size,font:regular,color:PDFLib.rgb(.05,.05,.05)});
+   }
+   for(const [key,value] of Object.entries(a.values||{})){
+    const b=m?.fieldBoxes?.[key]||m?.specialFields?.[key]||(key==='minCellVoltage'?m?.specialFields?.minimumCellVoltage:null);
+    if(b&&b.page===anchors.page&&value!==''&&value!==null&&value!==undefined){const max=(b.width||100)*sx,fit=fitSingleLine(String(value),max,5.5*sy,(v,size)=>regular.widthOfTextAtSize(v,size),3.4*sy),size=fit.size,textWidth=regular.widthOfTextAtSize(fit.text,size);page.drawText(fit.text,{x:(b.x+(b.width||100)/2)*sx-textWidth/2,y:ph-(b.y+(b.height||7)/2)*sy-size*.35,size,font:regular,color:PDFLib.rgb(.05,.05,.05)});}
+   }
   }
-  const h=m?.header||{},meta={trialPhase:trial?.phase,trialStage:trial?.stage,flightPlace:trial?.place,flightDate:trial?.date};for(const [key,value] of Object.entries(meta)){const b=h[key],page=b&&pages[b.page-1];if(b&&value&&page){const sx=page.getWidth()/baseW,sy=page.getHeight()/baseH,max=(b.width||250)*sx,fit=fitSingleLine(String(value),max,5.5*sy,(v,size)=>regular.widthOfTextAtSize(v,size),3.4*sy),size=fit.size,textWidth=regular.widthOfTextAtSize(fit.text,size),centerY=(b.y+(b.height||6)/2)*sy;page.drawText(fit.text,{x:(b.x+(b.width||250)/2)*sx-textWidth/2,y:page.getHeight()-centerY-size*.35,size,font:regular,color:PDFLib.rgb(.05,.05,.05)});}}
+  const h=m?.header||{},meta={trialPhase:trial?.phase,trialStage:trial?.stage,flightPlace:trial?.place,flightDate:trial?.date};
+  for(const [key,value] of Object.entries(meta)){const b=h[key],page=b&&pages[b.page-1];if(b&&value&&page){const sx=page.getWidth()/baseW,sy=page.getHeight()/baseH,max=(b.width||250)*sx,fit=fitSingleLine(String(value),max,5.5*sy,(v,size)=>regular.widthOfTextAtSize(v,size),3.4*sy),size=fit.size,textWidth=regular.widthOfTextAtSize(fit.text,size),centerY=(b.y+(b.height||6)/2)*sy;page.drawText(fit.text,{x:(b.x+(b.width||250)/2)*sx-textWidth/2,y:page.getHeight()-centerY-size*.35,size,font:regular,color:PDFLib.rgb(.05,.05,.05)});}}
  }
  function drawSignaturePreview(ctx,signature,manifest,pageIndex,scale){
   const box=signatureBox(manifest);if(!signature||!box||box.page!==pageIndex)return Promise.resolve();
