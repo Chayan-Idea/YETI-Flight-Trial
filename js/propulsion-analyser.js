@@ -903,8 +903,8 @@ const statsPage=el('section','propulsion-report-summary-page');
  const commonEngine=window.PropulsionAnalysisEngine,logCountSelect=$id('propulsionLogCount'),multiSetupCard=$id('propulsionMultiSetupCard'),multiUploadGrid=$id('propulsionMultiUploadGrid'),multiUploadStatus=$id('propulsionMultiUploadStatus'),identifyMultipleLogsBtn=$id('identifyMultipleLogsBtn'),multiMappingHost=$id('propulsionMultiMappingHost');
  // Setup selection is intentionally session-local: every page load requires a fresh choice.
  if(logCountSelect)logCountSelect.value='';
- let multiSession=null,multiFiles=[],multiLogType='',multiMappingConfirmed=false;
- function resetMultiSetup(){multiSession=null;multiFiles=[];multiMappingConfirmed=false;multiMappingHost?.replaceChildren();multiUploadGrid?.replaceChildren();if(identifyMultipleLogsBtn)identifyMultipleLogsBtn.disabled=true;if(multiUploadStatus)multiUploadStatus.textContent='Select the common test type and upload every requested CSV file.';renderMultiUploadSlots();}
+ let multiSession=null,multiFiles=[],multiLogType='',multiMappingConfirmed=false;const multiHiddenLogIds=new Set();
+ function resetMultiSetup(){multiSession=null;multiFiles=[];multiHiddenLogIds.clear();multiMappingConfirmed=false;multiMappingHost?.replaceChildren();multiUploadGrid?.replaceChildren();if(identifyMultipleLogsBtn)identifyMultipleLogsBtn.disabled=true;if(multiUploadStatus)multiUploadStatus.textContent='Select the common test type and upload every requested CSV file.';renderMultiUploadSlots();}
  function renderMultiUploadSlots(){
   if(!multiUploadGrid||!logCountSelect)return;
   const count=Number(logCountSelect.value);multiFiles=Array.from({length:count},(_,index)=>multiFiles[index]||null);multiUploadGrid.replaceChildren();
@@ -1543,9 +1543,10 @@ const statsPage=el('section','propulsion-report-summary-page');
   if(![xMin,xMax,yMin,yMax].every(Number.isFinite)||xMin>=xMax||yMin>=yMax||xMin<fullX.min||xMax>fullX.max||yMin<fullY.min||yMax>fullY.max){
    status.textContent='Enter valid X and Y ranges within the full graph limits. Start values must be lower than End values. The previous valid graph is retained.';return;
   }
-  const visibleSeries=series.map(item=>({...item,points:item.points.filter(point=>point.x>=xMin&&point.x<=xMax&&point.y>=yMin&&point.y<=yMax)}));
+  const rangeSeries=series.map(item=>({...item,points:item.points.filter(point=>point.x>=xMin&&point.x<=xMax&&point.y>=yMin&&point.y<=yMax)}));
+  const visibleSeries=rangeSeries.filter(item=>!multiHiddenLogIds.has(String(item.log.id)));
   const visibleAll=visibleSeries.flatMap(item=>item.points);
-  if(!visibleAll.length){status.textContent='No plotted points fall inside the selected X-Y range. Widen the range and apply again.';return;}
+  if(!rangeSeries.some(item=>item.points.length)){status.textContent='No plotted points fall inside the selected X-Y range. Widen the range and apply again.';return;}
   const xr={min:xMin,max:xMax},yr={min:yMin,max:yMax};
   resetRange.disabled=false;rangePanel.hidden=false;
   const W=1040,H=520,L=105,R=35,T=30,B=82,pw=W-L-R,ph=H-T-B,sx=x=>L+(x-xr.min)/(xr.max-xr.min)*pw,sy=y=>T+ph-(y-yr.min)/(yr.max-yr.min)*ph;
@@ -1567,7 +1568,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   series.forEach(item=>{const color=multiColors[item.index%multiColors.length],name='LOG '+(item.index+1);add('line',{x1:legendX,y1:18,x2:legendX+24,y2:18,stroke:color,'stroke-width':4,'stroke-linecap':'round'});add('text',{x:legendX+30,y:22,fill:'#334155','font-size':12,'font-weight':700},name);legendX+=95;});
   plotHost.replaceChildren(svg);
   const guide=add('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#d97706','stroke-width':1.5,'stroke-dasharray':'5 4','pointer-events':'none'});
-  const selectedMarkers=visibleSeries.map(item=>add('circle',{cx:L,cy:T,r:7,fill:'#fff',stroke:multiColors[item.index%multiColors.length],'stroke-width':3,'pointer-events':'none',visibility:'hidden'}));
+  const selectedMarkers=new Map(visibleSeries.map(item=>[item.index,add('circle',{cx:L,cy:T,r:7,fill:'#fff',stroke:multiColors[item.index%multiColors.length],'stroke-width':3,'pointer-events':'none',visibility:'hidden'})]));
   const sliderSteps=1000;
   const updateAtCommonX=position=>{
    const fraction=Math.max(0,Math.min(sliderSteps,Number(position)||0))/sliderSteps;
@@ -1579,23 +1580,24 @@ const statsPage=el('section','propulsion-report-summary-page');
    const tableWrap=el('div','propulsion-phase3-readout-table-wrap');
    const table=document.createElement('table');table.className='propulsion-phase3-readout-table';
    const thead=document.createElement('thead'),headRow=document.createElement('tr');
-   ['LOG','FILE NAME','X AXIS · '+xLabel,'Y AXIS · '+yLabel].forEach(label=>headRow.append(el('th','',label)));
+   ['LOG','FILE NAME','X AXIS · '+xLabel,'Y AXIS · '+yLabel,'GRAPH'].forEach(label=>headRow.append(el('th','',label)));
    thead.append(headRow);table.append(thead);
    const tbody=document.createElement('tbody');
-   visibleSeries.forEach(item=>{
-    const points=item.points,color=multiColors[item.index%multiColors.length],marker=selectedMarkers[item.index];
+   series.forEach(item=>{
+    const points=item.points,color=multiColors[item.index%multiColors.length],marker=selectedMarkers.get(item.index),hidden=multiHiddenLogIds.has(String(item.log.id));
     let nearest=null,distance=Infinity;
     points.forEach(point=>{const delta=Math.abs(point.x-targetX);if(delta<distance){distance=delta;nearest=point;}});
     const row=document.createElement('tr');
     const logCell=el('th','','LOG '+(item.index+1));logCell.scope='row';logCell.style.borderLeft='4px solid '+color;row.append(logCell);
     const fileCell=el('td','',item.log.fileName||multiFiles[item.index]?.file.name||('Log '+(item.index+1)));fileCell.className='propulsion-phase3-readout-filename';row.append(fileCell);
     if(nearest){
-     marker.setAttribute('cx',sx(nearest.x));marker.setAttribute('cy',sy(nearest.y));marker.setAttribute('visibility','visible');
+     if(marker){marker.setAttribute('cx',sx(nearest.x));marker.setAttribute('cy',sy(nearest.y));marker.setAttribute('visibility','visible');}
      row.append(el('td','',fmt(nearest.x)),el('td','',fmt(nearest.y)));
     }else{
-     marker.setAttribute('visibility','hidden');
+     if(marker)marker.setAttribute('visibility','hidden');
      const unavailable=el('td','','No valid plotted point');unavailable.colSpan=2;row.append(unavailable);
     }
+    const actionCell=document.createElement('td');const toggle=el('button','btn alt propulsion-log-visibility-toggle',hidden?'Unhide':'Hide');toggle.type='button';toggle.setAttribute('aria-pressed',String(!hidden));toggle.setAttribute('aria-label',(hidden?'Unhide':'Hide')+' LOG '+(item.index+1)+' on graph');toggle.addEventListener('click',()=>{if(hidden)multiHiddenLogIds.delete(String(item.log.id));else multiHiddenLogIds.add(String(item.log.id));const current=Number(slider.value)||0;drawMultiComparison(ui);if(!slider.disabled)slider.oninput?.call(slider,{target:slider});});actionCell.append(toggle);row.append(actionCell);
     tbody.append(row);
    });
    table.append(tbody);tableWrap.append(table);readout.append(tableWrap);
@@ -1627,7 +1629,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   const endPointer=event=>{if(activePointerId===event.pointerId){activePointerId=null;try{interactionLayer.releasePointerCapture(event.pointerId)}catch(_){}}};
   interactionLayer.addEventListener('pointerup',endPointer);
   interactionLayer.addEventListener('pointercancel',endPointer);
-  status.textContent=visibleAll.length.toLocaleString()+' plotted points within the applied X-Y range across '+visibleSeries.filter(item=>item.points.length).length+' logs. Use Reset Full Range to restore the complete comparison.';
+  status.textContent=visibleAll.length.toLocaleString()+' plotted points within the applied X-Y range across '+visibleSeries.filter(item=>item.points.length).length+' visible logs. Hidden logs remain in the dataset and can be restored using Unhide.';
  }
 
  function identifyAllMultiLogs(){if(!commonEngine)throw new Error('The common analysis engine did not load.');const count=Number(logCountSelect.value);multiSession=commonEngine.createSession(count,multiLogType);multiSession.logs.forEach((log,index)=>{const source=multiFiles[index];commonEngine.setLogData(log,{fileName:source.file.name,headers:source.headers,rows:[source.headers,...source.data]});log._headerIndex=source.headerIndex;log._dataRows=source.data;});renderMultiMappings();multiMappingHost.scrollIntoView({behavior:'smooth',block:'start'});}
