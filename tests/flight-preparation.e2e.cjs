@@ -123,6 +123,19 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
     await page.locator('#trialStage').fill('Regression');
     await page.locator('#flightPlace').fill('QA Test Site');
     await page.locator('#flightDate').fill('2026-11-19');
+    // UAV CG measurements must be overlaid inside the source PDF's merged Remarks cell.
+    const cgGeometry = await page.evaluate(() => {
+      const active = window.YETI_ACTIVE_PDF_TEMPLATE;
+      const t = active?.template;
+      return t ? {left:t.columns?.remarksLeft,right:t.columns?.remarksRight,boxes:t.fieldBoxes} : null;
+    });
+    if (!cgGeometry || ['cgX','cgY','cgZ'].some(key =>
+      Math.abs(cgGeometry.boxes?.[key]?.x-cgGeometry.left)>0.01 ||
+      Math.abs((cgGeometry.boxes?.[key]?.x+cgGeometry.boxes?.[key]?.width)-cgGeometry.right)>0.01
+    )) throw new Error('UAV CG value overlays are not mapped to the merged Remarks cell.');
+    await page.locator('#list input[data-field="cgX"]').fill('12.5');
+    await page.locator('#list input[data-field="cgY"]').fill('-3.2');
+    await page.locator('#list input[data-field="cgZ"]').fill('1.8');
 
     const dailyStatus = page.locator('#list select[data-k="status"]').first();
     const dailyItemId = await dailyStatus.getAttribute('data-id');
