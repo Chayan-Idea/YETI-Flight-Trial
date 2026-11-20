@@ -64,4 +64,32 @@ with tempfile.TemporaryDirectory() as directory:
     except ValueError:
         pass
 
+# Regression against the repository's approved two-page YETI TD0 master PDF.
+master_pdf = ROOT / "assets/templates/YETI TD0 Trial DAC Format.pdf"
+master_candidate = MODULE.analyse(master_pdf)
+expected_ids = [
+    "1.1","1.2","2.1","2.2","3.1","3.2","3.3","3.4",
+    "4.1.1","4.1.2","4.1.3","4.1.4","4.2.1","4.2.2","4.2.3","4.2.4",
+    "4.3.1","4.3.2","4.3.3","4.3.4","4.3.5","4.3.6","4.3.7",
+    "4.4.1","4.4.2","4.4.3","4.4.4","4.4.6",
+    "4.5.1","4.5.2","4.5.3","4.5.4",
+    "4.6.1","4.6.2","4.6.3","4.6.4","4.6.5",
+    "4.7.1","4.7.2","4.7.3","4.7.4","4.7.5","4.8.1","4.8.2",
+    "4.9.1","4.9.2","4.9.3","4.9.4","5.1","5.2",
+    "6.1","6.2","6.3","6.4","7.1","7.2","7.3","7.4","8.1","8.2","8.3","9.0"
+]
+assert [item["id"] for item in master_candidate["checkpointCandidates"]] == expected_ids
+assert master_candidate["duplicateCheckpointIds"] == []
+assert len({item["sectionTitleCandidate"] for item in master_candidate["checkpointCandidates"]}) == 9
+assert master_candidate["sha256"] == "03fe8f45e83b081669c4386585004a351ddcb2d8a14923854bafc36436d79560"
+master_candidate_path = ROOT / "template-candidates" / "master-regression-candidate.json"
+master_candidate_path.parent.mkdir(exist_ok=True)
+master_candidate_path.write_text(__import__("json").dumps(master_candidate), encoding="utf-8")
+master_package = BUILDER.build(master_candidate_path, master_pdf, "IF_YETI_TD0_FTR_CKT_005", "1.0.0")
+assert len(master_package["sections"]) == 9
+assert sum(len(section["items"]) for section in master_package["sections"]) == 62
+assert master_package["activation"]["status"] == "candidate"
+master_candidate_path.unlink()
+master_candidate_path.parent.rmdir()
+
 print("PDF intake extraction tests passed: numbered IDs, descriptions, duplicates, SHA-256 and fail-closed review, section inference and coordinate-free package generation.")
