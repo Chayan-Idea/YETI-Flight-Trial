@@ -17,6 +17,7 @@
   if(!/^[a-f0-9]{64}$/i.test(pkg.sourcePdf?.sha256||''))errors.push('Source PDF SHA-256 missing or invalid.');
   if(!plain(pkg.template)||!Array.isArray(pkg.sections))errors.push('Template geometry and checklist sections are required.');
   if(pkg.template?.page?.width!==pkg.document?.pageWidth||pkg.template?.page?.height!==pkg.document?.pageHeight)errors.push('Page geometry mismatch.');
+  if(pkg.template?.signatureMode!==undefined&&!['mapped-source-cell','append-signature-page'].includes(pkg.template.signatureMode))errors.push('Unsupported signature placement mode.');
   const ids=(pkg.sections||[]).flatMap(s=>(s.items||[]).map(i=>i.id));
   if(!ids.length)errors.push('No checklist checkpoints found.');
   if(new Set(ids).size!==ids.length)errors.push('Duplicate checkpoint IDs found.');
