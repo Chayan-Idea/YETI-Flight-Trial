@@ -187,6 +187,13 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
     if(await page.locator('#pdfPreviewZoomLevel').innerText()!=='125%')throw new Error('Daily PDF preview zoom percentage did not update.');
     await page.locator('[data-pdf-zoom="reset"]').click();
     if(await page.locator('#previewContent .yeti-pdf-preview-stage').evaluate(el=>el.style.zoom)!=='1')throw new Error('Daily PDF preview fit/reset control did not restore 100% zoom.');
+    await page.locator('#pdfPreviewExpand').click();
+    await page.locator('#previewPanel').waitFor({state:'visible'});
+    if(!(await page.locator('#previewPanel').evaluate(el=>el.classList.contains('pdf-preview-expanded'))))throw new Error('Daily PDF floating full-screen viewer did not open.');
+    const expandedBox=await page.locator('#previewContent').boundingBox();
+    if(!expandedBox||expandedBox.width<700)throw new Error('Expanded PDF viewer did not extend across the checklist sidebar.');
+    await page.locator('#pdfPreviewClose').click();
+    if(await page.locator('#previewPanel').evaluate(el=>el.classList.contains('pdf-preview-expanded')))throw new Error('Daily PDF floating viewer did not close.');
     const dailyPhotoPages=await page.locator('#previewContent .yeti-pdf-photo-page').count();
     if (dailyPhotoPages!==1 || !dailyPreviewText.includes('PHOTO EVIDENCE') || !dailyPreviewText.includes('phase3-daily-evidence.png') || !dailyPreviewText.includes('Wing root inspection: no visible cracks or deformation.')) throw new Error('Daily photo evidence is missing from the original-PDF preview. Photo pages: '+dailyPhotoPages+'; preview text: '+dailyPreviewText.slice(-500));
     await exportOriginalPdfDownload(page, '#pdfBtn', 'YETI_PHASE3_DAILY_QA');
