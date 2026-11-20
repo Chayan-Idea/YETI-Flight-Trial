@@ -148,4 +148,4 @@ assert.equal(v2Candidate.template.columns.passCenterX,503.72,'Pass status must u
 assert.equal(v2Candidate.template.specialFields.checkerReviewer.x,587.86,'signature must map into the new PDF signature cell');
 
 assert.ok(rendererSourceForAppend.includes('(b.y+(b.height||6)/2)*scaleY'),'measured metadata cell height must control vertical text centring in the live preview');
-assert.ok(rendererSourceForAppend.includes('const centerY=(b.y+(b.height||6)/2)*sy'),'measured metadata cell height must control vertical text centring in exported PDFs');
+assert.ok(rendererSourceForAppend.includes('centerY=(b.y+(b.height||6)/2)*sy'),'measured metadata cell height must control vertical text centring in exported PDFs');
