@@ -61,9 +61,11 @@
  async function renderPreview(container,candidate,manifest,signature,photos,answers={},trialInfo={}){
   const revision=++previewRevision;const [pdfjs]=await libraries();if(revision!==previewRevision)return;container.innerHTML='';
   const pdf=await pdfjs.getDocument({data:candidate.pdfBytes.slice(0)}).promise;
+  if(revision!==previewRevision)return;
   let pageWidth=0,pageHeight=0;
   for(let index=1;index<=pdf.numPages;index++){
-   const page=await pdf.getPage(index),base=page.getViewport({scale:1});
+   const page=await pdf.getPage(index);if(revision!==previewRevision)return;
+   const base=page.getViewport({scale:1});
    const width=Math.max(600,container.clientWidth||1000),scale=width/base.width,viewport=page.getViewport({scale});if(index===1){pageWidth=viewport.width;pageHeight=viewport.height;}
    const wrap=document.createElement('div');wrap.className='yeti-pdf-source-page';wrap.style.cssText='position:relative;width:100%;max-width:'+viewport.width+'px;margin:0 auto 18px;background:#fff;box-shadow:0 2px 12px #0002';
    const canvas=document.createElement('canvas');canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);canvas.style.cssText='display:block;width:100%;height:auto';
