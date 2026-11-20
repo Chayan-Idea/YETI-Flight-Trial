@@ -38,3 +38,9 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Verify actual PDF package, preview, signature and photo export
         run: node tests/pdf-template-browser.e2e.cjs
+      - name: Verify Flight Preparation and daily/loading checklist workflows
+        run: node tests/flight-preparation.e2e.cjs
+      - name: Verify application navigation and Propulsion Analyzer browser workflow
+        run: |
+          node tests/browser-smoke.cjs
+          node tests/propulsion-analyser.e2e.cjs
