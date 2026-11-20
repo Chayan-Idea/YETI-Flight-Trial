@@ -56,7 +56,33 @@ jobs:
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             paths=("$INPUT_PDF_PATH")
           else
-            mapfile -t paths < <(git diff-tree --no-commit-id --name-only --diff-filter=AM -r HEAD -- 'template-inbox/*.pdf' 'template-inbox/**/*.pdf')
+            mapfile -t paths < <(git diff-tree --no-commit-id --name-only --diff-filter=AM -r HEAD | grep -E '^template-inbox/.*[.]pdf
+          fi
+          if [ "${#paths[@]}" -eq 0 ]; then
+            echo "No new or modified PDFs found in template-inbox/."
+            exit 1
+          fi
+          for pdf_path in "${paths[@]}"; do
+            case "$pdf_path" in
+              template-inbox/*.pdf|template-inbox/**/*.pdf) ;;
+              *) echo "Rejected path outside template-inbox/: $pdf_path"; exit 1 ;;
+            esac
+            test -f "$pdf_path"
+            name="$(basename "$pdf_path" .pdf)"
+            safe_name="$(printf '%s' "$name" | tr -cs 'A-Za-z0-9._-' '_')"
+            python scripts/analyze-pdf-template.py "$pdf_path" --output "template-candidates/${safe_name}-candidate.json"
+            template_id="$(python -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d.get("documentNumber") or sys.argv[2])' "template-candidates/${safe_name}-candidate.json" "$safe_name" | tr -cs 'A-Za-z0-9._-' '_')"
+            version_tag="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["sha256"][:8])' "template-candidates/${safe_name}-candidate.json")"
+            python scripts/build-pdf-review-package.py "template-candidates/${safe_name}-candidate.json" "$pdf_path" --template-id "$template_id" --version "candidate-$version_tag" --output "template-candidates/${safe_name}-package.candidate.json"
+          done
+      - name: Upload review candidates
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: yeti-pdf-template-candidates
+          path: template-candidates/*.json
+          if-no-files-found: error
+ || true)
           fi
           if [ "${#paths[@]}" -eq 0 ]; then
             echo "No new or modified PDFs found in template-inbox/."
