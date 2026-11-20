@@ -2,7 +2,7 @@
  * PDF coordinates use a top-left origin to match PDF text extraction and preview placement.
  * This file describes source geometry; it does not redraw the source document.
  */
-window.YETI_DAILY_AIRWORTHINESS_PDF_MANIFEST={
+window.YETI_DAILY_AIRWORTHINESS_PDF_PACKAGE_URL=null; // Set by ChatGPT only when a reviewed package and its source PDF are published.\nwindow.YETI_DAILY_AIRWORTHINESS_PDF_MANIFEST={
  schemaVersion:1,
  templateId:"IF_YETI_TD0_FTR_CKT_005",
  version:"1.0.0",
