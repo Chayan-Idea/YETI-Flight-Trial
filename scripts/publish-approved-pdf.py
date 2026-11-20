@@ -26,9 +26,10 @@ def main():
     parser.add_argument("--approval-reference", required=True)
     args = parser.parse_args()
 
-    pdf = Path(args.pdf)
-    if not args.pdf.startswith("template-inbox/") or pdf.suffix.lower() != ".pdf" or not pdf.is_file():
-        raise ValueError("PDF must be an existing .pdf file inside template-inbox/.")
+    inbox = (ROOT / "template-inbox").resolve()
+    pdf = (ROOT / args.pdf).resolve()
+    if not args.pdf.startswith("template-inbox/") or not pdf.is_relative_to(inbox) or pdf.suffix.lower() != ".pdf" or not pdf.is_file():
+        raise ValueError("PDF must be an existing .pdf file inside template-inbox/; path traversal and external symlinks are rejected.")
     if not args.approved_by.strip() or not args.approval_reference.strip():
         raise ValueError("Named reviewer and approval reference are mandatory.")
 
