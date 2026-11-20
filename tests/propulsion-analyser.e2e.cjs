@@ -340,7 +340,10 @@ const server = http.createServer((req,res)=>{
   // Verify the same unified mapping-table layout for 3-log and 4-log analysis.
   for (const count of [3,4]) {
    await page.locator('#propulsionLogCount').selectOption(String(count));
-   await Promise.all([page.waitForNavigation({waitUntil:'networkidle'}),page.locator('#confirmCommonSetupBtn').click()]);
+   // Log-count changes reset the single-page application in place; no navigation event is expected.
+   await page.locator('#confirmCommonSetupBtn').click();
+   await page.locator('#propulsionCommonSetupStatus').filter({hasText:'Configuration changed. Previous sections were reset.'}).waitFor({state:'visible'});
+   if(await page.locator('#propulsionLogCount').inputValue()!==String(count))throw new Error(count+'-log configuration was not retained after the asynchronous reset.');
    await page.locator('#propulsionMultiSetupCard').waitFor({state:'visible'});
    await page.locator('#propulsionMultiLogTypePicker input[value="thrust"]').evaluate(el=>{el.checked=true;el.dispatchEvent(new Event('change',{bubbles:true}));});
    const multiUploads=page.locator('#propulsionMultiUploadGrid input[type="file"]');
