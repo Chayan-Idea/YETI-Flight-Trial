@@ -124,44 +124,66 @@ $('loadingCameraPhotos').addEventListener('change',e=>addPhotoFiles(e.target.fil
  if(!skipPhotoRefresh)await renderPhotoThumbs();
  const doc=window.YETI_DAILY_AIRWORTHINESS_DOCUMENT||{};
  const safe=v=>esc(v==null?'':String(v));
- const metadata=[['Trial Phase',trialInfo.phase],['Trial Stage',trialInfo.stage],['Flight Place',trialInfo.place],['Flight Date',trialInfo.date]];
- const splitAt='4.9.1';
- const flat=sections.flatMap(sec=>groupedItems(sec,sec.items).flatMap(group=>group.items.map((item,index)=>({sec,group,item,index,groupSize:group.items.length}))));
- const pages=[flat.filter(row=>row.item.id!==splitAt && flat.findIndex(x=>x.item.id===splitAt)>flat.indexOf(row)),flat.filter(row=>flat.indexOf(row)>=flat.findIndex(x=>x.item.id===splitAt))];
- const pageHeader=()=>'<div class="dac-master-head"><div class="dac-title-cell"><img src="assets/ideaforge-logo.png" alt="ideaForge"><h2>'+safe(doc.title||'Daily Airworthiness Checklist')+'</h2></div><div class="dac-meta-cell"><b>Doc Number: '+safe(doc.documentNumber||'IF_YETI_TD0_FTR_CKT_005')+'</b>'+metadata.map(([k,v])=>'<div><b>'+k+' :</b> '+safe(v)+'</div>').join('')+'</div></div>';
- const tableHead='<table class="dac-table"><colgroup><col style="width:7%"><col style="width:17%"><col style="width:42%"><col style="width:4.5%"><col style="width:4.5%"><col style="width:7%"><col style="width:18%"></colgroup><thead><tr><th>Sl. No</th><th colspan="2">Checklist</th><th>Pass</th><th>Fail</th><th>Not Available</th><th>Remarks</th></tr></thead><tbody>';
- const renderRows=rows=>{
-  let out='';
-  for(let i=0;i<rows.length;){
-   const row=rows[i],{sec,group,item}=row,ans=answers[item.id]||{};
-   if(row.index===0){
-    const groupRows=rows.slice(i).filter(x=>x.sec===sec&&x.group===group);
-    const count=groupRows.length;
-    const groupCell='<td class="dac-group" rowspan="'+count+'">'+safe(group.name)+'</td>';
-    const spec=sec.title.startsWith('1. UAV Specification');
-    const setup=item.id==='3.1';
-    const values=(item.valueFields||[]).map(field=>field.label+' : '+(ans.values?.[field.key]||'')).filter(x=>!x.endsWith(': ')).join('<br>');
-    const criteria=(item.criteria||[]).map(safe).join('<br>');
-    const checkpoint=setup?safe(ans.values?.setupDescription||item.title):safe(item.title);
-    const desc=[checkpoint,criteria].filter(Boolean).join('<br>');
-    const statusCell=status=>ans.status===status?'✓':'';
-    const result=spec||setup?'<td></td><td></td><td></td>':'<td class="dac-mark">'+statusCell('Pass')+'</td><td class="dac-mark">'+statusCell('Fail')+'</td><td class="dac-mark">'+statusCell('Not Available')+'</td>';
-    out+='<tr><td class="dac-serial">'+safe(item.id)+'</td>'+groupCell+'<td class="dac-description">'+desc+'</td>'+result+'<td class="dac-remarks">'+[safe(ans.remarks),values].filter(Boolean).join('<br>')+'</td></tr>';
-   }else{
-    const spec=sec.title.startsWith('1. UAV Specification'),setup=item.id==='3.1';
-    const values=(item.valueFields||[]).map(field=>field.label+' : '+(ans.values?.[field.key]||'')).filter(x=>!x.endsWith(': ')).join('<br>');
-    const desc=[safe(item.title),(item.criteria||[]).map(safe).join('<br>')].filter(Boolean).join('<br>');
-    const result=spec||setup?'<td></td><td></td><td></td>':'<td class="dac-mark">'+(ans.status==='Pass'?'✓':'')+'</td><td class="dac-mark">'+(ans.status==='Fail'?'✓':'')+'</td><td class="dac-mark">'+(ans.status==='Not Available'?'✓':'')+'</td>';
-    out+='<tr><td class="dac-serial">'+safe(item.id)+'</td><td class="dac-description">'+desc+'</td>'+result+'<td class="dac-remarks">'+[safe(ans.remarks),values].filter(Boolean).join('<br>')+'</td></tr>';
-   }
-   i++;
-  }
-  return out;
+ const meta=[['Trial Phase',trialInfo.phase],['Trial Stage',trialInfo.stage],['Flight Place',trialInfo.place],['Flight Date',trialInfo.date]];
+ const groupNames={
+ '4.1':'1. Port-Side Wing Check','4.2':'2. Star-Board Side Wing Check','4.3':'3. VTOL Propulsion','4.4':'4. FW Propulsion',
+ '4.5':'5. Tail Assembly','4.6':'6. HV Floor (No-Battery Area)','4.7':'7. HV Floor (Battery Area)','4.8':'8. LV Floor','4.9':'9. Propulsion Cooling System'
  };
- let html='<style id="dac-print-layout">@page{size:A4 landscape;margin:0}.dac-pages{display:flex;flex-direction:column;align-items:center;gap:22px}.dac-page{width:297mm;height:210mm;box-sizing:border-box;padding:7mm 8mm;background:#fff;color:#000;font-family:Arial,Helvetica,sans-serif;overflow:hidden;box-shadow:0 2px 14px #0002}.dac-master-head{height:17mm;display:grid;grid-template-columns:60% 40%;border:1px solid #000;box-sizing:border-box}.dac-title-cell{position:relative;display:flex;align-items:center;justify-content:center;border-right:1px solid #000;background:#eee}.dac-title-cell img{position:absolute;left:5mm;top:50%;transform:translateY(-50%);width:17mm;max-height:15mm;object-fit:contain}.dac-title-cell h2{font-size:13pt;margin:0;text-align:center}.dac-meta-cell{background:#eee;padding:1mm 2mm;font-size:6.5pt;line-height:1.25}.dac-meta-cell>div{min-height:3.5mm}.dac-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:7.2pt}.dac-table th,.dac-table td{border:1px solid #000;padding:1.1mm 1.2mm;vertical-align:middle;line-height:1.12;overflow-wrap:anywhere}.dac-table thead th{height:9mm;background:#c6d9f1;text-align:center;font-weight:700}.dac-table .dac-serial{text-align:center;white-space:nowrap}.dac-table .dac-group{text-align:center;font-size:6.7pt}.dac-table .dac-description{font-size:6.8pt}.dac-table .dac-mark{text-align:center;font-size:11pt;font-weight:bold}.dac-table .dac-remarks{font-size:6.8pt;white-space:pre-wrap}.dac-table tr{break-inside:avoid;page-break-inside:avoid}.dac-page+.dac-page{break-before:page;page-break-before:always}@media screen{.dac-page{max-width:100%;height:auto;min-height:210mm;aspect-ratio:297/210}.dac-table{font-size:clamp(5px,.72vw,7.2pt)}}@media print{.dac-pages{display:block}.dac-page{width:297mm;height:210mm;margin:0;padding:7mm 8mm;box-shadow:none;break-after:page;page-break-after:always}.dac-page:last-child{break-after:auto;page-break-after:auto}}</style><div class="dac-pages">';
- for(const rows of pages){if(!rows.length)continue;html+='<section class="dac-page">'+pageHeader()+tableHead+renderRows(rows)+'</tbody></table></section>'}
- html+='</div>';
- $('previewContent').innerHTML=html;
+ const row=(id,group,description,answer={},opts={})=>{
+  const mark=k=>answer.status===k?'✓':'';
+  const result=opts.noStatus?'<td></td><td></td><td></td>':'<td class="dac-mark">'+mark('Pass')+'</td><td class="dac-mark">'+mark('Fail')+'</td><td class="dac-mark">'+mark('Not Available')+'</td>';
+  return '<tr class="dac-row"><td class="dac-serial">'+safe(id)+'</td>'+(group===null?'':'<td class="dac-group">'+safe(group)+'</td>')+'<td class="dac-description">'+description+'</td>'+result+'<td class="dac-remarks">'+safe(answer.remarks||'')+'</td></tr>';
+ };
+ const sectionRow=title=>'<tr class="dac-section"><td colspan="7">'+safe(title)+'</td></tr>';
+ const tableOpen='<table class="dac-table"><colgroup><col style="width:5.95%"><col style="width:14.25%"><col style="width:38.95%"><col style="width:3.32%"><col style="width:3.32%"><col style="width:6.53%"><col style="width:27.68%"></colgroup><thead><tr><th>Sl. No</th><th colspan="2">Checklist</th><th>Pass</th><th>Fail</th><th>Not Available</th><th>Remarks</th></tr></thead><tbody>';
+ const head=()=>'<div class="dac-head"><div class="dac-brand"><img src="assets/ideaforge-logo.png" alt="ideaForge"><b>'+safe(doc.title||'Daily Airworthiness Checklist')+'</b></div><div class="dac-meta"><strong>Doc Number: '+safe(doc.documentNumber||'IF_YETI_TD0_FTR_CKT_005')+'</strong>'+meta.map(([k,v])=>'<div><b>'+k+' :</b> '+safe(v)+'</div>').join('')+'</div></div>';
+ const a=id=>answers[id]||{};
+ const field=(ans,key)=>ans.values?.[key]||'';
+ const makeItem=(item,group,overrideText=null)=>{
+  const ans=a(item.id),isSpec=item.id.startsWith('1.'),isSetup=item.id==='3.1';
+  const desc=overrideText!==null?overrideText:[safe(item.title),...(item.criteria||[]).map(safe)].filter(Boolean).join('<br>');
+  return row(item.id,group,desc,ans,{noStatus:isSpec||isSetup});
+ };
+ const p1=[],p2=[];
+ for(const sec of sections){
+  const target=sec.title.startsWith('5.')?p2:p1;
+  if(sec.title.startsWith('4. Airframe')){
+   target.push(sectionRow(sec.title));
+   for(const item of sec.items){
+    const prefix=item.id.split('.').slice(0,2).join('.');
+    target.push(makeItem(item,groupNames[prefix]||''));
+   }
+  }else if(sec.title.startsWith('1. UAV')){
+   target.push(sectionRow(sec.title));
+   const w=sec.items.find(x=>x.id==='1.1'),cg=sec.items.find(x=>x.id==='1.2');
+   if(w)target.push(makeItem(w,'UAV Weight',safe(w.title)+'<br>UAV Total weight: '+safe(field(a('1.1'),'totalWeight'))));
+   if(cg){
+    const fields=cg.valueFields||[];
+    fields.forEach((v,i)=>target.push(row(i===0?'1.2':'',i===0?'UAV CG Point':null,safe(v.label)+': '+safe(field(a('1.2'),v.key)),a('1.2'),{noStatus:true})));
+   }
+  }else if(sec.title.startsWith('2.')||sec.title.startsWith('3.')){
+   target.push(sectionRow(sec.title));
+   sec.items.forEach(item=>target.push(makeItem(item,null,item.id==='3.1'?'Setup Description: '+safe(field(a('3.1'),'setupDescription')):safe(item.title))));
+  }else if(sec.title.startsWith('5.')){
+   target.push(sectionRow(sec.title));
+   sec.items.forEach(item=>target.push(makeItem(item,null,safe(item.title)+(item.criteria||[]).length?'<br>'+item.criteria.map(safe).join('<br>'):'')));
+  }else if(sec.title.startsWith('6.')){
+   target.push(sectionRow(sec.title));
+   sec.items.forEach(item=>{
+    let text=safe(item.title)+(item.criteria||[]).length?'<br>'+item.criteria.map(safe).join('<br>'):'';
+    const ans=a(item.id);
+    if(item.id==='6.1')text+='<br>HV Battery Voltage: '+safe(field(ans,'hvVoltage'))+' &nbsp; || &nbsp; Minimum Cell Voltage: '+safe(field(ans,'minCellVoltage'));
+    if(item.id==='6.2')text+='<br>PDU SOC: '+safe(field(ans,'pduSoc'));
+    target.push(makeItem(item,null,text));
+   });
+  }else{
+   target.push(sectionRow(sec.title));
+   sec.items.forEach(item=>target.push(makeItem(item,null)));
+  }
+ }
+ const pageHtml=(rows)=>'<section class="dac-page">'+head()+tableOpen+rows.join('')+'</tbody></table></section>';
+ const css='<style id="dac-print-layout">@page{size:A4 landscape;margin:0}.dac-pages{display:flex;flex-direction:column;align-items:center;gap:18px}.dac-page{width:297mm;height:210mm;box-sizing:border-box;padding:7mm 8mm;background:#fff;color:#000;font:7pt Arial,Helvetica,sans-serif;overflow:hidden;box-shadow:0 2px 12px #0002}.dac-head{height:17mm;display:grid;grid-template-columns:60% 40%;background:#eee;border:1px solid #000;box-sizing:border-box}.dac-brand{position:relative;display:flex;align-items:center;justify-content:center;border-right:1px solid #000;font-size:13pt;font-weight:bold}.dac-brand img{position:absolute;left:5mm;top:1.5mm;width:17mm;height:14mm;object-fit:contain}.dac-meta{padding:1mm 2mm;font-size:6.5pt;line-height:1.22}.dac-meta div{min-height:3mm}.dac-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:6.6pt}.dac-table th,.dac-table td{border:0.35pt solid #555;padding:.7mm 1mm;line-height:1.05;vertical-align:middle;overflow-wrap:anywhere}.dac-table thead th{height:8mm;background:#c6d9f1;text-align:center;font-weight:normal}.dac-section td{height:3.5mm;background:#eee;text-align:center;font-weight:bold;padding:.3mm}.dac-serial{text-align:center;white-space:nowrap}.dac-group{text-align:center;font-size:6.1pt}.dac-description{font-size:6.4pt}.dac-mark{text-align:center;font-size:10pt;font-weight:bold}.dac-remarks{font-size:6.3pt;white-space:pre-wrap}.dac-row{break-inside:avoid;page-break-inside:avoid}@media screen{.dac-page{max-width:100%;height:auto;min-height:210mm;aspect-ratio:297/210}.dac-table{font-size:clamp(5px,.65vw,6.6pt)}}@media print{.dac-pages{display:block}.dac-page{width:297mm;height:210mm;margin:0;padding:7mm 8mm;box-shadow:none;break-after:page;page-break-after:always}.dac-page:last-child{break-after:auto;page-break-after:auto}}</style>';
+ $('previewContent').innerHTML=css+'<div class="dac-pages">'+pageHtml(p1)+pageHtml(p2)+'</div>';
 }
 $('previewBtn').onclick=async()=>{$('previewPanel').classList.add('show');await buildPreview();$('previewPanel').scrollIntoView({behavior:'smooth',block:'start'})};
 $('closePreview').onclick=()=>{$('previewPanel').classList.remove('show')};
