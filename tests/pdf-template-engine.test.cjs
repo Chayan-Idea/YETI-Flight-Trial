@@ -134,3 +134,14 @@ assert.ok(livePreviewSource.includes('if(buildRevision!==previewBuildRevision)re
 assert.ok(livePreviewSource.includes('immediate?0:100'),'live preview should refresh within a short debounce window');
 assert.ok(rendererSourceForAppend.includes('function fitSingleLine'),'long text must fit within its assigned PDF cell without wrapping into adjacent rows');
 assert.ok(rendererSourceForAppend.includes('m?.fieldBoxes?.[key]'),'template-specific value fields must be placed in explicitly mapped cells');
+
+const v2Candidate=JSON.parse(fs.readFileSync(path.join(root,'assets/templates/IF_YETI_TD0_FTR_CKT_005/v2/template-package.json'),'utf8'));
+const v2Validation=packageLoader.validatePackage(v2Candidate);
+assert.equal(v2Validation.valid,true,'uploaded PDF v2 candidate must pass structural and cell-bound validation: '+v2Validation.errors.join('; '));
+assert.equal(v2Candidate.activation.status,'candidate','new PDF must remain review-only until human approval');
+assert.equal(v2Validation.checkpointCount,61,'new uploaded PDF must retain 60 checklist points plus the Checker/Reviewer entry');
+assert.equal(v2Candidate.template.rows['4.8.1'][0],2,'4.8.1 must map to page 2 in the newly uploaded PDF');
+assert.equal(v2Candidate.template.rows['4.9.1'][0],2,'4.9.1 must map to page 2 in the newly uploaded PDF');
+assert.ok(!v2Candidate.sections.flatMap(s=>s.items).some(i=>i.id==='8.1'),'the absent 8.1 Camera Functionality checkpoint must not be invented');
+assert.equal(v2Candidate.template.columns.passCenterX,503.72,'Pass status must use the new PDF column geometry');
+assert.equal(v2Candidate.template.specialFields.checkerReviewer.x,587.86,'signature must map into the new PDF signature cell');
