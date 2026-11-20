@@ -242,9 +242,9 @@ body.pdf-viewer-open{overflow:hidden!important;overscroll-behavior:none}
 @media(max-width:620px){#previewPanel.pdf-preview-expanded{padding:5px!important;gap:5px!important}#previewPanel.pdf-preview-expanded>div:first-child{padding:6px;flex-wrap:wrap}#previewPanel.pdf-preview-expanded>div:first-child h2{font-size:13px}#previewPanel.pdf-preview-expanded .pdf-preview-toolbar{gap:4px}#previewPanel.pdf-preview-expanded .pdf-preview-toolbar .btn{min-width:40px;min-height:42px;padding:7px 9px}}
 
 /* Global page-refresh feedback: visible across every YETI module and viewport. */
-.app-refresh-status{position:fixed;top:0;left:0;right:0;z-index:200000;background:#fff;color:#174f7d;border-bottom:1px solid #c9dced;box-shadow:0 3px 14px #102f5720;padding:0 14px 9px}
+.app-refresh-status{position:absolute;top:48px;right:0;z-index:200000;width:max-content;max-width:min(360px,calc(100vw - 28px));background:#fff;color:#174f7d;border:1px solid #c9dced;border-radius:9px;box-shadow:0 3px 14px #102f5720;padding:0 12px 8px}
 .app-refresh-status[hidden]{display:none!important}
-.app-refresh-status-track{height:4px;margin:0 -14px 8px;background:#e7eff7;overflow:hidden}
+.app-refresh-status-track{height:4px;margin:0 -12px 8px;background:#e7eff7;overflow:hidden}
 .app-refresh-status-track span{display:block;width:38%;height:100%;background:#2685d8;animation:yeti-refresh-progress 1.15s ease-in-out infinite alternate}
 .app-refresh-status-message{max-width:1120px;margin:0 auto;display:flex;align-items:center;gap:9px;min-height:25px;font-size:12px;font-weight:750;letter-spacing:.01em}
 .app-refresh-status-icon{font-size:17px;line-height:1;animation:yeti-refresh-spin 1s linear infinite}
@@ -267,3 +267,5 @@ body.pdf-viewer-open{overflow:hidden!important;overscroll-behavior:none}
 .vv-themed-checklist .serial,.vv-themed-checklist .loading-serial{color:#246a4b;background:#e6f4eb;border-color:#b9dcc7}
 .vv-themed-checklist .subsection .fields input,.vv-themed-checklist .subsection .fields select,.vv-themed-checklist .subsection .fields textarea{background:#fff;border-color:#c5ddce}
 .vv-themed-checklist .subsection .fields input:focus,.vv-themed-checklist .subsection .fields select:focus,.vv-themed-checklist .subsection .fields textarea:focus{outline:2px solid #a7d4b8;outline-offset:1px}
+
+@media(max-width:480px){.app-refresh-status{top:46px;right:0;max-width:min(310px,calc(100vw - 32px));}}
