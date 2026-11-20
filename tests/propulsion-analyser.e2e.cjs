@@ -50,7 +50,8 @@ const server = http.createServer((req,res)=>{
   const specific=page.locator('.propulsion-calculated-parameter[data-parameter-key="overallEfficiency"]');
   await specific.locator('input[type="checkbox"]').check();
   await specific.locator('button').filter({hasText:'Calculate and Add to Log file'}).click();
-  await page.locator('#confirmDerivedParametersReady').check();
+  // The current single-log Step 03 uses an explicit continuation action instead of the retired derived-ready confirmation checkbox.
+  await page.locator('#propulsionDerivedParameterCalculationCard .propulsion-derived-proceed').click();
   await page.locator('#confirmFilteringSortingReady').check();
   const csvGenerate=page.locator('#propulsionDataFilteringCard button').filter({hasText:'Generate Filtered & Sorted CSV'});
   await csvGenerate.waitFor({state:'visible'});
