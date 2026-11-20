@@ -269,3 +269,11 @@ body.pdf-viewer-open{overflow:hidden!important;overscroll-behavior:none}
 .vv-themed-checklist .subsection .fields input:focus,.vv-themed-checklist .subsection .fields select:focus,.vv-themed-checklist .subsection .fields textarea:focus{outline:2px solid #a7d4b8;outline-offset:1px}
 
 @media(max-width:480px){.app-refresh-status{top:46px;right:0;max-width:min(310px,calc(100vw - 32px));}}
+
+/* High-specificity override: the Daily Airworthiness panel has an ID-based blue heading rule. */
+#dailyChecklistTabPanel.vv-themed-checklist .subsection{background:#f6fbf7!important;border-color:#c9e2d2!important}
+#dailyChecklistTabPanel.vv-themed-checklist .subsection-heading{background:linear-gradient(100deg,#e1f1e6,#f0f8f2)!important;border-left-color:#29956b!important;color:#205b43!important}
+#dailyChecklistTabPanel.vv-themed-checklist .subsection .item{background:#fbfefb!important}
+#dailyChecklistTabPanel.vv-themed-checklist .subsection .item:focus-within{background:#f0f8f2!important}
+#dailyChecklistTabPanel.vv-themed-checklist .subsection .serial{color:#246a4b!important;background:#e6f4eb!important;border-color:#b9dcc7!important}
+#dailyChecklistTabPanel.vv-themed-checklist .subsection .fields input,#dailyChecklistTabPanel.vv-themed-checklist .subsection .fields select,#dailyChecklistTabPanel.vv-themed-checklist .subsection .fields textarea{background:#fff!important;border-color:#c5ddce!important}
