@@ -109,7 +109,7 @@ const BASE=[
 ]},
 {title:"9. Other details",items:[{id:"9.0",title:"Checker + Reviewer",criteria:[]}]}
 ];
-let sections=structuredClone(window.YETI_DAILY_AIRWORTHINESS_TEMPLATE||BASE),sourceKey='IF_YETI_TD0_FTR_CKT_005',answers={},trialInfo={};
+let sections=structuredClone(window.YETI_PDF_TEMPLATE_MANAGER?.getActiveTemplate()?.template?.checklistSections||window.YETI_DAILY_AIRWORTHINESS_TEMPLATE||BASE),sourceKey='IF_YETI_TD0_FTR_CKT_005',answers={},trialInfo={};
 const $=x=>document.getElementById(x),answerKey=()=> 'yeti-answers:'+sourceKey;
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function stats(){let a=sections.flatMap(s=>s.items),d=a.filter(i=>answers[i.id]?.status),p=a.filter(i=>answers[i.id]?.status==='Pass'),f=a.filter(i=>answers[i.id]?.status==='Fail');$('total').textContent=a.length;$('done').textContent=d.length;$('pass').textContent=p.length;$('fail').textContent=f.length;$('bar').style.width=(a.length?100*d.length/a.length:0)+'%'}
