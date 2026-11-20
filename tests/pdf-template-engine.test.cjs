@@ -139,7 +139,7 @@ assert.ok(rendererSourceForAppend.includes('m?.fieldBoxes?.[key]'),'template-spe
 const v2Candidate=JSON.parse(fs.readFileSync(path.join(root,'assets/templates/IF_YETI_TD0_FTR_CKT_005/v2/template-package.json'),'utf8'));
 const v2Validation=packageLoader.validatePackage(v2Candidate);
 assert.equal(v2Validation.valid,true,'uploaded PDF v2 candidate must pass structural and cell-bound validation: '+v2Validation.errors.join('; '));
-assert.equal(v2Candidate.activation.status,'candidate','new PDF must remain review-only until human approval');
+assert.equal(v2Candidate.activation.status,'approved','the explicitly approved checksum-verified PDF must be active for release validation');
 assert.equal(v2Validation.checkpointCount,62,'attached PDF must retain 61 numbered checklist points plus the Checker/Reviewer entry');
 assert.equal(v2Candidate.template.rows['4.8.1'][0],2,'4.8.1 must map to page 2 in the newly uploaded PDF');
 assert.equal(v2Candidate.template.rows['4.9.1'][0],2,'4.9.1 must map to page 2 in the newly uploaded PDF');
