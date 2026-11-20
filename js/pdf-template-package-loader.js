@@ -46,7 +46,7 @@
   registration.template.sourcePdfPath=candidate.package.sourcePdf.path;
   registration.template.sourcePdfSha256=candidate.package.sourcePdf.sha256;
   registration.template.document=candidate.package.document;
-  return root.YETI_PDF_TEMPLATE_MANAGER.activate(registration,true);
+  const activated=root.YETI_PDF_TEMPLATE_MANAGER.activate(registration,true);root.YETI_ACTIVE_PDF_TEMPLATE={...candidate,template:activated.template};return activated;
  }
  root.YETI_PDF_TEMPLATE_PACKAGE=Object.freeze({validatePackage,load,activate});
 })(window);
