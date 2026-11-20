@@ -1646,3 +1646,49 @@
   background:transparent!important;
   box-shadow:none!important;
 }
+
+
+/* CSV column-specific search controls and full-row match highlighting. */
+.propulsion-exact-csv-preview .propulsion-csv-search{
+  display:grid;
+  grid-template-columns:minmax(170px,220px) minmax(180px,1fr) auto;
+  align-items:center;
+  gap:8px;
+}
+.propulsion-exact-csv-preview .propulsion-csv-column-select,
+.propulsion-exact-csv-preview .propulsion-csv-search-input{
+  box-sizing:border-box;
+  width:100%;
+  min-width:0;
+  min-height:40px;
+  padding:8px 10px;
+  border:1px solid #cbd8e5;
+  border-radius:8px;
+  background:#fff;
+  color:#173b63;
+}
+.propulsion-exact-csv-preview .propulsion-csv-search-input:disabled{
+  background:#f1f4f7;
+  color:#8493a2;
+  cursor:not-allowed;
+}
+.propulsion-exact-csv-preview .propulsion-csv-search-button:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+.propulsion-exact-csv-preview .propulsion-csv-search-status{
+  grid-column:1/-1;
+}
+.propulsion-exact-csv-preview .propulsion-exact-csv-table tbody tr.propulsion-csv-search-match>td,
+.propulsion-exact-csv-preview .propulsion-exact-csv-table tbody tr.propulsion-csv-search-match>th{
+  background:#fff2a8!important;
+  color:#493700!important;
+}
+.propulsion-exact-csv-preview .propulsion-exact-csv-table tbody tr.propulsion-csv-search-match>th:first-child,
+.propulsion-exact-csv-preview .propulsion-exact-csv-table tbody tr.propulsion-csv-search-match>td:first-child{
+  background:#ffe27a!important;
+}
+@media(max-width:680px){
+ .propulsion-exact-csv-preview .propulsion-csv-search{grid-template-columns:1fr}
+ .propulsion-exact-csv-preview .propulsion-csv-search-status{grid-column:1}
+}
