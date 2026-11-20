@@ -33,7 +33,7 @@ for(const id of ids.filter(id=>id!=='9.0')){
 assert.equal(mapper.statusAnchor(manifest,'4.9.1','Pass').page,2);
 assert.equal(mapper.statusAnchor(manifest,'4.8.2','Fail').page,1);
 assert.deepEqual(JSON.parse(JSON.stringify(mapper.topLeftToBottomLeft({x:100,y:100},manifest.page))),{x:100,y:495});
-assert.throws(()=>mapper.assertPoint({x:900,y:10},manifest.page),RangeError);
+assert.throws(()=>mapper.assertPoint({x:900,y:10},manifest.page),/outside the source page/);
 const invalid=manager.register({...manifest,rows:{}},sections);
 assert.equal(invalid.validation.valid,false,'incomplete coordinate map must be rejected');
 assert.throws(()=>manager.activate(invalid,true),/invalid PDF template/);
