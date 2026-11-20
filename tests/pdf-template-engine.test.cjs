@@ -60,6 +60,7 @@ const pkg={
  sections
 };
 assert.equal(packageLoader.validatePackage(pkg).valid,true,'well-formed package should validate');
+assert.equal(manager.validate({...pkg.template,templateId:pkg.document.templateId,version:pkg.document.version,sourcePages:pkg.document.pageCount},pkg.sections).valid,true,'package document identity and page count must be merged before registry validation');
 assert.equal(packageLoader.validatePackage({...pkg,sourcePdf:{path:'source.pdf',sha256:'bad'}}).valid,false,'missing source checksum must be rejected');
 assert.equal(packageLoader.validatePackage({...pkg,sections:[...sections,{title:'Duplicate',items:[{id:'1.1',title:'duplicate'}]}]}).valid,false,'duplicate checkpoint package must be rejected');
 assert.throws(()=>packageLoader.activate({package:{activation:{status:'candidate'}},validation:{valid:true},pdfBytes:new ArrayBuffer(8)},true),/review-only/,'candidate packages must never activate, even when a caller passes approval');
