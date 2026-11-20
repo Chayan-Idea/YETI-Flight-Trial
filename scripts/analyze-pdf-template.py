@@ -9,7 +9,7 @@ import argparse, hashlib, json, re
 from pathlib import Path
 import fitz
 
-CHECKPOINT = re.compile(r"^\\d+(?:\\.\\d+){1,3}$")
+CHECKPOINT = re.compile(r"^\d+(?:\.\d+){1,3}$")
 
 def analyse(source: Path):
     raw = source.read_bytes()
@@ -94,7 +94,7 @@ def main():
         result = analyse(args.pdf)
     except Exception as error:
         raise SystemExit(f"PDF analysis failed safely: {error}")
-    args.output.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\\n", encoding="utf-8")
+    args.output.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"Analysed {result['pageCount']} pages; found {len(result['checkpointCandidates'])} checkpoint candidates.")
     print("Structured review candidate created; activation and deployment remain blocked pending visual review.")
 
