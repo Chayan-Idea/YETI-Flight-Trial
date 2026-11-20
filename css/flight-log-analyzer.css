@@ -1,0 +1,38 @@
+/* Flight Log Analyzer — fully isolated presentation layer.
+   Keep selectors inside #flightLogAnalyzerPanel; do not style sibling modules. */
+#flightLogAnalyzerPanel{min-width:0}
+#flightLogAnalyzerPanel .flight-log-analyzer-content{
+ box-sizing:border-box;width:100%;max-width:1100px;min-width:0;margin:0 auto;
+}
+#flightLogAnalyzerPanel .flight-log-analyzer-heading{
+ padding:0 2px 16px;margin:8px 0 20px;border-bottom:1px solid #d9e4eb;
+}
+#flightLogAnalyzerPanel .flight-log-kicker,
+#flightLogAnalyzerPanel .flight-log-step-label{
+ display:block;color:#087f9d;font-size:11px;font-weight:900;letter-spacing:.13em;
+}
+#flightLogAnalyzerPanel .flight-log-analyzer-heading h2{
+ margin:7px 0;color:#123b70;font-size:clamp(23px,3vw,32px);letter-spacing:-.025em;
+}
+#flightLogAnalyzerPanel .flight-log-analyzer-heading p{
+ margin:0;color:#53697e;font-size:14px;
+}
+#flightLogAnalyzerPanel .flight-log-workspace{
+ display:grid;grid-template-columns:minmax(0,1fr);gap:18px;min-width:0;
+}
+#flightLogAnalyzerPanel .flight-log-welcome-card{
+ box-sizing:border-box;width:100%;min-width:0;padding:24px;
+ border:1px solid #b9d7ef;border-top:4px solid #1687a5;border-radius:15px;
+ background:linear-gradient(135deg,#fff 0%,#f5fafc 100%);
+ box-shadow:0 5px 18px rgba(18,59,112,.06);
+}
+#flightLogAnalyzerPanel .flight-log-welcome-card h3{
+ margin:10px 0 8px;color:#123b70;font-size:20px;
+}
+#flightLogAnalyzerPanel .flight-log-welcome-card p{
+ max-width:850px;margin:0;color:#53697e;line-height:1.65;
+}
+@media(max-width:760px){
+ #flightLogAnalyzerPanel .flight-log-analyzer-content{max-width:100%}
+ #flightLogAnalyzerPanel .flight-log-welcome-card{padding:18px}
+}
