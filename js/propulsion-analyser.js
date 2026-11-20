@@ -86,7 +86,10 @@
   const render=()=>{const query=search.value.trim().toLocaleLowerCase(),fragment=document.createDocumentFragment();let matches=0;
    rows.slice(1).forEach((row,index)=>{const cells=Array.from({length:maxColumns},(_,col)=>String(row?.[col]??''));if(query&&!cells.some(value=>value.toLocaleLowerCase().includes(query)))return;matches++;const tr=document.createElement('tr');tr.dataset.rowIndex=String(index+1);cells.forEach((value,col)=>{const cell=el(col===0?'th':'td','',value);if(col===0)cell.scope='row';cell.title=value;tr.append(cell);});fragment.append(tr);});
    body.replaceChildren(fragment);searchStatus.textContent=query?matches.toLocaleString()+' matching row(s) of '+Math.max(0,rows.length-1).toLocaleString():(rows.length-1).toLocaleString()+' data rows';viewport.scrollTop=0;viewport.scrollLeft=0;};
-  search.addEventListener('input',render);render();card.append(heading,title,meta,searchWrap,viewport);return card;
+  search.addEventListener('input',render);render();card.append(heading,title,meta,searchWrap,viewport);
+  const container=el('div','propulsion-csv-preview-disclosure'),toggle=el('button','btn alt propulsion-csv-preview-toggle','Show CSV Preview');toggle.type='button';toggle.setAttribute('aria-expanded','false');card.hidden=true;
+  toggle.addEventListener('click',()=>{const opening=card.hidden;card.hidden=!opening;toggle.textContent=opening?'Hide CSV Preview':'Show CSV Preview';toggle.setAttribute('aria-expanded',String(opening));});
+  container.append(toggle,card);return container;
  }
  function renderCsvPreview(text){
   csvPreviewPanel?.remove();const rows=parseCSV(text,chooseDelimiter(text));if(!rows.length)return;
