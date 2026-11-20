@@ -218,3 +218,11 @@
 
 /* Keep touch gestures inside signature canvases; page scrolling remains enabled everywhere else. */
 #signaturePad,#loadingSignaturePad{display:block;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overscroll-behavior:contain;}
+
+/* 01B original-PDF preview zoom controls and touch-friendly pinch zoom. */
+.pdf-preview-toolbar{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.pdf-preview-toolbar .btn{min-width:42px;min-height:42px;padding:9px 13px;touch-action:manipulation}
+.pdf-zoom-level{min-width:52px;text-align:center;font-size:12px;font-weight:800;color:#174f7d;font-variant-numeric:tabular-nums}
+#previewContent{max-width:100%;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+#previewContent .yeti-pdf-preview-stage{width:100%;transform-origin:top left}
+@media(max-width:620px){.pdf-preview-toolbar{width:100%;justify-content:flex-start}.pdf-preview-toolbar .btn{min-width:46px;min-height:46px;font-size:16px}.pdf-zoom-level{min-width:54px;font-size:13px}}
