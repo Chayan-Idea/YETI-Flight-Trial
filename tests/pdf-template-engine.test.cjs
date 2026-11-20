@@ -140,12 +140,12 @@ const v2Candidate=JSON.parse(fs.readFileSync(path.join(root,'assets/templates/IF
 const v2Validation=packageLoader.validatePackage(v2Candidate);
 assert.equal(v2Validation.valid,true,'uploaded PDF v2 candidate must pass structural and cell-bound validation: '+v2Validation.errors.join('; '));
 assert.equal(v2Candidate.activation.status,'candidate','new PDF must remain review-only until human approval');
-assert.equal(v2Validation.checkpointCount,61,'new uploaded PDF must retain 60 checklist points plus the Checker/Reviewer entry');
+assert.equal(v2Validation.checkpointCount,62,'attached PDF must retain 61 numbered checklist points plus the Checker/Reviewer entry');
 assert.equal(v2Candidate.template.rows['4.8.1'][0],2,'4.8.1 must map to page 2 in the newly uploaded PDF');
 assert.equal(v2Candidate.template.rows['4.9.1'][0],2,'4.9.1 must map to page 2 in the newly uploaded PDF');
-assert.ok(!v2Candidate.sections.flatMap(s=>s.items).some(i=>i.id==='8.1'),'the absent 8.1 Camera Functionality checkpoint must not be invented');
-assert.equal(v2Candidate.template.columns.passCenterX,503.72,'Pass status must use the new PDF column geometry');
-assert.equal(v2Candidate.template.specialFields.checkerReviewer.x,587.86,'signature must map into the new PDF signature cell');
+assert.deepEqual(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='8.1').criteria,['Camera placed and working ok.'],'source checkpoint 8.1 Camera Functionality and its criterion must be retained');
+assert.equal(v2Candidate.template.columns.passCenterX,505.24,'Pass status must use the attached PDF column geometry');
+assert.equal(v2Candidate.template.specialFields.checkerReviewer.x,588.93,'signature must map into the attached PDF signature cell');
 
 assert.ok(rendererSourceForAppend.includes('(b.y+(b.height||6)/2)*scaleY'),'measured metadata cell height must control vertical text centring in the live preview');
 assert.ok(rendererSourceForAppend.includes('centerY=(b.y+(b.height||6)/2)*sy'),'measured metadata cell height must control vertical text centring in exported PDFs');
@@ -159,3 +159,8 @@ assert.equal(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='4.1.1').su
 assert.equal(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='4.2.1').subsection,'2. Star-Board Side Wing Chcek','candidate checklist must preserve source spelling rather than silently normalizing it');
 
 assert.equal(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='9.0').displayId,'9','the webpage must display the uploaded PDF serial label 9 for Checker + Reviewer');
+
+assert.equal(v2Candidate.sourcePdf.sha256,'986ce7f835de38d78901d1bde3b569a16b083fc93ec382e199ee2ae1aa9122a8','candidate must identify the exact PDF attached in this conversation');
+assert.equal(v2Candidate.document.version,'2.0.1','corrected attachment candidate must have its own version');
+assert.equal(v2Candidate.template.rows['8.1'][0],2,'Camera Functionality checkpoint 8.1 must map to page 2');
+assert.equal(v2Candidate.template.rows['4.9.1'][0],2,'4.9.1 must map to page 2 in the attached PDF');
