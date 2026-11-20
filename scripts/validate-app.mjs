@@ -113,6 +113,9 @@ if (pdfPackage.document?.pageCount !== 2 || pdfPackage.document?.pageWidth !== 8
 
 const serviceWorker = read('service-worker.js');
 checkJavaScript('service-worker.js', serviceWorker);
+if (/v169/.test(serviceWorker) && /pathname\.endsWith\('\.pdf'\)/.test(serviceWorker) && /template-package\.json/.test(serviceWorker)) {
+  pass('Service worker bypasses stale PDF and template-package caches');
+} else fail('Service worker must bypass cached PDF templates and versioned package manifests');
 const shellStart = serviceWorker.indexOf('const SHELL=[');
 const shellEnd = shellStart >= 0 ? serviceWorker.indexOf('];', shellStart) : -1;
 if (shellStart < 0 || shellEnd < 0) {
