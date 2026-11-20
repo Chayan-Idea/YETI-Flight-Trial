@@ -1,4 +1,4 @@
-const CACHE='yeti-flight-trial-shell-v161';
+const CACHE='yeti-flight-trial-shell-v162';
 const SHELL=[
  './',
  './index.html',
@@ -10,6 +10,9 @@ const SHELL=[
  './css/yeti-aerospace-visuals.css',
  './css/flight-log-analyzer.css',
  './js/daily-airworthiness-template.js',
+ './js/daily-airworthiness-pdf-manifest.js',
+ './js/pdf-template-manager.js',
+ './js/pdf-coordinate-mapper.js',
  './js/flight-preparation.js',
  './js/main-navigation.js',
  './js/flight-log-analyzer.js',
