@@ -1,0 +1,40 @@
+name: YETI PDF Staging Browser Verification
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'assets/templates/**'
+      - 'js/pdf-*.js'
+      - 'js/daily-airworthiness-*.js'
+      - 'js/flight-preparation.js'
+      - 'tests/pdf-template-browser.e2e.cjs'
+      - '.github/workflows/pdf-staging-browser.yml'
+      - 'index.html'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: yeti-pdf-browser-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pdf-staging-browser:
+    name: Real PDF browser preview and export
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out candidate
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser test dependency
+        run: npm install --no-save playwright
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Verify actual PDF package, preview, signature and photo export
+        run: node tests/pdf-template-browser.e2e.cjs
