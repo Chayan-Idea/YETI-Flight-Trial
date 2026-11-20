@@ -146,3 +146,6 @@ assert.equal(v2Candidate.template.rows['4.9.1'][0],2,'4.9.1 must map to page 2 i
 assert.ok(!v2Candidate.sections.flatMap(s=>s.items).some(i=>i.id==='8.1'),'the absent 8.1 Camera Functionality checkpoint must not be invented');
 assert.equal(v2Candidate.template.columns.passCenterX,503.72,'Pass status must use the new PDF column geometry');
 assert.equal(v2Candidate.template.specialFields.checkerReviewer.x,587.86,'signature must map into the new PDF signature cell');
+
+assert.ok(rendererSourceForAppend.includes('(b.y+(b.height||6)/2)*scaleY'),'measured metadata cell height must control vertical text centring in the live preview');
+assert.ok(rendererSourceForAppend.includes('const centerY=(b.y+(b.height||6)/2)*sy'),'measured metadata cell height must control vertical text centring in exported PDFs');
