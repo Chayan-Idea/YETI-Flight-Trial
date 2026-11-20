@@ -13,7 +13,7 @@ window.YETI_DAILY_AIRWORTHINESS_PDF_MANIFEST={
   documentNumber:{page:1,x:500.7,y:37.8},trialPhase:{page:1,x:500.7,y:46.6},
   trialStage:{page:1,x:500.7,y:55.4},flightPlace:{page:1,x:500.7,y:64.2},flightDate:{page:1,x:500.7,y:73.0}
  },
- columns:{passCenterX:507.46,failCenterX:523.08,notAvailableCenterX:566.12,remarksLeft:573.9,remarksRight:790.18},
+ columns:{passCenterX:511.35,failCenterX:534.95,notAvailableCenterX:570.01,remarksLeft:573.9,remarksRight:790.18},
  rows:{
  "1.1":[1,103.07],"1.2":[1,121.82],"2.1":[1,149.93],"2.2":[1,159.30],
  "3.1":[1,178.05],"3.2":[1,187.42],"3.3":[1,196.79],"3.4":[1,206.16],
