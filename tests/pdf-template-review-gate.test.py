@@ -46,6 +46,7 @@ with tempfile.TemporaryDirectory() as tmp:
 
     corrected=json.loads(json.dumps(package))
     corrected["sections"][0]["items"][0]["id"]="1.1.1"
+    corrected["template"]["rows"]["1.1.1"]=corrected["template"]["rows"].pop("1.1")
     corrected["extractionReview"]["idCorrections"]={"1.1":"1.1.1"}
     corrected["extractionReview"]["reviewedCheckpointIds"]=["1.1.1","1.2"]
     assert publisher.validate_reviewed_package(corrected,candidate["sha256"],candidate,root/"review.json")==["1.1.1","1.2"]
