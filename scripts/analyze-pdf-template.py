@@ -10,6 +10,7 @@ from pathlib import Path
 import fitz
 
 CHECKPOINT = re.compile(r"^\d+(?:\.\d+){1,3}$")
+SECTION_NUMBER = re.compile(r"^\d+\.$")
 
 def analyse(source: Path):
     raw = source.read_bytes()
@@ -19,6 +20,7 @@ def analyse(source: Path):
     if document.is_encrypted and not document.authenticate(""):
         raise ValueError("Encrypted PDFs are not supported for automatic extraction.")
     pages, checkpoints = [], []
+    latest_section_by_page = {}
     for page_index, page in enumerate(document):
         words = page.get_text("words", sort=True)
         blocks = page.get_text("dict")["blocks"]
@@ -39,6 +41,12 @@ def analyse(source: Path):
         for key, line_words in lines.items():
             for index, word in enumerate(line_words):
                 token = word[4].strip()
+                line_text = " ".join(w[4] for w in line_words).strip()
+                if SECTION_NUMBER.fullmatch(token):
+                    heading = " ".join(w[4] for w in line_words[index + 1:]).strip()
+                    if heading:
+                        latest_section_by_page[page_index + 1] = heading
+                    continue
                 if not CHECKPOINT.fullmatch(token):
                     continue
                 description = " ".join(w[4] for w in line_words[index + 1:]).strip()
@@ -47,6 +55,7 @@ def analyse(source: Path):
                     "bbox": [round(float(value), 2) for value in word[:4]],
                     "lineText": " ".join(w[4] for w in line_words),
                     "descriptionCandidate": description,
+                    "sectionTitleCandidate": latest_section_by_page.get(page_index + 1, f"Page {page_index + 1}"),
                     "block": key[0], "line": key[1]
                 }
                 checkpoints.append(item)
