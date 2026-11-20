@@ -163,7 +163,8 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
     if (dailyPreviewText.includes('YETI-PHASE3-QA') || dailyPreviewText.includes('Phase 3 UI Assurance') || dailyPreviewText.includes('Phase 3 automated verification remark.')) {
       throw new Error('Dynamic trial metadata or checklist remarks leaked into the original-PDF preview.');
     }
-    if (!dailyPreviewText.includes('PHOTO EVIDENCE') || !dailyPreviewText.includes('phase3-daily-evidence.png')) throw new Error('Daily photo evidence is missing from the original-PDF preview.');
+    const dailyPhotoPages=await page.locator('#previewContent .yeti-pdf-photo-page').count();
+    if (dailyPhotoPages!==1 || !dailyPreviewText.includes('PHOTO EVIDENCE') || !dailyPreviewText.includes('phase3-daily-evidence.png')) throw new Error('Daily photo evidence is missing from the original-PDF preview. Photo pages: '+dailyPhotoPages+'; preview text: '+dailyPreviewText.slice(-500));
     await exportOriginalPdfDownload(page, '#pdfBtn', 'YETI_PHASE3_DAILY_QA');
 
     // Verify browser refresh preserves daily answers, metadata and IndexedDB photo evidence.
