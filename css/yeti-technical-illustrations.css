@@ -1,0 +1,25 @@
+/* YETI context-aware technical illustrations — presentation only */
+.yeti-tech-illustration{
+  display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;
+  width:clamp(26px,3.2vw,42px);height:clamp(26px,3.2vw,42px);
+  margin-inline:8px 10px;vertical-align:middle;opacity:.9;
+}
+.yeti-tech-illustration img{display:block;width:100%;height:100%;max-width:42px;max-height:42px;object-fit:contain}
+.yeti-illustrated-heading{display:flex;align-items:center;gap:0;min-width:0}
+.yeti-illustrated-heading>.yeti-tech-illustration{margin-left:0}
+.yeti-illustrated-card{position:relative}
+.yeti-illustrated-card>.yeti-tech-illustration{position:absolute;top:10px;right:12px;width:clamp(28px,3.8vw,44px);height:clamp(28px,3.8vw,44px);margin:0;pointer-events:none}
+.yeti-illustrated-card>.yeti-tech-illustration img{max-width:44px;max-height:44px}
+#list details.section>summary .yeti-tech-illustration,
+#loadingList details.loading-accordion>summary .yeti-tech-illustration{width:28px;height:28px;margin-inline:0 8px}
+.propulsion-step-card>.yeti-tech-illustration{top:12px;right:14px}
+@media(max-width:760px){
+ .yeti-tech-illustration{width:26px;height:26px;margin-inline:0 7px}
+ .yeti-illustrated-card>.yeti-tech-illustration{width:28px;height:28px;top:8px;right:8px}
+ .yeti-illustrated-heading{gap:0}
+}
+@media(max-width:420px){
+ .yeti-illustrated-card>.yeti-tech-illustration{display:none}
+ .yeti-tech-illustration{width:23px;height:23px}
+}
+@media print{.yeti-tech-illustration{display:none!important}}
