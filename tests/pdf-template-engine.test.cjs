@@ -78,6 +78,7 @@ const whitelistPhotos=overlay.safePhotos([
 ]);
 assert.deepEqual(JSON.parse(JSON.stringify(whitelistPhotos.map(p=>p.name))),['daily.jpg','default.png'],'only daily/default photo evidence should be exported');
 assert.ok(manifest.specialFields.checkerReviewer.page>=1,'signature must be anchored to a source page');
+assert.deepEqual(JSON.parse(JSON.stringify(manifest.specialFields.checkerReviewer)),{page:2,x:573.9,y:294.99,width:216.28,height:25.68},'signature must fit the original Checker + Reviewer signature cell');
 assert.ok(manifest.specialFields.checkerReviewer.x+manifest.specialFields.checkerReviewer.width<=manifest.page.width,'signature area must remain inside source page');
 assert.ok(manifest.specialFields.checkerReviewer.y+manifest.specialFields.checkerReviewer.height<=manifest.page.height,'signature area must remain inside source page');
 const rendererSource=fs.readFileSync(path.join(root,'js/pdf-overlay-renderer.js'),'utf8');
