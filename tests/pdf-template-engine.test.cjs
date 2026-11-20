@@ -154,7 +154,8 @@ assert.ok(rendererSourceForAppend.includes('ph-placement.y-regular.heightAtSize(
 assert.ok(rendererSourceForAppend.includes("!m?.specialFields?.[k]"),'mapped battery values must not also be duplicated in the remarks cell');
 
 assert.ok(rendererSourceForAppend.includes('(centerY-3.35)*scaleY'),'status chips must be positioned from the calculated cell centre');
-assert.ok(rendererSourceForAppend.includes("ctx.textAlign='left';ctx.textBaseline='middle'"),'remarks must be left aligned and vertically centred');
+assert.ok(rendererSourceForAppend.includes("ctx.textAlign='left'"),'non-status preview text must be left aligned');
+assert.ok(rendererSourceForAppend.includes('placement.y'),'non-status preview text must be vertically centred');
 assert.ok(rendererSourceForAppend.includes('leftTextPlacement(b,scaleX,scaleY)')&&rendererSourceForAppend.includes('leftTextPlacement(b,sx,sy)'),'all mapped value and metadata cells must use shared padded left-alignment geometry');
 
 assert.equal(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='4.1.1').subsection,'1. Port-Side Wing Chcek','candidate checklist must preserve the uploaded source subsection wording');
