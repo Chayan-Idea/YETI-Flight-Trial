@@ -1,0 +1,93 @@
+/* Phase 1 — Propulsion Analyzer visual refinement.
+   CSS-only presentation layer: no DOM, workflow, data, calculation or control changes. */
+#propulsionAnalyzerPanel{--pw-ink:#142b43;--pw-muted:#5c7185;--pw-line:#d5e0e9;--pw-blue:#17618a;--pw-cyan:#087f9d}
+#propulsionAnalyzerPanel .propulsion-page-content>.subnav-heading{
+ position:relative;isolation:isolate;padding:18px 22px 20px;margin:8px 0 24px;
+ border:1px solid #d1e0eb;border-left:4px solid #1687a5;border-radius:14px;
+ background:linear-gradient(112deg,#fff 0%,#f4f9fc 64%,#eaf4f8 100%);
+ box-shadow:0 6px 20px rgba(20,48,72,.055);overflow:hidden;
+}
+#propulsionAnalyzerPanel .propulsion-page-content>.subnav-heading:after{
+ content:"";position:absolute;z-index:-1;right:18px;top:50%;width:130px;height:76px;
+ transform:translateY(-50%);opacity:.22;background:url("../assets/illustrations/propulsion/propeller-outline.svg") center/contain no-repeat;
+ pointer-events:none;
+}
+#propulsionAnalyzerPanel .propulsion-page-content>.subnav-heading h2{font-size:clamp(23px,2.7vw,31px);letter-spacing:-.035em;margin:5px 0 6px;color:#142b43}
+#propulsionAnalyzerPanel .propulsion-page-content>.subnav-heading p{max-width:660px;margin:0;color:#526a7e;line-height:1.55}
+#propulsionAnalyzerPanel .propulsion-analyser-workspace{gap:16px}
+#propulsionAnalyzerPanel .propulsion-step-card,
+#propulsionAnalyzerPanel .propulsion-upload-card,
+#propulsionAnalyzerPanel .propulsion-progress-card,
+#propulsionAnalyzerPanel .propulsion-mapping-card,
+#propulsionAnalyzerPanel .propulsion-statistics-card,
+#propulsionAnalyzerPanel .propulsion-multi-setup-card{
+ position:relative;isolation:isolate;overflow:hidden;border:1px solid #d4e0e9;border-radius:15px;
+ background:linear-gradient(145deg,#fff 0%,#f8fbfd 100%);
+ box-shadow:0 5px 18px rgba(20,48,72,.055);
+}
+#propulsionAnalyzerPanel .propulsion-step-card:before,
+#propulsionAnalyzerPanel .propulsion-upload-card:before,
+#propulsionAnalyzerPanel .propulsion-progress-card:before,
+#propulsionAnalyzerPanel .propulsion-mapping-card:before,
+#propulsionAnalyzerPanel .propulsion-statistics-card:before,
+#propulsionAnalyzerPanel .propulsion-multi-setup-card:before{
+ content:"";position:absolute;inset:0 auto 0 0;width:4px;background:#287eaa;opacity:.9;pointer-events:none
+}
+#propulsionAnalyzerPanel .propulsion-step-card--purple:before,
+#propulsionAnalyzerPanel .propulsion-multi-setup-card:before{background:#647eaa}
+#propulsionAnalyzerPanel .propulsion-mapping-card:before{background:#7a70a8}
+#propulsionAnalyzerPanel .propulsion-statistics-card:before{background:#26866b}
+#propulsionAnalyzerPanel .propulsion-step-label{font-size:10px;letter-spacing:.14em;color:#17618a}
+#propulsionAnalyzerPanel .propulsion-step-card h3,
+#propulsionAnalyzerPanel .propulsion-upload-card h3,
+#propulsionAnalyzerPanel .propulsion-mapping-card h3,
+#propulsionAnalyzerPanel .propulsion-statistics-card h3{font-size:18px;line-height:1.3;color:#142b43;letter-spacing:-.02em}
+#propulsionAnalyzerPanel .propulsion-mapping-description{color:#5c7185;line-height:1.55}
+#propulsionAnalyzerPanel .propulsion-mode-count-label,
+#propulsionAnalyzerPanel .propulsion-log-type-picker legend{color:#36536d;letter-spacing:.09em;font-size:10px;font-weight:850}
+#propulsionAnalyzerPanel .propulsion-column-select,
+#propulsionAnalyzerPanel .propulsion-log-count-select{min-height:44px;border:1px solid #c6d5e1;border-radius:9px;background-color:#fff;color:#1d3850}
+#propulsionAnalyzerPanel .propulsion-log-type-option{border-color:#d6e1e9;border-radius:11px;background:rgba(255,255,255,.9);transition:border-color .16s ease,box-shadow .16s ease,background .16s ease}
+#propulsionAnalyzerPanel .propulsion-log-type-option:hover{border-color:#8db6c8;background:#f5fafc}
+#propulsionAnalyzerPanel .propulsion-file-picker{border:1px dashed #82a9bd;border-radius:13px;background:linear-gradient(135deg,#f7fbfd,#edf6fa);transition:border-color .16s ease,background .16s ease}
+#propulsionAnalyzerPanel .propulsion-file-picker:hover{border-color:#1687a5;background:#edf8fb}
+#propulsionAnalyzerPanel .propulsion-upload-icon{background:#e1f1f5;color:#087f9d;border:1px solid #c2e1e8;border-radius:12px}
+#propulsionAnalyzerPanel .propulsion-progress-track{height:12px;border:1px solid #d9e4eb;background:#eaf0f4;border-radius:999px;overflow:hidden}
+#propulsionAnalyzerPanel .propulsion-progress-track span{border-radius:999px;background:linear-gradient(90deg,#17618a,#20a0b2)}
+#propulsionAnalyzerPanel .propulsion-progress-percent{font-variant-numeric:tabular-nums}
+#propulsionAnalyzerPanel .propulsion-actions{gap:10px;align-items:center}
+#propulsionAnalyzerPanel .propulsion-actions .btn{min-height:40px}
+#propulsionAnalyzerPanel .propulsion-multi-mapping-table-wrap,
+#propulsionAnalyzerPanel .propulsion-mapping-table-wrap,
+#propulsionAnalyzerPanel .propulsion-csv-preview-card{border-radius:12px;border-color:#d7e2ea;box-shadow:0 3px 12px rgba(20,48,72,.035)}
+#propulsionAnalyzerPanel .propulsion-statistics-table-wrap{border-radius:11px;border-color:#d7e2ea}
+#propulsionAnalyzerPanel .propulsion-statistics-table thead th{background:#edf4f8;color:#294b65}
+#propulsionAnalyzerPanel .propulsion-statistics-table tbody tr:nth-child(even){background:#f8fbfd}
+#propulsionAnalyzerPanel .propulsion-graph-container,
+#propulsionAnalyzerPanel .propulsion-chart-container{border:1px solid #d9e3ea;border-radius:12px;background:#fff;box-shadow:inset 0 1px 2px rgba(20,48,72,.025)}
+#propulsionAnalyzerPanel .propulsion-phase3-graph-card,
+#propulsionAnalyzerPanel .propulsion-phase4-report-card{border:1px solid #d5e1e9;border-radius:15px;box-shadow:0 5px 18px rgba(20,48,72,.05);background:linear-gradient(145deg,#fff,#f8fbfd)}
+#propulsionAnalyzerPanel .propulsion-phase3-graph-card:focus-within,
+#propulsionAnalyzerPanel .propulsion-phase4-report-card:focus-within{border-color:#9abcca;box-shadow:0 7px 22px rgba(20,48,72,.085)}
+#propulsionAnalyzerPanel button:focus-visible,
+#propulsionAnalyzerPanel input:focus-visible,
+#propulsionAnalyzerPanel select:focus-visible{outline:3px solid rgba(8,127,157,.26);outline-offset:2px}
+#propulsionAnalyzerPanel .propulsion-step-card[hidden],
+#propulsionAnalyzerPanel [hidden]{display:none!important}
+@media(max-width:760px){
+ #propulsionAnalyzerPanel .propulsion-page-content>.subnav-heading{padding:15px 15px 16px;margin-bottom:17px}
+ #propulsionAnalyzerPanel .propulsion-page-content>.subnav-heading:after{right:8px;width:76px;height:52px;opacity:.13}
+ #propulsionAnalyzerPanel .propulsion-step-card,
+ #propulsionAnalyzerPanel .propulsion-upload-card,
+ #propulsionAnalyzerPanel .propulsion-progress-card,
+ #propulsionAnalyzerPanel .propulsion-mapping-card,
+ #propulsionAnalyzerPanel .propulsion-statistics-card,
+ #propulsionAnalyzerPanel .propulsion-multi-setup-card{border-radius:12px}
+}
+@media(max-width:420px){
+ #propulsionAnalyzerPanel .propulsion-page-content>.subnav-heading:after{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+ #propulsionAnalyzerPanel *{transition-duration:.01ms!important}
+}
+@media print{#propulsionAnalyzerPanel .propulsion-page-content>.subnav-heading:after{display:none!important}}
