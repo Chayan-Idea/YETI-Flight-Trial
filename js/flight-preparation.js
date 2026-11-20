@@ -335,7 +335,7 @@ window.addEventListener('yeti:pdf-template-activated',event=>{
   const dailySignature=$('signaturePad');if(dailySignature)dailySignature.getContext('2d').clearRect(0,0,dailySignature.width,dailySignature.height);
   expandedDailySections.clear();
   (async()=>{for(const photo of evidencePhotos.filter(p=>(p.category||'daily')==='daily')){try{await photoDB('delete',photo.id)}catch(e){}}
-   await renderPhotoThumbs();buildPreview(true);
+   await renderPhotoThumbs();await buildPreview();
   })();
  }
  sourceKey=nextStateKey;
