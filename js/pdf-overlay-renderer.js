@@ -1,7 +1,7 @@
 /* Original-PDF renderer with shared live overlays for preview and export. */
 (function(root){
  'use strict';
- let pdfJsPromise=null,pdfLibPromise=null;
+ let pdfJsPromise=null,pdfLibPromise=null,previewRevision=0;
  function loadScript(url,test){
   if(test())return Promise.resolve();
   return new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=url;script.async=true;script.onload=()=>test()?resolve():reject(new Error('PDF library API unavailable.'));script.onerror=()=>reject(new Error('PDF library failed to load.'));document.head.appendChild(script)});
@@ -37,7 +37,7 @@
   page.append(title,slot,note);container.appendChild(page);
  }
  async function renderPreview(container,candidate,manifest,signature,photos,answers={},trialInfo={}){
-  const [pdfjs]=await libraries();container.innerHTML='';
+  const revision=++previewRevision;const [pdfjs]=await libraries();if(revision!==previewRevision)return;container.innerHTML='';
   const pdf=await pdfjs.getDocument({data:candidate.pdfBytes.slice(0)}).promise;
   let pageWidth=0,pageHeight=0;
   for(let index=1;index<=pdf.numPages;index++){
@@ -46,7 +46,7 @@
    const wrap=document.createElement('div');wrap.className='yeti-pdf-source-page';wrap.style.cssText='position:relative;width:100%;max-width:'+viewport.width+'px;margin:0 auto 18px;background:#fff;box-shadow:0 2px 12px #0002';
    const canvas=document.createElement('canvas');canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);canvas.style.cssText='display:block;width:100%;height:auto';
    const overlay=document.createElement('canvas');overlay.width=canvas.width;overlay.height=canvas.height;overlay.style.cssText='position:absolute;inset:0;width:100%;height:100%;pointer-events:none';
-   wrap.append(canvas,overlay);container.appendChild(wrap);await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
+   wrap.append(canvas,overlay);container.appendChild(wrap);await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;if(revision!==previewRevision)return;
    drawLivePreview(overlay.getContext('2d'),manifest,answers,trialInfo,scale,index);\n   if(signature&&signatureBox(manifest)?.page===index)await drawSignaturePreview(overlay.getContext('2d'),signature,manifest,index,scale);
   }
   if(signature&&!signatureBox(manifest)&&manifest?.signatureMode==='append-signature-page')appendSignaturePreview(container,signature,pageWidth,pageHeight);
