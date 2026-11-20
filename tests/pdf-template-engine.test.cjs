@@ -123,3 +123,7 @@ assert.ok(rendererSource.includes('a?.remarks'),'remarks must be overlaid in the
 assert.ok(rendererSource.includes('trial?.phase'),'trial metadata must be overlaid using approved header coordinates');
 assert.ok(rendererSource.includes('minimumCellVoltage'),'minimum cell voltage must map to its approved special-field coordinates');
 console.log('PDF live overlay checks passed: source PDF, status labels, remarks, trial metadata, mapped battery values, signature and daily photo evidence.');
+
+assert.ok(!fs.readFileSync(path.join(root,'index.html'),'utf8').includes('Update PDF Preview'),'manual PDF preview update button must not exist');
+assert.ok(!fs.readFileSync(path.join(root,'js/flight-preparation.js'),'utf8').includes("$('previewBtn').onclick"),'manual PDF preview update handler must not exist');
+assert.ok(!fs.readFileSync(path.join(root,'js/flight-preparation.js'),'utf8').includes("if(!$('previewPanel')?.classList.contains('show'))return"),'live preview refresh must not depend on panel visibility');
