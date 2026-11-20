@@ -3,7 +3,7 @@
   "activation": {
     "status": "approved",
     "approvedAt": "2026-11-20",
-    "approvalNote": "Source PDF checksum, page geometry, 62 checklist checkpoints, and signature-cell coordinates reviewed against the original two-page PDF."
+    "approvalNote": "Final-release instruction: retain checkpoint 8.1 Camera Functionality (Video recording is ok.) in the approved 62-checkpoint YETI master checklist. This v1 package remains bound to the original two-page source PDF whose checksum and 8.1 row coordinates were verified. The separately uploaded 61-entry PDF is a dynamic extraction test candidate and is not silently substituted for this approved source."
   },
   "document": {
     "templateId": "IF_YETI_TD0_FTR_CKT_005",
