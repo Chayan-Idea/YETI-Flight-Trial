@@ -80,15 +80,26 @@
   const searchStatus=el('span','propulsion-csv-search-status','');searchWrap.append(search,searchStatus);
   const viewport=el('div','propulsion-csv-preview-viewport');viewport.tabIndex=0;viewport.setAttribute('role','region');viewport.setAttribute('aria-label',titleText);
   const table=document.createElement('table');table.className='propulsion-csv-preview-table propulsion-exact-csv-table';
-  const maxColumns=Math.max(0,...rows.map(row=>row.length)),head=document.createElement('thead'),headRow=document.createElement('tr');
+  const maxColumns=rows.reduce((max,row)=>Math.max(max,row?.length||0),0),head=document.createElement('thead'),headRow=document.createElement('tr');
   for(let col=0;col<maxColumns;col++){const th=el('th','',String(rows[0]?.[col]??''));th.scope='col';headRow.append(th);}
   head.append(headRow);table.append(head);const body=document.createElement('tbody');table.append(body);viewport.append(table);
-  const render=()=>{const query=search.value.trim().toLocaleLowerCase(),fragment=document.createDocumentFragment();let matches=0;
-   rows.slice(1).forEach((row,index)=>{const cells=Array.from({length:maxColumns},(_,col)=>String(row?.[col]??''));if(query&&!cells.some(value=>value.toLocaleLowerCase().includes(query)))return;matches++;const tr=document.createElement('tr');tr.dataset.rowIndex=String(index+1);cells.forEach((value,col)=>{const cell=el(col===0?'th':'td','',value);if(col===0)cell.scope='row';cell.title=value;tr.append(cell);});fragment.append(tr);});
-   body.replaceChildren(fragment);searchStatus.textContent=query?matches.toLocaleString()+' matching row(s) of '+Math.max(0,rows.length-1).toLocaleString():(rows.length-1).toLocaleString()+' data rows';viewport.scrollTop=0;viewport.scrollLeft=0;};
-  search.addEventListener('input',render);render();card.append(heading,title,meta,searchWrap,viewport);
+  const rowHeight=38,overscan=10;let matches=null,renderFrame=0,searchTimer=0,lastStart=-1,lastEnd=-1;
+  const rowCount=Math.max(0,rows.length-1);
+  const topSpacer=document.createElement('tr'),topCell=document.createElement('td'),bottomSpacer=document.createElement('tr'),bottomCell=document.createElement('td');
+  topSpacer.className=bottomSpacer.className='propulsion-csv-virtual-spacer';
+  [topCell,bottomCell].forEach(cell=>{cell.colSpan=Math.max(1,maxColumns);cell.setAttribute('aria-hidden','true');cell.style.cssText='padding:0!important;border:0!important;line-height:0!important;'});
+  topSpacer.append(topCell);bottomSpacer.append(bottomCell);
+  const currentCount=()=>matches?matches.length:rowCount;
+  const sourceIndex=visibleIndex=>matches?matches[visibleIndex]:visibleIndex;
+  const makeRow=index=>{const row=rows[index+1]||[],tr=document.createElement('tr');tr.className='propulsion-csv-virtual-row';tr.dataset.rowIndex=String(index+1);for(let col=0;col<maxColumns;col++){const value=String(row[col]??''),cell=el(col===0?'th':'td','',value);if(col===0)cell.scope='row';cell.title=value;tr.append(cell);}return tr;};
+  const render=()=>{renderFrame=0;const total=currentCount(),visible=Math.max(1,Math.ceil((viewport.clientHeight||460)/rowHeight)),start=Math.max(0,Math.floor(viewport.scrollTop/rowHeight)-overscan),end=Math.min(total,start+visible+overscan*2);if(start===lastStart&&end===lastEnd)return;lastStart=start;lastEnd=end;topCell.style.height=(start*rowHeight)+'px';bottomCell.style.height=(Math.max(0,total-end)*rowHeight)+'px';const fragment=document.createDocumentFragment();fragment.append(topSpacer);for(let i=start;i<end;i++)fragment.append(makeRow(sourceIndex(i)));fragment.append(bottomSpacer);body.replaceChildren(fragment);};
+  const scheduleRender=()=>{if(!renderFrame)renderFrame=requestAnimationFrame(render);};
+  const updateSearch=()=>{const query=search.value.trim().toLocaleLowerCase();matches=null;if(query){matches=[];for(let i=0;i<rowCount;i++){const row=rows[i+1]||[];for(let col=0;col<maxColumns;col++){if(String(row[col]??'').toLocaleLowerCase().includes(query)){matches.push(i);break;}}}}searchStatus.textContent=query?currentCount().toLocaleString()+' matching row(s) of '+rowCount.toLocaleString():rowCount.toLocaleString()+' data rows';viewport.scrollTop=0;lastStart=lastEnd=-1;scheduleRender();};
+  viewport.addEventListener('scroll',scheduleRender,{passive:true});
+  search.addEventListener('input',()=>{window.clearTimeout(searchTimer);searchTimer=window.setTimeout(updateSearch,120);});
+  card.append(heading,title,meta,searchWrap,viewport);
   const container=el('div','propulsion-csv-preview-disclosure'),toggle=el('button','btn alt propulsion-csv-preview-toggle','Show CSV Preview');toggle.type='button';toggle.setAttribute('aria-expanded','false');card.hidden=true;
-  toggle.addEventListener('click',()=>{const opening=card.hidden;card.hidden=!opening;toggle.textContent=opening?'Hide CSV Preview':'Show CSV Preview';toggle.setAttribute('aria-expanded',String(opening));});
+  toggle.addEventListener('click',()=>{const opening=card.hidden;card.hidden=!opening;toggle.textContent=opening?'Hide CSV Preview':'Show CSV Preview';toggle.setAttribute('aria-expanded',String(opening));if(opening){if(!searchStatus.textContent)updateSearch();else{lastStart=lastEnd=-1;scheduleRender();}}});
   container.append(toggle,card);return container;
  }
  function renderCsvPreview(text){
