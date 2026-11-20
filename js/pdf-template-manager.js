@@ -20,7 +20,7 @@
  }
  let active=null,activeValidation=null;
  function register(template,sections){
-  const candidate=clone(template),validation=validate(candidate,sections);
+  const candidate=clone(template);candidate.checklistSections=clone(sections||[]);const validation=validate(candidate,candidate.checklistSections);
   return {template:candidate,validation,status:validation.valid?'validated':'rejected'};
  }
  function activate(registration,approval){
@@ -31,4 +31,7 @@
  }
  function getActiveTemplate(){return active?{template:active,validation:activeValidation}:null}
  root.YETI_PDF_TEMPLATE_MANAGER=Object.freeze({validate,register,activate,getActiveTemplate});
+ const initial=register(root.YETI_DAILY_AIRWORTHINESS_PDF_MANIFEST,root.YETI_DAILY_AIRWORTHINESS_TEMPLATE);
+ root.YETI_PDF_TEMPLATE_STATUS={templateId:initial.template.templateId,version:initial.template.version,...initial.validation};
+ if(initial.validation.valid)activate(initial,true);
 })(window);
