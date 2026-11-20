@@ -57,6 +57,7 @@ jobs:
             name="$(basename "$pdf_path" .pdf)"
             safe_name="$(printf '%s' "$name" | tr -cs 'A-Za-z0-9._-' '_')"
             python scripts/analyze-pdf-template.py "$pdf_path" --output "template-candidates/${safe_name}-candidate.json"
+            python scripts/build-pdf-review-package.py "template-candidates/${safe_name}-candidate.json" "$pdf_path" --template-id "$safe_name" --version "1.0.0" --output "template-candidates/${safe_name}-package.candidate.json"
           done
       - name: Upload review candidates
         uses: actions/upload-artifact@v4
