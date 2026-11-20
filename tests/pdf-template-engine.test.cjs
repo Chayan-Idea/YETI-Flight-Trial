@@ -160,6 +160,18 @@ assert.equal(v3Package.template.columns.notAvailableCenterX,565);
 assert.equal(v3Package.template.specialFields.checkerReviewer.x,588.67);
 assert.equal(v3Package.template.specialFields.checkerReviewer.y,316);
 assert.equal(v3Package.template.rows['1.2'][1],173/1.5,'merged CG cell must begin at its measured source boundary');
+assert.deepEqual(JSON.parse(JSON.stringify(v3Package.template.fieldBoxes)),{
+ cgX:{page:1,x:412,y:115.33333333333333,width:426,height:9.555555555555555},
+ cgY:{page:1,x:412,y:124.88888888888889,width:426,height:9.555555555555555},
+ cgZ:{page:1,x:412,y:134.44444444444446,width:426,height:9.555555555555555}
+},'CG X, Y and Z must each map to their own source row');
+for(const key of ['cgX','cgY','cgZ']){
+ const box=v3Package.template.fieldBoxes[key];
+ assert.equal(box.page,1);
+ assert.ok(box.x>=0&&box.x+box.width<=v3Package.document.pageWidth);
+ assert.ok(box.y>=v3Package.template.rows['1.2'][1]&&box.y+box.height<=v3Package.template.rows['1.2'][1]+v3Package.template.rowGeometry.heights['1.2']);
+}
+assert.ok(rendererSourceForAppend.includes("!m?.fieldBoxes?.[k]"),'mapped CG values must be excluded from the combined remarks text');
 assert.ok(Math.abs(mapper.getRowCellBounds(v3Package.template,'1.2').height-28.6667)<0.01,'merged UAV CG row must retain its taller source-cell geometry');
 assert.ok(Math.abs(mapper.getRowCellBounds(v3Package.template,'4.1.1').height-9.3333)<0.02,'ordinary checklist rows must use measured source-cell height');
 assert.equal(mapper.getCheckpointAnchors(v3Package.template,'6.1').page,2);
