@@ -61,6 +61,9 @@ const rendererSourceForAppend=fs.readFileSync(path.join(root,'js/pdf-overlay-ren
 assert.ok(rendererSourceForAppend.includes('append-signature-page'),'renderer must support appended signature pages for un-mapped PDFs');
 assert.ok(rendererSourceForAppend.includes('yeti-pdf-signature-page'),'preview must display the appended signature page');
 assert.equal(manifest.columns.passCenterX,511.35);
+assert.ok(rendererSourceForAppend.includes('statusWidth=bold.widthOfTextAtSize(st.label,statusSize)'),'status labels must be horizontally centred within their status cells');
+assert.ok(rendererSourceForAppend.includes("ctx.textAlign='left'"),'remarks must remain left aligned in the remarks cell');
+assert.ok(fs.readFileSync(path.join(root,'js/flight-preparation.js'),'utf8').includes('scheduleLivePdfPreview'),'visible PDF preview must synchronize automatically after input changes');
 assert.equal(manifest.columns.failCenterX,534.95);
 assert.equal(manifest.columns.notAvailableCenterX,570.01);
 const schema=JSON.parse(fs.readFileSync(path.join(root,'schemas/pdf-template-package.schema.json'),'utf8'));
