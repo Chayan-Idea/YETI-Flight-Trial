@@ -97,7 +97,7 @@ def analyse(source: Path):
     numbering_gaps=[]
     for parent,numbers in child_numbers.items():
         if numbers:
-            numbering_gaps.extend(parent+"."+str(number) for number in range(min(numbers),max(numbers)+1) if number not in numbers)
+            numbering_gaps.extend(parent+"."+str(number) for number in range(1,max(numbers)+1) if number not in numbers)
     full_text="\\n".join(page["text"] for page in pages)
     doc_match=re.search(r"Doc(?:ument)?\\s*Number\\s*:\\s*([A-Za-z0-9_-]+)",full_text,re.IGNORECASE)
     document_number=doc_match.group(1) if doc_match else None
