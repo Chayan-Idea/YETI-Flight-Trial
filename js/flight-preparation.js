@@ -136,6 +136,20 @@ async function buildPreview(skipPhotoRefresh=false){
  $('previewContent').innerHTML='<div class="alert alert-danger" role="alert">The approved original PDF template is not available. A reconstructed substitute preview has been blocked to prevent misleading checklist output.</div>';
  return;
 }
+// PDF preview zoom controls for the 01B Daily Airworthiness preview.
+(function(){
+ const host=$('previewContent');
+ const controls=document.getElementById('pdfPreviewZoomControls');
+ if(!host||!controls||controls.dataset.ready==='1')return;
+ controls.dataset.ready='1';
+ const renderer=()=>window.YETI_PDF_OVERLAY_RENDERER;
+ controls.addEventListener('click',e=>{
+  const action=e.target.closest('[data-pdf-zoom]')?.dataset.pdfZoom;if(!action||!renderer())return;
+  const current=renderer().getPreviewZoom();
+  renderer().setPreviewZoom(host,action==='in'?current+.25:action==='out'?current-.25:1);
+ });
+ renderer()?.setPreviewZoom(host,1);
+})();
 // Preview remains visible and is refreshed automatically; no manual update/close controls.
 
 async function exportChecklistPdf(previewId,title){
