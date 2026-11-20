@@ -89,27 +89,42 @@ for (const directory of ['js', 'scripts', 'tests']) {
 }
 pass('All JavaScript application, utility, and test files were syntax-checked');
 
-// Validate the approved PDF package and its exact source asset without installing browser dependencies.
-const pdfPackagePath = 'assets/templates/IF_YETI_TD0_FTR_CKT_005/v1/template-package.json';
-const pdfPackage = JSON.parse(read(pdfPackagePath));
-if (pdfPackage.activation?.status !== 'approved') fail('Daily Airworthiness PDF package is not explicitly approved');
-else pass('Daily Airworthiness PDF package has explicit approval');
-const sourcePdfPath = pdfPackage.sourcePdf?.path;
-if (!sourcePdfPath || !exists(sourcePdfPath)) {
-  fail('Daily Airworthiness source PDF is missing');
+// Validate the active PDF package through the URL selected by the webpage manifest.
+const pdfManifestSource = read('js/daily-airworthiness-pdf-manifest.js');
+const packageUrlMatch = pdfManifestSource.match(/YETI_DAILY_AIRWORTHINESS_PDF_PACKAGE_URL\s*=\s*["']([^"']+)["']/);
+if (!packageUrlMatch) {
+  fail('Active Daily Airworthiness package URL is missing from the manifest');
 } else {
-  const actualHash = crypto.createHash('sha256').update(fs.readFileSync(sourcePdfPath)).digest('hex');
-  if (actualHash !== pdfPackage.sourcePdf.sha256) fail('Daily Airworthiness source PDF SHA-256 does not match its approved package');
-  else pass('Daily Airworthiness source PDF SHA-256 matches the approved package');
+  const packagePath = path.normalize(packageUrlMatch[1].replace(/^\.\//, ''));
+  if (packagePath.startsWith('..') || !packagePath.startsWith('assets/templates/') || !exists(packagePath)) {
+    fail('Active Daily Airworthiness package path is unsafe or missing: ' + packagePath);
+  } else {
+    const activePackage = JSON.parse(read(packagePath));
+    if (activePackage.activation?.status !== 'approved') fail('Active PDF package is not explicitly approved');
+    else pass('Active PDF package has explicit approval');
+    const sourcePdfPath = activePackage.sourcePdf?.path;
+    if (!sourcePdfPath || !sourcePdfPath.startsWith('assets/templates/') || !exists(sourcePdfPath)) {
+      fail('Active Daily Airworthiness source PDF is missing or outside the versioned template assets');
+    } else {
+      const actualHash = crypto.createHash('sha256').update(fs.readFileSync(sourcePdfPath)).digest('hex');
+      if (actualHash !== activePackage.sourcePdf.sha256) fail('Active source PDF SHA-256 does not match its package');
+      else pass('Active source PDF SHA-256 matches its approved package');
+    }
+    const packageSections = activePackage.sections;
+    const packageCheckpoints = Array.isArray(packageSections) ? packageSections.reduce((total, section) => total + (Array.isArray(section.items) ? section.items.length : 0), 0) : 0;
+    const packageIds = Array.isArray(packageSections) ? packageSections.flatMap(section => (section.items || []).map(item => item.id)) : [];
+    if (!packageSections?.length || !packageCheckpoints || new Set(packageIds).size !== packageIds.length) {
+      fail('Active PDF package must contain sections and unique checklist checkpoint IDs');
+    } else pass('Active PDF package contains ' + packageSections.length + ' sections and ' + packageCheckpoints + ' unique checkpoints');
+    const doc = activePackage.document || {};
+    if (!(doc.pageCount >= 1) || !(doc.pageWidth > 0) || !(doc.pageHeight > 0)) {
+      fail('Active PDF package page geometry is invalid');
+    } else pass('Active PDF package page geometry is valid (' + doc.pageCount + ' pages)');
+    if (activePackage.template?.signatureMode === 'append-signature-page' || activePackage.template?.specialFields?.checkerReviewer) {
+      pass('Active PDF package defines a supported signature placement strategy');
+    } else fail('Active PDF package must map a signature cell or append a signature page');
+  }
 }
-const packageSections = pdfPackage.sections;
-const packageCheckpoints = Array.isArray(packageSections) ? packageSections.reduce((total, section) => total + (Array.isArray(section.items) ? section.items.length : 0), 0) : 0;
-if (!Array.isArray(packageSections) || packageSections.length !== 9 || packageCheckpoints !== 62) {
-  fail('Daily Airworthiness PDF package must contain exactly 9 sections and 62 checkpoints');
-} else pass('Daily Airworthiness PDF package contains 9 sections and 62 checkpoints');
-if (pdfPackage.document?.pageCount !== 2 || pdfPackage.document?.pageWidth !== 842 || pdfPackage.document?.pageHeight !== 595 || pdfPackage.document?.orientation !== 'landscape') {
-  fail('Daily Airworthiness source PDF geometry does not match the approved two-page A4 landscape format');
-} else pass('Daily Airworthiness source PDF geometry matches the approved two-page landscape format');
 
 const serviceWorker = read('service-worker.js');
 checkJavaScript('service-worker.js', serviceWorker);
