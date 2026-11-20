@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import crypto from 'node:crypto';
 
 const failures = [];
 const checks = [];
@@ -87,6 +88,28 @@ for (const directory of ['js', 'scripts', 'tests']) {
   }
 }
 pass('All JavaScript application, utility, and test files were syntax-checked');
+
+// Validate the approved PDF package and its exact source asset without installing browser dependencies.
+const pdfPackagePath = 'assets/templates/IF_YETI_TD0_FTR_CKT_005/v1/template-package.json';
+const pdfPackage = JSON.parse(read(pdfPackagePath));
+if (pdfPackage.activation?.status !== 'approved') fail('Daily Airworthiness PDF package is not explicitly approved');
+else pass('Daily Airworthiness PDF package has explicit approval');
+const sourcePdfPath = pdfPackage.sourcePdf?.path;
+if (!sourcePdfPath || !exists(sourcePdfPath)) {
+  fail('Daily Airworthiness source PDF is missing');
+} else {
+  const actualHash = crypto.createHash('sha256').update(fs.readFileSync(sourcePdfPath)).digest('hex');
+  if (actualHash !== pdfPackage.sourcePdf.sha256) fail('Daily Airworthiness source PDF SHA-256 does not match its approved package');
+  else pass('Daily Airworthiness source PDF SHA-256 matches the approved package');
+}
+const packageSections = pdfPackage.sections;
+const packageCheckpoints = Array.isArray(packageSections) ? packageSections.reduce((total, section) => total + (Array.isArray(section.items) ? section.items.length : 0), 0) : 0;
+if (!Array.isArray(packageSections) || packageSections.length !== 9 || packageCheckpoints !== 62) {
+  fail('Daily Airworthiness PDF package must contain exactly 9 sections and 62 checkpoints');
+} else pass('Daily Airworthiness PDF package contains 9 sections and 62 checkpoints');
+if (pdfPackage.document?.pageCount !== 2 || pdfPackage.document?.pageWidth !== 842 || pdfPackage.document?.pageHeight !== 595 || pdfPackage.document?.orientation !== 'landscape') {
+  fail('Daily Airworthiness source PDF geometry does not match the approved two-page A4 landscape format');
+} else pass('Daily Airworthiness source PDF geometry matches the approved two-page landscape format');
 
 const serviceWorker = read('service-worker.js');
 checkJavaScript('service-worker.js', serviceWorker);
