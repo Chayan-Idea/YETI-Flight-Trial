@@ -175,7 +175,7 @@ $('loadingCameraPhotos').addEventListener('change',e=>addPhotoFiles(e.target.fil
   }else if(sec.title.startsWith('6.')){
    target.push(sectionRow(sec.title));
    sec.items.forEach(item=>{
-    let text=safe(item.title)+(item.criteria||[]).length?'<br>'+item.criteria.map(safe).join('<br>'):'';
+    let text=safe(item.title)+((item.criteria||[]).length?'<br>'+item.criteria.map(safe).join('<br>'):'');
     const ans=a(item.id);
     if(item.id==='6.1')text+='<br>HV Battery Voltage: '+safe(field(ans,'hvVoltage'))+' &nbsp; || &nbsp; Minimum Cell Voltage: '+safe(field(ans,'minCellVoltage'));
     if(item.id==='6.2')text+='<br>PDU SOC: '+safe(field(ans,'pduSoc'));
