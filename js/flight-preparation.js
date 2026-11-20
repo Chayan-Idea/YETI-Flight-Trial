@@ -311,3 +311,17 @@ async function resetTrialSession(){if(!confirm('Refresh the checklist? This clea
 
 
 // Home-screen shortcut is added from the device browser menu; no in-page button is needed.
+
+/* Apply a newly approved PDF-driven checklist schema without carrying answers across unrelated templates. */
+window.addEventListener('yeti:pdf-template-activated',event=>{
+ const template=event.detail?.template;
+ if(!template?.checklistSections?.length)return;
+ const nextId=template.templateId||template.document?.templateId;
+ if(!nextId)return;
+ if(nextId!==sourceKey){answers={};sourceKey=nextId;expandedDailySections.clear();}
+ sections=structuredClone(template.checklistSections);
+ restoreChecklistState();
+ render();
+ refreshDailyChecklistCounters();
+ buildPreview(true);
+});
