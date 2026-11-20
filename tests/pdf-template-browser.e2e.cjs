@@ -78,6 +78,6 @@ const server = http.createServer((req,res)=>{
   if(result.packageStatus!=='approved')throw new Error('Browser test must verify the approved master PDF package');
   if(pageErrors.length||consoleErrors.length||failedRequests.length)throw new Error('Browser errors: '+JSON.stringify({pageErrors,consoleErrors,failedRequests}));
   console.log('PDF STAGING BROWSER TEST PASSED '+JSON.stringify(result));
- }catch(error){console.error('[PDF STAGING BROWSER TEST FAILED]',error.stack||error);console.error('[PAGE ERRORS]',JSON.stringify(pageErrors));console.error('[CONSOLE ERRORS]',JSON.stringify(consoleErrors));console.error('[FAILED REQUESTS]',JSON.stringify(failedRequests));process.exitCode=1}
+ }catch(error){console.error('[PDF STAGING BROWSER TEST FAILED]',error.stack||error);console.error('[PAGE ERRORS]',JSON.stringify(pageErrors));console.error('[CONSOLE ERRORS]',JSON.stringify(consoleErrors));console.error('[FAILED REQUESTS]',JSON.stringify(failedRequests));if(page){try{await page.screenshot({path:'/tmp/yeti-pdf-failure.png',fullPage:true});console.error('[SCREENSHOT] /tmp/yeti-pdf-failure.png')}catch(captureError){console.error('[SCREENSHOT CAPTURE FAILED]',captureError.message)}}process.exitCode=1}
  finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve))}
 })();
