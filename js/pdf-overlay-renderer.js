@@ -1,7 +1,4 @@
-/* Original-PDF renderer with a strict export whitelist:
- * source PDF + signature + daily photo evidence only.
- * Checklist marks, remarks, metadata and all other answers are never rendered.
- */
+/* Original-PDF renderer with shared live overlays for preview and export. */
 (function(root){
  'use strict';
  let pdfJsPromise=null,pdfLibPromise=null;
@@ -39,7 +36,7 @@
   const note=document.createElement('p');note.textContent='Signature record appended because this PDF has no reviewed signature-cell mapping.';note.style.cssText='font-size:10px;text-align:center;color:#555;margin:3% 0 0';
   page.append(title,slot,note);container.appendChild(page);
  }
- async function renderPreview(container,candidate,manifest,signature,photos){
+ async function renderPreview(container,candidate,manifest,signature,photos,answers={},trialInfo={}){
   const [pdfjs]=await libraries();container.innerHTML='';
   const pdf=await pdfjs.getDocument({data:candidate.pdfBytes.slice(0)}).promise;
   let pageWidth=0,pageHeight=0;
@@ -50,14 +47,14 @@
    const canvas=document.createElement('canvas');canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);canvas.style.cssText='display:block;width:100%;height:auto';
    const overlay=document.createElement('canvas');overlay.width=canvas.width;overlay.height=canvas.height;overlay.style.cssText='position:absolute;inset:0;width:100%;height:100%;pointer-events:none';
    wrap.append(canvas,overlay);container.appendChild(wrap);await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
-   if(signature&&signatureBox(manifest)?.page===index)await drawSignaturePreview(overlay.getContext('2d'),signature,manifest,index,scale);
+   drawLivePreview(overlay.getContext('2d'),manifest,answers,trialInfo,scale,index);\n   if(signature&&signatureBox(manifest)?.page===index)await drawSignaturePreview(overlay.getContext('2d'),signature,manifest,index,scale);
   }
   if(signature&&!signatureBox(manifest)&&manifest?.signatureMode==='append-signature-page')appendSignaturePreview(container,signature,pageWidth,pageHeight);
   const cleanPhotos=safePhotos(photos);
   for(let i=0;i<cleanPhotos.length;i+=4)photoPage(container,cleanPhotos.slice(i,i+4),pageWidth,pageHeight);
  }
- async function exportPdf(candidate,manifest,signature,photos){
-  const [,PDFLib]=await libraries(),doc=await PDFLib.PDFDocument.load(candidate.pdfBytes.slice(0)),pages=doc.getPages();
+ async function exportPdf(candidate,manifest,signature,photos,answers={},trialInfo={}){
+  const [,PDFLib]=await libraries(),doc=await PDFLib.PDFDocument.load(candidate.pdfBytes.slice(0)),pages=doc.getPages();\n  doc.__yetiBold=await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);doc.__yetiRegular=await doc.embedFont(PDFLib.StandardFonts.Helvetica);\n  drawLiveExport(doc,manifest,answers,trialInfo,PDFLib);
   if(signature){
    const box=signatureBox(manifest);
    if(box&&pages[box.page-1]){
