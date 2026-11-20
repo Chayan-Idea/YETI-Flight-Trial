@@ -19,14 +19,14 @@
  const VALUE_LABELS={totalWeight:'UAV Weight',cgX:'CG X',cgY:'CG Y',cgZ:'CG Z',setupDescription:'Setup',lvVoltage:'LV V',hvPreInstallVoltage:'HV Pre-install V'};
  function rowValueText(a){return Object.entries(a?.values||{}).filter(([,v])=>v!==''&&v!==null&&v!==undefined).map(([k,v])=>(VALUE_LABELS[k]||k)+': '+String(v)).join(' | ')}
  function answerRemark(a){return [a?.remarks,rowValueText(a)].filter(Boolean).join(' | ')}
- function drawLivePreview(ctx,m,answers,trial,scale,pageIndex){
+ function drawLivePreview(ctx,m,answers,trial,scale,pageIndex,pageHeight){
   const rows=m?.rows||{},c=m?.columns||{};
   for(const [id,a] of Object.entries(answers||{})){if(!a||id==='9.0')continue;const row=rows[id];if(!row||row[0]!==pageIndex)continue;const st=STATUS_STYLE[a.status];
-   if(st){const center=a.status==='Pass'?c.passCenterX:a.status==='Fail'?c.failCenterX:c.notAvailableCenterX;const x=(center-st.width/2)*scale,y=(row[1]-3.35)*scale,w=st.width*scale,h=6.7*scale;ctx.save();ctx.fillStyle=st.fill;ctx.fillRect(x,y,w,h);ctx.fillStyle='#fff';ctx.font='bold '+(a.status==='Not Available'?3.7:4.7)*scale+'px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(st.label,x+w/2,y+h/2,w-2);ctx.restore()}
-   const remark=answerRemark(a);if(remark&&Number.isFinite(c.remarksLeft)&&Number.isFinite(c.remarksRight)){ctx.save();ctx.font='4.5px Arial';ctx.fillStyle='#111';ctx.textBaseline='middle';ctx.fillText(remark,(c.remarksLeft+2)*scale,row[1]*scale,(c.remarksRight-c.remarksLeft-5)*scale);ctx.restore()}
-   for(const [key,value] of Object.entries(a.values||{})){const b=m?.specialFields?.[key]||(key==='minCellVoltage'?m?.specialFields?.minimumCellVoltage:null);if(b&&b.page===pageIndex&&value!==''&&value!==null&&value!==undefined){ctx.save();ctx.font='5.5px Arial';ctx.fillStyle='#111';ctx.textBaseline='middle';ctx.fillText(String(value),b.x*scale,b.y*scale,(b.width||100)*scale);ctx.restore()}}
+   if(st){const center=a.status==='Pass'?c.passCenterX:a.status==='Fail'?c.failCenterX:c.notAvailableCenterX;const x=(center-st.width/2)*scale,y=(pageHeight-row[1]-10.05+6.7)*scale,w=st.width*scale,h=6.7*scale;ctx.save();ctx.fillStyle=st.fill;ctx.fillRect(x,y,w,h);ctx.fillStyle='#fff';ctx.font='bold '+(a.status==='Not Available'?3.7:4.7)*scale+'px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(st.label,x+w/2,y+h/2,w-2);ctx.restore()}
+   const remark=answerRemark(a);if(remark&&Number.isFinite(c.remarksLeft)&&Number.isFinite(c.remarksRight)){ctx.save();ctx.font='4.5px Arial';ctx.fillStyle='#111';ctx.textBaseline='middle';ctx.fillText(remark,(c.remarksLeft+2)*scale,(pageHeight-row[1]-5)*scale,(c.remarksRight-c.remarksLeft-5)*scale);ctx.restore()}
+   for(const [key,value] of Object.entries(a.values||{})){const b=m?.specialFields?.[key]||(key==='minCellVoltage'?m?.specialFields?.minimumCellVoltage:null);if(b&&b.page===pageIndex&&value!==''&&value!==null&&value!==undefined){ctx.save();ctx.font='5.5px Arial';ctx.fillStyle='#111';ctx.textBaseline='middle';ctx.fillText(String(value),b.x*scale,(pageHeight-b.y-3)*scale,(b.width||100)*scale);ctx.restore()}}
   }
-  const h=m?.header||{},meta={trialPhase:trial?.phase,trialStage:trial?.stage,flightPlace:trial?.place,flightDate:trial?.date};for(const [key,value] of Object.entries(meta)){const b=h[key];if(b&&b.page===pageIndex&&value){ctx.save();ctx.font='5.5px Arial';ctx.fillStyle='#111';ctx.textBaseline='middle';ctx.fillText(String(value),b.x*scale,b.y*scale,250*scale);ctx.restore()}}
+  const h=m?.header||{},meta={trialPhase:trial?.phase,trialStage:trial?.stage,flightPlace:trial?.place,flightDate:trial?.date};for(const [key,value] of Object.entries(meta)){const b=h[key];if(b&&b.page===pageIndex&&value){ctx.save();ctx.font='5.5px Arial';ctx.fillStyle='#111';ctx.textBaseline='middle';ctx.fillText(String(value),b.x*scale,(pageHeight-b.y-3)*scale,250*scale);ctx.restore()}}
  }
  function drawLiveExport(doc,m,answers,trial,PDFLib,bold,regular){
   const pages=doc.getPages(),rows=m?.rows||{},c=m?.columns||{};
@@ -71,7 +71,7 @@
    const canvas=document.createElement('canvas');canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);canvas.style.cssText='display:block;width:100%;height:auto';
    const overlay=document.createElement('canvas');overlay.width=canvas.width;overlay.height=canvas.height;overlay.style.cssText='position:absolute;inset:0;width:100%;height:100%;pointer-events:none';
    wrap.append(canvas,overlay);container.appendChild(wrap);await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;if(revision!==previewRevision)return;
-   drawLivePreview(overlay.getContext('2d'),manifest,answers,trialInfo,scale,index);
+   drawLivePreview(overlay.getContext('2d'),manifest,answers,trialInfo,scale,index,base.height);
    if(signature&&signatureBox(manifest)?.page===index)await drawSignaturePreview(overlay.getContext('2d'),signature,manifest,index,scale);
   }
   if(signature&&!signatureBox(manifest)&&manifest?.signatureMode==='append-signature-page')appendSignaturePreview(container,signature,pageWidth,pageHeight);
