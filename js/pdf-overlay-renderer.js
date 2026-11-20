@@ -35,8 +35,8 @@
    }
    const remark=answerRemark(a,id,m);
    if(remark&&Number.isFinite(c.remarksLeft)&&Number.isFinite(c.remarksRight)){
-    const max=(c.remarksRight-c.remarksLeft-5)*scaleX,fit=fitSingleLine(remark,max,4.5*scaleY,(v,s)=>{ctx.font=s+'px Arial';return ctx.measureText(v).width},3.4*scaleY);
-    ctx.save();ctx.font=fit.size+'px Arial';ctx.fillStyle='#111';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(fit.text,anchors.remarks.x*scaleX,centerY*scaleY);ctx.restore();
+    const placement=leftTextPlacement(anchors.remarksBounds,scaleX,scaleY);if(!placement)continue;const fit=fitSingleLine(remark,placement.maxWidth,4.5*scaleY,(v,s)=>{ctx.font=s+'px Arial';return ctx.measureText(v).width},3.4*scaleY);
+    ctx.save();ctx.font=fit.size+'px Arial';ctx.fillStyle='#111';ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(fit.text,placement.x,placement.y,placement.maxWidth);ctx.restore();
    }
    for(const [key,value] of Object.entries(a.values||{})){
     const b=m?.fieldBoxes?.[key]||m?.specialFields?.[key]||(key==='minCellVoltage'?m?.specialFields?.minimumCellVoltage:null);
@@ -62,8 +62,8 @@
    }
    const remark=answerRemark(a,id,m);
    if(remark&&Number.isFinite(c.remarksLeft)&&Number.isFinite(c.remarksRight)){
-    const max=(c.remarksRight-c.remarksLeft-5)*sx,fit=fitSingleLine(remark,max,4.5*sy,(v,size)=>regular.widthOfTextAtSize(v,size),3.4*sy),size=fit.size,textWidth=regular.widthOfTextAtSize(fit.text,size);
-    page.drawText(fit.text,{x:anchors.remarks.x*sx-textWidth/2,y:ph-centerY-regular.heightAtSize(size)/2,size,font:regular,color:PDFLib.rgb(.05,.05,.05)});
+    const placement=leftTextPlacement(anchors.remarksBounds,sx,sy);if(!placement)continue;const fit=fitSingleLine(remark,placement.maxWidth,4.5*sy,(v,size)=>regular.widthOfTextAtSize(v,size),3.4*sy),size=fit.size;
+    page.drawText(fit.text,{x:placement.x,y:ph-placement.y-regular.heightAtSize(size)/2,size,font:regular,color:PDFLib.rgb(.05,.05,.05),maxWidth:placement.maxWidth});
    }
    for(const [key,value] of Object.entries(a.values||{})){
     const b=m?.fieldBoxes?.[key]||m?.specialFields?.[key]||(key==='minCellVoltage'?m?.specialFields?.minimumCellVoltage:null);
