@@ -152,8 +152,8 @@ assert.ok(rendererSourceForAppend.includes('centerY=(b.y+(b.height||6)/2)*sy'),'
 
 assert.ok(rendererSourceForAppend.includes("!m?.specialFields?.[k]"),'mapped battery values must not also be duplicated in the remarks cell');
 
-assert.ok(rendererSourceForAppend.includes('(row[1]+4.815)*scaleY'),'status chips must be vertically centred in each checklist row');
-assert.ok(rendererSourceForAppend.includes('(row[1]+8.165)*scaleY'),'remarks must be vertically centred in each checklist row');
+assert.ok(rendererSourceForAppend.includes('(centerY-3.35)*scaleY'),'status chips must be positioned from the calculated cell centre');
+assert.ok(rendererSourceForAppend.includes('centerY*scaleY'),'remarks must share the calculated cell centre with status chips');
 
 assert.equal(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='4.1.1').subsection,'1. Port-Side Wing Chcek','candidate checklist must preserve the uploaded source subsection wording');
 assert.equal(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='4.2.1').subsection,'2. Star-Board Side Wing Chcek','candidate checklist must preserve source spelling rather than silently normalizing it');
@@ -162,6 +162,13 @@ assert.equal(v2Candidate.sections.flatMap(s=>s.items).find(i=>i.id==='9.0').disp
 
 assert.equal(v2Candidate.sourcePdf.sha256,'986ce7f835de38d78901d1bde3b569a16b083fc93ec382e199ee2ae1aa9122a8','candidate must identify the exact PDF attached in this conversation');
 assert.equal(v2Candidate.document.version,'2.0.1','corrected attachment candidate must have its own version');
+const v2Cell=mapper.getCheckpointAnchors(v2Candidate.template,'4.1.1');
+assert.ok(v2Cell,'active v2 checklist row must expose calculated cell geometry');
+assert.ok(Math.abs(v2Cell.row.height-9.57)<0.02,'row height must be derived from neighbouring mapped row boundaries');
+assert.ok(Math.abs(v2Cell.row.centerY-(v2Candidate.template.rows['4.1.1'][1]+v2Cell.row.height/2))<0.001,'cell centre must be the midpoint of its measured bounds');
+assert.equal(v2Cell.pass.y,v2Cell.fail.y,'all status columns must share one vertical cell centre');
+assert.equal(v2Cell.fail.y,v2Cell.notAvailable.y,'N/A and PASS/FAIL must share one vertical cell centre');
+assert.equal(v2Cell.remarks.y,v2Cell.pass.y,'remarks and status overlays must share one vertical cell centre');
 assert.equal(v2Candidate.template.rows['8.1'][0],2,'Camera Functionality checkpoint 8.1 must map to page 2');
 assert.equal(v2Candidate.template.rows['4.9.1'][0],2,'4.9.1 must map to page 2 in the attached PDF');
 
