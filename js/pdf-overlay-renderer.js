@@ -134,13 +134,20 @@
   for(let index=1;index<=pdf.numPages;index++){
    const page=await pdf.getPage(index);if(revision!==previewRevision)return;
    const base=page.getViewport({scale:1});
-   const width=Math.max(600,container.clientWidth||1000),scale=width/base.width,viewport=page.getViewport({scale});if(index===1){pageWidth=viewport.width;pageHeight=viewport.height;}
+   const width=Math.max(600,container.clientWidth||1000),scale=width/base.width,viewport=page.getViewport({scale});
+   // Render the preview canvas at 3x its CSS dimensions so pinch zoom up to 300%
+   // enlarges real raster detail rather than magnifying a low-resolution bitmap.
+   const renderPixelRatio=3;
+   if(index===1){pageWidth=viewport.width;pageHeight=viewport.height;}
    const wrap=document.createElement('div');wrap.className='yeti-pdf-source-page';wrap.style.cssText='position:relative;width:100%;max-width:'+viewport.width+'px;margin:0 auto 18px;background:#fff;box-shadow:0 2px 12px #0002';
-   const canvas=document.createElement('canvas');canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);canvas.style.cssText='display:block;width:100%;height:auto';
+   const canvas=document.createElement('canvas');canvas.width=Math.ceil(viewport.width*renderPixelRatio);canvas.height=Math.ceil(viewport.height*renderPixelRatio);canvas.style.cssText='display:block;width:100%;height:auto';
    const overlay=document.createElement('canvas');overlay.width=canvas.width;overlay.height=canvas.height;overlay.style.cssText='position:absolute;inset:0;width:100%;height:100%;pointer-events:none';
-   wrap.append(canvas,overlay);stage.appendChild(wrap);await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;if(revision!==previewRevision)return;
-   drawLivePreview(overlay.getContext('2d'),manifest,answers,trialInfo,viewport.width/(manifest?.page?.width||base.width),viewport.height/(manifest?.page?.height||base.height),index);
-   if(signature&&signatureBox(manifest)?.page===index)await drawSignaturePreview(overlay.getContext('2d'),signature,manifest,index,scale);
+   wrap.append(canvas,overlay);stage.appendChild(wrap);
+   await page.render({canvasContext:canvas.getContext('2d'),viewport,transform:[renderPixelRatio,0,0,renderPixelRatio,0,0]}).promise;if(revision!==previewRevision)return;
+   const overlayContext=overlay.getContext('2d');overlayContext.save();overlayContext.scale(renderPixelRatio,renderPixelRatio);
+   drawLivePreview(overlayContext,manifest,answers,trialInfo,viewport.width/(manifest?.page?.width||base.width),viewport.height/(manifest?.page?.height||base.height),index);
+   if(signature&&signatureBox(manifest)?.page===index)await drawSignaturePreview(overlayContext,signature,manifest,index,scale);
+   overlayContext.restore();
   }
   if(signature&&!signatureBox(manifest)&&manifest?.signatureMode==='append-signature-page')appendSignaturePreview(stage,signature,pageWidth,pageHeight);
   const cleanPhotos=safePhotos(photos);
