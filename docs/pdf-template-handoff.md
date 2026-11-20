@@ -65,7 +65,7 @@ Required review-package changes:
 - Set `reviewedAllPages`, `reviewedWording`, `reviewedGrouping`, and `reviewedCoordinates` to true only after checking the complete PDF.
 - Set `reviewedCheckpointIds` to the exact ordered list of every reviewed checkpoint ID. Extracted points must remain in source order. OCR ID corrections must be listed in `idCorrections`; manually recovered missed points must be listed in `manuallyAddedCheckpointIds`. Unexplained deletions, additions or reordering block release.
 - Set `acknowledgedNumberingGaps` to the exact detected gap list after investigating each gap. Do not invent a missing point.
-- Map every checklist row in `template.rows` as `[oneBasedPageNumber, yCoordinateInPoints]`. Map PASS, FAIL, N/A centres and Remarks boundaries in `template.columns`.
+- Map every checklist row in `template.rows` as `[oneBasedPageNumber, yCoordinateInPointsFromPageTop]`. Map PASS, FAIL, N/A centres and Remarks boundaries in `template.columns`. Coordinates use PDF points (1/72 inch) in the same top-left page coordinate system used by the preview renderer; the reviewer must verify each anchor against the rendered page.
 - Map header and value-field boxes in `template.header`, `template.fieldBoxes` and `template.specialFields` as required. Use `signatureMode: mapped-source-cell` only when the original signature cell is accurately mapped; otherwise use `append-signature-page`.
 - Approved packages must have complete status/remarks row and column geometry even when the signature is appended. An unmapped checklist cannot be activated.
 
