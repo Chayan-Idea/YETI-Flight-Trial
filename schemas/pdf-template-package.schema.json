@@ -2,9 +2,10 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "YETI PDF Checklist Template Package",
   "type": "object",
-  "required": ["packageVersion", "document", "sourcePdf", "template", "sections"],
+  "required": ["packageVersion", "activation", "document", "sourcePdf", "template", "sections"],
   "properties": {
     "packageVersion": {"const": 1},
+    "activation": {"type": "object", "required": ["status"], "properties": {"status": {"enum": ["candidate", "approved"]}, "approvedBy": {"type": "string"}, "approvalReference": {"type": "string"}}},
     "document": {
       "type": "object",
       "required": ["templateId", "version", "pageCount", "pageWidth", "pageHeight"],
