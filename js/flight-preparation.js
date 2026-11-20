@@ -132,7 +132,7 @@ $('loadingCameraPhotos').addEventListener('change',e=>addPhotoFiles(e.target.fil
  const row=(id,group,description,answer={},opts={})=>{
   const mark=k=>answer.status===k?'✓':'';
   const result=opts.noStatus?'<td></td><td></td><td></td>':'<td class="dac-mark">'+mark('Pass')+'</td><td class="dac-mark">'+mark('Fail')+'</td><td class="dac-mark">'+mark('Not Available')+'</td>';
-  return '<tr class="dac-row"><td class="dac-serial">'+safe(id)+'</td>'+(group===null?'':'<td class="dac-group">'+safe(group)+'</td>')+'<td class="dac-description">'+description+'</td>'+result+'<td class="dac-remarks">'+safe(answer.remarks||'')+'</td></tr>';
+  return '<tr class="dac-row"><td class="dac-serial">'+safe(id)+'</td>'+(group===null?'<td colspan="2" class="dac-description">'+description+'</td>':'<td class="dac-group">'+safe(group)+'</td><td class="dac-description">'+description+'</td>')+result+'<td class="dac-remarks">'+safe(answer.remarks||'')+'</td></tr>';
  };
  const sectionRow=title=>'<tr class="dac-section"><td colspan="7">'+safe(title)+'</td></tr>';
  const tableOpen='<table class="dac-table"><colgroup><col style="width:5.95%"><col style="width:14.25%"><col style="width:38.95%"><col style="width:3.32%"><col style="width:3.32%"><col style="width:6.53%"><col style="width:27.68%"></colgroup><thead><tr><th>Sl. No</th><th colspan="2">Checklist</th><th>Pass</th><th>Fail</th><th>Not Available</th><th>Remarks</th></tr></thead><tbody>';
@@ -146,12 +146,17 @@ $('loadingCameraPhotos').addEventListener('change',e=>addPhotoFiles(e.target.fil
  };
  const p1=[],p2=[];
  for(const sec of sections){
-  const target=sec.title.startsWith('5.')?p2:p1;
+  const target=(sec.title.startsWith('5.')||sec.title.startsWith('6.')||sec.title.startsWith('7.')||sec.title.startsWith('8.')||sec.title.startsWith('9.'))?p2:p1;
   if(sec.title.startsWith('4. Airframe')){
    target.push(sectionRow(sec.title));
-   for(const item of sec.items){
-    const prefix=item.id.split('.').slice(0,2).join('.');
-    target.push(makeItem(item,groupNames[prefix]||''));
+   for(let ix=0;ix<sec.items.length;ix++){
+    const item=sec.items[ix],prefix=item.id.split('.').slice(0,2).join('.');
+    if(item.id==='4.9.1'){p1.push('</tbody></table></section>');p2.push('<section class="dac-page">'+head()+tableOpen);}
+    const prev=sec.items[ix-1],first=!prev||prev.id.split('.').slice(0,2).join('.')!==prefix;
+    if(first){
+     const count=sec.items.filter(x=>x.id.split('.').slice(0,2).join('.')===prefix).length;
+     target.push(makeItem(item,groupNames[prefix]||'').replace('<td class="dac-group">','<td rowspan="'+count+'" class="dac-group">'));
+    }else target.push(makeItem(item,null));
    }
   }else if(sec.title.startsWith('1. UAV')){
    target.push(sectionRow(sec.title));
