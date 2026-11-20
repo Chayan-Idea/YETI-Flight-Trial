@@ -261,7 +261,7 @@
   let derivedReadyCheckbox=null,filteringReadyCheckbox=null;
   const areSelectedDerivedParametersCalculated=()=>{const selected=Object.entries(calculatedParameterControls).filter(([,control])=>control.checkbox.checked);return selected.length>0&&selected.every(([key])=>calculatedParameterKeys.includes(key));};
   const updateCsvGenerationGate=()=>{csvExportButton.hidden=!(filteringReadyCheckbox?.checked&&areSelectedDerivedParametersCalculated());};
-  const updateDerivedProceedGate=()=>{const ready=areSelectedDerivedParametersCalculated();derivedProceedButton.disabled=!ready;derivedProceedButton.setAttribute('aria-disabled',String(!ready));derivedProceedButton.title=ready?'Continue to Data Sorting & Filtering.':'Select at least one derived parameter and successfully Calculate and Add it to the log to continue.';};
+  const updateDerivedProceedGate=()=>{const ready=areSelectedDerivedParametersCalculated();derivedProceedButton.hidden=!ready;derivedProceedButton.disabled=!ready;derivedProceedButton.setAttribute('aria-disabled',String(!ready));derivedProceedButton.title=ready?'Continue to Data Sorting & Filtering.':'Select at least one derived parameter and successfully Calculate and Add it to the log to continue.';};
   const resetCsvConfirmationCheckboxes=()=>{
    // Resolve by live DOM ID as well as the retained references so the visible controls always reset.
    const derived=document.getElementById('confirmDerivedParametersReady')||derivedReadyCheckbox;
@@ -413,7 +413,7 @@
   derivedSection.append(calculatedParameters);
   step3Derived.append(derivedSection);
   const derivedProceedActions=el('div','propulsion-actions');
-  const derivedProceedButton=el('button','btn propulsion-derived-proceed','Proceed to Data Sorting & Filtering');derivedProceedButton.type='button';derivedProceedButton.disabled=true;derivedProceedButton.setAttribute('aria-disabled','true');derivedProceedButton.title='Select at least one derived parameter and successfully Calculate and Add it to the log to continue.';
+  const derivedProceedButton=el('button','btn propulsion-derived-proceed','Proceed to Data Sorting & Filtering');derivedProceedButton.type='button';derivedProceedButton.hidden=true;derivedProceedButton.disabled=true;derivedProceedButton.setAttribute('aria-disabled','true');derivedProceedButton.title='Select at least one derived parameter and successfully Calculate and Add it to the log to continue.';
   derivedProceedButton.addEventListener('click',()=>{
    if(!areSelectedDerivedParametersCalculated()){graphStatus.textContent='Complete every selected derived-parameter calculation before proceeding.';return;}
    step3Derived.hidden=false;step3Filter.hidden=false;step3FilterVisible=true;saveState();step3Filter.scrollIntoView({behavior:'smooth',block:'start'});
@@ -795,7 +795,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    validation.textContent=valid?'Mandatory identification fields complete. PDF export is ready.':'Complete Motor Name, ESC Name, Propeller Name, Test Date and Test Report Type before exporting.';
   }
   updateReportPreview();
-  const reportProceedActions=el('div','propulsion-actions');const reportProceed=el('button','btn','Proceed to Generate Report');reportProceed.type='button';reportProceed.id='proceedToGenerateReportBtn';const setReportSectionOpen=(open)=>{step5Visible=!!open;step5.hidden=!step5Visible;reportProceed.disabled=step5Visible;reportProceed.textContent=step5Visible?'Report Section Opened':'Proceed to Generate Report';};reportProceed.addEventListener('click',()=>{reportDirectVisible=false;setReportSectionOpen(true);saveState();step5.scrollIntoView({behavior:'smooth',block:'start'});});step4.append(reportProceedActions);reportProceedActions.append(reportProceed);
+  const reportProceedActions=el('div','propulsion-actions');const reportProceed=el('button','btn','Proceed to Generate Report');reportProceed.type='button';reportProceed.hidden=true;reportProceed.id='proceedToGenerateReportBtn';const setReportSectionOpen=(open)=>{step5Visible=!!open;step5.hidden=!step5Visible;reportProceed.disabled=step5Visible;reportProceed.textContent=step5Visible?'Report Section Opened':'Proceed to Generate Report';};reportProceed.addEventListener('click',()=>{reportDirectVisible=false;setReportSectionOpen(true);saveState();step5.scrollIntoView({behavior:'smooth',block:'start'});});step4.append(reportProceedActions);reportProceedActions.append(reportProceed);
   addReturnButton(step4);
   addReturnButton(step5);
   workspace.insertBefore(step4,workspace.querySelector('.propulsion-local-note'));
@@ -856,8 +856,8 @@ const statsPage=el('section','propulsion-report-summary-page');
    });
    table.append(tbody);tableWrap.append(table);step3.append(tableWrap);
    const graphActions=el('div','propulsion-actions');const graphProceed=el('button','btn','Proceed to Graphical Analysis');graphProceed.type='button';graphProceed.id='proceedToGraphicalAnalysisBtn';graphActions.append(graphProceed);step3.append(graphActions);
-   graphProceed.addEventListener('click',()=>{step4Visible=true;step4.hidden=false;graphProceed.disabled=true;graphProceed.textContent='Graphical Analysis Selected';saveState();});
-   if(step4Visible){step4.hidden=false;graphProceed.disabled=true;graphProceed.textContent='Graphical Analysis Selected';}
+   graphProceed.addEventListener('click',()=>{step4Visible=true;step4.hidden=false;reportProceed.hidden=false;graphProceed.disabled=true;graphProceed.textContent='Graphical Analysis Selected';saveState();});
+   if(step4Visible){step4.hidden=false;reportProceed.hidden=false;graphProceed.disabled=true;graphProceed.textContent='Graphical Analysis Selected';}
    addReturnButton(step3);
    start.disabled=true;saveState();
 
@@ -1246,7 +1246,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    const allCalculated=selected.every(key=>sharedDerivedAdded.has(key));
    const ready=selected.length>0&&allCalculated;
    multiSession.logs.forEach(log=>{log._phase3Ready=ready;});
-   if(typeof multiDerivedProceed!=='undefined'){multiDerivedProceed.disabled=!ready;multiDerivedProceed.setAttribute('aria-disabled',String(!ready));multiDerivedProceed.title=ready?'Continue to Data Sorting & Filtering.':'Select at least one derived parameter and successfully Calculate and Add it to all logs to continue.';}
+   if(typeof multiDerivedProceed!=='undefined'){multiDerivedProceed.hidden=!ready;multiDerivedProceed.disabled=!ready;multiDerivedProceed.setAttribute('aria-disabled',String(!ready));multiDerivedProceed.title=ready?'Continue to Data Sorting & Filtering.':'Select at least one derived parameter and successfully Calculate and Add it to all logs to continue.';}
    updateMultiGraphAvailability();
   };
   (['mechanicalPower','electricalPower','specificThrust']).forEach(key=>{
@@ -1428,7 +1428,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   const multiProceedInApp=el('button','btn','Proceed with In App Analysis');multiProceedInApp.type='button';multiProceedInApp.hidden=true;
   const multiProceedReport=el('button','btn alt','Proceed with Report Generation');multiProceedReport.type='button';multiProceedReport.hidden=true;
   multiProceedActions.hidden=true;multiProceedActions.append(multiProceedInApp,multiProceedReport);
-  const multiDerivedProceed=el('button','btn propulsion-derived-proceed','Proceed to Data Sorting & Filtering');multiDerivedProceed.type='button';multiDerivedProceed.disabled=true;multiDerivedProceed.setAttribute('aria-disabled','true');multiDerivedProceed.title='Select at least one derived parameter and successfully Calculate and Add it to all logs to continue.';
+  const multiDerivedProceed=el('button','btn propulsion-derived-proceed','Proceed to Data Sorting & Filtering');multiDerivedProceed.type='button';multiDerivedProceed.hidden=true;multiDerivedProceed.disabled=true;multiDerivedProceed.setAttribute('aria-disabled','true');multiDerivedProceed.title='Select at least one derived parameter and successfully Calculate and Add it to all logs to continue.';
   multiDerivedProceed.addEventListener('click',()=>{
    if(!multiSession.logs.every(log=>log._phase3Ready)){csvStatus.textContent='Complete every selected derived-parameter calculation for all logs before proceeding.';return;}
    multiAnalysisCard.hidden=false;multiFilterCard.hidden=false;multiFilterCard.scrollIntoView({behavior:'smooth',block:'start'});
@@ -1490,7 +1490,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   multiSummaryCard.hidden=true;multiGraphCard.hidden=true;
   buildMultiLogReportCard();
   multiReportCard.hidden=true;
-  const reportNextActions=el('div','propulsion-actions'),reportNext=el('button','btn','Proceed to Generate Report');reportNext.type='button';reportNext.id='proceedToMultiGenerateReportBtn';
+  const reportNextActions=el('div','propulsion-actions'),reportNext=el('button','btn','Proceed to Generate Report');reportNext.type='button';reportNext.hidden=true;reportNext.id='proceedToMultiGenerateReportBtn';
   reportNextActions.append(reportNext);multiGraphCard.append(reportNextActions);
   multiProceedInApp.addEventListener('click',()=>{
    if(!multiSession.logs.every(log=>log._phase3Ready&&log._phase3Filtered)){return;}
@@ -1538,7 +1538,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    multiFilterCard.hidden=false;multiAnalysisCard.hidden=false;multiSummaryCard.hidden=false;multiGraphCard.hidden=true;multiSummaryCard.scrollIntoView({behavior:'smooth',block:'start'});
   });
   summaryNext.addEventListener('click',()=>{
-   multiGraphCard.hidden=false;summaryNext.disabled=true;summaryNext.textContent='Graphical Analysis Selected';
+   multiGraphCard.hidden=false;reportNext.hidden=false;summaryNext.disabled=true;summaryNext.textContent='Graphical Analysis Selected';
    multiGraphCard.scrollIntoView({behavior:'smooth',block:'start'});
   });
   reportNext.addEventListener('click',()=>{
