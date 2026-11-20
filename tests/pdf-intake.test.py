@@ -41,7 +41,7 @@ with tempfile.TemporaryDirectory() as directory:
     simple = Path(directory) / "simple.pdf"
     simple_doc = fitz.open()
     simple_page = simple_doc.new_page(width=612, height=792)
-    simple_page.insert_text((40, 60), "1. DAILY CHECKS", fontsize=12)
+    simple_page.insert_text((400, 60), "1. DAILY CHECKS", fontsize=12)
     simple_page.insert_text((50, 90), "1.1 Inspect airframe condition", fontsize=10)
     simple_doc.save(simple)
     simple_candidate = MODULE.analyse(simple)
