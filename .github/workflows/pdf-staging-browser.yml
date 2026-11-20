@@ -1,6 +1,8 @@
 name: YETI PDF Staging Browser Verification
 
 on:
+  push:
+    branches: [feat/dynamic-pdf-checklist-engine]
   pull_request:
     branches: [main]
     paths:
