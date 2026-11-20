@@ -26,7 +26,7 @@
    const remark=answerRemark(a);if(remark&&Number.isFinite(c.remarksLeft)&&Number.isFinite(c.remarksRight)){ctx.save();ctx.font='4.5px Arial';ctx.fillStyle='#111';ctx.textBaseline='middle';ctx.fillText(remark,(c.remarksLeft+2)*scale,(row[1]+5)*scale,(c.remarksRight-c.remarksLeft-5)*scale);ctx.restore()}
    for(const [key,value] of Object.entries(a.values||{})){const b=m?.specialFields?.[key]||(key==='minCellVoltage'?m?.specialFields?.minimumCellVoltage:null);if(b&&b.page===pageIndex&&value!==''&&value!==null&&value!==undefined){ctx.save();ctx.font='5.5px Arial';ctx.fillStyle='#111';ctx.textBaseline='middle';ctx.fillText(String(value),b.x*scale,(b.y+3)*scale,(b.width||100)*scale);ctx.restore()}}
   }
-  const h=m?.header||{},meta={trialPhase:trial?.phase,trialStage:trial?.stage,flightPlace:trial?.place,flightDate:trial?.date};for(const [key,value] of Object.entries(meta)){const b=h[key];if(b&&b.page===pageIndex&&value){ctx.save();ctx.font='5.5px Arial';ctx.fillStyle='#111';ctx.textBaseline='middle';ctx.fillText(String(value),b.x*scale,(pageHeight-b.y-3)*scale,250*scale);ctx.restore()}}
+  const h=m?.header||{},meta={trialPhase:trial?.phase,trialStage:trial?.stage,flightPlace:trial?.place,flightDate:trial?.date};for(const [key,value] of Object.entries(meta)){const b=h[key];if(b&&b.page===pageIndex&&value){ctx.save();ctx.font='5.5px Arial';ctx.fillStyle='#111';ctx.textBaseline='middle';ctx.fillText(String(value),b.x*scale,(b.y+3)*scale,250*scale);ctx.restore()}}
  }
  function drawLiveExport(doc,m,answers,trial,PDFLib,bold,regular){
   const pages=doc.getPages(),rows=m?.rows||{},c=m?.columns||{};
