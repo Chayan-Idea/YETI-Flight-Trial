@@ -112,7 +112,7 @@
  function renderCsvPreview(text){
   csvPreviewPanel?.remove();const rows=parseCSV(text,chooseDelimiter(text));if(!rows.length)return;
   csvPreviewPanel=createExactCsvPreview('Uploaded Raw CSV File',rows,'Original uploaded CSV · '+rows.length.toLocaleString()+' rows · Read-only');csvPreviewPanel.id='propulsionCsvPreview';
-  if(uploadCard)uploadCard.insertAdjacentElement('afterend',csvPreviewPanel);else workspace.insertBefore(csvPreviewPanel,workspace.firstChild);
+  const previewAnchor=logUploadArea||uploadCard;if(previewAnchor)previewAnchor.insertAdjacentElement('afterend',csvPreviewPanel);else workspace.insertBefore(csvPreviewPanel,workspace.firstChild);
  }
  const STANDARD_GRAVITY=9.80665;
  const accelerationParameterKeys=new Set(['accelerationX','accelerationY','accelerationZ']);
