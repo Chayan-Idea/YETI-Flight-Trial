@@ -322,7 +322,9 @@ window.addEventListener('yeti:pdf-template-activated',event=>{
  const nextVersion=String(template.version||event.detail?.source?.package?.document?.version||'unknown');
  const nextHash=String(event.detail?.source?.package?.sourcePdf?.sha256||template.sourcePdfSha256||'unverified');
  const nextStateKey=nextId+'@'+nextVersion+'#'+nextHash;
- if(nextStateKey!==sourceKey){
+ let previousActiveKey=null;try{previousActiveKey=localStorage.getItem('yeti-active-daily-template-version')}catch(e){}
+ const isTemplateReplacement=previousActiveKey!==nextStateKey;
+ if(isTemplateReplacement){
   try{
    localStorage.removeItem(checklistStateKey());
    const legacy=JSON.parse(localStorage.getItem(CHECKLIST_STATE_KEY)||'null');
@@ -331,11 +333,13 @@ window.addEventListener('yeti:pdf-template-activated',event=>{
   answers={};trialInfo={};
   ['uavNameId','trialPhase','trialStage','flightPlace','flightDate'].forEach(id=>{if($(id))$(id).value=''});
   const dailySignature=$('signaturePad');if(dailySignature)dailySignature.getContext('2d').clearRect(0,0,dailySignature.width,dailySignature.height);
-  sourceKey=nextStateKey;expandedDailySections.clear();
+  expandedDailySections.clear();
   (async()=>{for(const photo of evidencePhotos.filter(p=>(p.category||'daily')==='daily')){try{await photoDB('delete',photo.id)}catch(e){}}
    await renderPhotoThumbs();buildPreview(true);
   })();
  }
+ sourceKey=nextStateKey;
+ try{localStorage.setItem('yeti-active-daily-template-version',nextStateKey)}catch(e){}
  sections=structuredClone(template.checklistSections);
  restoreChecklistState();
  render();
