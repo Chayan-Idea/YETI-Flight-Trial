@@ -21,4 +21,4 @@ try{savedModuleTab=localStorage.getItem(MODULE_TAB_STATE_KEY)||'flight'}catch(e)
 if(!Object.prototype.hasOwnProperty.call(MODULES,savedModuleTab))savedModuleTab='flight';
 setModuleTab(savedModuleTab,false);
 $('refreshPageBtn').addEventListener('click',()=>window.location.reload());
-if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js?v=23',{updateViaCache:'none'}).catch(err=>console.error('Service worker registration failed',err)));
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js?v=24',{updateViaCache:'none'}).catch(err=>console.error('Service worker registration failed',err)));
