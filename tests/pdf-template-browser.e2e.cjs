@@ -79,7 +79,7 @@ const server = http.createServer((req,res)=>{
    if(!finalText[0].includes(originalText[0].slice(0,30).trim())||!finalText[1].includes(originalText[1].slice(0,30).trim()))throw new Error('Original PDF text/content was not preserved on its source pages');
    if(finalText.slice(0,2).some(t=>/QA PRIVATE STATUS MARKER|QA PRIVATE REMARK MARKER|QA TRIAL METADATA MARKER/.test(t)))throw new Error('Test-only markers leaked onto the source pages during the clean-template export');
    if(!finalText[0].includes('FAIL')||!finalText[0].includes('QA REMARK EXPORT')||!finalText[0].includes('QA TRIAL PHASE'))throw new Error('Exported status, centred remarks or trial metadata is missing from the original PDF cells');
-   if(!finalText[1].includes('PASS')||!finalText[1].includes('600 V')||!finalText[1].includes('3.4 V')||!finalText[1].includes('88%'))throw new Error('Exported second-page status or battery/PDU values are missing from their mapped cells');
+   if(!finalText[1].includes('PASS')||!finalText[1].includes('600 V')||!finalText[1].includes('3.4 V')||!finalText[1].includes('88%'))throw new Error('Exported second-page status or battery/PDU values are missing from their mapped cells: '+finalText[1]);
    if((finalText[1].match(/600 V/g)||[]).length!==1||(finalText[1].match(/3.4 V/g)||[]).length!==1||(finalText[1].match(/88%/g)||[]).length!==1)throw new Error('Mapped special-field values were duplicated in the Remarks column');
    if(!finalText[2].includes('PHOTO EVIDENCE')||!finalText[3].includes('PHOTO EVIDENCE'))throw new Error('Exported Photo Evidence page headings are missing');
    if(!finalText[2].includes('QA PHOTO 1')||!finalText[3].includes('QA PHOTO 5'))throw new Error('Photo Evidence captions are missing or incorrectly paginated');
