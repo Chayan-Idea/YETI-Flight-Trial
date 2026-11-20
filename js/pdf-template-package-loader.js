@@ -43,7 +43,9 @@
   if(approved!==true)throw new Error('Explicit approval is required.');
   if(candidate?.package?.activation?.status!=='approved')throw new Error('Candidate PDF package is review-only and cannot be activated.');
   if(!candidate?.validation?.valid||!candidate.pdfBytes)throw new Error('Only a fully validated package can be activated.');
-  const registration=root.YETI_PDF_TEMPLATE_MANAGER.register(candidate.package.template,candidate.package.sections);
+  const packageDocument=candidate.package.document;
+  const template={...candidate.package.template,templateId:packageDocument.templateId,version:packageDocument.version,sourcePages:packageDocument.pageCount};
+  const registration=root.YETI_PDF_TEMPLATE_MANAGER.register(template,candidate.package.sections);
   if(!registration.validation.valid)throw new Error('Coordinate map rejected: '+registration.validation.errors.join(' '));
   registration.template.sourcePdfPath=candidate.package.sourcePdf.path;
   registration.template.sourcePdfSha256=candidate.package.sourcePdf.sha256;
