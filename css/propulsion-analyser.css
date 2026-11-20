@@ -1937,3 +1937,47 @@
 .propulsion-unified-mapping-single .propulsion-mapping-section-heading{
   width:auto!important;
 }
+
+
+/* Uniform vertical rhythm across the 1-, 2-, 3- and 4-log analyzer workflows.
+   The workspace/host grids own inter-card spacing; workflow cards must not add
+   independent top or bottom margins on top of those grid gaps. */
+.propulsion-analyser-workspace{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  row-gap:18px;
+  column-gap:18px;
+}
+.propulsion-analyser-workspace > *,
+.propulsion-analyser-workspace > #propulsionMultiMappingHost{
+  margin-block:0!important;
+}
+.propulsion-analyser-workspace > #propulsionMultiMappingHost{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  align-content:start;
+  gap:18px;
+  min-width:0;
+}
+#propulsionMultiMappingHost > *{
+  box-sizing:border-box;
+  width:100%;
+  max-width:100%;
+  margin-block:0!important;
+}
+.propulsion-analyser-workspace .propulsion-step-card,
+.propulsion-analyser-workspace .propulsion-upload-card,
+.propulsion-analyser-workspace .propulsion-progress-card,
+.propulsion-analyser-workspace .propulsion-mapping-card,
+.propulsion-analyser-workspace .propulsion-statistics-card,
+.propulsion-analyser-workspace .propulsion-multi-log-mapping,
+.propulsion-analyser-workspace .propulsion-multi-mapping-intro,
+.propulsion-analyser-workspace .propulsion-phase3-card,
+.propulsion-analyser-workspace .propulsion-phase3-graph-card,
+.propulsion-analyser-workspace .propulsion-phase4-report-card{
+  margin-block:0!important;
+}
+@media(max-width:760px){
+  .propulsion-analyser-workspace{row-gap:14px;column-gap:14px}
+  .propulsion-analyser-workspace > #propulsionMultiMappingHost{gap:14px}
+}
