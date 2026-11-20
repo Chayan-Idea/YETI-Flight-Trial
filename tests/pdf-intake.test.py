@@ -2,6 +2,7 @@
 """Fast deterministic tests for the PDF intake extractor."""
 import importlib.util
 import tempfile
+import shutil
 from pathlib import Path
 import fitz
 
@@ -83,6 +84,26 @@ with tempfile.TemporaryDirectory() as directory:
         raise AssertionError("Missing PDF source should be rejected")
     except ValueError:
         pass
+
+
+# Exercise the OCR fallback when Tesseract is available in the test environment.
+if shutil.which("tesseract"):
+    with tempfile.TemporaryDirectory() as directory:
+        scanned = Path(directory) / "scanned.pdf"
+        original = fitz.open()
+        page = original.new_page(width=842, height=595)
+        page.insert_text((50, 110), "1.1", fontsize=18)
+        page.insert_text((230, 110), "Inspect airframe condition", fontsize=18)
+        pix = page.get_pixmap(matrix=fitz.Matrix(2.5, 2.5), alpha=False)
+        image_pdf = fitz.open()
+        image_page = image_pdf.new_page(width=842, height=595)
+        image_page.insert_image(image_page.rect, stream=pix.tobytes("png"))
+        image_pdf.save(scanned)
+        ocr_candidate = MODULE.analyse(scanned)
+        assert ocr_candidate["ocrPages"] == [1]
+        assert ocr_candidate["pages"][0]["extractionMethod"] == "ocr"
+        assert ocr_candidate["requiresHumanReview"] is True
+        assert ocr_candidate["activationAllowed"] is False
 
 # Regression against the repository's approved two-page YETI TD0 master PDF.
 master_pdf = ROOT / "assets/templates/YETI TD0 Trial DAC Format.pdf"
