@@ -114,6 +114,7 @@ jobs:
           run_check "Propulsion calculation unit tests" node tests/propulsion-analysis-engine.test.js
           run_check "Analyzer module regression tests" node tests/yeti-modules.test.js
           run_check "PDF template schema and coordinate tests" node tests/pdf-template-engine.test.cjs
+          run_check "Active PDF package, mapped cells and SHA-256" node tests/validate-active-pdf-package.cjs
           run_check "PDF intake extractor syntax" python -m py_compile scripts/analyze-pdf-template.py scripts/build-pdf-review-package.py scripts/publish-approved-pdf.py tests/pdf-intake.test.py tests/pdf-template-review-gate.test.py
           run_check "PDF intake extraction and fail-closed tests" python tests/pdf-intake.test.py
           run_check "PDF human-review and exact-cell release gate" python tests/pdf-template-review-gate.test.py
