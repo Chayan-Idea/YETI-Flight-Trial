@@ -107,7 +107,12 @@ assert.deepEqual(JSON.parse(JSON.stringify(manifest.specialFields.checkerReviewe
 assert.ok(manifest.specialFields.checkerReviewer.x+manifest.specialFields.checkerReviewer.width<=manifest.page.width,'signature area must remain inside source page');
 assert.ok(manifest.specialFields.checkerReviewer.y+manifest.specialFields.checkerReviewer.height<=manifest.page.height,'signature area must remain inside source page');
 const rendererSource=fs.readFileSync(path.join(root,'js/pdf-overlay-renderer.js'),'utf8');
-assert.ok(!rendererSource.includes('answer.status'),'PDF renderer must not draw checklist status marks');
-assert.ok(!rendererSource.includes('answer.remarks'),'PDF renderer must not draw checklist remarks');
-assert.ok(!rendererSource.includes('trialInfo'),'PDF renderer must not draw dynamic trial metadata');
-console.log('PDF export whitelist checks passed: original pages, signature bounds, daily photos only, no checklist answers/remarks/metadata.');
+assert.ok(rendererSource.includes('drawLivePreview'),'live PDF preview must render checklist overlays');
+assert.ok(rendererSource.includes('drawLiveExport'),'PDF export must use the same live overlay specification');
+assert.ok(rendererSource.includes("'Not Available':{label:'N/A',fill:'#737373'"),'Not Available must render as a grey N/A label');
+assert.ok(rendererSource.includes("label:'PASS',fill:'#16834a'"),'Pass must render as a green label');
+assert.ok(rendererSource.includes("label:'FAIL',fill:'#b42332'"),'Fail must render as a red label');
+assert.ok(rendererSource.includes('answer.remarks'),'remarks must be overlaid in the approved remarks column');
+assert.ok(rendererSource.includes('trialInfo.phase'),'trial metadata must be overlaid using approved header coordinates');
+assert.ok(rendererSource.includes('minimumCellVoltage'),'minimum cell voltage must map to its approved special-field coordinates');
+console.log('PDF live overlay checks passed: source PDF, status labels, remarks, trial metadata, mapped battery values, signature and daily photo evidence.');
