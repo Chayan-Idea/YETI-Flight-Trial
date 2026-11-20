@@ -29,7 +29,8 @@
   }
   for(const groupName of ['header','fieldBoxes','specialFields']){
    for(const [key,box] of Object.entries(pkg.template?.[groupName]||{})){
-    if(!plain(box)||!Number.isInteger(box.page)||box.page<1||box.page>pkg.document.pageCount||!Number.isFinite(box.x)||!Number.isFinite(box.y)||!Number.isFinite(box.width)||!Number.isFinite(box.height)||box.x<0||box.y<0||box.width<=0||box.height<=0||box.x+box.width>pkg.document.pageWidth+0.5||box.y+box.height>pkg.document.pageHeight+0.5)errors.push('Missing or out-of-page cell geometry: '+groupName+'.'+key);
+    const width=box?.width??(groupName==='header'?250:NaN),height=box?.height??(groupName==='header'?7:NaN);
+    if(!plain(box)||!Number.isInteger(box.page)||box.page<1||box.page>pkg.document.pageCount||!Number.isFinite(box.x)||!Number.isFinite(box.y)||!Number.isFinite(width)||!Number.isFinite(height)||box.x<0||box.y<0||width<=0||height<=0||box.x+width>pkg.document.pageWidth+0.5||box.y+height>pkg.document.pageHeight+0.5)errors.push('Missing or out-of-page cell geometry: '+groupName+'.'+key);
    }
   }
   return {valid:errors.length===0,errors,checkpointCount:ids.length};
