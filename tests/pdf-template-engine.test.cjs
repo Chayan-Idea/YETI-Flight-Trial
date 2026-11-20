@@ -67,3 +67,20 @@ const versions=manager.listVersions(manifest.templateId);
 assert.ok(versions.some(v=>v.version===manifest.version),'registered baseline version must be retained');
 assert.equal(manager.activateVersion(manifest.templateId,manifest.version,true).template.version,manifest.version);
 assert.throws(()=>manager.activateVersion(manifest.templateId,'missing',true),/not registered/);
+
+const whitelistPhotos=overlay.safePhotos([
+ {id:1,name:'daily.jpg',category:'daily',data:'data:image/jpeg;base64,AA=='},
+ {id:2,name:'default.png',data:'data:image/png;base64,AA=='},
+ {id:3,name:'loading.jpg',category:'loading',data:'data:image/jpeg;base64,AA=='},
+ {id:4,name:'invalid.txt',category:'daily',data:'data:text/plain;base64,AA=='},
+ null
+]);
+assert.deepEqual(JSON.parse(JSON.stringify(whitelistPhotos.map(p=>p.name))),['daily.jpg','default.png'],'only daily/default photo evidence should be exported');
+assert.ok(manifest.specialFields.checkerReviewer.page>=1,'signature must be anchored to a source page');
+assert.ok(manifest.specialFields.checkerReviewer.x+manifest.specialFields.checkerReviewer.width<=manifest.page.width,'signature area must remain inside source page');
+assert.ok(manifest.specialFields.checkerReviewer.y+manifest.specialFields.checkerReviewer.height<=manifest.page.height,'signature area must remain inside source page');
+const rendererSource=fs.readFileSync(path.join(root,'js/pdf-overlay-renderer.js'),'utf8');
+assert.ok(!rendererSource.includes('answer.status'),'PDF renderer must not draw checklist status marks');
+assert.ok(!rendererSource.includes('answer.remarks'),'PDF renderer must not draw checklist remarks');
+assert.ok(!rendererSource.includes('trialInfo'),'PDF renderer must not draw dynamic trial metadata');
+console.log('PDF export whitelist checks passed: original pages, signature bounds, daily photos only, no checklist answers/remarks/metadata.');
