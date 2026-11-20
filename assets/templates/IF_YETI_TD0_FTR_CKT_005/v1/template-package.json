@@ -1,7 +1,9 @@
 {
   "packageVersion": 1,
   "activation": {
-    "status": "candidate"
+    "status": "approved",
+    "approvedAt": "2026-11-20",
+    "approvalNote": "Source PDF checksum, page geometry, 62 checklist checkpoints, and signature-cell coordinates reviewed against the original two-page PDF."
   },
   "document": {
     "templateId": "IF_YETI_TD0_FTR_CKT_005",
