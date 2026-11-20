@@ -112,7 +112,7 @@ assert.ok(rendererSource.includes('drawLiveExport'),'PDF export must use the sam
 assert.ok(rendererSource.includes("'Not Available':{label:'N/A',fill:'#737373'"),'Not Available must render as a grey N/A label');
 assert.ok(rendererSource.includes("label:'PASS',fill:'#16834a'"),'Pass must render as a green label');
 assert.ok(rendererSource.includes("label:'FAIL',fill:'#b42332'"),'Fail must render as a red label');
-assert.ok(rendererSource.includes('answer.remarks'),'remarks must be overlaid in the approved remarks column');
-assert.ok(rendererSource.includes('trialInfo.phase'),'trial metadata must be overlaid using approved header coordinates');
+assert.ok(rendererSource.includes('a?.remarks'),'remarks must be overlaid in the approved remarks column');
+assert.ok(rendererSource.includes('trial?.phase'),'trial metadata must be overlaid using approved header coordinates');
 assert.ok(rendererSource.includes('minimumCellVoltage'),'minimum cell voltage must map to its approved special-field coordinates');
 console.log('PDF live overlay checks passed: source PDF, status labels, remarks, trial metadata, mapped battery values, signature and daily photo evidence.');
