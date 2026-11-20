@@ -199,10 +199,12 @@
   const singleMappingBody=document.createElement('tbody'),singleActiveKeys=new Set(activeSpecs('mapping').map(spec=>spec.key));
   mappingGroups.forEach(group=>{
    const groupKeys=group.keys.filter(key=>singleActiveKeys.has(key));
-   groupKeys.forEach((key,index)=>{
+   if(!groupKeys.length)return;
+   const sectionRow=el('tr','propulsion-mapping-section-row propulsion-mapping-section--'+group.title.toLowerCase());
+   const sectionCell=el('th','propulsion-mapping-section-heading',group.title.toUpperCase()+' PARAMETERS');sectionCell.colSpan=3;sectionCell.scope='colgroup';sectionRow.append(sectionCell);singleMappingBody.append(sectionRow);
+   groupKeys.forEach(key=>{
     const spec=specs.find(item=>item.key===key);if(!spec)return;
     const row=document.createElement('tr'),parameterCell=el('th','propulsion-multi-mapping-parameter',spec.label);
-    if(index===0){const groupCell=el('td','propulsion-multi-mapping-group',group.title);groupCell.rowSpan=groupKeys.length;groupCell.scope='rowgroup';row.append(groupCell);}
     parameterCell.scope='row';row.append(parameterCell);
     const mappingCell=document.createElement('td'),parameterEnabled=isParameterAvailable(key,'mapping');
     const select=el('select','propulsion-column-select');select.dataset.key=key;select.setAttribute('aria-label',spec.label+' CSV column mapping');select.disabled=!parameterEnabled;
@@ -951,9 +953,11 @@ const statsPage=el('section','propulsion-report-summary-page');
   const tbody=document.createElement('tbody'),activeKeys=new Set(multiActiveSpecs().map(spec=>spec.key));
   groups.forEach(group=>{
    const groupKeys=group.keys.filter(key=>activeKeys.has(key));
-   groupKeys.forEach((key,index)=>{
+   if(!groupKeys.length)return;
+   const sectionRow=el('tr','propulsion-mapping-section-row propulsion-mapping-section--'+group.title.toLowerCase());
+   const sectionCell=el('th','propulsion-mapping-section-heading',group.title.toUpperCase()+' PARAMETERS');sectionCell.colSpan=logs.length+1;sectionCell.scope='colgroup';sectionRow.append(sectionCell);tbody.append(sectionRow);
+   groupKeys.forEach(key=>{
     const spec=specs.find(item=>item.key===key),row=document.createElement('tr'),parameterCell=el('th','propulsion-multi-mapping-parameter',spec.label);
-    if(index===0){const groupCell=el('td','propulsion-multi-mapping-group',group.title);groupCell.rowSpan=groupKeys.length;groupCell.scope='rowgroup';row.append(groupCell);}
     parameterCell.scope='row';row.append(parameterCell);
     logs.forEach((log,logIndex)=>{
      const source=multiFiles[logIndex],mapping=mappings[logIndex],candidate=mapping[key],mappingCell=document.createElement('td'),select=el('select','propulsion-column-select');
