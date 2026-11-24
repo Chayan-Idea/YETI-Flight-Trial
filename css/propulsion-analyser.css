@@ -2023,3 +2023,11 @@
 .propulsion-percent-chart-host svg{display:block;width:100%;min-width:560px;height:auto}
 .propulsion-percent-empty{padding:12px;color:#64748b;background:#f8fafc;border-radius:8px}
 @media(max-width:760px){.propulsion-percent-controls{grid-template-columns:1fr}.propulsion-percent-controls .btn{width:100%}.propulsion-percent-comparison{padding:15px}}
+
+
+/* Reset control for the percentage comparison subsection */
+.propulsion-percent-controls{grid-template-columns:minmax(220px,1fr) minmax(280px,2fr) auto auto}
+.propulsion-percent-reset-btn{min-height:46px;padding:0 22px;border:1px solid #b8c9d9;border-radius:10px;background:#fff;color:#23415f;font:inherit;font-weight:800;cursor:pointer;box-shadow:0 2px 5px rgba(15,45,75,.06);transition:background .15s ease,border-color .15s ease}
+.propulsion-percent-reset-btn:hover{background:#f0f6fb;border-color:#7fa8ca}
+.propulsion-percent-reset-btn:focus-visible{outline:3px solid rgba(40,127,189,.3);outline-offset:2px}
+@media(max-width:760px){.propulsion-percent-controls{grid-template-columns:1fr}.propulsion-percent-reset-btn{width:100%;min-height:44px}}
