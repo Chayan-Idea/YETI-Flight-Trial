@@ -113,6 +113,7 @@ jobs:
           }
           run_check "Application structure, assets and JavaScript syntax" node scripts/validate-app.mjs
           run_check "Propulsion calculation unit tests" node tests/propulsion-analysis-engine.test.js
+          run_check "Percentage comparative analysis unit tests" node tests/propulsion-percent-comparison.test.js
           run_check "Analyzer module regression tests" node tests/yeti-modules.test.js
           run_check "PDF template schema and coordinate tests" node tests/pdf-template-engine.test.cjs
           run_check "Active PDF package, mapped cells and SHA-256" node tests/validate-active-pdf-package.cjs
