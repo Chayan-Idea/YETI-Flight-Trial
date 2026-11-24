@@ -1486,7 +1486,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   const refLabel=el('label','propulsion-phase3-control','REFERENCE LOG FILE'),refSelect=document.createElement('select');refSelect.className='propulsion-column-select';refSelect.id='multiPercentReferenceLog';
   multiSession.logs.forEach((log,i)=>{const op=document.createElement('option');op.value=String(i);op.textContent=(log.fileName||multiFiles[i]?.file.name||('Log '+(i+1)))+' · LOG '+(i+1);refSelect.append(op);});refLabel.append(refSelect);
   const xLabel=el('label','propulsion-percent-x-values-label','X VALUES TO COMPARE'),xInput=document.createElement('textarea');xInput.id='multiPercentXValues';xInput.rows=3;xInput.placeholder='Enter multiple X values separated by commas or new lines';xLabel.append(xInput);
-  const run=el('button','btn','Calculate % Comparison');run.type='button';run.id='calculatePercentComparisonBtn';pctControls.append(refLabel,xLabel,run);
+  const run=el('button','btn','Calculate % Comparison');run.type='button';run.id='calculatePercentComparisonBtn';const reset=el('button','propulsion-percent-reset-btn','Reset');reset.type='button';reset.id='resetPercentComparisonBtn';pctControls.append(refLabel,xLabel,run,reset);
   const pctStatus=el('p','propulsion-percent-status','Choose the X and Y parameters above, select a reference log, and enter one or more X values.');pctStatus.setAttribute('role','status');pctStatus.setAttribute('aria-live','polite');
   const pctTableHost=el('div','propulsion-statistics-table-wrap propulsion-percent-table-wrap'),pctChartHost=el('div','propulsion-percent-chart-host');pct.append(pctControls,pctStatus,pctTableHost,pctChartHost);
   const pctFmt=v=>Number.isFinite(v)?new Intl.NumberFormat(undefined,{maximumFractionDigits:4}).format(v):'—';
@@ -1500,6 +1500,13 @@ const statsPage=el('section','propulsion-report-summary-page');
    if(ymin<=0&&ymax>=0)add('line',{x1:L,y1:sy(0),x2:L+pw,y2:sy(0),stroke:'#64748b','stroke-dasharray':'5 4'});add('line',{x1:L,y1:T+ph,x2:L+pw,y2:T+ph,stroke:'#111827','stroke-width':2});add('line',{x1:L,y1:T,x2:L,y2:T+ph,stroke:'#111827','stroke-width':2});add('text',{x:L+pw/2,y:H-16,'text-anchor':'middle',fill:'#123b70','font-size':14,'font-weight':700},xSelect.options[xSelect.selectedIndex]?.textContent||'X');const yl=add('text',{x:22,y:T+ph/2,'text-anchor':'middle',fill:'#123b70','font-size':14,'font-weight':700},'Difference from reference (%)');yl.setAttribute('transform','rotate(-90 22 '+(T+ph/2)+')');
    good.forEach(d=>{const color=multiColors[d.index%multiColors.length],pts=d.valid.slice().sort((a,b)=>a.x-b.x),path=pts.map((p,i)=>(i?'L':'M')+sx(p.x)+','+sy(p.percentage)).join(' ');if(pts.length>1)add('path',{d:path,fill:'none',stroke:color,'stroke-width':2.8});pts.forEach(p=>add('circle',{cx:sx(p.x),cy:sy(p.percentage),r:4,fill:color}));});pctChartHost.append(svg);
   };
+  reset.addEventListener('click',()=>{
+   xInput.value='';
+   refSelect.selectedIndex=0;
+   pctTableHost.replaceChildren();
+   pctChartHost.replaceChildren();
+   pctStatus.textContent='Comparison reset. Choose the X and Y parameters above, select a reference log, and enter one or more X values.';
+  });
   run.addEventListener('click',()=>{
    try{
     if(!multiSession.logs.every(log=>log._phase3Ready&&log._phase3Filtered))throw new Error('Complete filtering and processing for every log first.');
