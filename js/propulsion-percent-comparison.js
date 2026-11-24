@@ -58,7 +58,7 @@
       if (!comparison.valid) return { x, valid: false, reason: 'COMPARISON_' + comparison.reason, referenceY: reference.value };
       const absoluteDifference = comparison.value - reference.value;
       if (reference.value === 0) return { x, valid: false, reason: 'ZERO_REFERENCE', referenceY: reference.value, comparisonY: comparison.value, absoluteDifference };
-      const percentage = absoluteDifference / Math.abs(reference.value) * 100;
+      const percentage = absoluteDifference / reference.value * 100;
       return {
         x, valid: Number.isFinite(percentage), referenceY: reference.value,
         comparisonY: comparison.value, absoluteDifference, percentage,
