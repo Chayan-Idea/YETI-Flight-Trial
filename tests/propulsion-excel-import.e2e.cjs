@@ -53,6 +53,7 @@ const server=http.createServer((req,res)=>{
   const uploads=page.locator('#propulsionMultiUploadGrid input[type="file"]');
   await uploads.nth(0).setInputFiles(excelFile);
   const firstSlot=page.locator('.propulsion-multi-upload-slot').nth(0);
+  await firstSlot.locator('.propulsion-multi-excel-sheet-picker').waitFor({state:'visible',timeout:15000});
   await firstSlot.locator('select[aria-label="Select worksheet for log 1"]').selectOption('Thrust Data');
   await firstSlot.getByRole('button',{name:'Use Selected Worksheet'}).click();
   const csv='thrust,command_rpm,actual_rpm,dc_voltage_v,dc_current_a\n200,1500,1480,60,12\n210,1600,1580,60,13\n';
