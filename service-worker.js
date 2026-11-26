@@ -1,4 +1,4 @@
-const CACHE='yeti-flight-trial-shell-v197';
+const CACHE='yeti-flight-trial-shell-v199';
 const SHELL=[
  './',
  './index.html',
@@ -21,6 +21,7 @@ const SHELL=[
  './js/page-zoom-lock.js',
  './js/flight-log-analyzer.js',
  './js/yeti-csv-processing.js',
+ './js/yeti-workbook-import.js',
  './js/yeti-parameter-mapping.js',
  './js/yeti-graph-analysis.js',
  './js/yeti-report-generation.js',
@@ -42,8 +43,19 @@ self.addEventListener('activate',event=>{
 });
 self.addEventListener('fetch',event=>{
  const req=event.request;
- if(req.method!=='GET'||new URL(req.url).origin!==self.location.origin)return;
- const pathname=new URL(req.url).pathname.toLowerCase();
+ if(req.method!=='GET')return;
+ const requestUrl=new URL(req.url);
+ // Cache the pinned SheetJS browser build after its first successful online load so Excel import can work offline later.
+ if(requestUrl.origin==='https://cdn.sheetjs.com'&&requestUrl.pathname==='/xlsx-0.20.3/package/dist/xlsx.full.min.js'){
+  event.respondWith(caches.open(CACHE).then(async cache=>{
+   const cached=await cache.match(req);
+   try{const response=await fetch(new Request(req,{cache:'no-store'}));if(response.ok||response.type==='opaque')cache.put(req,response.clone()).catch(()=>{});return response;}
+   catch(error){if(cached)return cached;throw error;}
+  }));
+  return;
+ }
+ if(requestUrl.origin!==self.location.origin)return;
+ const pathname=requestUrl.pathname.toLowerCase();
  // PDF templates and their manifests are versioned assets: never serve or retain stale copies in the shell cache.
  if(pathname.endsWith('.pdf')||pathname.endsWith('template-package.json')||pathname.includes('/template-candidates/')){
   event.respondWith(fetch(new Request(req,{cache:'no-store'})));

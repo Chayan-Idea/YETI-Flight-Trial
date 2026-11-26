@@ -49,6 +49,16 @@ for (const reference of assetReferences) {
 const externalScripts = [...html.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["'][^>]*><\/script>/gi)]
   .map(match => match[1]);
 for (const reference of externalScripts) {
+  if (/^https:\/\//i.test(reference)) {
+    const url = new URL(reference);
+    const runtimeCached = url.origin === 'https://cdn.sheetjs.com' &&
+      url.pathname === '/xlsx-0.20.3/package/dist/xlsx.full.min.js' &&
+      /requestUrl\.origin===['"]https:\/\/cdn\.sheetjs\.com['"]/.test(read('service-worker.js')) &&
+      read('service-worker.js').includes(url.pathname);
+    if (runtimeCached) pass('Pinned external JavaScript is runtime-cached by service worker: ' + url.hostname);
+    else fail('Unapproved or uncached external JavaScript entry: ' + reference);
+    continue;
+  }
   const localPath = reference.split('?')[0].replace(/^\.\//, '');
   if (!exists(localPath)) {
     fail('Missing JavaScript entry: ' + localPath);
@@ -148,6 +158,14 @@ if (shellStart < 0 || shellEnd < 0) {
   }
   const appAssets = [...externalScripts, ...stylesheets].map(reference => reference.split('?')[0]);
   for (const asset of appAssets) {
+    if (/^https:\/\//i.test(asset)) {
+      const url = new URL(asset);
+      if (url.origin === 'https://cdn.sheetjs.com' && url.pathname === '/xlsx-0.20.3/package/dist/xlsx.full.min.js' &&
+          /requestUrl\.origin===['"]https:\/\/cdn\.sheetjs\.com['"]/.test(serviceWorker) && serviceWorker.includes(url.pathname)) {
+        pass('External application dependency has a pinned service-worker runtime cache: ' + url.hostname);
+      } else fail('External application dependency is not safely runtime-cached: ' + asset);
+      continue;
+    }
     if (!shellAssets.includes(asset)) fail('Application entry is missing from service-worker precache: ' + asset);
   }
   if (!appAssets.some(asset => asset.endsWith('/propulsion-analysis-engine.js'))) {

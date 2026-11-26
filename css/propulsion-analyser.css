@@ -2031,3 +2031,21 @@
 .propulsion-percent-reset-btn:hover{background:#f0f6fb;border-color:#7fa8ca}
 .propulsion-percent-reset-btn:focus-visible{outline:3px solid rgba(40,127,189,.3);outline-offset:2px}
 @media(max-width:760px){.propulsion-percent-controls{grid-template-columns:1fr}.propulsion-percent-reset-btn{width:100%;min-height:44px}}
+
+
+/* Excel worksheet selection controls for propulsion log uploads */
+.propulsion-excel-sheet-picker,.propulsion-multi-excel-sheet-picker{display:grid;grid-template-columns:minmax(180px,1fr) auto;gap:10px;align-items:end;margin:12px 0;padding:14px;border:1px solid #b9d7ef;border-radius:10px;background:#f6faff}
+.propulsion-excel-sheet-picker label,.propulsion-multi-excel-sheet-picker label{display:grid;gap:7px;color:#23415f;font-size:12px;font-weight:800;letter-spacing:.04em}
+.propulsion-excel-sheet-picker select,.propulsion-multi-excel-sheet-picker select{width:100%;min-width:0}
+.propulsion-excel-sheet-status,.propulsion-multi-excel-sheet-picker .propulsion-multi-file-status{grid-column:1/-1;margin:0;color:#52677d;font-size:12px;line-height:1.5}
+.propulsion-multi-excel-sheet-picker{margin-top:10px}
+@media(max-width:640px){.propulsion-excel-sheet-picker,.propulsion-multi-excel-sheet-picker{grid-template-columns:1fr}.propulsion-excel-sheet-picker .btn,.propulsion-multi-excel-sheet-picker .btn{width:100%}}
+
+
+/* Excel worksheet selection controls for propulsion log uploads */
+.propulsion-excel-sheet-picker,.propulsion-multi-excel-sheet-picker{display:grid;grid-template-columns:minmax(180px,1fr) auto;gap:10px;align-items:end;margin:12px 0;padding:14px;border:1px solid #b9d7ef;border-radius:10px;background:#f6faff}
+.propulsion-excel-sheet-picker label,.propulsion-multi-excel-sheet-picker label{display:grid;gap:7px;color:#23415f;font-size:12px;font-weight:800;letter-spacing:.04em}
+.propulsion-excel-sheet-picker select,.propulsion-multi-excel-sheet-picker select{width:100%;min-width:0}
+.propulsion-excel-sheet-status,.propulsion-multi-excel-sheet-picker .propulsion-multi-file-status{grid-column:1/-1;margin:0;color:#52677d;font-size:12px;line-height:1.5}
+.propulsion-multi-excel-sheet-picker{margin-top:10px}
+@media(max-width:640px){.propulsion-excel-sheet-picker,.propulsion-multi-excel-sheet-picker{grid-template-columns:1fr}.propulsion-excel-sheet-picker .btn,.propulsion-multi-excel-sheet-picker .btn{width:100%}}
