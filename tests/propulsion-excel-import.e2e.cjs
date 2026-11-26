@@ -49,7 +49,10 @@ const server=http.createServer((req,res)=>{
 
   await page.locator('#propulsionLogCount').selectOption('2');
   await page.locator('#confirmCommonSetupBtn').click();
+  await page.locator('#propulsionMultiSetupCard').waitFor({state:'visible'});
+  await page.locator('#propulsionMultiLogTypePicker').waitFor({state:'visible'});
   await page.locator('#propulsionMultiLogTypePicker input[value="thrust"]').evaluate(el=>{el.checked=true;el.dispatchEvent(new Event('change',{bubbles:true}));});
+  await page.locator('#propulsionMultiUploadControls').waitFor({state:'visible'});
   const uploads=page.locator('#propulsionMultiUploadGrid input[type="file"]');
   await uploads.nth(0).setInputFiles(excelFile);
   const firstSlot=page.locator('.propulsion-multi-upload-slot').nth(0);
