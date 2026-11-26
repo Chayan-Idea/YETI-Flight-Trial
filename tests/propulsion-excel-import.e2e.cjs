@@ -24,8 +24,8 @@ const server=http.createServer((req,res)=>{
    const wb=XLSX.utils.book_new();
    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['Instructions'],['Do not analyse this worksheet']]),'Read Me');
    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
-    ['thrust','command_rpm','actual_rpm','dc_voltage_v','dc_current_a'],
-    [100,1000,980,50,10],[110,1100,1080,50,11],[120,1200,1180,50,12]
+    ['thrust','command_rpm','actual_rpm','dc_voltage_v','dc_current_a','motor_temperature_c','esc_temperature_c','acceleration_x','acceleration_y','acceleration_z'],
+    [100,1000,980,50,10,40,35,0.1,0.2,0.3],[110,1100,1080,50,11,41,36,0.2,0.3,0.4],[120,1200,1180,50,12,42,37,0.3,0.4,0.5]
    ]),'Thrust Data');
    return XLSX.write(wb,{bookType:'xlsx',type:'base64'});
   });
