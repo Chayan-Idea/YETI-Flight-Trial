@@ -38,9 +38,10 @@
  const logTypePicker=$id('propulsionLogTypePicker'),logUploadArea=$id('propulsionLogUploadArea');let logType='';const input=$id('propulsionCsvInput'),filePicker=input?.closest('.propulsion-file-picker'),status=$id('propulsionUploadStatus'),meta=$id('propulsionFileMeta'),start=$id('startPropulsionAnalysisBtn'),reset=$id('resetPropulsionUploadBtn'),workspace=document.querySelector('.propulsion-analyser-workspace');
  if(reset)reset.textContent='Choose another log file';
  if(!input||!status||!start||!workspace)return;
- const csvProcessing=window.YetiCsvProcessing,mappingTools=window.YetiParameterMapping,graphTools=window.YetiGraphAnalysis,reportTools=window.YetiReportGeneration,sessionTools=window.YetiSessionStorage;
- if(!csvProcessing||!mappingTools||!graphTools||!reportTools||!sessionTools)throw new Error('A required YETI analysis module failed to load.');
+ const csvProcessing=window.YetiCsvProcessing,mappingTools=window.YetiParameterMapping,graphTools=window.YetiGraphAnalysis,reportTools=window.YetiReportGeneration,sessionTools=window.YetiSessionStorage,workbookImport=window.YetiWorkbookImport;
+ if(!csvProcessing||!mappingTools||!graphTools||!reportTools||!sessionTools||!workbookImport)throw new Error('A required YETI analysis module failed to load.');
  const uploadCard=input.closest('.propulsion-upload-card');
+ const singleExcelPicker=el('div','propulsion-excel-sheet-picker');singleExcelPicker.hidden=true;const singleExcelLabel=el('label','','SELECT WORKSHEET');const singleExcelSelect=document.createElement('select');singleExcelSelect.className='propulsion-column-select';singleExcelSelect.setAttribute('aria-label','Select Excel worksheet');singleExcelLabel.append(singleExcelSelect);const singleExcelApply=el('button','btn','Use Selected Worksheet');singleExcelApply.type='button';const singleExcelStatus=el('p','propulsion-excel-sheet-status','Select the worksheet containing propulsion test data.');singleExcelPicker.append(singleExcelLabel,singleExcelApply,singleExcelStatus);filePicker?.insertAdjacentElement('afterend',singleExcelPicker);
  let csvPreviewPanel=null,identifyActions=null;
  function createVirtualCsvRows(viewport,tbody,rows,columnCount){
   const rowHeight=38,overscan=12;let currentRows=rows,start=-1,end=-1,frame=0;
@@ -142,7 +143,7 @@
  }
  function activeSpecs(stage='mapping'){return specs.filter(spec=>isParameterAvailable(spec.key,stage));}
 
- let selectedFile=null,headerRow=[],dataRows=[],analysisRows=[],mapping={},calculatedParameterKeys=[],calculatedParameterControls={},confirmed=false,step3FilterVisible=false,step3Visible=false,step4Visible=false,step5Visible=false,reportDirectVisible=false,analysisPanel=null;
+ let selectedFile=null,selectedWorkbook=null,selectedWorksheetName='',headerRow=[],dataRows=[],analysisRows=[],mapping={},calculatedParameterKeys=[],calculatedParameterControls={},confirmed=false,step3FilterVisible=false,step3Visible=false,step4Visible=false,step5Visible=false,reportDirectVisible=false,analysisPanel=null;
  const DB_NAME=sessionTools.DB_NAME,DB_STORE=sessionTools.DB_STORE,DB_KEY=sessionTools.DB_KEY;
  function openStateDB(){return sessionTools.open()}
  let graphXIndex='',graphYIndex='',graphY2Index='',graphRangeStart='',graphRangeEnd='',graphYRangeStart='',graphYRangeEnd='',graphY2RangeStart='',graphY2RangeEnd='';
@@ -889,31 +890,42 @@ const statsPage=el('section','propulsion-report-summary-page');
   workspace.querySelector('#propulsionParameterSummaryCard')?.remove();
   workspace.querySelector('.propulsion-graphical-card')?.remove();
   workspace.querySelector('#propulsionReportGenerationCard')?.remove();
-  selectedFile=null;mapping={};calculatedParameterKeys=[];calculatedParameterControls={};headerRow=[];dataRows=[];analysisRows=[];confirmed=false;step3FilterVisible=false;step3Visible=false;step4Visible=false;step5Visible=false;reportDirectVisible=false;parseCSVText='';if(csvPreviewPanel){csvPreviewPanel.remove();csvPreviewPanel=null;}workspace.querySelector('.propulsion-csv-preview-toggle-actions')?.remove();workspace.querySelector('.propulsion-csv-preview-actions')?.remove();
+  selectedFile=null;selectedWorkbook=null;selectedWorksheetName='';singleExcelPicker.hidden=true;singleExcelSelect.replaceChildren();mapping={};calculatedParameterKeys=[];calculatedParameterControls={};headerRow=[];dataRows=[];analysisRows=[];confirmed=false;step3FilterVisible=false;step3Visible=false;step4Visible=false;step5Visible=false;reportDirectVisible=false;parseCSVText='';if(csvPreviewPanel){csvPreviewPanel.remove();csvPreviewPanel=null;}workspace.querySelector('.propulsion-csv-preview-toggle-actions')?.remove();workspace.querySelector('.propulsion-csv-preview-actions')?.remove();
   meta.hidden=true;meta.textContent='';reset.hidden=true;start.disabled=true;start.textContent='Identify Parameters';
  }
  function updateLogTypeUI(){const chosen=!!logType;if(logUploadArea){logUploadArea.hidden=!chosen;logUploadArea.style.display=chosen?'':'none';}if(input){input.disabled=!chosen;if(!chosen)input.value='';}if(start)start.disabled=!chosen||!selectedFile;const typeName=logType==='thrust'?'Thrust':'Torque';const title=$id('propulsionLogUploadTitle'),pickerTitle=$id('propulsionCsvPickerTitle'),description=$id('propulsionLogUploadDescription');if(title)title.textContent='Upload '+typeName+' Log';if(pickerTitle)pickerTitle.textContent='Upload '+typeName+' Log';if(description)description.textContent='Upload the CSV file containing '+typeName.toLowerCase()+' test data. '+(logType==='thrust'?'Torque-related':'Thrust-related')+' parameters will be disabled in subsequent steps.';logTypePicker?.querySelectorAll('.propulsion-log-type-option').forEach(option=>{const radio=option.querySelector('input');option.classList.toggle('is-selected',radio?.value===logType);});}
   logTypePicker?.querySelectorAll('input[name="propulsionLogType"]').forEach(radio=>radio.addEventListener('change',()=>{const next=radio.value;if(logType&&logType!==next){if((selectedFile||input.files?.length||confirmed)&&!confirm('Changing the log type will remove the previously uploaded CSV and reset the current analysis. Continue?')){logTypePicker.querySelector('input[value="'+logType+'"]').checked=true;return;}input.value='';resetAnalysis();if(filePicker)filePicker.hidden=false;setUploadState(false,'Select a new CSV file for the selected log type');}logType=next;updateLogTypeUI();saveState();}));
- input.addEventListener('change',()=>{
+ input.addEventListener('change',async()=>{
   resetAnalysis();
   const file=input.files&&input.files[0];
   if(!file){setUploadState(false,'No file selected');return}if(!logType){input.value='';setUploadState(false,'Select Thrust Log or Torque Log first');return}
-  if(!/\.csv$/i.test(file.name)){input.value='';setUploadState(false,'Invalid file — please select a .csv file');return}
-  if(file.size===0){input.value='';setUploadState(false,'The selected CSV file is empty');return}
-  selectedFile=file;if(filePicker)filePicker.hidden=true;setUploadState(true,'CSV selected — ready for parameter identification');
-  meta.hidden=false;meta.textContent=file.name+' · '+(file.size/1024).toFixed(1)+' KB';reset.hidden=false;start.disabled=false;start.textContent='Identify Parameters';file.text().then(text=>{parseCSVText=text;renderCsvPreview(text);saveState()}).catch(()=>{setUploadState(false,'Unable to read the selected CSV file')});
+  if(!workbookImport.isCsvFile(file)&&!workbookImport.isExcelFile(file)){input.value='';setUploadState(false,'Unsupported file — select .csv, .xlsx or .xls');return}
+  if(file.size===0){input.value='';setUploadState(false,'The selected log file is empty');return}
+  selectedFile=file;if(filePicker)filePicker.hidden=true;meta.hidden=false;meta.textContent=file.name+' · '+(file.size/1024).toFixed(1)+' KB';reset.hidden=false;start.disabled=true;start.textContent='Identify Parameters';
+  try{
+   if(workbookImport.isExcelFile(file)){
+    setUploadState(false,'Excel workbook loaded — select a worksheet');singleExcelStatus.textContent='Reading worksheet names…';singleExcelPicker.hidden=false;
+    selectedWorkbook=await workbookImport.loadWorkbook(file);singleExcelSelect.replaceChildren(...selectedWorkbook.sheetNames.map(name=>new Option(name,name)));singleExcelStatus.textContent=selectedWorkbook.sheetNames.length+' worksheet(s) found. Select the worksheet containing propulsion test data.';
+   }else{
+    parseCSVText=await file.text();if(!parseCSVText.trim())throw new Error('The selected CSV file is empty.');renderCsvPreview(parseCSVText);start.disabled=false;setUploadState(true,'CSV selected — ready for parameter identification');saveState();
+   }
+  }catch(error){selectedFile=null;selectedWorkbook=null;input.value='';resetAnalysis();if(filePicker)filePicker.hidden=false;setUploadState(false,error.message||'Unable to read the selected log file');}
+ });
+ singleExcelApply.addEventListener('click',()=>{
+  try{if(!selectedWorkbook)throw new Error('Upload an Excel workbook first.');const selected=workbookImport.readWorksheet(selectedWorkbook,singleExcelSelect.value);selectedWorksheetName=selected.sheetName;parseCSVText=selected.csvText;if(!parseCSVText.trim())throw new Error('The selected worksheet is empty.');renderCsvPreview(parseCSVText);start.disabled=false;singleExcelStatus.textContent='Selected worksheet: '+selectedWorksheetName+' · '+selected.rows.length.toLocaleString()+' rows';meta.textContent=selectedFile.name+' · '+(selectedFile.size/1024).toFixed(1)+' KB · Worksheet: '+selectedWorksheetName;setUploadState(true,'Excel worksheet selected — ready for parameter identification');saveState();}
+  catch(error){start.disabled=true;singleExcelStatus.textContent=error.message||'Unable to read the selected worksheet.';setUploadState(false,singleExcelStatus.textContent);}
  });
  reset.addEventListener('click',async()=>{input.value='';resetAnalysis();if(filePicker)filePicker.hidden=false;reset.textContent='Choose another log file';setUploadState(false,'No file selected');try{const db=await openStateDB();await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).delete(DB_KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}catch(error){console.warn('Could not clear saved propulsion session:',error)}});
  start.addEventListener('click',async()=>{
   if(!selectedFile)return;
-  start.disabled=true;start.textContent='Reading CSV…';
+  start.disabled=true;start.textContent='Reading Log File…';
   try{
    const text=await selectedFile.text();parseCSVText=text;
    const delimiter=chooseDelimiter(text);const rows=parseCSV(text,delimiter);
-   if(rows.length<2)throw new Error('The CSV does not contain a header and data rows.');
+   if(rows.length<2)throw new Error('The selected log file does not contain a header and data rows.');
    detect(rows);start.textContent='Parameters Identified';start.disabled=true;saveState();
-   setUploadState(true,'CSV read successfully — review the six parameter mappings below');
-  }catch(error){start.textContent='Identify Parameters';start.disabled=false;showError(error.message||'CSV could not be read.')}
+   setUploadState(true,'Log file read successfully — review the parameter mappings below');
+  }catch(error){start.textContent='Identify Parameters';start.disabled=false;showError(error.message||'The selected log file could not be read.')}
  });
 
  // Phase 2: independent multi-log upload and parameter mapping.
@@ -921,24 +933,38 @@ const statsPage=el('section','propulsion-report-summary-page');
  // Setup selection is intentionally session-local: every page load requires a fresh choice.
  if(logCountSelect)logCountSelect.value='';
  let multiSession=null,multiFiles=[],multiLogType='',multiMappingConfirmed=false;const multiHiddenLogIds=new Set();
- function resetMultiSetup(){multiSession=null;multiFiles=[];multiHiddenLogIds.clear();multiMappingConfirmed=false;multiMappingHost?.replaceChildren();multiUploadGrid?.replaceChildren();if(identifyMultipleLogsBtn)identifyMultipleLogsBtn.disabled=true;if(multiUploadStatus)multiUploadStatus.textContent='Select the common test type and upload every requested CSV file.';renderMultiUploadSlots();}
+ function resetMultiSetup(){multiSession=null;multiFiles=[];multiHiddenLogIds.clear();multiMappingConfirmed=false;multiMappingHost?.replaceChildren();multiUploadGrid?.replaceChildren();if(identifyMultipleLogsBtn)identifyMultipleLogsBtn.disabled=true;if(multiUploadStatus)multiUploadStatus.textContent='Select the common test type and upload every requested CSV or Excel file.';renderMultiUploadSlots();}
  function renderMultiUploadSlots(){
   if(!multiUploadGrid||!logCountSelect)return;
   const count=Number(logCountSelect.value);multiFiles=Array.from({length:count},(_,index)=>multiFiles[index]||null);multiUploadGrid.replaceChildren();
   for(let index=0;index<count;index++){
-   const card=el('div','propulsion-multi-upload-slot'),title=el('strong','','LOG '+(index+1)),hint=el('span','propulsion-multi-upload-hint','Choose CSV file '+(index+1)),fileInput=document.createElement('input'),statusEl=el('span','propulsion-multi-file-status','No file selected');
-   fileInput.type='file';fileInput.accept='.csv,text/csv';fileInput.dataset.logIndex=String(index);
-   fileInput.addEventListener('change',async()=>{
-    const file=fileInput.files?.[0];if(!file){multiFiles[index]=null;statusEl.textContent='No file selected';updateMultiUploadGate();return;}
-    if(!/\.csv$/i.test(file.name)||file.size===0){fileInput.value='';multiFiles[index]=null;statusEl.textContent='Invalid or empty CSV file';updateMultiUploadGate();return;}
-    statusEl.textContent='Reading '+file.name+'…';
-    try{const text=await file.text(),rows=parseCSV(text,chooseDelimiter(text));if(rows.length<2)throw new Error('CSV must contain a header and data rows.');const headerIndex=findHeader(rows);if(headerIndex<0)throw new Error('Could not detect a recognizable parameter header in the first 10 rows.');const headers=rows[headerIndex].map((value,col)=>String(value??'').trim()||('Column '+(col+1))),data=rows.slice(headerIndex+1).filter(row=>row.some(value=>String(value??'').trim()!==''));if(!data.length)throw new Error('No data rows were found below the detected header.');multiFiles[index]={file,text,rows,headerIndex,headers,data};statusEl.textContent=file.name+' · '+data.length.toLocaleString()+' data rows';card.parentElement?.querySelector(':scope > .propulsion-exact-csv-preview[data-log-preview="'+index+'"]')?.remove();const rawPreview=createExactCsvPreview('RAW CSV PREVIEW · LOG '+(index+1),rows,file.name+' · Original uploaded CSV · Read-only');rawPreview.dataset.logPreview=String(index);card.append(rawPreview);}
-    catch(error){multiFiles[index]=null;statusEl.textContent=error.message||'Unable to read this CSV';fileInput.value='';}updateMultiUploadGate();
-   });
-   card.append(title,hint,fileInput,statusEl);multiUploadGrid.append(card);
-  }updateMultiUploadGate();
+   const card=el('div','propulsion-multi-upload-slot'),title=el('strong','','LOG '+(index+1)),hint=el('span','propulsion-multi-upload-hint','Choose CSV or Excel file '+(index+1)),fileInput=document.createElement('input'),statusEl=el('span','propulsion-multi-file-status','No file selected'),sheetWrap=el('div','propulsion-multi-excel-sheet-picker'),sheetLabel=el('label','','SELECT WORKSHEET'),sheetSelect=document.createElement('select'),sheetApply=el('button','btn alt','Use Selected Worksheet'),sheetStatus=el('span','propulsion-multi-file-status','Select the worksheet containing propulsion data.');
+  fileInput.type='file';fileInput.accept='.csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel';fileInput.dataset.logIndex=String(index);sheetSelect.className='propulsion-column-select';sheetSelect.setAttribute('aria-label','Select worksheet for log '+(index+1));sheetLabel.append(sheetSelect);sheetApply.type='button';sheetWrap.append(sheetLabel,sheetApply,sheetStatus);sheetWrap.hidden=true;
+  const commitMultiRows=(file,text,rows,sheetName='')=>{
+   if(rows.length<2)throw new Error('The selected file or worksheet must contain a header and data rows.');
+   const headerIndex=findHeader(rows);if(headerIndex<0)throw new Error('Could not detect a recognizable parameter header in the first 10 rows.');
+   const headers=rows[headerIndex].map((value,col)=>String(value??'').trim()||('Column '+(col+1))),data=rows.slice(headerIndex+1).filter(row=>row.some(value=>String(value??'').trim()!==''));
+   if(!data.length)throw new Error('No data rows were found below the detected header.');
+   multiFiles[index]={file,text,rows,headerIndex,headers,data,sheetName};statusEl.textContent=file.name+(sheetName?' · '+sheetName:'')+' · '+data.length.toLocaleString()+' data rows';
+   card.parentElement?.querySelector(':scope > .propulsion-exact-csv-preview[data-log-preview="'+index+'"]')?.remove();
+   const rawPreview=createExactCsvPreview('RAW LOG DATA PREVIEW · LOG '+(index+1),rows,file.name+(sheetName?' · Worksheet: '+sheetName:'')+' · Read-only');rawPreview.dataset.logPreview=String(index);card.append(rawPreview);
+  };
+  fileInput.addEventListener('change',async()=>{
+   const file=fileInput.files?.[0];if(!file){multiFiles[index]=null;sheetWrap.hidden=true;statusEl.textContent='No file selected';updateMultiUploadGate();return;}
+   if((!workbookImport.isCsvFile(file)&&!workbookImport.isExcelFile(file))||file.size===0){fileInput.value='';multiFiles[index]=null;sheetWrap.hidden=true;statusEl.textContent='Invalid file — select .csv, .xlsx or .xls';updateMultiUploadGate();return;}
+   multiFiles[index]=null;sheetWrap.hidden=true;statusEl.textContent='Reading '+file.name+'…';updateMultiUploadGate();
+   try{
+    if(workbookImport.isExcelFile(file)){
+     const workbook=await workbookImport.loadWorkbook(file);sheetSelect.replaceChildren(...workbook.sheetNames.map(name=>new Option(name,name)));sheetWrap.hidden=false;sheetStatus.textContent=workbook.sheetNames.length+' worksheet(s) found. Select the correct propulsion data worksheet.';sheetApply.onclick=()=>{try{const selected=workbookImport.readWorksheet(workbook,sheetSelect.value);commitMultiRows(file,selected.csvText,parseCSV(selected.csvText,chooseDelimiter(selected.csvText)),selected.sheetName);updateMultiUploadGate();}catch(error){multiFiles[index]=null;sheetStatus.textContent=error.message||'Unable to read worksheet.';updateMultiUploadGate();}};statusEl.textContent='Excel workbook loaded — worksheet selection required.';
+    }else{
+     const text=await file.text(),rows=parseCSV(text,chooseDelimiter(text));commitMultiRows(file,text,rows);updateMultiUploadGate();
+    }
+   }catch(error){multiFiles[index]=null;statusEl.textContent=error.message||'Unable to read this log file';fileInput.value='';updateMultiUploadGate();}
+  });
+  card.append(title,hint,fileInput,statusEl,sheetWrap);multiUploadGrid.append(card);
+ }updateMultiUploadGate();
  }
- function updateMultiUploadGate(){if(!identifyMultipleLogsBtn||!logCountSelect)return;const count=Number(logCountSelect.value),typeSelected=multiLogType==='thrust'||multiLogType==='torque',ready=typeSelected&&multiFiles.length===count&&multiFiles.every(Boolean),uploadControls=$id('propulsionMultiUploadControls');if(uploadControls)uploadControls.hidden=!typeSelected;identifyMultipleLogsBtn.hidden=!ready;identifyMultipleLogsBtn.disabled=!ready;if(multiUploadStatus)multiUploadStatus.textContent=!typeSelected?'Select a common test type before uploading logs.':ready?'All '+count+' CSV files are ready for independent parameter identification.':multiFiles.filter(Boolean).length+' of '+count+' CSV files uploaded successfully.';}
+ function updateMultiUploadGate(){if(!identifyMultipleLogsBtn||!logCountSelect)return;const count=Number(logCountSelect.value),typeSelected=multiLogType==='thrust'||multiLogType==='torque',ready=typeSelected&&multiFiles.length===count&&multiFiles.every(Boolean),uploadControls=$id('propulsionMultiUploadControls');if(uploadControls)uploadControls.hidden=!typeSelected;identifyMultipleLogsBtn.hidden=!ready;identifyMultipleLogsBtn.disabled=!ready;if(multiUploadStatus)multiUploadStatus.textContent=!typeSelected?'Select a common test type before uploading logs.':ready?'All '+count+' log files / worksheets are ready for independent parameter identification.':multiFiles.filter(Boolean).length+' of '+count+' log files / worksheets ready.';}
  function setMultiMode(){
   const count=String(logCountSelect?.value||''),isMulti=['2','3','4'].includes(count);
   if(uploadCard)uploadCard.hidden=count!=='1';
