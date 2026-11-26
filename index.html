@@ -36,7 +36,7 @@
 <section class="propulsion-analyser-workspace" aria-labelledby="propulsionUploadHeading">
   <section class="propulsion-mode-card propulsion-step-card propulsion-step-card--blue" id="propulsionCommonSetupCard">
     <div class="propulsion-step-label">COMMON ANALYSIS SETUP</div><h3>Configure Test Logs</h3>
-    <p class="propulsion-mapping-description">Choose how many CSV logs belong to this test session. A single log continues through the existing analyser; selecting 2–4 logs opens the common multi-log setup.</p>
+    <p class="propulsion-mapping-description">Choose how many CSV or Excel logs belong to this test session. A single log continues through the existing analyser; selecting 2–4 logs opens the common multi-log setup.</p>
     <label class="propulsion-mode-count-label" for="propulsionLogCount">NUMBER OF LOGS</label>
     <select id="propulsionLogCount" class="propulsion-column-select propulsion-log-count-select" required>
       <option value="" selected disabled>Select number of test logs</option><option value="1">1 Log — Single Log Analyser</option><option value="2">2 Logs — Comparative Analysis</option><option value="3">3 Logs — Comparative Analysis</option><option value="4">4 Logs — Comparative Analysis</option>
@@ -45,7 +45,7 @@
   </section>
   <section class="propulsion-multi-setup-card propulsion-step-card propulsion-step-card--purple" id="propulsionMultiSetupCard" hidden>
     <div class="propulsion-step-label">STEP 01 · COMMON TEST INPUT</div><h3>Upload Multiple Propulsion Test Logs</h3>
-    <p class="propulsion-mapping-description">All uploaded logs must belong to the same test type. Each CSV will be identified and mapped independently.</p>
+    <p class="propulsion-mapping-description">All uploaded logs must belong to the same test type. Each CSV file or selected Excel worksheet will be identified and mapped independently.</p>
     <fieldset class="propulsion-log-type-picker propulsion-multi-log-type-picker" id="propulsionMultiLogTypePicker">
       <legend>SELECT COMMON TEST LOG TYPE</legend>
       <label class="propulsion-log-type-option"><input type="radio" name="propulsionMultiLogType" value="thrust"><span class="propulsion-log-type-icon" aria-hidden="true">↗</span><span class="propulsion-log-type-copy"><strong>Thrust Log</strong><small>Thrust measurement and propulsion performance</small></span><span class="propulsion-log-type-check" aria-hidden="true">✓</span></label>
@@ -53,7 +53,7 @@
     </fieldset>
     <div class="propulsion-multi-upload-controls" id="propulsionMultiUploadControls" hidden>
       <div class="propulsion-multi-upload-grid" id="propulsionMultiUploadGrid"></div>
-      <div class="propulsion-multi-actions"><p class="propulsion-multi-status" id="propulsionMultiUploadStatus" role="status" aria-live="polite">Select the common test type and upload every requested CSV file.</p><button type="button" class="btn" id="identifyMultipleLogsBtn" hidden disabled>Identify Parameters for All Logs</button></div>
+      <div class="propulsion-multi-actions"><p class="propulsion-multi-status" id="propulsionMultiUploadStatus" role="status" aria-live="polite">Select the common test type and upload every requested CSV or Excel file.</p><button type="button" class="btn" id="identifyMultipleLogsBtn" hidden disabled>Identify Parameters for All Logs</button></div>
     </div>
   </section>
   <div id="propulsionMultiMappingHost"></div>
