@@ -439,7 +439,7 @@
   const csvDownloadButton=el('button','btn','Download Filtered & Sorted CSV');csvDownloadButton.type='button';csvDownloadButton.hidden=true;
   let generatedCsvText='';
   const filteredCsvPreviewHost=el('div','propulsion-csv-preview-stack');csvSection.append(filteredCsvPreviewHost);
-  csvDownloadButton.addEventListener('click',()=>{if(!generatedCsvText)return;const blob=new Blob([generatedCsvText],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const link=document.createElement('a');const base=(selectedFile?.name||'propulsion_log.csv').replace(/\.csv$/i,'');link.href=url;link.download=base+'_filtered_sorted.csv';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);csvStatus.textContent='Filtered & sorted CSV downloaded.';});
+  csvDownloadButton.addEventListener('click',()=>{if(!generatedCsvText)return;const blob=new Blob([generatedCsvText],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const link=document.createElement('a');const base=(selectedFile?.name||'propulsion_log.csv').replace(/\.(?:csv|xlsx|xls)$/i,'');link.href=url;link.download=base+'_filtered_sorted.csv';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);csvStatus.textContent='Filtered & sorted CSV downloaded.';});
   const csvActions=el('div','propulsion-actions propulsion-csv-actions');csvActions.append(csvExportButton,csvDownloadButton);
   csvSection.append(csvConfirmation,csvStatus,csvActions);
   csvExportButton.addEventListener('click',()=>{
@@ -1424,7 +1424,7 @@ const statsPage=el('section','propulsion-report-summary-page');
      });
      const csv='\uFEFF'+rows.map(row=>columns.map((_,index)=>escapeCsv(row[index]??'')).join(',')).join('\r\n');
      const originalName=log.fileName||multiFiles[multiSession.logs.indexOf(log)]?.file?.name||('Log_'+log.id+'.csv');
-     const base=originalName.replace(/\.csv$/i,'');
+     const base=originalName.replace(/\.(?:csv|xlsx|xls)$/i,'');
      return {log,name:base+'_filtered_sorted.csv',csv,rows,columns,originalName,timestampSorted:timestampIndex!==undefined};
     });
     generatedMultiCsvFiles=prepared;
