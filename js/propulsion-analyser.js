@@ -76,7 +76,7 @@
 
  function createExactCsvPreview(titleText,rows,metaText){
   const card=el('section','propulsion-csv-preview-card propulsion-step-card propulsion-step-card--green propulsion-exact-csv-preview');
-  const heading=el('div','propulsion-step-label','CSV FILE PREVIEW'),title=el('h3','',titleText),meta=el('p','propulsion-csv-preview-meta',metaText||((rows.length-1).toLocaleString()+' data rows'));
+  const heading=el('div','propulsion-step-label','LOG FILE PREVIEW'),title=el('h3','',titleText),meta=el('p','propulsion-csv-preview-meta',metaText||((rows.length-1).toLocaleString()+' data rows'));
   const searchWrap=el('div','propulsion-csv-search');
   const columnSelect=document.createElement('select');columnSelect.className='propulsion-csv-column-select';columnSelect.setAttribute('aria-label','Select CSV column to search');columnSelect.append(new Option('Select column to search…',''));
   const maxColumns=rows.reduce((max,row)=>Math.max(max,row?.length||0),0);
@@ -112,7 +112,7 @@
  }
  function renderCsvPreview(text){
   csvPreviewPanel?.remove();const rows=parseCSV(text,chooseDelimiter(text));if(!rows.length)return;
-  csvPreviewPanel=createExactCsvPreview('Uploaded Raw CSV File',rows,'Original uploaded CSV · '+rows.length.toLocaleString()+' rows · Read-only');csvPreviewPanel.id='propulsionCsvPreview';
+  csvPreviewPanel=createExactCsvPreview('Uploaded Raw Log File',rows,'Original uploaded CSV · '+rows.length.toLocaleString()+' rows · Read-only');csvPreviewPanel.id='propulsionCsvPreview';
   const previewAnchor=logUploadArea||uploadCard;if(previewAnchor)previewAnchor.insertAdjacentElement('afterend',csvPreviewPanel);else workspace.insertBefore(csvPreviewPanel,workspace.firstChild);
  }
  const STANDARD_GRAVITY=9.80665;
@@ -911,6 +911,7 @@ const statsPage=el('section','propulsion-report-summary-page');
    }
   }catch(error){selectedFile=null;selectedWorkbook=null;input.value='';resetAnalysis();if(filePicker)filePicker.hidden=false;setUploadState(false,error.message||'Unable to read the selected log file');}
  });
+ singleExcelSelect.addEventListener('change',()=>{start.disabled=true;singleExcelStatus.textContent='Worksheet selection changed. Click “Use Selected Worksheet” to load this worksheet.';});
  singleExcelApply.addEventListener('click',()=>{
   try{if(!selectedWorkbook)throw new Error('Upload an Excel workbook first.');const selected=workbookImport.readWorksheet(selectedWorkbook,singleExcelSelect.value);selectedWorksheetName=selected.sheetName;parseCSVText=selected.csvText;if(!parseCSVText.trim())throw new Error('The selected worksheet is empty.');renderCsvPreview(parseCSVText);start.disabled=false;singleExcelStatus.textContent='Selected worksheet: '+selectedWorksheetName+' · '+selected.rows.length.toLocaleString()+' rows';meta.textContent=selectedFile.name+' · '+(selectedFile.size/1024).toFixed(1)+' KB · Worksheet: '+selectedWorksheetName;setUploadState(true,'Excel worksheet selected — ready for parameter identification');saveState();}
   catch(error){start.disabled=true;singleExcelStatus.textContent=error.message||'Unable to read the selected worksheet.';setUploadState(false,singleExcelStatus.textContent);}
@@ -939,7 +940,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   const count=Number(logCountSelect.value);multiFiles=Array.from({length:count},(_,index)=>multiFiles[index]||null);multiUploadGrid.replaceChildren();
   for(let index=0;index<count;index++){
    const card=el('div','propulsion-multi-upload-slot'),title=el('strong','','LOG '+(index+1)),hint=el('span','propulsion-multi-upload-hint','Choose CSV or Excel file '+(index+1)),fileInput=document.createElement('input'),statusEl=el('span','propulsion-multi-file-status','No file selected'),sheetWrap=el('div','propulsion-multi-excel-sheet-picker'),sheetLabel=el('label','','SELECT WORKSHEET'),sheetSelect=document.createElement('select'),sheetApply=el('button','btn alt','Use Selected Worksheet'),sheetStatus=el('span','propulsion-multi-file-status','Select the worksheet containing propulsion data.');
-  fileInput.type='file';fileInput.accept='.csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel';fileInput.dataset.logIndex=String(index);sheetSelect.className='propulsion-column-select';sheetSelect.setAttribute('aria-label','Select worksheet for log '+(index+1));sheetLabel.append(sheetSelect);sheetApply.type='button';sheetWrap.append(sheetLabel,sheetApply,sheetStatus);sheetWrap.hidden=true;
+  fileInput.type='file';fileInput.accept='.csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel';fileInput.dataset.logIndex=String(index);sheetSelect.className='propulsion-column-select';sheetSelect.setAttribute('aria-label','Select worksheet for log '+(index+1));sheetLabel.append(sheetSelect);sheetApply.type='button';sheetWrap.append(sheetLabel,sheetApply,sheetStatus);sheetWrap.hidden=true;sheetSelect.addEventListener('change',()=>{multiFiles[index]=null;card.parentElement?.querySelector(':scope > .propulsion-exact-csv-preview[data-log-preview="'+index+'"]')?.remove();sheetStatus.textContent='Worksheet selection changed. Click “Use Selected Worksheet” to load it.';updateMultiUploadGate();});
   const commitMultiRows=(file,text,rows,sheetName='')=>{
    if(rows.length<2)throw new Error('The selected file or worksheet must contain a header and data rows.');
    const headerIndex=findHeader(rows);if(headerIndex<0)throw new Error('Could not detect a recognizable parameter header in the first 10 rows.');
