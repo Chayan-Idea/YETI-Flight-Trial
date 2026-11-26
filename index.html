@@ -66,12 +66,12 @@
       <label class="propulsion-log-type-option"><input type="radio" name="propulsionLogType" value="torque"><span class="propulsion-log-type-icon" aria-hidden="true">⟳</span><span class="propulsion-log-type-copy"><strong>Torque Log</strong><small>Torque measurement and motor performance</small></span><span class="propulsion-log-type-check" aria-hidden="true">✓</span></label>
     </fieldset>
     <div class="propulsion-log-upload-area" id="propulsionLogUploadArea" hidden style="display:none">
-      <div class="propulsion-log-upload-heading"><span class="propulsion-log-upload-kicker">SELECTED TEST TYPE</span><strong id="propulsionLogUploadTitle">Upload Thrust Log</strong><span id="propulsionLogUploadDescription">Upload the CSV file containing thrust test data.</span></div>
+      <div class="propulsion-log-upload-heading"><span class="propulsion-log-upload-kicker">SELECTED TEST TYPE</span><strong id="propulsionLogUploadTitle">Upload Thrust Log</strong><span id="propulsionLogUploadDescription">Upload a CSV or Excel file containing thrust test data.</span></div>
       <label class="propulsion-file-picker" for="propulsionCsvInput">
         <span class="propulsion-upload-icon" aria-hidden="true">↑</span>
         <strong id="propulsionCsvPickerTitle">Upload Thrust Log</strong>
-        <span>CSV format only · Select a .csv file</span>
-        <input id="propulsionCsvInput" type="file" accept=".csv,text/csv">
+        <span>Supported formats: CSV, Excel XLSX and Excel XLS</span>
+        <input id="propulsionCsvInput" type="file" accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
       </label>
       <div id="propulsionUploadStatus" class="propulsion-upload-status" role="status" aria-live="polite">
         <span class="propulsion-status-symbol" aria-hidden="true">○</span>
@@ -89,7 +89,7 @@
     <div class="propulsion-progress-track" role="progressbar" aria-label="Log analysis progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="propulsionProgressTrack"><span id="propulsionProgressFill"></span></div>
     <p class="propulsion-progress-message" id="propulsionProgressMessage" role="status" aria-live="polite">Ready to analyse the selected log.</p>
   </div>
-  <p class="propulsion-local-note">The selected CSV remains in this browser session. Detailed log processing and engineering analysis will be added in the next development step.</p>
+  <p class="propulsion-local-note">The selected CSV file or Excel worksheet is processed locally in this browser. Excel workbooks require selecting the worksheet containing propulsion test data.</p>
 </section>
 </div></section>
 <section id="flightLogAnalyzerPanel" class="module-panel" hidden>
@@ -128,5 +128,7 @@
 <script src="./js/yeti-session-storage.js?v=1"></script>
 <script src="./js/propulsion-analysis-engine.js?v=6"></script>
 <script src="./js/propulsion-percent-comparison.js?v=1"></script>
-<script src="./js/propulsion-analyser.js?v=226"></script></body></html>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="./js/yeti-workbook-import.js?v=1"></script>
+<script src="./js/propulsion-analyser.js?v=227"></script></body></html>
 <!-- GitHub Pages redeployment trigger: 2026-11-19 common comparative report type -->
