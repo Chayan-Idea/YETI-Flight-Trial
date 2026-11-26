@@ -34,7 +34,7 @@
   if(!workbookState.sheetNames.includes(sheetName))throw new Error('Select a valid worksheet from this workbook.');
   const XLSX=assertXlsx(),sheet=workbookState.workbook.Sheets[sheetName];
   if(!sheet)throw new Error('The selected worksheet could not be read.');
-  const rows=XLSX.utils.sheet_to_json(sheet,{header:1,defval:'',raw:false,dateNF:'yyyy-mm-dd hh:mm:ss',blankrows:true});
+  const rows=XLSX.utils.sheet_to_json(sheet,{header:1,defval:'',raw:true,dateNF:'yyyy-mm-dd hh:mm:ss',blankrows:true});
   const normalized=rows.map(row=>Array.isArray(row)?row.map(value=>value instanceof Date?value.toISOString():value):[]);
   const nonEmpty=normalized.filter(row=>row.some(value=>String(value??'').trim()!==''));
   if(nonEmpty.length<2)throw new Error('The selected worksheet must contain a header and at least one data row.');
