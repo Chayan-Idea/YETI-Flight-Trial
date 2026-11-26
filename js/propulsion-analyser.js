@@ -438,10 +438,10 @@
   const csvExportButton=el('button','btn','Generate Filtered & Sorted CSV');csvExportButton.type='button';csvExportButton.hidden=true;
   const csvDownloadButton=el('button','btn','Download Filtered & Sorted CSV');csvDownloadButton.type='button';csvDownloadButton.hidden=true;
   let generatedCsvText='';
-  const filteredCsvPreviewHost=el('div','propulsion-csv-preview-stack');csvSection.append(filteredCsvPreviewHost);
+  const filteredCsvPreviewHost=el('div','propulsion-csv-preview-stack');
   csvDownloadButton.addEventListener('click',()=>{if(!generatedCsvText)return;const blob=new Blob([generatedCsvText],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const link=document.createElement('a');const base=(selectedFile?.name||'propulsion_log.csv').replace(/\.(?:csv|xlsx|xls)$/i,'');link.href=url;link.download=base+'_filtered_sorted.csv';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);csvStatus.textContent='Filtered & sorted CSV downloaded.';});
   const csvActions=el('div','propulsion-actions propulsion-csv-actions');csvActions.append(csvExportButton,csvDownloadButton);
-  csvSection.append(csvConfirmation,csvStatus,csvActions);
+  csvSection.append(csvConfirmation,csvStatus,csvActions,filteredCsvPreviewHost);
   csvExportButton.addEventListener('click',()=>{
    const rpmIndex=mapping.actualRpm?.selected;
    if(rpmIndex===''||rpmIndex===undefined){csvStatus.textContent='CSV not generated: map the Actual RPM column in Step 02 before applying the RPM filter.';return;}
@@ -469,6 +469,8 @@
    const rows=[headerRow.slice(),...exportRows.map(row=>row.slice())];
    const csv='\uFEFF'+rows.map(row=>rows[0].map((_,index)=>escapeCsv(row[index]??'')).join(',')).join('\r\n');
    generatedCsvText=csv;
+   const previewMeta=rows.length.toLocaleString()+' CSV rows (including header) · '+headerRow.length.toLocaleString()+' columns · '+exportRows.length.toLocaleString()+' filtered data rows · Actual RPM zero/negative values removed · '+sortNote+' · Exact generated CSV · Read-only';
+   filteredCsvPreviewHost.replaceChildren(createExactCsvPreview('FILTERED & SORTED CSV PREVIEW',rows,previewMeta));
    // From this point onward, the filtered and chronologically sorted export is the sole analysis dataset.
    analysisRows=exportRows.map(row=>row.slice());
 

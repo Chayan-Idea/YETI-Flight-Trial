@@ -45,6 +45,19 @@ const server=http.createServer((req,res)=>{
   await page.locator('#confirmPropulsionMappingBtn').waitFor({state:'visible',timeout:15000});
   if(await page.locator('#confirmPropulsionMappingBtn').isDisabled())throw new Error('Excel worksheet data did not populate valid single-log parameter mappings.');
   if(!(await page.locator('#propulsionExcelSheetPicker').innerText()).includes('Thrust Data'))throw new Error('The selected Excel worksheet name was not retained in the upload status.');
+  // Regression: the 1-log workflow must expose the same generated filtered-CSV preview as 2–4 logs.
+  await page.locator('#confirmPropulsionMappingBtn').click();
+  const electricalCard=page.locator('#propulsionCalculatedParameters [data-parameter-key="electricalPower"]');
+  await electricalCard.locator('input[type="checkbox"]').check();
+  await electricalCard.locator('.propulsion-calculated-action').click();
+  await page.locator('#propulsionDerivedParameterCalculationCard .propulsion-derived-proceed').click();
+  await page.locator('#confirmFilteringSortingReady').check();
+  await page.getByRole('button',{name:'Generate Filtered & Sorted CSV'}).click();
+  const filteredPreview=page.locator('#propulsionDataFilteringCard .propulsion-csv-preview-stack');
+  await filteredPreview.getByRole('button',{name:'Show CSV Preview'}).waitFor({state:'visible'});
+  await filteredPreview.getByRole('button',{name:'Show CSV Preview'}).click();
+  if(!(await filteredPreview.innerText()).includes('FILTERED & SORTED CSV PREVIEW'))throw new Error('Single-log filtered CSV preview title was not rendered.');
+  if(await filteredPreview.locator('.propulsion-exact-csv-table tbody tr.propulsion-csv-virtual-row').count()===0)throw new Error('Single-log filtered CSV preview did not render data rows.');
   await page.locator('#resetPropulsionUploadBtn').click();
 
   await page.locator('#propulsionLogCount').selectOption('2');
