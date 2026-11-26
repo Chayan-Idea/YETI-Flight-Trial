@@ -920,7 +920,7 @@ const statsPage=el('section','propulsion-report-summary-page');
   if(!selectedFile)return;
   start.disabled=true;start.textContent='Reading Log File…';
   try{
-   const text=await selectedFile.text();parseCSVText=text;
+   const text=parseCSVText;if(!text)throw new Error('Read the selected file or choose an Excel worksheet before identifying parameters.');
    const delimiter=chooseDelimiter(text);const rows=parseCSV(text,delimiter);
    if(rows.length<2)throw new Error('The selected log file does not contain a header and data rows.');
    detect(rows);start.textContent='Parameters Identified';start.disabled=true;saveState();
