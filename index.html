@@ -25,6 +25,28 @@
 </div>
 <section class="card loading-section vv-themed-checklist" id="loadingChecklistSection"><div class="loading-title-row"><div><h2>YETI Loading-Unloading Checklist</h2><p class="muted">Transport preparation, loading, in-transit security and unloading checks.</p></div><span class="count" id="loadingStateCount">0 / 21 recorded</span></div><section class="loading-route-card"><b>UAV Identification</b><div class="loading-route-grid"><label>UAV Name / ID<input id="loadingUavNameId" type="text" placeholder="Enter UAV name / identification"></label></div></section><section class="loading-route-card"><b>Loading / Unloading Location</b><div class="loading-route-grid"><label>Loading from<input id="loadingFrom" type="text" placeholder="Enter loading location"></label><label>Unloading at<input id="unloadingAt" type="text" placeholder="Enter unloading location"></label></div></section><div class="loading-meta-grid"><label>Date<input id="loadingDate" type="date"></label><label>Time<input id="loadingTime" type="time"></label></div><div class="loading-stats"><div><b id="loadingTotal">21</b><span>Total checks</span></div><div><b id="loadingDone">0</b><span>Answered</span></div><div><b id="loadingPass">0</b><span>Pass</span></div><div><b id="loadingFail">0</b><span>Fail</span></div></div><div class="progress"><i id="loadingBar"></i></div><div class="tools"><input id="loadingSearch" placeholder="Search loading / unloading checks…"><button class="btn alt" id="loadingExpand">Expand all</button><button class="btn alt" id="loadingCollapse">Collapse all</button></div><div id="loadingList"></div><section class="card loading-signature-card"><b>Checker / Reviewer Signature</b><p class="muted">Draw signature using finger or mouse.</p><canvas id="loadingSignaturePad" width="900" height="220" aria-label="Loading checklist signature pad"></canvas><button type="button" class="btn alt" id="clearLoadingSignature">Clear signature</button></section><section class="card loading-photo-card"><b>Photo Evidence</b><p class="muted">Add loading / unloading photos. These are stored separately from Daily Airworthiness photos and included in this checklist PDF.</p><div class="row"><label class="btn" for="loadingCameraPhotos">Take photos</label><input id="loadingCameraPhotos" type="file" accept="image/*" capture="environment" multiple style="display:none"><label class="btn alt" for="loadingGalleryPhotos">Choose from gallery</label><input id="loadingGalleryPhotos" type="file" accept="image/*" multiple style="display:none"></div><p class="muted" id="loadingPhotoStatus">No photos added.</p><div id="loadingPhotoThumbs" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-top:12px"></div></section><div class="preview-actions"><button class="btn" id="loadingPreviewBtn">Preview filled loading-unloading checklist</button></div><section class="preview-panel show" id="loadingPreviewPanel"><div class="loading-preview-actions"><h2>YETI Loading-Unloading Checklist Preview</h2><div class="row"><button class="btn" id="loadingPdfBtn">Export loading-unloading PDF</button><button class="btn alt" id="loadingClosePreview">Close preview</button></div></div><div id="loadingPreviewContent"></div></section></section>
 <section id="flightTrialPreparationSopPanel" class="checklist-tab-panel flight-trial-reading-panel" hidden>
+ <div class="flight-trial-sop-admin-tools" id="flightTrialSopAdminTools" hidden>
+ <div class="flight-trial-sop-mode-switch" role="group" aria-label="SOP view mode">
+  <button type="button" class="btn alt is-active" id="flightTrialSopReadModeBtn" aria-pressed="true">Read View Mode</button>
+  <button type="button" class="btn alt" id="flightTrialSopEditModeBtn" aria-pressed="false">Edit View Mode</button>
+ </div>
+ <div class="flight-trial-sop-edit-actions" id="flightTrialSopEditActions" hidden>
+  <span class="flight-trial-sop-edit-hint">Editing mode — select text in the SOP to make changes.</span>
+  <button type="button" class="btn" id="flightTrialSopSaveBtn" disabled>Save Changes</button>
+  <button type="button" class="btn alt" id="flightTrialSopCancelBtn">Cancel</button>
+ </div>
+ <p class="flight-trial-sop-status" id="flightTrialSopStatus" role="status" aria-live="polite">Latest centrally saved SOP will be loaded for all users.</p>
+ <div class="flight-trial-sop-token-panel" id="flightTrialSopTokenPanel" hidden>
+  <label for="flightTrialSopGitHubToken">GitHub Fine-grained Personal Access Token</label>
+  <input id="flightTrialSopGitHubToken" type="password" autocomplete="off" spellcheck="false" placeholder="Paste token with Contents: Read and write">
+  <p>Token is used only for this save attempt. It is not stored in browser storage or in the repository. Restrict it to this repository and Contents permission.</p>
+  <div class="flight-trial-sop-token-actions">
+   <button type="button" class="btn" id="flightTrialSopPublishBtn">Confirm &amp; Publish</button>
+   <button type="button" class="btn alt" id="flightTrialSopTokenCancelBtn">Cancel</button>
+  </div>
+ </div>
+ <div class="flight-trial-sop-revision" id="flightTrialSopRevision" hidden></div>
+</div>
  <article class="flight-trial-reading-document">
   <header class="flight-trial-reading-header">
    <div class="nav-kicker">STANDARD OPERATING PROCEDURE</div>
@@ -149,5 +171,5 @@
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="./js/yeti-workbook-import.js?v=1"></script>
 <script src="./js/propulsion-analyser.js?v=228"></script>
-<script src="./js/yeti-auth.js?v=1"></script></body></html>
+<script src="./js/yeti-auth.js?v=1"><script src="./js/flight-trial-sop-editor.js?v=1"></script></script></body></html>
 <!-- GitHub Pages redeployment trigger: 2026-11-19 common comparative report type -->
