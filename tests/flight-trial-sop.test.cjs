@@ -25,7 +25,7 @@ assert.match(html,/id="flightTrialSopPdfInput"/,'Admin must have a PDF reference
 assert.match(html,/id="flightTrialSopProceedBtn"/,'Proceed and Update action must exist');
 assert.match(html,/Proceed and Update in the Webpage/,'Proceed button label must match the approved wording');
 assert.doesNotMatch(html,/flightTrialSopSaveBtn|flightTrialSopCancelBtn|flightTrialSopDownloadBtn|flightTrialSopGithubUploadBtn/,'Old direct-edit, cancel and JSON-download controls must be removed');
-assert.match(html,/flight-trial-sop-editor\.js\?v=23/,'Current SOP script cache version must be loaded');
+assert.match(html,/flight-trial-sop-editor\.js\?v=24/,'Current SOP script cache version must be loaded');
 assert.match(html,/yeti-auth\.js\?v=2/,'Current authentication script cache version must be loaded');
 
 assert.match(editor,/doc\.schemaVersion===2&&doc\.pdfUrl&&doc\.revision/,'Shared reader must load a published PDF manifest');
@@ -54,6 +54,10 @@ assert.match(editor,/pointerdown/,'SOP reader uses pointer-based touch and pen g
 assert.match(editor,/pointermove/,'SOP reader uses pointer-based pinch tracking');
 assert.match(editor,/distance\(pts\[0\],pts\[1\]\)/,'SOP pinch gesture updates zoom from finger separation');
 assert.match(editor,/focalX\*pdfZoom/,'SOP pinch zoom preserves the point beneath the finger midpoint');
+assert.match(editor,/contentPoint\(center\.x,center\.y\)/,'SOP pinch anchor accounts for viewer borders and padding');
+assert.match(editor,/pdfStage\.style\.width=\(pdfBaseWidth\*pdfZoom\)/,'SOP zoom updates the real horizontal scrollable stage width');
+assert.match(editor,/pdfStage\.style\.height=\(pdfBaseHeight\*pdfZoom\)/,'SOP zoom updates the real vertical scrollable stage height');
+assert.match(editor,/pdfPagesHost\.style\.transform='scale\('\+pdfZoom\+'\)'/,'SOP zoom scales the page layer without re-rendering');
 assert.match(editor,/pdfPagesHost\.style\.zoom/,'SOP pinch zoom scales the rendered page layer without re-rendering PDF canvases');
 assert.match(editor,/renderPixelRatio=3/,'SOP pages are rendered at 3x resolution for smooth zooming');
 assert.match(editor,/Math\.min\(3,/,'SOP reader has a bounded zoom-in limit');
@@ -76,7 +80,7 @@ assert.match(workflow,/state:'published'/,'Workflow exposes published status');
 assert.match(workflow,/state:'failed'/,'Workflow exposes failed status');
 assert.match(workflow,/contents: write/,'Workflow has the repository write permission needed for publication');
 
-assert.match(sw,/yeti-flight-trial-shell-v227/,'Service-worker shell cache is versioned for this release');
+assert.match(sw,/yeti-flight-trial-shell-v228/,'Service-worker shell cache is versioned for this release');
 assert.match(sw,/pdfjs-dist@4\.10\.38/,'Pinned PDF.js runtime is cached for repeat and offline reader loads');
 assert.match(sw,/SOP data is always network-first/,'SOP manifest and status use network-first fetching');
 assert.match(sw,/pathname\.endsWith\('\.pdf'\)/,'PDF files are not served from stale shell cache');
