@@ -31,21 +31,17 @@
   <button type="button" class="btn alt" id="flightTrialSopEditModeBtn" aria-pressed="false">Edit View Mode</button>
  </div><button type="button" class="btn flight-trial-sop-export-btn" id="flightTrialSopExportPdfBtn">Export as PDF</button></div>
  <div class="flight-trial-sop-edit-actions" id="flightTrialSopEditActions" hidden>
-  <span class="flight-trial-sop-edit-hint">Editing mode — select text in the SOP to make changes.</span>
-  <button type="button" class="btn" id="flightTrialSopSaveBtn" disabled>Save Changes</button>
+  <label class="flight-trial-sop-upload-label" for="flightTrialSopPdfInput">UPLOAD REPLACEMENT SOP PDF</label>
+  <input id="flightTrialSopPdfInput" type="file" accept=".pdf,application/pdf">
+  <p class="muted">PDF only · Maximum 25 MB · The existing published revision remains active until GitHub validates and publishes the replacement.</p>
+  <button type="button" class="btn" id="flightTrialSopProceedBtn" disabled>Proceed and Update in the Webpage</button>
   <button type="button" class="btn alt" id="flightTrialSopCancelBtn">Cancel</button>
  </div>
- <p class="flight-trial-sop-status" id="flightTrialSopStatus" role="status" aria-live="polite">Latest centrally saved SOP will be loaded for all users.</p>
- <div class="flight-trial-sop-token-panel" id="flightTrialSopTokenPanel" hidden>
-  <strong>Publish through GitHub Actions</strong>
-  <p>1. Download the updated SOP file. 2. Open the GitHub upload page. 3. Upload <b>flight-trial-sop.json</b> into <b>pending-sop/</b> and commit directly to <b>main</b>. GitHub Actions will validate the file, update the central SOP and remove the pending file automatically.</p>
-  <div class="flight-trial-sop-token-actions">
-   <button type="button" class="btn" id="flightTrialSopDownloadBtn">Download SOP Publication File</button>
-   <button type="button" class="btn alt" id="flightTrialSopGithubUploadBtn">Open GitHub Upload Page</button>
-  </div>
- </div>
+ <p class="flight-trial-sop-status" id="flightTrialSopStatus" role="status" aria-live="polite">The latest centrally published SOP is shared by Admin and User accounts.</p>
+ <div class="flight-trial-sop-token-panel" id="flightTrialSopTokenPanel" hidden></div>
  <div class="flight-trial-sop-revision" id="flightTrialSopRevision" hidden></div>
 </div>
+ <div id="flightTrialSopDocumentHost"></div>
  <article class="flight-trial-reading-document">
   <header class="flight-trial-reading-header">
    <div class="nav-kicker">STANDARD OPERATING PROCEDURE</div>
@@ -171,5 +167,5 @@
 <script src="./js/yeti-workbook-import.js?v=1"></script>
 <script src="./js/propulsion-analyser.js?v=228"></script>
 <script src="./js/yeti-auth.js?v=1"></script>
-<script src="./js/flight-trial-sop-editor.js?v=14"></script></body></html>
+<script src="./js/flight-trial-sop-editor.js?v=15"></script></body></html>
 <!-- GitHub Pages redeployment trigger: 2026-11-19 common comparative report type -->
