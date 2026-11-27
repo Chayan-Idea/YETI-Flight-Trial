@@ -1,141 +1,81 @@
-name: Publish Flight Trial SOP
-
+name: Publish Flight Trial SOP PDF
 on:
   push:
     branches: [main]
     paths:
-      - 'pending-sop/flight-trial-sop.json'
-
+      - 'pending-sop/flight-trial-sop.pdf'
 permissions:
   contents: write
-
 concurrency:
-  group: yeti-sop-publication
+  group: yeti-sop-pdf-publication
   cancel-in-progress: false
-
 jobs:
   validate-and-publish:
-    name: Validate and publish Admin-prepared SOP
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
-      - name: Check out submitted SOP
+      - name: Checkout submitted PDF
         uses: actions/checkout@v4
         with:
           ref: main
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Mark SOP upload received and validation started
+      - name: Mark upload detected
         shell: bash
         run: |
-          set -euo pipefail
           node <<'NODE'
-          const fs = require('node:fs');
-          let revision = null;
-          try { revision = JSON.parse(fs.readFileSync('pending-sop/flight-trial-sop.json', 'utf8')).revision ?? null; } catch (_) { try { revision = JSON.parse(fs.readFileSync('data/flight-trial-sop.json', 'utf8')).revision ?? null; } catch (_) {} }
-          fs.writeFileSync('data/sop-publication-status.json', JSON.stringify({
-            schemaVersion: 1, revision, state: 'validating',
-            message: 'GitHub received the SOP JSON upload. Validation is in progress.',
-            updatedAt: new Date().toISOString(), runId: process.env.GITHUB_RUN_ID
-          }, null, 2) + '\n');
+          const fs=require('node:fs');
+          const status={schemaVersion:1,revision:'pending',state:'validating',message:'GitHub detected the uploaded PDF. Validating file signature, size and document structure.',updatedAt:new Date().toISOString(),runId:process.env.GITHUB_RUN_ID};
+          fs.writeFileSync('data/sop-publication-status.json',JSON.stringify(status,null,2)+'\n');
           NODE
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/sop-publication-status.json
-          git commit -m "status: SOP upload received and validation started"
+          git commit -m "status: SOP PDF upload detected"
           git push origin HEAD:main
-
-      - name: Validate SOP and prepare central revision
+      - name: Validate PDF and publish immutable revision
         shell: bash
         run: |
           set -euo pipefail
           node <<'NODE'
-          const fs = require('node:fs');
-          const pendingPath = 'pending-sop/flight-trial-sop.json';
-          const centralPath = 'data/flight-trial-sop.json';
-          if (!fs.existsSync(pendingPath)) throw new Error('Pending SOP file is missing.');
-          const pending = JSON.parse(fs.readFileSync(pendingPath, 'utf8'));
-          const current = JSON.parse(fs.readFileSync(centralPath, 'utf8'));
-          if (pending.schemaVersion !== 1 || typeof pending.html !== 'string') throw new Error('Unsupported SOP schema.');
-          if (typeof pending.revision !== 'string' || !/^\d{8}-\d{6}(?:-\d{2,})?$/.test(pending.revision)) throw new Error('Invalid timestamp-based SOP revision ID.');
-          if (typeof pending.updatedAt !== 'string' || Number.isNaN(Date.parse(pending.updatedAt))) throw new Error('Invalid SOP update timestamp.');
-          const revisionBase = pending.updatedAt.slice(0, 19).replace(/[-:T]/g, '').replace(/^(\d{8})(\d{6})$/, '$1-$2');
-          if (!pending.revision.startsWith(revisionBase)) throw new Error('SOP revision ID does not match its UTC publication timestamp.');
-          if (pending.revision === String(current.revision)) {
-            const exactDuplicate = pending.updatedAt === current.updatedAt && pending.updatedBy === current.updatedBy && pending.html === current.html;
-            if (!exactDuplicate) throw new Error('Revision conflict: this timestamp revision is already published with different content. Reload the latest SOP in YETI before publishing.');
-            console.log('Exact duplicate upload detected. This SOP revision is already published; continuing with safe idempotent cleanup.');
-          } else if (Date.parse(pending.updatedAt) <= Date.parse(current.updatedAt || '1970-01-01T00:00:00.000Z')) {
-            throw new Error('Stale SOP revision. Reload the latest SOP in YETI and prepare the publication again.');
-          }
-          if (typeof pending.updatedBy !== 'string' || !/^Admin (1297|1636)$/.test(pending.updatedBy)) throw new Error('Invalid Admin attribution.');
-          const html = pending.html;
-          if (!/^<article class="flight-trial-reading-document(?:\s+[^"]*)?">/.test(html) || !html.endsWith('</article>')) throw new Error('SOP article wrapper is invalid.');
-          if (/<\s*(script|iframe|object|embed|form|svg|math|link|meta)\b/i.test(html) || /\son[a-z]+\s*=/i.test(html) || /javascript\s*:/i.test(html)) throw new Error('SOP contains prohibited active content.');
-          if (html.length > 500000) throw new Error('SOP content exceeds the 500 KB publication limit.');
-          fs.writeFileSync(centralPath, JSON.stringify(pending, null, 2) + '\n');
-          // Clear every pending JSON upload only after the new SOP has passed validation.
-          const pendingDir = 'pending-sop';
-          if (fs.existsSync(pendingDir)) {
-            for (const name of fs.readdirSync(pendingDir)) {
-              if (name.toLowerCase().endsWith('.json')) {
-                fs.rmSync(`${pendingDir}/${name}`, { force: true });
-              }
-            }
-          }
+          const fs=require('node:fs'),crypto=require('node:crypto'),path=require('node:path');
+          const src='pending-sop/flight-trial-sop.pdf';
+          if(!fs.existsSync(src))throw new Error('Expected pending-sop/flight-trial-sop.pdf. Rename the uploaded file exactly as flight-trial-sop.pdf.');
+          const b=fs.readFileSync(src);
+          if(b.length<100||b.length>25*1024*1024)throw new Error('PDF must be between 100 bytes and 25 MB.');
+          if(b.subarray(0,5).toString('ascii')!=='%PDF-')throw new Error('Uploaded file does not have a valid PDF signature.');
+          if(!b.includes(Buffer.from('%%EOF')))throw new Error('PDF end-of-file marker is missing; upload may be incomplete.');
+          const now=new Date(),stamp=now.toISOString().slice(0,19).replace(/[-:T]/g,'').replace(/^(\d{8})(\d{6})$/,'$1-$2');
+          const revision=stamp+'-'+process.env.GITHUB_RUN_ID;
+          const rel='documents/sop/revisions/'+revision+'.pdf';
+          fs.mkdirSync(path.dirname(rel),{recursive:true});fs.copyFileSync(src,rel);
+          const manifest={schemaVersion:2,revision,updatedAt:now.toISOString(),updatedBy:'Admin upload',fileName:'flight-trial-sop.pdf',mimeType:'application/pdf',sizeBytes:b.length,sha256:crypto.createHash('sha256').update(b).digest('hex'),pdfUrl:rel};
+          fs.writeFileSync('data/flight-trial-sop.json',JSON.stringify(manifest,null,2)+'\n');
+          fs.writeFileSync('data/sop-publication-status.json',JSON.stringify({schemaVersion:1,revision,state:'publishing',message:'PDF validation passed. Publishing the immutable revision and updating the shared manifest.',updatedAt:new Date().toISOString(),runId:process.env.GITHUB_RUN_ID},null,2)+'\n');
+          fs.rmSync(src);
           NODE
-
-      - name: Mark SOP validation successful and central publication started
+          git add documents/sop/revisions data/flight-trial-sop.json data/sop-publication-status.json pending-sop/
+          git commit -m "publish: Flight Trial SOP PDF revision"
+          git push origin HEAD:main
+      - name: Mark publication complete
         shell: bash
         run: |
-          set -euo pipefail
           node <<'NODE'
-          const fs = require('node:fs');
-          const pending = JSON.parse(fs.readFileSync('data/flight-trial-sop.json', 'utf8'));
-          fs.writeFileSync('data/sop-publication-status.json', JSON.stringify({
-            schemaVersion: 1, revision: pending.revision, state: 'publishing',
-            message: 'JSON validation succeeded. Publishing the central SOP revision.',
-            updatedAt: new Date().toISOString(), runId: process.env.GITHUB_RUN_ID
-          }, null, 2) + '\n');
+          const fs=require('node:fs'),m=JSON.parse(fs.readFileSync('data/flight-trial-sop.json','utf8'));
+          fs.writeFileSync('data/sop-publication-status.json',JSON.stringify({schemaVersion:1,revision:m.revision,state:'published',message:'The new SOP PDF is published and available to all YETI users.',updatedAt:new Date().toISOString(),runId:process.env.GITHUB_RUN_ID},null,2)+'\n');
           NODE
           git add data/sop-publication-status.json
-          git commit -m "status: SOP validation successful; central publication started"
+          git commit -m "status: SOP PDF revision published"
           git push origin HEAD:main
-
-      - name: Commit central SOP revision
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          node <<'NODE'
-          const fs = require('node:fs');
-          const published = JSON.parse(fs.readFileSync('data/flight-trial-sop.json', 'utf8'));
-          fs.writeFileSync('data/sop-publication-status.json', JSON.stringify({
-            schemaVersion: 1, revision: published.revision, state: 'published',
-            message: 'Central SOP revision published successfully.',
-            updatedAt: new Date().toISOString(), runId: process.env.GITHUB_RUN_ID
-          }, null, 2) + '\n');
-          NODE
-          git add data/flight-trial-sop.json data/sop-publication-status.json pending-sop/
-          git commit -m "publish: update Flight Trial SOP"
-          git push origin HEAD:main
-
-
-      - name: Mark SOP publication failed
+      - name: Mark publication failed
         if: failure()
         shell: bash
         run: |
-          set -euo pipefail
           node <<'NODE'
-          const fs = require('node:fs');
-          let revision = null;
-          try { revision = JSON.parse(fs.readFileSync('pending-sop/flight-trial-sop.json', 'utf8')).revision ?? null; } catch (_) { try { revision = JSON.parse(fs.readFileSync('data/flight-trial-sop.json', 'utf8')).revision ?? null; } catch (_) {} }
-          fs.writeFileSync('data/sop-publication-status.json', JSON.stringify({
-            schemaVersion: 1, revision, state: 'failed',
-            message: 'GitHub Actions could not validate or publish the uploaded SOP JSON. Review this workflow run for details.',
-            updatedAt: new Date().toISOString(), runId: process.env.GITHUB_RUN_ID
-          }, null, 2) + '\n');
+          const fs=require('node:fs');
+          let revision='pending';
+          try{const m=JSON.parse(fs.readFileSync('data/flight-trial-sop.json','utf8'));revision=String(m.revision||revision);}catch(_){}
+          fs.writeFileSync('data/sop-publication-status.json',JSON.stringify({schemaVersion:1,revision,state:'failed',message:'GitHub Actions could not validate or publish the PDF. The previous published SOP remains active. Review the workflow run for details.',updatedAt:new Date().toISOString(),runId:process.env.GITHUB_RUN_ID},null,2)+'\n');
           NODE
           git add data/sop-publication-status.json
-          git commit -m "status: SOP publication failed"
-          git push origin HEAD:main
+          git commit -m "status: SOP PDF publication failed" || true
+          git push origin HEAD:main || true
