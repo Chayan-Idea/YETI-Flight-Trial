@@ -13,7 +13,7 @@ assert.ok(Number.isInteger(sop.revision) && sop.revision >= 1,'Central SOP revis
 assert.match(sop.html,/<article class="flight-trial-reading-document(?:\s+[^\"]*)?">/,'Central SOP must preserve the existing document wrapper and may include editor-state classes');
 assert.match(sop.html,/<h3>10\. DOCUMENT CONTROL &amp; RELEASE<\/h3>/,'Initial SOP must retain its final document-control section');
 assert.match(index,/flightTrialSopAdminTools/,'Admin SOP controls must be present');
-assert.match(index,/flight-trial-sop-editor\.js\?v=8/,'SOP editor script must be loaded');
+assert.match(index,/flight-trial-sop-editor\.js\?v=9/,'SOP editor script must be loaded');
 assert.match(editor,/document\.body\.dataset\.yetiAuthRole==='admin'/,'Editing and publishing must require the Admin role');
 assert.match(editor,/flightTrialSopDownloadBtn/,'Admin can download the prepared SOP publication file');
 assert.match(editor,/pending-sop/,'Editor directs publication through the authenticated GitHub workflow');
@@ -31,7 +31,7 @@ assert.match(editor,/runs every 5 seconds|every 5 seconds/,'Editor communicates 
 assert.match(publishWorkflow,/name: Commit central SOP revision/,'GitHub workflow commits the central SOP revision');
 assert.match(editor,/window\.location\.reload\(\)/,'YETI reloads automatically after the published revision is verified');
 assert.match(editor,/revision:currentRevision\+1/,'Each save must increment the SOP revision');
-assert.match(serviceWorker,/yeti-flight-trial-shell-v208/,'Service worker cache must be versioned for the editor release');
+assert.match(serviceWorker,/yeti-flight-trial-shell-v209/,'Service worker cache must be versioned for the editor release');
 assert.match(serviceWorker,/flight-trial-sop-editor\.js/,'Editor script must be precached');
 assert.match(serviceWorker,/flight-trial-sop\.json/,'SOP data must be precached for offline fallback');
 console.log('Flight Trial SOP central storage and Admin editor checks passed.');
@@ -57,5 +57,12 @@ assert.match(editor,/publication\.state==='publishing'/,'YETI displays central p
 assert.match(editor,/publication\.state==='published'/,'YETI verifies the published revision before completing');
 assert.doesNotMatch(editor,/statusUpdatedAt<pendingPublicationStartedAt-60000/,'A valid GitHub publication status must not be rejected because the local JSON was prepared more than 60 seconds before upload');
 assert.match(editor,/Revision identity is the authoritative correlation key/,'Publication status is correlated by the exact expected SOP revision');
+assert.match(editor,/PAGE_SOP_URL=new URL\(FILE_PATH,PAGE_BASE\)\.href/,'Central SOP is fetched from same-origin GitHub Pages first, avoiding cross-origin CORS failures');
+assert.match(editor,/PAGE_STATUS_URL=new URL\(STATUS_PATH,PAGE_BASE\)\.href/,'Publication status is fetched from same-origin GitHub Pages first');
+assert.match(editor,/fetchFreshJson\(PAGE_SOP_URL,RAW_URL/,'Central SOP fetch retains a GitHub raw fallback');
+assert.match(editor,/fetchFreshJson\(PAGE_STATUS_URL,RAW_STATUS_URL/,'Publication status fetch retains a GitHub raw fallback');
+assert.match(serviceWorker,/yeti-flight-trial-shell-v209/,'Service worker cache is versioned for the same-origin SOP fetch fix');
+assert.match(serviceWorker,/data\/sop-publication-status\.json/,'Publication status JSON is included in the offline shell cache');
+assert.match(serviceWorker,/SOP data is always network-first/,'SOP JSON and publication status use network-first service-worker handling');
 assert.match(editor,/Number\(publication\.revision\)!==Number\(pendingPublicationRevision\)/,'Revision comparison is numeric and robust');
 assert.match(editor,/window\.location\.reload\(\)/,'YETI reloads automatically after publication is verified');
