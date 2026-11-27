@@ -303,45 +303,64 @@
   if(document.body.dataset.yetiAuthRole!=='admin')return;
   const source=getArticle();
   if(!source){setStatus('The SOP document is not available for PDF export.','error');return;}
-  const printWindow=window.open('','_blank');
-  if(!printWindow){setStatus('The PDF export window was blocked. Allow pop-ups for YETI and try again.','error');return;}
   const printable=source.cloneNode(true);
   printable.contentEditable='false';
   printable.classList.remove('is-editing');
   printable.removeAttribute('contenteditable');
   printable.querySelectorAll('[contenteditable]').forEach(node=>node.removeAttribute('contenteditable'));
-  const styles=[...document.querySelectorAll('link[rel="stylesheet"]')].map(link=>'<link rel="stylesheet" href="'+link.href.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'">').join('');
+  const textLength=(printable.innerText||printable.textContent||'').replace(/\\s+/g,' ').trim().length;
+  if(textLength<100){setStatus('PDF export stopped: the SOP content is empty or has not finished loading. Refresh the SOP and try again.','error');return;}
+  const printWindow=window.open('','_blank');
+  if(!printWindow){setStatus('The PDF export window was blocked. Allow pop-ups for YETI and try again.','error');return;}
   const printCss=`
    @page{size:A4 portrait;margin:14mm}
-   html,body{margin:0!important;padding:0!important;background:#fff!important;color:#172536!important}
-   body{font-family:Arial,Helvetica,sans-serif;font-size:10pt;line-height:1.42;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-   .flight-trial-reading-document{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:#fff!important;color:#172536!important}
-   .flight-trial-reading-header{break-after:avoid-page;page-break-after:avoid}
-   .flight-trial-reading-header h2{font-size:22pt!important;text-align:center;margin:5mm 0 2mm!important;color:#123b70!important}
-   .flight-trial-reading-header h3{font-size:14pt!important;text-align:center;margin:0 0 5mm!important;color:#174f7d!important}
-   .flight-trial-reading-meta{display:flex!important;flex-wrap:wrap;gap:3mm 6mm!important;font-size:8pt!important}
-   .flight-trial-reading-section{break-inside:auto;page-break-inside:auto;margin:0 0 5mm!important}
-   .flight-trial-reading-section h3{break-after:avoid-page;page-break-after:avoid;font-size:12pt!important;color:#123b70!important;border-bottom:1px solid #9db4c9;padding-bottom:2mm}
-   .flight-trial-reading-section h4{break-after:avoid-page;page-break-after:avoid;font-size:10pt!important;color:#174f7d!important}
-   .flight-trial-reading-section p,.flight-trial-reading-section li{font-size:9pt!important;line-height:1.4!important}
-   .flight-trial-reading-section ul,.flight-trial-reading-section ol{padding-left:6mm!important}
-   .flight-trial-reading-table-wrap{overflow:visible!important}
-   .flight-trial-reading-section table{width:100%!important;border-collapse:collapse!important;table-layout:auto!important;font-size:8pt!important}
-   .flight-trial-reading-section th,.flight-trial-reading-section td{border:1px solid #8b9aaa!important;padding:2mm!important;vertical-align:top!important;overflow-wrap:anywhere}
+   *{box-sizing:border-box!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+   html,body{display:block!important;visibility:visible!important;width:100%!important;min-height:0!important;margin:0!important;padding:0!important;background:#fff!important;color:#172536!important}
+   body{font-family:Arial,Helvetica,sans-serif;font-size:10pt;line-height:1.42}
+   article.flight-trial-reading-document{display:block!important;visibility:visible!important;width:100%!important;max-width:none!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:#fff!important;color:#172536!important;opacity:1!important;overflow:visible!important}
+   .flight-trial-reading-document *{visibility:visible!important;opacity:1!important}
+   .flight-trial-reading-header{display:block!important;text-align:center!important;padding:0 0 5mm!important;margin:0 0 6mm!important;border-bottom:2px solid #174f7d!important;break-after:avoid-page;page-break-after:avoid}
+   .flight-trial-reading-header .nav-kicker{display:block!important;color:#00647b!important;font-size:8pt!important;font-weight:bold!important;letter-spacing:2px!important}
+   .flight-trial-reading-header h2{display:block!important;font-size:22pt!important;text-align:center!important;margin:2mm 0!important;color:#123b70!important}
+   .flight-trial-reading-header h3{display:block!important;font-size:14pt!important;text-align:center!important;margin:0 0 5mm!important;color:#174f7d!important}
+   .flight-trial-reading-meta{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:0!important;border:1px solid #9eb2c5!important;text-align:left!important}
+   .flight-trial-reading-meta span{display:block!important;padding:2mm!important;border:1px solid #d5e0e9!important;font-size:8pt!important;overflow-wrap:anywhere!important}
+   .flight-trial-reading-meta b{display:block!important;color:#fff!important;background:#123b70!important;margin:-2mm -2mm 1mm!important;padding:1.5mm 2mm!important}
+   .flight-trial-reading-section{display:block!important;visibility:visible!important;margin:0 0 5mm!important;break-inside:auto!important;page-break-inside:auto!important}
+   .flight-trial-reading-section h3{display:block!important;break-after:avoid-page!important;page-break-after:avoid!important;font-size:12pt!important;color:#123b70!important;border-bottom:1px solid #9db4c9!important;padding-bottom:2mm!important}
+   .flight-trial-reading-section h4{display:block!important;break-after:avoid-page!important;page-break-after:avoid!important;font-size:10pt!important;color:#174f7d!important}
+   .flight-trial-reading-section p,.flight-trial-reading-section li{display:list-item;font-size:9pt!important;line-height:1.4!important}
+   .flight-trial-reading-section p{display:block!important}
+   .flight-trial-reading-section ul,.flight-trial-reading-section ol{display:block!important;padding-left:6mm!important}
+   .flight-trial-reading-table-wrap{display:block!important;width:100%!important;overflow:visible!important;border:0!important}
+   .flight-trial-reading-section table{display:table!important;width:100%!important;min-width:0!important;border-collapse:collapse!important;table-layout:fixed!important;font-size:8pt!important}
+   .flight-trial-reading-section thead{display:table-header-group!important}
+   .flight-trial-reading-section tbody{display:table-row-group!important}
+   .flight-trial-reading-section tr{display:table-row!important;break-inside:avoid!important;page-break-inside:avoid!important}
+   .flight-trial-reading-section th,.flight-trial-reading-section td{display:table-cell!important;border:1px solid #8b9aaa!important;padding:2mm!important;vertical-align:top!important;overflow-wrap:anywhere!important}
    .flight-trial-reading-section th{background:#e8f0f7!important;color:#173d60!important}
-   .flight-trial-reading-section tr{break-inside:avoid;page-break-inside:avoid}
-   .flight-trial-reading-note,.flight-trial-reading-warning{break-inside:avoid;page-break-inside:avoid}
+   .flight-trial-reading-note,.flight-trial-reading-warning{display:block!important;break-inside:avoid!important;page-break-inside:avoid!important}
+   .flight-trial-reading-footer{display:block!important;padding-top:3mm!important;border-top:1px solid #dce5ee!important;color:#586b7e!important;font-size:8pt!important}
    a{color:inherit!important;text-decoration:none!important}
   `;
+  const launchPrint=()=>{
+   if(printWindow.closed)return;
+   const bodyText=(printWindow.document.body?.innerText||printWindow.document.body?.textContent||'').replace(/\\s+/g,' ').trim();
+   if(bodyText.length<100){setStatus('PDF export could not render the SOP content. Please refresh the SOP and try again.','error');printWindow.close();return;}
+   const images=[...printWindow.document.images];
+   Promise.all(images.map(img=>img.decode?img.decode().catch(()=>{}):Promise.resolve())).then(()=>{
+    const doPrint=()=>{if(!printWindow.closed){printWindow.focus();printWindow.print();}};
+    if(printWindow.document.fonts?.ready)printWindow.document.fonts.ready.then(doPrint).catch(doPrint);else doPrint();
+   });
+  };
+  printWindow.addEventListener('load',launchPrint,{once:true});
   printWindow.document.open();
-  printWindow.document.write('<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>YETI Flight Trial SOP</title>'+styles+'<style>'+printCss+'</style></head><body>'+printable.outerHTML+'</body></html>');
+  printWindow.document.write('<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>YETI Flight Trial SOP</title><style>'+printCss+'</style></head><body>'+printable.outerHTML+'</body></html>');
   printWindow.document.close();
-  printWindow.addEventListener('load',()=>{
-   const launch=()=>{printWindow.focus();printWindow.print();};
-   if(printWindow.document.fonts&&printWindow.document.fonts.ready)printWindow.document.fonts.ready.then(launch).catch(launch);else launch();
-  },{once:true});
-  printWindow.addEventListener('afterprint',()=>{printWindow.close();},{once:true});
-  setStatus('A4 SOP PDF export opened. Choose “Save as PDF” in the print destination to save the document.','success');
+  // The load listener is registered before writing; this fallback covers browsers
+  // that complete the about:blank document load before dispatching the event.
+  printWindow.setTimeout(()=>{if(printWindow.document.readyState==='complete')launchPrint();},250);
+  setStatus('A4 SOP export is preparing. Choose “Save as PDF” in the print destination to save the document.','success');
  });
  downloadBtn.addEventListener('click',()=>{
   try{preparePublication();}catch(error){setStatus(error.message,'error');}

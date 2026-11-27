@@ -71,7 +71,7 @@ assert.match(editor,/PAGE_SOP_URL=new URL\(FILE_PATH,PAGE_BASE\)\.href/,'Central
 assert.match(editor,/PAGE_STATUS_URL=new URL\(STATUS_PATH,PAGE_BASE\)\.href/,'Publication status is fetched from same-origin GitHub Pages first');
 assert.match(editor,/fetchFreshJson\(PAGE_SOP_URL,RAW_URL/,'Central SOP fetch retains a GitHub raw fallback');
 assert.match(editor,/fetchFreshJson\(PAGE_STATUS_URL,RAW_STATUS_URL/,'Publication status fetch retains a GitHub raw fallback');
-assert.match(serviceWorker,/yeti-flight-trial-shell-v215/,'Service worker cache is versioned for the current production shell');
+assert.match(serviceWorker,/yeti-flight-trial-shell-v216/,'Service worker cache is versioned for the current production shell');
 assert.match(serviceWorker,/data\/sop-publication-status\.json/,'Publication status JSON is included in the offline shell cache');
 assert.match(serviceWorker,/SOP data is always network-first/,'SOP JSON and publication status use network-first service-worker handling');
 assert.match(editor,/String\(publication\.revision\)!==String\(pendingPublicationRevision\)/,'Revision identity is compared as a timestamp ID string');
@@ -79,3 +79,10 @@ assert.match(editor,/window\.location\.reload\(\)/,'YETI reloads automatically a
 
 const flightPreparation=read('js/flight-preparation.js');
 assert.match(flightPreparation,/const refreshChecklistButton=\$\('refreshChecklistBtn'\);if\(refreshChecklistButton\)refreshChecklistButton\.hidden=\!\(daily\|\|loading\)/,'Refresh the Checklist button is visible only on Daily Airworthiness and Loading-Unloading checklist tabs, and hidden on the SOP tab');
+
+assert.match(editor,/const textLength=\(printable\.innerText\|\|printable\.textContent\|\|'\)/,'PDF export checks that the cloned SOP contains real text before opening print');
+assert.match(editor,/article\.flight-trial-reading-document\{display:block!important;visibility:visible!important/,'PDF export forces the SOP article to render visibly in its standalone document');
+assert.match(editor,/const printCss=\`/,'PDF export uses a self-contained inline stylesheet');
+assert.doesNotMatch(editor,/querySelectorAll\('link\\[rel="stylesheet"\\]'\)/,'PDF export does not depend on external app stylesheets');
+assert.match(editor,/printWindow\.addEventListener\('load',launchPrint/,'PDF export registers its load handler before writing the print document');
+assert.match(editor,/bodyText\.length<100/,'PDF export verifies rendered text in the print window before printing');
