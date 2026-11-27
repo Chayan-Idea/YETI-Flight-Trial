@@ -18,6 +18,7 @@
  const tools=document.getElementById('flightTrialSopAdminTools');
  const readBtn=document.getElementById('flightTrialSopReadModeBtn');
  const editBtn=document.getElementById('flightTrialSopEditModeBtn');
+ const exportPdfBtn=document.getElementById('flightTrialSopExportPdfBtn');
  const actions=document.getElementById('flightTrialSopEditActions');
  const saveBtn=document.getElementById('flightTrialSopSaveBtn');
  const cancelBtn=document.getElementById('flightTrialSopCancelBtn');
@@ -297,6 +298,50 @@
   renderDocument(savedHtml);
   setStatus('Editing cancelled. Checking for the latest centrally saved SOP…');
   loadLatest();
+ });
+ exportPdfBtn.addEventListener('click',()=>{
+  if(document.body.dataset.yetiAuthRole!=='admin')return;
+  const source=getArticle();
+  if(!source){setStatus('The SOP document is not available for PDF export.','error');return;}
+  const printWindow=window.open('','_blank');
+  if(!printWindow){setStatus('The PDF export window was blocked. Allow pop-ups for YETI and try again.','error');return;}
+  const printable=source.cloneNode(true);
+  printable.contentEditable='false';
+  printable.classList.remove('is-editing');
+  printable.removeAttribute('contenteditable');
+  printable.querySelectorAll('[contenteditable]').forEach(node=>node.removeAttribute('contenteditable'));
+  const styles=[...document.querySelectorAll('link[rel="stylesheet"]')].map(link=>'<link rel="stylesheet" href="'+link.href.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'">').join('');
+  const printCss=`
+   @page{size:A4 portrait;margin:14mm}
+   html,body{margin:0!important;padding:0!important;background:#fff!important;color:#172536!important}
+   body{font-family:Arial,Helvetica,sans-serif;font-size:10pt;line-height:1.42;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+   .flight-trial-reading-document{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:#fff!important;color:#172536!important}
+   .flight-trial-reading-header{break-after:avoid-page;page-break-after:avoid}
+   .flight-trial-reading-header h2{font-size:22pt!important;text-align:center;margin:5mm 0 2mm!important;color:#123b70!important}
+   .flight-trial-reading-header h3{font-size:14pt!important;text-align:center;margin:0 0 5mm!important;color:#174f7d!important}
+   .flight-trial-reading-meta{display:flex!important;flex-wrap:wrap;gap:3mm 6mm!important;font-size:8pt!important}
+   .flight-trial-reading-section{break-inside:auto;page-break-inside:auto;margin:0 0 5mm!important}
+   .flight-trial-reading-section h3{break-after:avoid-page;page-break-after:avoid;font-size:12pt!important;color:#123b70!important;border-bottom:1px solid #9db4c9;padding-bottom:2mm}
+   .flight-trial-reading-section h4{break-after:avoid-page;page-break-after:avoid;font-size:10pt!important;color:#174f7d!important}
+   .flight-trial-reading-section p,.flight-trial-reading-section li{font-size:9pt!important;line-height:1.4!important}
+   .flight-trial-reading-section ul,.flight-trial-reading-section ol{padding-left:6mm!important}
+   .flight-trial-reading-table-wrap{overflow:visible!important}
+   .flight-trial-reading-section table{width:100%!important;border-collapse:collapse!important;table-layout:auto!important;font-size:8pt!important}
+   .flight-trial-reading-section th,.flight-trial-reading-section td{border:1px solid #8b9aaa!important;padding:2mm!important;vertical-align:top!important;overflow-wrap:anywhere}
+   .flight-trial-reading-section th{background:#e8f0f7!important;color:#173d60!important}
+   .flight-trial-reading-section tr{break-inside:avoid;page-break-inside:avoid}
+   .flight-trial-reading-note,.flight-trial-reading-warning{break-inside:avoid;page-break-inside:avoid}
+   a{color:inherit!important;text-decoration:none!important}
+  `;
+  printWindow.document.open();
+  printWindow.document.write('<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>YETI Flight Trial SOP</title>'+styles+'<style>'+printCss+'</style></head><body>'+printable.outerHTML+'</body></html>');
+  printWindow.document.close();
+  printWindow.addEventListener('load',()=>{
+   const launch=()=>{printWindow.focus();printWindow.print();};
+   if(printWindow.document.fonts&&printWindow.document.fonts.ready)printWindow.document.fonts.ready.then(launch).catch(launch);else launch();
+  },{once:true});
+  printWindow.addEventListener('afterprint',()=>{printWindow.close();},{once:true});
+  setStatus('A4 SOP PDF export opened. Choose “Save as PDF” in the print destination to save the document.','success');
  });
  downloadBtn.addEventListener('click',()=>{
   try{preparePublication();}catch(error){setStatus(error.message,'error');}

@@ -277,3 +277,9 @@ body.pdf-viewer-open{overflow:hidden!important;overscroll-behavior:none}
 #dailyChecklistTabPanel.vv-themed-checklist .subsection .item:focus-within{background:#f0f8f2!important}
 #dailyChecklistTabPanel.vv-themed-checklist .subsection .serial{color:#246a4b!important;background:#e6f4eb!important;border-color:#b9dcc7!important}
 #dailyChecklistTabPanel.vv-themed-checklist .subsection .fields input,#dailyChecklistTabPanel.vv-themed-checklist .subsection .fields select,#dailyChecklistTabPanel.vv-themed-checklist .subsection .fields textarea{background:#fff!important;border-color:#c5ddce!important}
+
+
+/* Admin SOP controls and A4 PDF export launcher. */
+.flight-trial-sop-admin-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 12px}
+.flight-trial-sop-export-btn{margin-left:auto;white-space:nowrap}
+@media(max-width:560px){.flight-trial-sop-admin-topbar{align-items:stretch}.flight-trial-sop-mode-switch{display:flex;flex-wrap:wrap}.flight-trial-sop-export-btn{margin-left:0;width:100%}}
