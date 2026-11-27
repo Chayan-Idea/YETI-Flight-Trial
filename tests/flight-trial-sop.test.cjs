@@ -49,7 +49,7 @@ assert.match(editor,/state==='failed'/,'Failed publication preserves the current
 assert.match(editor,/state==='published'/,'Published status is verified before switching the reader');
 assert.match(editor,/PDFJS_CDNS/,'Shared reader has primary and fallback PDF.js CDNs');
 assert.match(editor,/loadPdfJs/,'Shared reader retries PDF.js loading through an alternate CDN');
-assert.match(editor,/response\\.ok/,'Published PDF response is checked before rendering');
+assert.match(editor,/response\.ok/,'Published PDF response is checked before rendering');
 assert.match(editor,/Reader diagnostic/,'Reader failure exposes useful diagnostics');
 assert.match(editor,/Retry in-page reader/,'Reader provides a retry action');
 assert.match(editor,/pdfjs\.getDocument\(\{data:pdfBytes/,'Published PDF bytes are validated and rendered in-page');
