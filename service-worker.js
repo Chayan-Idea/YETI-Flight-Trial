@@ -1,4 +1,4 @@
-const CACHE='yeti-flight-trial-shell-v204';
+const CACHE='yeti-flight-trial-shell-v205';
 const SHELL=[
  './',
  './index.html',
