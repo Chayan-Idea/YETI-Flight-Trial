@@ -5,7 +5,14 @@
  const REPO='YETI-Flight-Trial';
  const BRANCH='main';
  const FILE_PATH='data/flight-trial-sop.json';
+ const STATUS_PATH='data/sop-publication-status.json';
+ // Prefer the GitHub Pages origin (same-origin, no CORS dependency). Raw GitHub is
+ // retained only as a fallback if the deployed Pages asset is temporarily unavailable.
+ const PAGE_BASE=new URL('./',window.location.href);
+ const PAGE_SOP_URL=new URL(FILE_PATH,PAGE_BASE).href;
+ const PAGE_STATUS_URL=new URL(STATUS_PATH,PAGE_BASE).href;
  const RAW_URL='https://raw.githubusercontent.com/'+OWNER+'/'+REPO+'/'+BRANCH+'/'+FILE_PATH;
+ const RAW_STATUS_URL='https://raw.githubusercontent.com/'+OWNER+'/'+REPO+'/'+BRANCH+'/'+STATUS_PATH;
  const panel=document.getElementById('flightTrialPreparationSopPanel');
  if(!panel)return;
  const tools=document.getElementById('flightTrialSopAdminTools');
@@ -94,10 +101,25 @@
    revisionLabel.textContent='Revision '+currentRevision+' · Last updated: '+updated+' · '+(doc.updatedBy||'YETI Admin');
   }
  }
+ async function fetchFreshJson(primaryUrl,fallbackUrl,label){
+  const failures=[];
+  for(const baseUrl of [primaryUrl,fallbackUrl]){
+   try{
+    const separator=baseUrl.includes('?')?'&':'?';
+    const response=await fetch(baseUrl+separator+'v='+Date.now(),{
+     method:'GET',cache:'no-store',credentials:'same-origin',
+     headers:{'Accept':'application/json','Cache-Control':'no-cache','Pragma':'no-cache'}
+    });
+    if(!response.ok)throw new Error('HTTP '+response.status+' from '+new URL(baseUrl).host);
+    return await response.json();
+   }catch(error){
+    failures.push(error&&error.message?error.message:String(error));
+   }
+  }
+  throw new Error(label+' could not be fetched from GitHub Pages or the GitHub raw fallback. '+failures.join(' | '));
+ }
  async function fetchLatest(){
-  const response=await fetch(RAW_URL+'?v='+Date.now(),{cache:'no-store',credentials:'omit',headers:{'Accept':'application/json','Cache-Control':'no-cache','Pragma':'no-cache'}});
-  if(!response.ok)throw new Error('The latest central SOP could not be loaded (HTTP '+response.status+').');
-  const doc=await response.json();
+  const doc=await fetchFreshJson(PAGE_SOP_URL,RAW_URL,'The latest central SOP');
   if(doc.schemaVersion!==1||typeof doc.html!=='string')throw new Error('The central SOP file has an unsupported format.');
   return doc;
  }
@@ -105,13 +127,13 @@
   if(!pendingPublicationRevision||publicationMonitorBusy||document.visibilityState==='hidden')return;
   publicationMonitorBusy=true;
   try{
-   const statusUrl='https://raw.githubusercontent.com/'+OWNER+'/'+REPO+'/'+BRANCH+'/data/sop-publication-status.json?v='+Date.now();
-   const response=await fetch(statusUrl,{cache:'no-store',credentials:'omit',headers:{'Accept':'application/json','Cache-Control':'no-cache','Pragma':'no-cache'}});
-   if(!response.ok){
-    if(response.status===404){setStatus('Waiting for GitHub to receive the SOP JSON upload and start validation… Status checks repeat every 5 seconds.');return;}
-    throw new Error('SOP publication status could not be read (HTTP '+response.status+'). Retrying in 5 seconds.');
+   let publication;
+   try{
+    publication=await fetchFreshJson(PAGE_STATUS_URL,RAW_STATUS_URL,'The SOP publication status');
+   }catch(error){
+    setStatus(error.message+' Retrying in 5 seconds.','error');
+    return;
    }
-   const publication=await response.json();
    const statusUpdatedAt=Date.parse(publication.updatedAt||'');
    if(publication.schemaVersion!==1||!Number.isFinite(statusUpdatedAt)||!['validating','publishing','published','failed'].includes(publication.state)){
     throw new Error('GitHub returned an invalid SOP publication-status JSON. Retrying in 5 seconds.');
