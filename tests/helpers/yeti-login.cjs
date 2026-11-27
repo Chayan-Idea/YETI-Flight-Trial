@@ -10,7 +10,7 @@ async function loginToYeti(page, role = 'user') {
  const credentials = role === 'admin'
   ? { id: '1297', password: configuredValue(/adminPassword:\s*'([^']+)'/, 'Admin password') }
   : { id: configuredValue(/userId:\s*'([^']+)'/, 'User ID'), password: configuredValue(/userPassword:\s*'([^']+)'/, 'User password') };
- await page.locator('[data-yeti-auth-role="' + role + '"]').click();
+ await page.locator('.yeti-auth-role[data-yeti-auth-role="' + role + '"]').click();
  await page.locator('#yetiAuthUserId').fill(credentials.id);
  await page.locator('#yetiAuthPassword').fill(credentials.password);
  await page.locator('#yetiAuthForm button[type="submit"]').click();
