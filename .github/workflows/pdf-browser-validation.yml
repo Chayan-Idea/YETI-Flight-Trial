@@ -32,7 +32,7 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Test propulsion CSV and Excel worksheet import
         run: node tests/propulsion-excel-import.e2e.cjs
-      - name: Test live PDF preview, signature, photo evidence and export
-        run: node tests/pdf-template-browser.e2e.cjs
       - name: Test application navigation and runtime integrity
         run: node tests/browser-smoke.cjs
+      - name: Test live PDF preview, signature, photo evidence and export
+        run: node tests/pdf-template-browser.e2e.cjs
