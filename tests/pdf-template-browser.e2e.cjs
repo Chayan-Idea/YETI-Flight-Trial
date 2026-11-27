@@ -1,6 +1,5 @@
 const { chromium } = require('playwright');
 const { loginToYeti } = require('./helpers/yeti-login.cjs');
-const { loginToYeti } = require('./helpers/yeti-login.cjs');
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
