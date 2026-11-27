@@ -186,7 +186,7 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
     await page.locator('#photoThumbs textarea[data-photo-remark]').first().fill('Wing root inspection: no visible cracks or deformation.');
     await page.locator('#photoThumbs textarea[data-photo-remark]').first().evaluate(el=>el.dispatchEvent(new Event('change',{bubbles:true})));
 
-    await page.locator('#previewBtn').click();
+    // Daily Airworthiness preview is live-updated from checklist inputs; there is no separate Preview button.
     await page.locator('#previewContent .yeti-pdf-source-page').nth(1).waitFor({state:'attached'});
     // The preview button starts asynchronous PDF.js rendering; wait for the appended evidence page, not merely an earlier source-page canvas.
     await page.locator('#previewContent .yeti-pdf-photo-page').waitFor({state:'attached'});
