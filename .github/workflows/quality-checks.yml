@@ -1,4 +1,4 @@
-name: YETI 2-Minute Quick Quality Check
+name: YETI Engineering Quality Gate
 
 on:
   push:
@@ -38,13 +38,13 @@ permissions:
 
 concurrency:
   group: yeti-quick-quality-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   quick-quality-check:
     name: Quick Quality Check — single job
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 20
     permissions:
       contents: write
     steps:
@@ -112,6 +112,7 @@ jobs:
             echo "::endgroup::"
           }
           run_check "Application structure, assets and JavaScript syntax" node scripts/validate-app.mjs
+          run_check "Production deployment package and size budget" node tests/production-build.test.cjs
           run_check "Login roles, tab sessions and inactivity timeout" node tests/yeti-auth.test.js
           run_check "Central SOP storage and Admin editor" node tests/flight-trial-sop.test.cjs
           run_check "Propulsion calculation unit tests" node tests/propulsion-analysis-engine.test.js
@@ -123,6 +124,20 @@ jobs:
           run_check "PDF intake extractor syntax" python -m py_compile scripts/analyze-pdf-template.py scripts/build-pdf-review-package.py scripts/publish-approved-pdf.py tests/pdf-intake.test.py tests/pdf-template-review-gate.test.py
           run_check "PDF intake extraction and fail-closed tests" python tests/pdf-intake.test.py
           run_check "PDF human-review and exact-cell release gate" python tests/pdf-template-review-gate.test.py
+      - name: Install Playwright browser test runtime
+        run: npm install --no-save --no-package-lock playwright
+      - name: Install Chromium for full regression testing
+        run: npx playwright install --with-deps chromium
+      - name: Run full browser regression suite
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tests/browser-smoke.cjs
+          node tests/flight-preparation.e2e.cjs
+          node tests/propulsion-excel-import.e2e.cjs
+          node tests/propulsion-analyser.e2e.cjs
+          node tests/pdf-template-browser.e2e.cjs
+
           echo "OVERALL: PASS — application integrity, propulsion calculations, module regression, dynamic PDF intake, package generation and PDF signature-mode integrity all passed." >> "$GITHUB_STEP_SUMMARY"
           echo "YETI QUICK QUALITY CHECK PASSED."
       - name: Commit approved PDF version and active pointer
@@ -153,7 +168,9 @@ jobs:
       - name: Check out the quality-checked commit
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.pdf_path != '' && 'main' || github.sha }}
+      - name: Build curated production-only GitHub Pages package
+        run: node scripts/build-site.mjs _site
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
@@ -161,7 +178,7 @@ jobs:
       - name: Package YETI application
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
           name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Deploy production site
