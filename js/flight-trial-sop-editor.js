@@ -91,7 +91,12 @@
  });
  function roleUpdate(){const admin=document.body.dataset.yetiAuthRole==='admin';tools.hidden=!admin;if(!admin){uploadPanel.hidden=true;actions.hidden=true;}}
  new MutationObserver(roleUpdate).observe(document.body,{attributes:true,attributeFilter:['data-yeti-auth-role']});
- roleUpdate();loadPublished();
+ document.addEventListener('yeti:auth-role-changed',roleUpdate);
+ // Re-evaluate after DOM readiness and on window focus to avoid login/script timing races.
+ roleUpdate();
+ document.addEventListener('DOMContentLoaded',roleUpdate,{once:true});
+ window.addEventListener('focus',roleUpdate);
+ loadPublished();
  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){loadPublished();if(pending)poll();}});
  window.addEventListener('focus',()=>{loadPublished();if(pending)poll();});
 })();
