@@ -56,7 +56,7 @@ jobs:
           const revision=stamp+'-'+process.env.GITHUB_RUN_ID;
           const rel='documents/sop/revisions/'+revision+'.pdf';
           fs.mkdirSync(path.dirname(rel),{recursive:true});fs.copyFileSync(src,rel);
-          const info=fs.readFileSync('/tmp/sop-pdfinfo.txt','utf8');const pageMatch=info.match(/^Pages:\\s+(\\d+)/m);if(!pageMatch)throw new Error('Could not determine PDF page count.');const manifest={schemaVersion:2,revision,updatedAt:now.toISOString(),updatedBy:'Admin upload',fileName:'flight-trial-sop.pdf',mimeType:'application/pdf',sizeBytes:b.length,pageCount:Number(pageMatch[1]),sha256:crypto.createHash('sha256').update(b).digest('hex'),pdfUrl:rel};
+          const info=fs.readFileSync('/tmp/sop-pdfinfo.txt','utf8');const pageMatch=info.match(/^Pages:\s+(\d+)/m);if(!pageMatch)throw new Error('Could not determine PDF page count.');const manifest={schemaVersion:2,revision,updatedAt:now.toISOString(),updatedBy:'Admin upload',fileName:'flight-trial-sop.pdf',mimeType:'application/pdf',sizeBytes:b.length,pageCount:Number(pageMatch[1]),sha256:crypto.createHash('sha256').update(b).digest('hex'),pdfUrl:rel};
           fs.writeFileSync('data/flight-trial-sop.json',JSON.stringify(manifest,null,2)+'\n');
           fs.writeFileSync('data/sop-publication-status.json',JSON.stringify({schemaVersion:1,revision,state:'publishing',message:'PDF validation passed. Publishing the immutable revision and updating the shared manifest.',updatedAt:new Date().toISOString(),runId:process.env.GITHUB_RUN_ID},null,2)+'\n');
           fs.rmSync(src);
