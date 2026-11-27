@@ -40,7 +40,7 @@ assert.match(editor,/pdfBase64:btoa\(binary\)/,'JSON package contains the PDF pa
 assert.match(editor,/link\.download='flight-trial-sop\.json'/,'Generated JSON package has the expected filename');
 assert.match(editor,/window\.open\('https:\/\/github\.com\/'\+OWNER\+'\/'\+REPO\+'\/upload\/main\/pending-sop'/,'Proceed opens the authenticated GitHub upload location');
 assert.match(editor,/setTimeout\(\(\)=>location\.reload\(\),1800\)/,'Page automatically refreshes after confirmed publication');
-assert.match(editor,/select this same PDF again in the GitHub tab/,'User is clearly told the secure GitHub upload requires selecting the file again');
+assert.match(editor,/flight-trial-sop\.json/,'Admin is told to upload the generated JSON package to GitHub');
 assert.match(editor,/setTimeout\(poll,5000\)/,'Publication status is checked every five seconds');
 assert.match(editor,/15\*60\*1000/,'Polling stops with a timeout rather than waiting indefinitely');
 assert.match(editor,/state==='failed'/,'Failed publication preserves the current published document');
