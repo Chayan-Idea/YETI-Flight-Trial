@@ -40,12 +40,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          qpdf --check pending-sop/flight-trial-sop.pdf
-          pdfinfo pending-sop/flight-trial-sop.pdf > /tmp/sop-pdfinfo.txt
-          PAGES="$(awk '/^Pages:/ {print $2}' /tmp/sop-pdfinfo.txt)"
-          test "${PAGES:-0}" -gt 0
           node <<'NODE'
-          const fs=require('node:fs'),crypto=require('node:crypto'),path=require('node:path');
+          const fs=require('node:fs'),crypto=require('node:crypto');
           const packagePath='pending-sop/flight-trial-sop.json';
           if(!fs.existsSync(packagePath))throw new Error('Expected pending-sop/flight-trial-sop.json.');
           const pkg=JSON.parse(fs.readFileSync(packagePath,'utf8'));
@@ -53,19 +49,27 @@ jobs:
           const b=Buffer.from(pkg.pdfBase64,'base64');
           if(b.length!==Number(pkg.sizeBytes))throw new Error('Decoded PDF size does not match JSON metadata.');
           if(crypto.createHash('sha256').update(b).digest('hex')!==pkg.sha256)throw new Error('PDF SHA-256 checksum does not match JSON metadata.');
-          const src='pending-sop/flight-trial-sop.pdf';
-          fs.writeFileSync(src,b);
           if(b.length<100||b.length>18*1024*1024)throw new Error('PDF must be between 100 bytes and 18 MB for JSON upload compatibility.');
           if(b.subarray(0,5).toString('ascii')!=='%PDF-')throw new Error('Uploaded file does not have a valid PDF signature.');
           if(!b.includes(Buffer.from('%%EOF')))throw new Error('PDF end-of-file marker is missing; upload may be incomplete.');
+          fs.writeFileSync('pending-sop/flight-trial-sop.pdf',b);
+          NODE
+          qpdf --check pending-sop/flight-trial-sop.pdf
+          pdfinfo pending-sop/flight-trial-sop.pdf > /tmp/sop-pdfinfo.txt
+          PAGES="$(awk '/^Pages:/ {print $2}' /tmp/sop-pdfinfo.txt)"
+          test "${PAGES:-0}" -gt 0
+          node <<'NODE'
+          const fs=require('node:fs'),crypto=require('node:crypto'),path=require('node:path');
+          const pkg=JSON.parse(fs.readFileSync('pending-sop/flight-trial-sop.json','utf8'));
+          const b=fs.readFileSync('pending-sop/flight-trial-sop.pdf');
           const now=new Date(),stamp=now.toISOString().slice(0,19).replace(/[-:T]/g,'').replace(/^(\d{8})(\d{6})$/,'$1-$2');
           const revision=stamp+'-'+process.env.GITHUB_RUN_ID;
           const rel='documents/sop/revisions/'+revision+'.pdf';
-          fs.mkdirSync(path.dirname(rel),{recursive:true});fs.copyFileSync(src,rel);
+          fs.mkdirSync(path.dirname(rel),{recursive:true});fs.copyFileSync('pending-sop/flight-trial-sop.pdf',rel);
           const info=fs.readFileSync('/tmp/sop-pdfinfo.txt','utf8');const pageMatch=info.match(/^Pages:\s+(\d+)/m);if(!pageMatch)throw new Error('Could not determine PDF page count.');const manifest={schemaVersion:2,revision,updatedAt:now.toISOString(),updatedBy:'Admin upload',fileName:'flight-trial-sop.pdf',mimeType:'application/pdf',sizeBytes:b.length,pageCount:Number(pageMatch[1]),sha256:crypto.createHash('sha256').update(b).digest('hex'),sourceSha256:pkg.sha256,pdfUrl:rel};
           fs.writeFileSync('data/flight-trial-sop.json',JSON.stringify(manifest,null,2)+'\n');
           fs.writeFileSync('data/sop-publication-status.json',JSON.stringify({schemaVersion:1,revision,packageSha256:pkg.sha256,state:'publishing',message:'PDF validation passed. Publishing the immutable revision and updating the shared manifest.',updatedAt:new Date().toISOString(),runId:process.env.GITHUB_RUN_ID},null,2)+'\n');
-          fs.rmSync(src);fs.rmSync('pending-sop/flight-trial-sop.json');
+          fs.rmSync('pending-sop/flight-trial-sop.pdf');fs.rmSync('pending-sop/flight-trial-sop.json');
           NODE
           git add documents/sop/revisions data/flight-trial-sop.json data/sop-publication-status.json pending-sop/
           git commit -m "publish: Flight Trial SOP PDF revision"
