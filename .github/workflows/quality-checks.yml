@@ -114,7 +114,7 @@ jobs:
           grep -q 'PDFJS_MODULE' /tmp/yeti-sop-editor.js
           grep -q 'pdfjs.getDocument' /tmp/yeti-sop-editor.js
           grep -q 'yeti-sop-pdf-canvas' /tmp/yeti-sop-reader.css
-          grep -q 'yeti-flight-trial-shell-v226' /tmp/yeti-service-worker.js
+          grep -q 'yeti-flight-trial-shell-v227' /tmp/yeti-service-worker.js
           grep -q 'pdfjs-dist@4.10.38' /tmp/yeti-service-worker.js
           echo "Stage 3 PASS — the standard GitHub Pages deployment is live and serves the PDF.js SOP reader, stylesheet and pinned runtime cache."
           echo "- Live URL: $SITE_URL" >> "$GITHUB_STEP_SUMMARY"

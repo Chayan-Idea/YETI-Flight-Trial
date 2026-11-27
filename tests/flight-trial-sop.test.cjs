@@ -50,8 +50,8 @@ assert.match(editor,/state==='published'/,'Published status is verified before s
 assert.match(editor,/PDFJS_MODULE/,'Shared PDF reading uses the pinned PDF.js module');
 assert.match(editor,/pdfjs\.getDocument\(\{url/,'Published PDF is rendered from the original document in-page');
 assert.match(editor,/yeti-sop-pdf-canvas/,'PDF pages are rendered to in-page canvases, not a browser PDF iframe');
-assert.match(editor,/touchstart/,'SOP reader supports two-finger touch start detection');
-assert.match(editor,/touchmove/,'SOP reader supports touch pinch zoom');
+assert.match(editor,/pointerdown/,'SOP reader supports two-finger touch start detection');
+assert.match(editor,/pointermove/,'SOP reader uses pointer-based pinch tracking');
 assert.match(editor,/touchDistance\(event\.touches\)/,'SOP pinch gesture updates zoom from finger separation');
 assert.match(editor,/Math\.min\(3,/,'SOP reader has a bounded zoom-in limit');
 assert.match(editor,/scroller\?\.clientWidth/,'SOP page rendering is sized from the scroll viewport, not the constrained page host');
@@ -73,7 +73,7 @@ assert.match(workflow,/state:'published'/,'Workflow exposes published status');
 assert.match(workflow,/state:'failed'/,'Workflow exposes failed status');
 assert.match(workflow,/contents: write/,'Workflow has the repository write permission needed for publication');
 
-assert.match(sw,/yeti-flight-trial-shell-v226/,'Service-worker shell cache is versioned for this release');
+assert.match(sw,/yeti-flight-trial-shell-v227/,'Service-worker shell cache is versioned for this release');
 assert.match(sw,/pdfjs-dist@4\.10\.38/,'Pinned PDF.js runtime is cached for repeat and offline reader loads');
 assert.match(sw,/SOP data is always network-first/,'SOP manifest and status use network-first fetching');
 assert.match(sw,/pathname\.endsWith\('\.pdf'\)/,'PDF files are not served from stale shell cache');
