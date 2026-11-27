@@ -1,7 +1,4 @@
-/* Central Flight Trial SOP editor.
- * Public read: raw GitHub content. Admin write: short-lived token entered per save.
- * The GitHub token is never persisted to storage, cookies, DOM attributes or the repository.
- */
+/* Central Flight Trial SOP editor. Publication is prepared locally and completed through an authenticated GitHub Actions workflow. */
 (() => {
  'use strict';
  const OWNER='Chayan-Idea';
@@ -20,9 +17,8 @@
  const cancelBtn=document.getElementById('flightTrialSopCancelBtn');
  const status=document.getElementById('flightTrialSopStatus');
  const tokenPanel=document.getElementById('flightTrialSopTokenPanel');
- const tokenInput=document.getElementById('flightTrialSopGitHubToken');
- const publishBtn=document.getElementById('flightTrialSopPublishBtn');
- const tokenCancelBtn=document.getElementById('flightTrialSopTokenCancelBtn');
+ const downloadBtn=document.getElementById('flightTrialSopDownloadBtn');
+ const githubUploadBtn=document.getElementById('flightTrialSopGithubUploadBtn');
  const revisionLabel=document.getElementById('flightTrialSopRevision');
  let article=panel.querySelector('.flight-trial-reading-document');
  let savedHtml=article?article.outerHTML:'';
@@ -82,7 +78,6 @@
   editBtn.setAttribute('aria-pressed',String(editing));
   actions.hidden=!editing;
   tokenPanel.hidden=true;
-  if(tokenInput)tokenInput.value='';
   if(!editing)setDirty(false);
   if(editing)setStatus('Editing mode is active. Changes are not published until you save them.');
  }
@@ -125,53 +120,19 @@
    return session&&session.role==='admin'&&['1297','1636'].includes(session.userId)?session.userId:'Admin';
   }catch(_){return 'Admin';}
  }
- function encodeBase64Unicode(value){
-  const bytes=new TextEncoder().encode(value);
-  let binary='';
-  for(let i=0;i<bytes.length;i+=0x8000)binary+=String.fromCharCode(...bytes.subarray(i,Math.min(i+0x8000,bytes.length)));
-  return btoa(binary);
- }
- async function publish(){
-  if(document.body.dataset.yetiAuthRole!=='admin')throw new Error('Admin session is required to publish SOP changes.');
-  if(!centralLoaded)throw new Error('The latest central SOP could not be verified. Reload the page before editing or publishing.');
-  const token=tokenInput.value.trim();
-  tokenInput.value='';
-  if(!token)throw new Error('Enter your GitHub fine-grained token to continue.');
+ function preparePublication(){
+  if(document.body.dataset.yetiAuthRole!=='admin')throw new Error('Admin session is required to prepare SOP publication.');
+  if(!centralLoaded)throw new Error('The latest central SOP could not be verified. Reload before preparing publication.');
   const articleNow=getArticle();
   if(!articleNow)throw new Error('SOP editor is unavailable.');
   const cleanHtml=sanitizeHtml(articleNow.outerHTML);
-  const nextDoc={
-   schemaVersion:1,
-   revision:currentRevision+1,
-   updatedAt:new Date().toISOString(),
-   updatedBy:'Admin '+getAdminId(),
-   html:cleanHtml
-  };
-  const headers={
-   'Accept':'application/vnd.github+json',
-   'Authorization':'Bearer '+token,
-   'X-GitHub-Api-Version':'2022-11-28',
-   'Content-Type':'application/json'
-  };
-  const metaResponse=await fetch(API_URL+'?ref='+BRANCH,{method:'GET',headers});
-  if(!metaResponse.ok){
-   if(metaResponse.status===401||metaResponse.status===403)throw new Error('GitHub rejected the token. Check its expiry, repository access and Contents: Read and write permission.');
-   throw new Error('Could not verify the current SOP revision with GitHub (HTTP '+metaResponse.status+').');
-  }
-  const meta=await metaResponse.json();
-  const body={
-   message:'Update Flight Trial SOP — revision '+nextDoc.revision,
-   content:encodeBase64Unicode(JSON.stringify(nextDoc,null,2)),
-   sha:meta.sha,
-   branch:BRANCH
-  };
-  const putResponse=await fetch(API_URL,{method:'PUT',headers,body:JSON.stringify(body)});
-  const result=await putResponse.json().catch(()=>({}));
-  if(putResponse.status===409||putResponse.status===422)throw new Error('The central SOP changed or GitHub rejected this update. Reload the latest SOP before trying again; your current edits have not been published.');
-  if(!putResponse.ok)throw new Error(result.message||('GitHub could not save the SOP (HTTP '+putResponse.status+').'));
-  renderDocument(nextDoc.html);
-  setRevision(nextDoc);
-  setStatus('SOP revision '+nextDoc.revision+' committed successfully to GitHub. It is now the central version for all users.','success');
+  const nextDoc={schemaVersion:1,revision:currentRevision+1,updatedAt:new Date().toISOString(),updatedBy:'Admin '+getAdminId(),html:cleanHtml};
+  const blob=new Blob([JSON.stringify(nextDoc,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement('a');
+  link.href=url;link.download='flight-trial-sop.json';document.body.appendChild(link);link.click();link.remove();
+  window.setTimeout(()=>URL.revokeObjectURL(url),1000);
+  setStatus('SOP publication file downloaded. Upload it to the GitHub pending-sop folder and commit to main. GitHub Actions will validate and publish it automatically.','success');
  }
  readBtn.addEventListener('click',()=>{
   if(dirty&&!window.confirm('Discard your unsaved SOP changes and return to Read View Mode?'))return;
@@ -191,13 +152,7 @@
  saveBtn.addEventListener('click',()=>{
   if(!dirty||loading)return;
   tokenPanel.hidden=false;
-  tokenInput.focus();
-  setStatus('Enter a fine-grained GitHub token to commit this revision.');
- });
- tokenCancelBtn.addEventListener('click',()=>{
-  tokenInput.value='';
-  tokenPanel.hidden=true;
-  setStatus('Save cancelled. Your unsaved edits remain in Edit View Mode.');
+  setStatus('Prepare the updated SOP file, then submit it through the authenticated GitHub repository workflow.');
  });
  cancelBtn.addEventListener('click',()=>{
   if(dirty&&!window.confirm('Discard all unsaved SOP changes?'))return;
@@ -205,34 +160,17 @@
   tokenInput.value='';
   setStatus('Editing cancelled. The last centrally saved SOP has been restored.');
  });
- publishBtn.addEventListener('click',async()=>{
-  if(loading)return;
-  loading=true;
-  publishBtn.disabled=true;
-  saveBtn.disabled=true;
-  publishBtn.textContent='Publishing…';
-  setStatus('Verifying GitHub access and publishing the SOP revision…');
-  try{
-   await publish();
-   tokenPanel.hidden=true;
-   setEditMode(false);
-  }catch(error){
-   setStatus(error.message,'error');
-   tokenPanel.hidden=false;
-  }finally{
-   loading=false;
-   publishBtn.disabled=false;
-   publishBtn.textContent='Confirm & Publish';
-   setDirty(dirty);
-  }
+ downloadBtn.addEventListener('click',()=>{
+  try{preparePublication();}catch(error){setStatus(error.message,'error');}
  });
- tokenInput.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();publishBtn.click();}});
+ githubUploadBtn.addEventListener('click',()=>window.open('https://github.com/'+OWNER+'/'+REPO+'/upload/main/pending-sop','_blank','noopener'));
  window.addEventListener('beforeunload',event=>{
   if(editing&&dirty){event.preventDefault();event.returnValue='';}
  });
  function updateRole(){
   const isAdmin=document.body.dataset.yetiAuthRole==='admin';
   tools.hidden=!isAdmin;
+  if(!isAdmin){tokenPanel.hidden=true;}
   if(!isAdmin&&editing){
    if(dirty)renderDocument(savedHtml);
    setEditMode(false);
