@@ -1,4 +1,4 @@
-const CACHE='yeti-flight-trial-shell-v224';
+const CACHE='yeti-flight-trial-shell-v225';
 const SHELL=[
  './',
  './index.html',
@@ -10,6 +10,7 @@ const SHELL=[
  './css/propulsion-workstation.css',
  './css/yeti-aerospace-visuals.css',
  './css/flight-log-analyzer.css',
+ './css/flight-trial-sop-reader.css',
  './js/daily-airworthiness-template.js',
  './js/daily-airworthiness-pdf-manifest.js',
  './js/pdf-template-manager.js',
@@ -58,6 +59,9 @@ self.addEventListener('fetch',event=>{
    catch(error){if(cached)return cached;throw error;}
   }));
   return;
+ }
+ if(requestUrl.origin==='https://cdn.jsdelivr.net'&&requestUrl.pathname.includes('/pdfjs-dist@4.10.38/build/')){
+  event.respondWith(caches.open(CACHE).then(async cache=>{const cached=await cache.match(req);if(cached)return cached;const response=await fetch(req);if(response.ok)cache.put(req,response.clone()).catch(()=>{});return response;}));return;
  }
  if(requestUrl.origin!==self.location.origin)return;
  const pathname=requestUrl.pathname.toLowerCase();

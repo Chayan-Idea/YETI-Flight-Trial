@@ -19,13 +19,61 @@
    try{const r=await fetch(u+(u.includes('?')?'&':'?')+'v='+Date.now(),{cache:'no-store',headers:{'Cache-Control':'no-cache'}});if(!r.ok)throw Error('HTTP '+r.status);return await r.json();}catch(e){last=e;}
   }throw last||Error('GitHub data unavailable');
  }
- function showPdf(url){
-  let frame=$('flightTrialSopPdfFrame');
-  if(!frame){frame=document.createElement('iframe');frame.id='flightTrialSopPdfFrame';frame.title='Published Flight Trial SOP PDF';frame.style.cssText='display:block;width:100%;height:min(82vh,1100px);min-height:620px;border:1px solid #d6e0ea;border-radius:12px;background:#fff';const host=$('flightTrialSopDocumentHost');host.replaceChildren(frame);}
-  frame.src=url+(url.includes('#')?'&':'#')+'toolbar=1&navpanes=1&view=FitH';
-  frame.hidden=false;
-  if(legacyArticle)legacyArticle.hidden=true;
+ const PDFJS_VERSION='4.10.38';
+ const PDFJS_MODULE='https://cdn.jsdelivr.net/npm/pdfjs-dist@'+PDFJS_VERSION+'/build/pdf.min.mjs';
+ const PDFJS_WORKER='https://cdn.jsdelivr.net/npm/pdfjs-dist@'+PDFJS_VERSION+'/build/pdf.worker.min.mjs';
+ let pdfDocument=null,pdfZoom=1,pdfRenderGeneration=0,pdfViewer=null,pdfPagesHost=null,pdfPageLabel=null,pdfZoomLabel=null,currentPdfPage=1;
+ function makeReaderButton(label,action,aria){const b=document.createElement('button');b.type='button';b.className='btn alt';b.textContent=label;b.setAttribute('aria-label',aria||label);b.addEventListener('click',action);return b;}
+ async function renderPdfPages(){
+  if(!pdfDocument||!pdfPagesHost)return;
+  const generation=++pdfRenderGeneration;pdfPagesHost.replaceChildren();
+  const width=Math.max(280,Math.min(pdfPagesHost.clientWidth-28,1100));
+  for(let n=1;n<=pdfDocument.numPages;n++){
+   if(generation!==pdfRenderGeneration)return;
+   const page=await pdfDocument.getPage(n),base=page.getViewport({scale:1}),scale=(width/base.width)*pdfZoom,viewport=page.getViewport({scale});
+   const card=document.createElement('section');card.className='yeti-sop-pdf-page';card.id='yetiSopPdfPage'+n;
+   const canvas=document.createElement('canvas');canvas.className='yeti-sop-pdf-canvas';canvas.setAttribute('aria-label','SOP page '+n);
+   const ratio=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.ceil(viewport.width*ratio);canvas.height=Math.ceil(viewport.height*ratio);canvas.style.width=viewport.width+'px';
+   card.appendChild(canvas);pdfPagesHost.appendChild(card);
+   const context=canvas.getContext('2d',{alpha:false});context.setTransform(ratio,0,0,ratio,0,0);
+   await page.render({canvasContext:context,viewport}).promise;
+  }
+ }
+ async function showPdf(url){
   publishedPdfUrl=url;
+  if(legacyArticle)legacyArticle.hidden=true;
+  const host=$('flightTrialSopDocumentHost');host.replaceChildren();
+  const viewer=document.createElement('section');viewer.id='flightTrialSopPdfViewer';viewer.className='yeti-sop-pdf-viewer';viewer.setAttribute('aria-label','SOP PDF reading view');
+  const toolbar=document.createElement('div');toolbar.className='yeti-sop-pdf-toolbar';
+  const pageInfo=document.createElement('span');pageInfo.className='yeti-sop-pdf-page-info';pageInfo.textContent='Loading PDF…';
+  const zoomInfo=document.createElement('span');zoomInfo.className='yeti-sop-pdf-zoom-info';zoomInfo.textContent='100%';
+  const previous=makeReaderButton('Previous',()=>navigatePage(-1),'Previous PDF page'),next=makeReaderButton('Next',()=>navigatePage(1),'Next PDF page');
+  const zoomOut=makeReaderButton('−',()=>changeZoom(-0.15),'Zoom out'),zoomIn=makeReaderButton('+',()=>changeZoom(0.15),'Zoom in'),fit=makeReaderButton('Fit width',()=>{pdfZoom=1;zoomInfo.textContent='100%';renderPdfPages().catch(readerError);},'Fit PDF to width');
+  function changeZoom(delta){pdfZoom=Math.max(.65,Math.min(2.2,Math.round((pdfZoom+delta)*100)/100));zoomInfo.textContent=Math.round(pdfZoom*100)+'%';renderPdfPages().catch(readerError);}
+  const download=makeReaderButton('Open original PDF',()=>window.open(publishedPdfUrl,'_blank','noopener,noreferrer'),'Open original PDF in a new tab');
+  function navigatePage(delta){currentPdfPage=Math.max(1,Math.min(pdfDocument?.numPages||1,currentPdfPage+delta));document.getElementById('yetiSopPdfPage'+currentPdfPage)?.scrollIntoView({behavior:'smooth',block:'start'});pageInfo.textContent=currentPdfPage+' / '+(pdfDocument?.numPages||'…')+' pages';}
+
+  toolbar.append(previous,next,pageInfo,zoomOut,zoomInfo,zoomIn,fit,download);
+  const scroller=document.createElement('div');scroller.className='yeti-sop-pdf-scroll';scroller.tabIndex=0;scroller.setAttribute('aria-label','Scrollable SOP PDF pages');
+  pdfPagesHost=document.createElement('div');pdfPagesHost.className='yeti-sop-pdf-pages';scroller.appendChild(pdfPagesHost);
+  viewer.append(toolbar,scroller);host.appendChild(viewer);pdfViewer=viewer;pdfPageLabel=pageInfo;pdfZoomLabel=zoomInfo;
+  try{
+   const pdfjs=await import(PDFJS_MODULE);pdfjs.GlobalWorkerOptions.workerSrc=PDFJS_WORKER;
+   pdfDocument=await pdfjs.getDocument({url,withCredentials:false}).promise;
+   pageInfo.textContent='1 / '+pdfDocument.numPages+' pages';
+   await renderPdfPages();
+   if('IntersectionObserver'in window){
+    const observer=new IntersectionObserver(entries=>{const visible=entries.filter(x=>x.isIntersecting).sort((a,b)=>a.boundingClientRect.top-b.boundingClientRect.top)[0];if(visible){const n=Number(visible.target.id.replace('yetiSopPdfPage',''));pageInfo.textContent=n+' / '+pdfDocument.numPages+' pages';}}, {root:scroller,threshold:.25});
+    pdfPagesHost.querySelectorAll('.yeti-sop-pdf-page').forEach(el=>observer.observe(el));
+   }
+  }catch(error){readerError(error);}
+ }
+ function readerError(error){
+  const host=$('flightTrialSopDocumentHost');const message=document.createElement('div');message.className='yeti-sop-pdf-error';
+  const title=document.createElement('strong');title.textContent='The in-page PDF reader could not load.';
+  const detail=document.createElement('p');detail.textContent='Check your internet connection and reload this page. The published SOP is safe; you can also open the original PDF directly.';
+  const link=document.createElement('a');link.href=publishedPdfUrl;link.target='_blank';link.rel='noopener';link.textContent='Open published SOP PDF';
+  message.append(title,detail,link);host.replaceChildren(message);console.error('YETI SOP PDF.js reader:',error);
  }
  async function loadPublished(){
   try{

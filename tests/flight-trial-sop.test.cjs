@@ -24,7 +24,7 @@ assert.match(html,/id="flightTrialSopPdfInput"/,'Admin must have a PDF reference
 assert.match(html,/id="flightTrialSopProceedBtn"/,'Proceed and Update action must exist');
 assert.match(html,/Proceed and Update in the Webpage/,'Proceed button label must match the approved wording');
 assert.doesNotMatch(html,/flightTrialSopSaveBtn|flightTrialSopCancelBtn|flightTrialSopDownloadBtn|flightTrialSopGithubUploadBtn/,'Old direct-edit, cancel and JSON-download controls must be removed');
-assert.match(html,/flight-trial-sop-editor\.js\?v=20/,'Current SOP script cache version must be loaded');
+assert.match(html,/flight-trial-sop-editor\.js\?v=21/,'Current SOP script cache version must be loaded');
 assert.match(html,/yeti-auth\.js\?v=2/,'Current authentication script cache version must be loaded');
 
 assert.match(editor,/doc\.schemaVersion===2&&doc\.pdfUrl&&doc\.revision/,'Shared reader must load a published PDF manifest');
@@ -46,7 +46,10 @@ assert.match(editor,/setTimeout\(poll,5000\)/,'Publication status is checked eve
 assert.match(editor,/15\*60\*1000/,'Polling stops with a timeout rather than waiting indefinitely');
 assert.match(editor,/state==='failed'/,'Failed publication preserves the current published document');
 assert.match(editor,/state==='published'/,'Published status is verified before switching the reader');
-assert.match(editor,/flightTrialSopPdfFrame/,'Published PDF is displayed in the shared webpage reader');
+assert.match(editor,/PDFJS_MODULE/,'Shared PDF reading uses the pinned PDF.js module');
+assert.match(editor,/pdfjs\.getDocument\(\{url/,'Published PDF is rendered from the original document in-page');
+assert.match(editor,/yeti-sop-pdf-canvas/,'PDF pages are rendered to in-page canvases, not a browser PDF iframe');
+assert.doesNotMatch(editor,/createElement\\('iframe'\\)/,'SOP reader must not rely on the browser or Adobe PDF iframe viewer');
 assert.match(editor,/window\.addEventListener\('focus',roleUpdate\)/,'Admin mode visibility is re-evaluated on window focus');
 assert.doesNotMatch(editor,/contentEditable|Save Changes|Personal Access Token|localStorage/,'No direct HTML editor or browser-stored GitHub credential remains');
 
@@ -63,7 +66,8 @@ assert.match(workflow,/state:'published'/,'Workflow exposes published status');
 assert.match(workflow,/state:'failed'/,'Workflow exposes failed status');
 assert.match(workflow,/contents: write/,'Workflow has the repository write permission needed for publication');
 
-assert.match(sw,/yeti-flight-trial-shell-v224/,'Service-worker shell cache is versioned for this release');
+assert.match(sw,/yeti-flight-trial-shell-v225/,'Service-worker shell cache is versioned for this release');
+assert.match(sw,/pdfjs-dist@4\.10\.38/,'Pinned PDF.js runtime is cached for repeat and offline reader loads');
 assert.match(sw,/SOP data is always network-first/,'SOP manifest and status use network-first fetching');
 assert.match(sw,/pathname\.endsWith\('\.pdf'\)/,'PDF files are not served from stale shell cache');
 assert.match(sw,/flight-trial-sop-editor\.js/,'SOP script remains in the application shell');
