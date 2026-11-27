@@ -22,7 +22,7 @@ assert.ok(publishWorkflow.includes("'pending-sop/flight-trial-sop.json'"),'Publi
 assert.ok(publishWorkflow.includes('contents: write'),'Publishing workflow has repository write permission');
 assert.ok(publishWorkflow.includes('pending.revision !== current.revision + 1'),'Publishing workflow rejects stale SOP revisions');
 assert.doesNotMatch(publishWorkflow,/deploy-pages@v4|upload-pages-artifact|configure-pages@v5/,'SOP publication must not wait for a full GitHub Pages deployment');
-assert.match(editor,/pendingPublicationRevision\?3000:10000/,'SOP polling accelerates while an Admin publication is pending and remains at 10 seconds otherwise');
+assert.match(editor,/},5000\);/,'SOP publication status is polled every five seconds while a publication is pending');
 assert.match(editor,/doc\.revision<=currentRevision/,'SOP refresh avoids replacing the document when its revision has not changed');
 assert.match(editor,/doc\.revision>currentRevision/,'An Admin editing session is notified when a newer central revision is published');
 assert.doesNotMatch(editor,/Personal Access Token|Authorization|localStorage/,'Browser editor must not request or store a GitHub publishing token');
@@ -42,6 +42,6 @@ assert.match(editor,/renderDocument\(doc\.html\)/,'The published central SOP rep
 
 assert.match(editor,/pendingPublicationRevision=nextDoc\.revision/,'Editor tracks the exact SOP revision awaiting publication');
 assert.match(editor,/doc\.revision>=pendingPublicationRevision/,'Editor exits only after the expected published revision is confirmed');
-assert.match(editor,/pendingPublicationRevision\?3000:10000/,'Editor checks every 3 seconds while waiting for publication and every 10 seconds otherwise');
+assert.match(editor,/},5000\);/,'Editor checks publication progress every five seconds');
 assert.match(editor,/window\.addEventListener\('pageshow',loadLatest\)/,'Returning to the YETI page triggers a central SOP check');
 assert.match(editor,/if\(refreshInProgress\)\{refreshRequested=true;return;\}/,'A refresh requested while another is in flight is queued rather than dropped');
