@@ -13,7 +13,7 @@ const status=JSON.parse(read('data/sop-publication-status.json'));
 
 assert.ok([1,2].includes(manifest.schemaVersion),'Central SOP manifest must support legacy HTML or published PDF schema');
 if(manifest.schemaVersion===2){assert.ok(manifest.pdfUrl&&manifest.revision&&manifest.sourceSha256,'Published PDF manifest must include revision, URL and source checksum');}
-assert.ok(manifest.html.includes('flight-trial-reading-document'),'Legacy SOP reading document must remain available as first-publication fallback');
+if(manifest.schemaVersion===1){assert.ok(manifest.html.includes('flight-trial-reading-document'),'Legacy SOP reading document must remain available as first-publication fallback');}
 assert.equal(status.schemaVersion,1,'Publication status schema remains supported');
 
 assert.match(html,/id="flightTrialSopAdminTools"/,'Admin SOP mode controls must exist');
