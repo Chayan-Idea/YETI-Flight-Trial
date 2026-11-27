@@ -159,7 +159,7 @@ const server = http.createServer((req,res)=>{
   const specificCard=specificOption;
   await specificCard.locator('.propulsion-calculated-added-status').waitFor({state:'visible'});
   await specificCard.locator('.propulsion-calculated-retry').waitFor({state:'visible'});
-  const csvSection=step3Card.locator('.propulsion-step-subsection--csv');
+  const csvSection=page.locator('#propulsionPhase4FilteringCard .propulsion-step-subsection--csv');
   await csvSection.getByText('CSV Generation with Filtered & Sorted Data').waitFor();
   await csvSection.locator('#confirmMultiDerivedParametersReady').check();
   await csvSection.locator('#confirmMultiFilteringSortingReady').check();
@@ -180,7 +180,7 @@ const server = http.createServer((req,res)=>{
    if(download.suggestedFilename()!=='run-'+(index===0?'a':'b')+'_filtered_sorted.csv')throw new Error('Generated CSV download filename does not match its source log.');
   }
   // Follow the real Step 03 -> Step 04 -> Step 05 navigation before interacting with hidden controls.
-  const proceedInApp=step3Card.locator('.propulsion-next-step-actions button').filter({hasText:'Proceed with In App Analysis'});
+  const proceedInApp=page.locator('#propulsionPhase4FilteringCard .propulsion-next-step-actions button').filter({hasText:'Proceed with In App Analysis'});
   await proceedInApp.waitFor({state:'visible'});
   await proceedInApp.click();
   const multiSummary=page.locator('#propulsionMultiParameterSummaryCard');
