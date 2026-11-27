@@ -11,7 +11,7 @@
  const $=id=>document.getElementById(id);
  const tools=$('flightTrialSopAdminTools'),sessionLabel=$('yetiSessionRole'),readBtn=$('flightTrialSopReadModeBtn'),editBtn=$('flightTrialSopEditModeBtn'),exportBtn=$('flightTrialSopExportPdfBtn');
  const actions=$('flightTrialSopEditActions'),status=$('flightTrialSopStatus'),uploadPanel=$('flightTrialSopTokenPanel'),fileInput=$('flightTrialSopPdfInput'),proceed=$('flightTrialSopProceedBtn'),cancel=$('flightTrialSopCancelBtn'),revisionLabel=$('flightTrialSopRevision');
- let currentRevision='',publishedPdfUrl='',pollTimer=null,pollBusy=false,pending=false,uploadStartedAt=0,pollStartedAt=0,legacyArticle=panel.querySelector('.flight-trial-reading-document');
+ let currentRevision='',publishedPdfUrl='',pollTimer=null,pollBusy=false,pending=false,uploadStartedAt=0,pollStartedAt=0,pendingRevision='',legacyArticle=panel.querySelector('.flight-trial-reading-document');
  const say=(s,type)=>{status.textContent=s;status.classList.toggle('is-success',type==='success');status.classList.toggle('is-error',type==='error');};
  async function getJson(url){
   let last;
@@ -53,10 +53,10 @@
    if(s.state==='failed'){
     say('PDF publication failed: '+(s.message||'GitHub Actions rejected the document.')+' Your previous published PDF remains available. You can retry.','error');pending=false;proceed.disabled=false;return;
    }
-   if(s.state==='published'&&String(s.revision)!==currentRevision&&Date.parse(s.updatedAt||'')>=uploadStartedAt){
+   if(s.state==='published'&&String(s.revision)!==currentRevision&&String(s.revision)===pendingRevision){
     say('GitHub published the new PDF. Verifying the shared reading copy…');
     const ok=await loadPublished();
-    if(ok&&publishedPdfUrl){pending=false;stopPolling();uploadPanel.hidden=true;actions.hidden=true;readBtn.classList.add('is-active');editBtn.classList.remove('is-active');say('New SOP PDF published and verified. The same revision is now available in Admin and User Reading Mode.','success');return;}
+    if(ok&&publishedPdfUrl){pending=false;stopPolling();uploadPanel.hidden=true;actions.hidden=true;readBtn.classList.add('is-active');editBtn.classList.remove('is-active');say('New SOP PDF published and verified. The webpage will refresh automatically to load the shared revision.','success');setTimeout(()=>location.reload(),1800);return;}
    }
    say('Waiting for the uploaded PDF to be committed to GitHub. Next check in 5 seconds.');
   }catch(e){say('GitHub status check failed: '+e.message+' Retrying in 5 seconds.','error');}
@@ -81,10 +81,22 @@
   const f=fileInput.files&&fileInput.files[0];
   if(!f){say('Select a PDF reference document first.','error');return;}
   if(document.body.dataset.yetiAuthRole!=='admin'){say('Admin login is required.','error');return;}
-  proceed.disabled=true;uploadStartedAt=Date.now();pollStartedAt=Date.now();pending=true;
-  say('GitHub upload opened. For secure GitHub-only publishing, select this same PDF again in the GitHub tab, name it exactly flight-trial-sop.pdf, upload it into pending-sop/ and commit to main. GitHub Actions will validate and publish it; this page checks progress every 5 seconds. Your current published PDF remains active meanwhile.');
-  window.open('https://github.com/'+OWNER+'/'+REPO+'/upload/main/pending-sop','_blank','noopener,noreferrer');
-  poll();
+  proceed.disabled=true;
+  try{
+   const bytes=new Uint8Array(await f.arrayBuffer());
+   const digest=await crypto.subtle.digest('SHA-256',bytes);
+   const sha256=Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,'0')).join('');
+   let binary='';for(let i=0;i<bytes.length;i+=0x8000)binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));
+   const packageDoc={schemaVersion:1,packageType:'yeti-flight-trial-sop-pdf',fileName:'flight-trial-sop.pdf',mimeType:'application/pdf',sizeBytes:bytes.length,sha256,generatedAt:new Date().toISOString(),pdfBase64:btoa(binary)};
+   const blob=new Blob([JSON.stringify(packageDoc,null,2)],{type:'application/json'});
+   if(blob.size>25*1024*1024)throw Error('Generated JSON package exceeds GitHub upload limit. Please use a PDF smaller than approximately 18 MB.');
+   const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='flight-trial-sop.json';link.click();setTimeout(()=>URL.revokeObjectURL(link.href),30000);
+   uploadStartedAt=Date.now();pollStartedAt=Date.now();pending=true;pendingRevision=sha256;
+   say('JSON publication package generated and downloaded. Upload flight-trial-sop.json into the pending-sop folder on GitHub and commit it to main. This page will monitor publication every 5 seconds. The current SOP remains active until the new revision is published.');
+   window.open('https://github.com/'+OWNER+'/'+REPO+'/upload/main/pending-sop','_blank','noopener,noreferrer');
+   poll();
+  }catch(e){proceed.disabled=false;say('Could not generate the JSON publication package: '+e.message,'error');}
+
  });
  
  exportBtn.addEventListener('click',()=>{
