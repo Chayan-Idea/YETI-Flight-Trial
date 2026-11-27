@@ -116,6 +116,7 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
     await page.locator('#flightTrialPreparationSopTab').click();
     const sop = page.locator('#flightTrialPreparationSopPanel');
     await sop.waitFor({state:'visible'});
+    if(await page.locator('#refreshChecklistBtn').isVisible())throw new Error('Refresh the Checklist button must be hidden on the Flight Trial Preparation SOP tab.');
     const sopText = await sop.innerText();
     if (!sopText.includes('STANDARD OPERATING PROCEDURE (SOP)') || !sopText.includes('PURPOSE & SCOPE')) {
       throw new Error('Flight Trial Preparation SOP content is incomplete or not visible.');
@@ -124,6 +125,7 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
     // Daily Airworthiness workflow.
     await page.locator('#dailyTabBtn').click();
     await page.locator('#dailyChecklistTabPanel').waitFor({state:'visible'});
+    if(!(await page.locator('#refreshChecklistBtn').isVisible()))throw new Error('Refresh the Checklist button must be visible on Daily Airworthiness.');
     const firstDailySection = page.locator('#list details.section').first();
     await firstDailySection.waitFor({state:'visible'});
     await firstDailySection.locator('summary').click();
@@ -237,6 +239,7 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
     // Loading-Unloading workflow.
     await page.locator('#loadingTabBtn').click();
     await page.locator('#loadingChecklistSection').waitFor({state:'visible'});
+    if(!(await page.locator('#refreshChecklistBtn').isVisible()))throw new Error('Refresh the Checklist button must be visible on Loading-Unloading.');
     await page.locator('#loadingList .loading-accordion').first().waitFor({state:'visible'});
     await page.locator('#loadingUavNameId').fill('YETI-LOAD-QA');
     await page.locator('#loadingFrom').fill('Origin Test Bay');
