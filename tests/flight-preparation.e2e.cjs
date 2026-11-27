@@ -244,6 +244,30 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
     await page.waitForFunction(()=>document.getElementById('photoStatus')?.textContent.startsWith('0 photo(s) added'));
     if(await page.locator('#photoThumbs img').count()!==0)throw new Error('Daily photo evidence should be cleared on page load by the current privacy/reset policy.');
 
+    // Clearing saved Daily Airworthiness values must remove their PDF overlays, including after reload.
+    await page.locator('#list select[data-id="'+dailyItemId+'"][data-k="status"]').selectOption({value:''});
+    await page.locator('#list input[data-id="'+dailyItemId+'"][data-k="remarks"]').fill('');
+    for(const field of ['cgX','cgY','cgZ'])await page.locator('#list input[data-field="'+field+'"]').fill('');
+    for(const field of ['trialPhase','trialStage','flightPlace','flightDate'])await page.locator('#'+field).fill('');
+    await overallRemarks.fill('');
+    await page.waitForFunction(()=>document.querySelectorAll('#previewContent .yeti-pdf-source-page').length>1);
+    await page.waitForFunction(()=>[...document.querySelectorAll('#previewContent .yeti-pdf-source-page canvas:nth-child(2)')].every(canvas=>{const d=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;for(let i=3;i<d.length;i+=4)if(d[i])return false;return true;}),null,{timeout:20000});
+    await page.reload({waitUntil:'networkidle'});
+    await page.locator('#dailyChecklistTabPanel').waitFor({state:'visible'});
+    await page.locator('#previewContent .yeti-pdf-source-page').nth(1).waitFor({state:'attached'});
+    if(await page.locator('#list select[data-id="'+dailyItemId+'"][data-k="status"]').inputValue()!=='' ||
+       await page.locator('#list input[data-id="'+dailyItemId+'"][data-k="remarks"]').inputValue()!=='' ||
+       await page.locator('#trialPhase').inputValue()!=='')throw new Error('Cleared Daily Airworthiness values returned after a page reload.');
+    await page.waitForFunction(()=>[...document.querySelectorAll('#previewContent .yeti-pdf-source-page canvas:nth-child(2)')].every(canvas=>{const d=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;for(let i=3;i<d.length;i+=4)if(d[i])return false;return true;}),null,{timeout:20000});
+
+    // Refresh the Checklist must invalidate any in-flight PDF render and rebuild a blank preview.
+    page.once('dialog',dialog=>dialog.accept());
+    await page.locator('#refreshChecklistBtn').click();
+    await page.locator('#previewContent .yeti-pdf-source-page').nth(1).waitFor({state:'attached'});
+    await page.waitForFunction(()=>[...document.querySelectorAll('#previewContent .yeti-pdf-source-page canvas:nth-child(2)')].every(canvas=>{const d=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;for(let i=3;i<d.length;i+=4)if(d[i])return false;return true;}),null,{timeout:20000});
+    if(await page.locator('#trialPhase').inputValue()!=='' ||
+       await page.locator('#list select[data-id="'+dailyItemId+'"][data-k="status"]').inputValue()!=='')throw new Error('Refresh the Checklist did not clear the visible checklist and its PDF preview.');
+
     // Loading-Unloading workflow.
     await page.locator('#loadingTabBtn').click();
     await page.locator('#loadingChecklistSection').waitFor({state:'visible'});
