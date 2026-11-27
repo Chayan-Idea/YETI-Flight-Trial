@@ -11,8 +11,9 @@ const workflow=read('.github/workflows/publish-sop.yml');
 const manifest=JSON.parse(read('data/flight-trial-sop.json'));
 const status=JSON.parse(read('data/sop-publication-status.json'));
 
-assert.equal(manifest.schemaVersion,1,'Initial central SOP remains a valid legacy fallback until first PDF publication');
-assert.ok(manifest.html.includes('flight-trial-reading-document'),'Legacy SOP reading document must remain available as first-publication fallback');
+assert.ok([1,2].includes(manifest.schemaVersion),'Central SOP manifest must support legacy HTML or published PDF schema');
+if(manifest.schemaVersion===2){assert.ok(manifest.pdfUrl&&manifest.revision&&manifest.sourceSha256,'Published PDF manifest must include revision, URL and source checksum');}
+if(manifest.schemaVersion===1){assert.ok(manifest.html.includes('flight-trial-reading-document'),'Legacy SOP reading document must remain available as first-publication fallback');}
 assert.equal(status.schemaVersion,1,'Publication status schema remains supported');
 
 assert.match(html,/id="flightTrialSopAdminTools"/,'Admin SOP mode controls must exist');
@@ -23,7 +24,7 @@ assert.match(html,/id="flightTrialSopPdfInput"/,'Admin must have a PDF reference
 assert.match(html,/id="flightTrialSopProceedBtn"/,'Proceed and Update action must exist');
 assert.match(html,/Proceed and Update in the Webpage/,'Proceed button label must match the approved wording');
 assert.doesNotMatch(html,/flightTrialSopSaveBtn|flightTrialSopCancelBtn|flightTrialSopDownloadBtn|flightTrialSopGithubUploadBtn/,'Old direct-edit, cancel and JSON-download controls must be removed');
-assert.match(html,/flight-trial-sop-editor\.js\?v=19/,'Current SOP script cache version must be loaded');
+assert.match(html,/flight-trial-sop-editor\.js\?v=20/,'Current SOP script cache version must be loaded');
 assert.match(html,/yeti-auth\.js\?v=2/,'Current authentication script cache version must be loaded');
 
 assert.match(editor,/doc\.schemaVersion===2&&doc\.pdfUrl&&doc\.revision/,'Shared reader must load a published PDF manifest');
@@ -62,7 +63,7 @@ assert.match(workflow,/state:'published'/,'Workflow exposes published status');
 assert.match(workflow,/state:'failed'/,'Workflow exposes failed status');
 assert.match(workflow,/contents: write/,'Workflow has the repository write permission needed for publication');
 
-assert.match(sw,/yeti-flight-trial-shell-v223/,'Service-worker shell cache is versioned for this release');
+assert.match(sw,/yeti-flight-trial-shell-v224/,'Service-worker shell cache is versioned for this release');
 assert.match(sw,/SOP data is always network-first/,'SOP manifest and status use network-first fetching');
 assert.match(sw,/pathname\.endsWith\('\.pdf'\)/,'PDF files are not served from stale shell cache');
 assert.match(sw,/flight-trial-sop-editor\.js/,'SOP script remains in the application shell');

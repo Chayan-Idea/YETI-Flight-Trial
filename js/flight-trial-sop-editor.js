@@ -32,6 +32,18 @@
    const doc=await getJson(MANIFEST);
    if(doc.schemaVersion===2&&doc.pdfUrl&&doc.revision){
     if(String(doc.revision)!==currentRevision||!publishedPdfUrl){currentRevision=String(doc.revision);publishedSourceSha=String(doc.sourceSha256||'');showPdf(new URL(doc.pdfUrl,BASE).href);if(revisionLabel){revisionLabel.hidden=false;revisionLabel.textContent='Revision '+doc.revision+' · '+(doc.updatedAt?new Date(doc.updatedAt).toLocaleString():'Published')+' · '+(doc.updatedBy||'Admin');}}
+    // Reconcile the visible status with GitHub's authoritative publication state.
+    // A previous failed attempt must not leave a red banner after a later matching
+    // revision has been successfully published.
+    try{
+     const publication=await getJson(STATUS);
+     const isCurrentPublication=publication.state==='published'
+      &&String(publication.packageSha256||'')===String(doc.sourceSha256||'')
+      &&String(publication.revision||'')===String(doc.revision);
+     if(isCurrentPublication&&status.classList.contains('is-error')){
+      say('Published SOP revision verified successfully. The shared PDF is up to date.','success');
+     }
+    }catch(_){/* The manifest remains authoritative for reading when status is temporarily unavailable. */}
     editBtn.disabled=false;return true;
    }
    // Until the first PDF is published, preserve the currently deployed SOP HTML.
