@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "revision": 13,
-  "state": "validating",
-  "message": "GitHub received the SOP JSON upload. Validation is in progress.",
-  "updatedAt": "2026-11-27T10:51:44.319Z",
+  "state": "publishing",
+  "message": "JSON validation succeeded. Publishing the central SOP revision.",
+  "updatedAt": "2026-11-27T10:51:45.782Z",
   "runId": "45985621260"
 }
