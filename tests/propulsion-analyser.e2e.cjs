@@ -124,7 +124,7 @@ const server = http.createServer((req,res)=>{
   if(await page.locator('#confirmAllMultiLogMappingsBtn').isDisabled())throw new Error('Default parameter mapping did not validate for both sample logs.');
   await page.locator('#confirmAllMultiLogMappingsBtn').click();
   await page.locator('#propulsionPhase3AnalysisCard').waitFor({state:'visible'});
-  if(await page.locator('#propulsionPhase3AnalysisCard .propulsion-next-step-actions').count()!==1)throw new Error('Step 03 must render its continuation actions after mapping confirmation.');
+  if(await page.locator('#propulsionPhase3AnalysisCard .propulsion-derived-proceed').count()!==1)throw new Error('Step 03 must render its derived-calculation continuation action after mapping confirmation.');
 
   const step3Card=page.locator('#propulsionPhase3AnalysisCard'),step4Card=page.locator('#propulsionPhase4GraphCard'),step5Card=page.locator('#propulsionPhase4ReportCard');
   await step3Card.waitFor({state:'visible'});
