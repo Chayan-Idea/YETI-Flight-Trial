@@ -12,12 +12,12 @@
  // Ctrl/Cmd + mouse-wheel is the common desktop page-zoom gesture.
  document.addEventListener('wheel',function(e){if(isModifier(e))e.preventDefault();},{capture:true,passive:false});
  // Safari exposes pinch gestures separately from Pointer Events.
- ['gesturestart','gesturechange','gestureend'].forEach(type=>document.addEventListener(type,e=>e.preventDefault(),{capture:true,passive:false}));
- // Block multi-touch page pinch. The PDF preview keeps its own pointer-based zoom.
+ ['gesturestart','gesturechange','gestureend'].forEach(type=>document.addEventListener(type,e=>{const target=e.target;if(!target||!target.closest||(!target.closest('#previewContent')&&!target.closest('#flightTrialSopPdfViewer')))e.preventDefault();},{capture:true,passive:false}));
+ // Block page pinch everywhere except dedicated PDF readers, which implement their own in-document zoom.
  document.addEventListener('touchmove',function(e){
   if(e.touches&&e.touches.length>1){
    const target=e.target;
-   if(!target||!target.closest||!target.closest('#previewContent'))e.preventDefault();
+   if(!target||!target.closest||(!target.closest('#previewContent')&&!target.closest('#flightTrialSopPdfViewer')))e.preventDefault();
   }
  },{capture:true,passive:false});
 })();
