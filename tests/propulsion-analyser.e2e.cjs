@@ -111,12 +111,13 @@ const server = http.createServer((req,res)=>{
   };
   await assertMappingFits('2-log');
   if(await mappingTables.count()!==1)throw new Error('All uploaded logs must be represented in one unified parameter-identification table.');
-  if(await mappingTables.locator('tbody tr').count()!==10)throw new Error('The unified Thrust table should contain all 10 applicable parameter rows exactly once.');
-  if(await mappingTables.locator('thead tr:first-child th').count()!==4)throw new Error('The unified table should show Parameter Group, Parameter and one grouped header per uploaded log.');
+  if(await mappingTables.locator('tbody .propulsion-multi-mapping-parameter').count()!==10)throw new Error('The unified Thrust table should contain all 10 applicable parameter rows exactly once.');
+  if(await mappingTables.locator('thead tr:first-child th').count()!==3)throw new Error('The unified table should show one Parameter header and one grouped header per uploaded log.');
   if(await mappingTables.locator('thead tr:nth-child(2) th').count()!==2)throw new Error('Each uploaded log should have exactly one CSV mapping sub-column and no auto-detection status column.');
-  if(await mappingTables.locator('tbody tr:first-child td, tbody tr:first-child th').count()!==4)throw new Error('The first parameter row should contain one group cell, one parameter cell and one mapping cell per uploaded log.');
-  const groupStructure=await mappingTables.locator('tbody .propulsion-multi-mapping-group').evaluateAll(cells=>({names:cells.map(cell=>cell.textContent.trim()),spans:cells.map(cell=>Number(cell.rowSpan)),rowCount:cells[0]?.closest('tbody')?.rows.length||0}));
-  if(new Set(groupStructure.names).size!==groupStructure.names.length||groupStructure.spans.some(span=>span<2)||groupStructure.spans.reduce((sum,span)=>sum+span,0)!==groupStructure.rowCount)throw new Error('Parameter groups must appear once each and span exactly their associated parameter rows: '+JSON.stringify(groupStructure));
+  const firstParameterRow=mappingTables.locator('tbody .propulsion-multi-mapping-parameter').first().locator('xpath=ancestor::tr');
+  if(await firstParameterRow.locator('td, th').count()!==3)throw new Error('Each parameter row should contain one parameter cell and one mapping cell per uploaded log.');
+  const groupStructure=await mappingTables.locator('tbody .propulsion-mapping-section-heading').evaluateAll(cells=>({names:cells.map(cell=>cell.textContent.trim()),colSpans:cells.map(cell=>Number(cell.colSpan)),rowCount:cells[0]?.closest('tbody')?.rows.length||0}));
+  if(new Set(groupStructure.names).size!==groupStructure.names.length||groupStructure.names.length!==4||groupStructure.colSpans.some(span=>span!==3))throw new Error('Parameter group headers must appear once each and span the parameter and both log columns: '+JSON.stringify(groupStructure));
    if(await mappingTables.locator('.propulsion-multi-mapping-status').count()!==0)throw new Error('Auto-detection status cells must not appear in the unified mapping table.');
   if(await mappingTables.locator('select[data-log-index="0"]').count()!==10||await mappingTables.locator('select[data-log-index="1"]').count()!==10)throw new Error('Every parameter should have an independent CSV mapping selector for each uploaded log.');
   if(await page.locator('.propulsion-multi-log-mapping').count()!==0)throw new Error('Separate vertically stacked per-log mapping cards should not be rendered.');
