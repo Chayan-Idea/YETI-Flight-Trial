@@ -37,12 +37,11 @@
  </div>
  <p class="flight-trial-sop-status" id="flightTrialSopStatus" role="status" aria-live="polite">Latest centrally saved SOP will be loaded for all users.</p>
  <div class="flight-trial-sop-token-panel" id="flightTrialSopTokenPanel" hidden>
-  <label for="flightTrialSopGitHubToken">GitHub Fine-grained Personal Access Token</label>
-  <input id="flightTrialSopGitHubToken" type="password" autocomplete="off" spellcheck="false" placeholder="Paste token with Contents: Read and write">
-  <p>Token is used only for this save attempt. It is not stored in browser storage or in the repository. Restrict it to this repository and Contents permission.</p>
+  <strong>Publish through GitHub Actions</strong>
+  <p>1. Download the updated SOP file. 2. Open the GitHub upload page. 3. Upload <b>flight-trial-sop.json</b> into <b>pending-sop/</b> and commit directly to <b>main</b>. GitHub Actions will validate the file, update the central SOP and remove the pending file automatically.</p>
   <div class="flight-trial-sop-token-actions">
-   <button type="button" class="btn" id="flightTrialSopPublishBtn">Confirm &amp; Publish</button>
-   <button type="button" class="btn alt" id="flightTrialSopTokenCancelBtn">Cancel</button>
+   <button type="button" class="btn" id="flightTrialSopDownloadBtn">Download SOP Publication File</button>
+   <button type="button" class="btn alt" id="flightTrialSopGithubUploadBtn">Open GitHub Upload Page</button>
   </div>
  </div>
  <div class="flight-trial-sop-revision" id="flightTrialSopRevision" hidden></div>
@@ -172,5 +171,5 @@
 <script src="./js/yeti-workbook-import.js?v=1"></script>
 <script src="./js/propulsion-analyser.js?v=228"></script>
 <script src="./js/yeti-auth.js?v=1"></script>
-<script src="./js/flight-trial-sop-editor.js?v=1"></script></body></html>
+<script src="./js/flight-trial-sop-editor.js?v=3"></script></body></html>
 <!-- GitHub Pages redeployment trigger: 2026-11-19 common comparative report type -->
