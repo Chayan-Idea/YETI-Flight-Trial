@@ -86,7 +86,7 @@ function collectJavaScript(directory) {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
     const file = path.join(directory, entry.name);
     if (entry.isDirectory()) return collectJavaScript(file);
-    return /\.(?:js|cjs)$/.test(entry.name) ? [file] : [];
+    return /\.(?:js|mjs|cjs)$/.test(entry.name) ? [file] : [];
   });
 }
 const checkedFiles = new Set(externalScripts.map(reference => reference.split('?')[0].replace(/^\.\//, '')));
