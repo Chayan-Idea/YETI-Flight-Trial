@@ -38,9 +38,6 @@ const server = http.createServer((req, res) => {
     await loginToYeti(page, 'admin');
     await page.locator('#yetiLogoutBtn').click();
     await loginToYeti(page, 'user');
-    await loginToYeti(page, 'admin');
-    await page.locator('#yetiLogoutBtn').click();
-    await loginToYeti(page, 'user');
     if (!response || !response.ok()) throw new Error('Application shell did not return a successful HTTP response.');
     await page.locator('#propulsionAnalyzerTab').waitFor({ state: 'visible' });
     await page.locator('#flightPreparationTab').waitFor({ state: 'visible' });
