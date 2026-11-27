@@ -30,6 +30,7 @@
  let dirty=false;
  let loading=false;
  let editing=false;
+ let centralLoaded=false;
  const allowedTags=new Set(['ARTICLE','HEADER','SECTION','DIV','H2','H3','H4','UL','OL','LI','TABLE','THEAD','TBODY','TR','TH','TD','P','SPAN','B','STRONG','EM','I','U','FOOTER','BR','HR']);
  function setStatus(message,type){
   status.textContent=message;
@@ -102,10 +103,14 @@
   try{
    const doc=await fetchLatest();
    renderDocument(doc.html);
+   centralLoaded=true;
+   editBtn.disabled=false;
    setRevision(doc);
    setStatus('Latest centrally saved SOP loaded successfully. All users see this shared version.','success');
   }catch(error){
-   setStatus(error.message+' The currently published page copy is being shown.','error');
+   centralLoaded=false;
+   editBtn.disabled=true;
+   setStatus(error.message+' The currently published page copy is being shown. Editing is disabled until the central copy can be verified.','error');
   }
  }
  function getAdminId(){
@@ -122,6 +127,7 @@
  }
  async function publish(){
   if(document.body.dataset.yetiAuthRole!=='admin')throw new Error('Admin session is required to publish SOP changes.');
+  if(!centralLoaded)throw new Error('The latest central SOP could not be verified. Reload the page before editing or publishing.');
   const token=tokenInput.value.trim();
   tokenInput.value='';
   if(!token)throw new Error('Enter your GitHub fine-grained token to continue.');
@@ -168,7 +174,7 @@
   setStatus('Read View Mode. No changes are being edited.');
  });
  editBtn.addEventListener('click',()=>{
-  if(document.body.dataset.yetiAuthRole!=='admin')return;
+  if(document.body.dataset.yetiAuthRole!=='admin'||!centralLoaded)return;
   if(!editing)setEditMode(true);
  });
  panel.addEventListener('input',event=>{
