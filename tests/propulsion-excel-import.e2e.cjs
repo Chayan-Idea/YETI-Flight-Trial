@@ -21,7 +21,6 @@ const server=http.createServer((req,res)=>{
   page.on('pageerror',error=>errors.push(error.message));
   await page.goto('http://127.0.0.1:'+server.address().port+'/',{waitUntil:'networkidle',timeout:60000});
   await loginToYeti(page, 'user');
-  await loginToYeti(page, 'user');
   await page.waitForFunction(()=>!!window.XLSX&&!!window.YetiWorkbookImport,{timeout:30000});
   const workbookBase64=await page.evaluate(()=>{
    const wb=XLSX.utils.book_new();
