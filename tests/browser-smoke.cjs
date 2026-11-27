@@ -41,6 +41,7 @@ const server = http.createServer((req, res) => {
     await page.locator('#flightTrialPreparationSopTab').click();
     await page.locator('#flightTrialSopAdminTools').waitFor({ state: 'visible' });
     await page.locator('#flightTrialSopReadModeBtn').waitFor({ state: 'visible' });
+    await page.waitForFunction(() => !document.querySelector('#flightTrialSopEditModeBtn').disabled, { timeout: 5000 });
     await page.locator('#flightTrialSopEditModeBtn').click();
     const sopArticle = page.locator('.flight-trial-reading-document');
     if (await sopArticle.getAttribute('contenteditable') !== 'true') throw new Error('Admin Edit View Mode did not enable SOP editing.');
