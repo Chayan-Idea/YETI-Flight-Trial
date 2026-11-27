@@ -42,7 +42,7 @@ concurrency:
 
 jobs:
   quick-quality-check:
-    name: Quick Quality Check — single job
+    name: Full Engineering Quality Gate — single job
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -99,7 +99,7 @@ jobs:
         run: |
           set -euo pipefail
           echo "## YETI 2-Minute Quick Quality Check" >> "$GITHUB_STEP_SUMMARY"
-          echo "One job; deterministic, dependency-light checks; no separate browser-verification workflow." >> "$GITHUB_STEP_SUMMARY"
+          echo "One gated pipeline: static validation, unit/regression tests, production packaging and real-browser end-to-end checks." >> "$GITHUB_STEP_SUMMARY"
           run_check() {
             label="$1"
             shift
@@ -138,8 +138,8 @@ jobs:
           node tests/propulsion-analyser.e2e.cjs
           node tests/pdf-template-browser.e2e.cjs
 
-          echo "OVERALL: PASS — application integrity, propulsion calculations, module regression, dynamic PDF intake, package generation and PDF signature-mode integrity all passed." >> "$GITHUB_STEP_SUMMARY"
-          echo "YETI QUICK QUALITY CHECK PASSED."
+          echo "OVERALL: PASS — repository integrity, unit/regression tests, production package size and asset validation, PDF intake/release checks, and browser end-to-end tests all passed." >> "$GITHUB_STEP_SUMMARY"
+          echo "YETI ENGINEERING QUALITY GATE PASSED."
       - name: Commit approved PDF version and active pointer
         if: github.event_name == 'workflow_dispatch' && inputs.pdf_path != ''
         run: |
