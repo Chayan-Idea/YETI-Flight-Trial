@@ -125,3 +125,5 @@ jobs:
           echo "- Live URL: $SITE_URL" >> "$GITHUB_STEP_SUMMARY"
 
 # SOP JSON upload validation workflow revision.
+
+# Re-run SOP three-stage validation after JSON upload test alignment.
