@@ -69,3 +69,6 @@ assert.match(serviceWorker,/data\/sop-publication-status\.json/,'Publication sta
 assert.match(serviceWorker,/SOP data is always network-first/,'SOP JSON and publication status use network-first service-worker handling');
 assert.match(editor,/Number\(publication\.revision\)!==Number\(pendingPublicationRevision\)/,'Revision comparison is numeric and robust');
 assert.match(editor,/window\.location\.reload\(\)/,'YETI reloads automatically after publication is verified');
+
+const flightPreparation=read('js/flight-preparation.js');
+assert.match(flightPreparation,/const refreshChecklistButton=\$\('refreshChecklistBtn'\);if\(refreshChecklistButton\)refreshChecklistButton\.hidden=\!\(daily\|\|loading\)/,'Refresh the Checklist button is visible only on Daily Airworthiness and Loading-Unloading checklist tabs, and hidden on the SOP tab');
