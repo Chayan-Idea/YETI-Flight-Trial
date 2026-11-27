@@ -22,12 +22,13 @@
  const PDFJS_VERSION='4.10.38';
  const PDFJS_MODULE='https://cdn.jsdelivr.net/npm/pdfjs-dist@'+PDFJS_VERSION+'/build/pdf.min.mjs';
  const PDFJS_WORKER='https://cdn.jsdelivr.net/npm/pdfjs-dist@'+PDFJS_VERSION+'/build/pdf.worker.min.mjs';
- let pdfDocument=null,pdfZoom=1,pdfRenderGeneration=0,pdfViewer=null,pdfPagesHost=null,pdfPageLabel=null,pdfZoomLabel=null,currentPdfPage=1;
+ let pdfDocument=null,pdfZoom=1,pdfRenderedZoom=1,pdfRenderGeneration=0,pdfViewer=null,pdfPagesHost=null,pdfPageLabel=null,pdfZoomLabel=null,currentPdfPage=1;
  function makeReaderButton(label,action,aria){const b=document.createElement('button');b.type='button';b.className='btn alt';b.textContent=label;b.setAttribute('aria-label',aria||label);b.addEventListener('click',action);return b;}
  async function renderPdfPages(){
   if(!pdfDocument||!pdfPagesHost)return;
-  const generation=++pdfRenderGeneration;pdfPagesHost.replaceChildren();
-  const width=Math.max(280,Math.min(pdfPagesHost.clientWidth-28,1100));
+  const generation=++pdfRenderGeneration,scroller=pdfPagesHost.parentElement,oldTop=scroller?.scrollTop||0,oldLeft=scroller?.scrollLeft||0,oldZoom=pdfRenderedZoom;pdfPagesHost.replaceChildren();
+  const availableWidth=(scroller?.clientWidth||pdfPagesHost.clientWidth)-28;
+  const width=Math.max(280,Math.min(availableWidth,1100));
   for(let n=1;n<=pdfDocument.numPages;n++){
    if(generation!==pdfRenderGeneration)return;
    const page=await pdfDocument.getPage(n),base=page.getViewport({scale:1}),scale=(width/base.width)*pdfZoom,viewport=page.getViewport({scale});
@@ -38,6 +39,7 @@
    const context=canvas.getContext('2d',{alpha:false});context.setTransform(ratio,0,0,ratio,0,0);
    await page.render({canvasContext:context,viewport}).promise;
   }
+  if(generation===pdfRenderGeneration){const ratio=pdfZoom/(oldZoom||1);if(scroller){scroller.scrollTop=oldTop*ratio;scroller.scrollLeft=oldLeft*ratio;}pdfRenderedZoom=pdfZoom;}
  }
  async function showPdf(url){
   publishedPdfUrl=url;
@@ -49,7 +51,7 @@
   const zoomInfo=document.createElement('span');zoomInfo.className='yeti-sop-pdf-zoom-info';zoomInfo.textContent='100%';
   const previous=makeReaderButton('Previous',()=>navigatePage(-1),'Previous PDF page'),next=makeReaderButton('Next',()=>navigatePage(1),'Next PDF page');
   const zoomOut=makeReaderButton('−',()=>changeZoom(-0.15),'Zoom out'),zoomIn=makeReaderButton('+',()=>changeZoom(0.15),'Zoom in'),fit=makeReaderButton('Fit width',()=>{pdfZoom=1;zoomInfo.textContent='100%';renderPdfPages().catch(readerError);},'Fit PDF to width');
-  function changeZoom(delta){pdfZoom=Math.max(.65,Math.min(2.2,Math.round((pdfZoom+delta)*100)/100));zoomInfo.textContent=Math.round(pdfZoom*100)+'%';renderPdfPages().catch(readerError);}
+  function changeZoom(delta){pdfZoom=Math.max(.65,Math.min(3,Math.round((pdfZoom+delta)*100)/100));zoomInfo.textContent=Math.round(pdfZoom*100)+'%';renderPdfPages().catch(readerError);}
   const download=makeReaderButton('Open original PDF',()=>window.open(publishedPdfUrl,'_blank','noopener,noreferrer'),'Open original PDF in a new tab');
   function navigatePage(delta){currentPdfPage=Math.max(1,Math.min(pdfDocument?.numPages||1,currentPdfPage+delta));document.getElementById('yetiSopPdfPage'+currentPdfPage)?.scrollIntoView({behavior:'smooth',block:'start'});pageInfo.textContent=currentPdfPage+' / '+(pdfDocument?.numPages||'…')+' pages';}
 
@@ -57,6 +59,12 @@
   const scroller=document.createElement('div');scroller.className='yeti-sop-pdf-scroll';scroller.tabIndex=0;scroller.setAttribute('aria-label','Scrollable SOP PDF pages');
   pdfPagesHost=document.createElement('div');pdfPagesHost.className='yeti-sop-pdf-pages';scroller.appendChild(pdfPagesHost);
   viewer.append(toolbar,scroller);host.appendChild(viewer);pdfViewer=viewer;pdfPageLabel=pageInfo;pdfZoomLabel=zoomInfo;
+  // Pinch-to-zoom is handled only inside the SOP reader. One-finger vertical scrolling remains native.
+  let pinchStartDistance=0,pinchStartZoom=1,pinchFrame=0;
+  const touchDistance=touches=>{const dx=touches[0].clientX-touches[1].clientX,dy=touches[0].clientY-touches[1].clientY;return Math.hypot(dx,dy);};
+  scroller.addEventListener('touchstart',event=>{if(event.touches.length===2){pinchStartDistance=touchDistance(event.touches);pinchStartZoom=pdfZoom;}},{passive:true});
+  scroller.addEventListener('touchmove',event=>{if(event.touches.length!==2||!pinchStartDistance)return;event.preventDefault();const next=Math.max(.65,Math.min(3,pinchStartZoom*touchDistance(event.touches)/pinchStartDistance));if(Math.abs(next-pdfZoom)<.012)return;pdfZoom=Math.round(next*100)/100;zoomInfo.textContent=Math.round(pdfZoom*100)+'%';if(!pinchFrame)pinchFrame=requestAnimationFrame(()=>{pinchFrame=0;renderPdfPages().catch(readerError);});},{passive:false});
+  const endPinch=event=>{if(event.touches.length<2){pinchStartDistance=0;pinchStartZoom=pdfZoom;}};scroller.addEventListener('touchend',endPinch,{passive:true});scroller.addEventListener('touchcancel',endPinch,{passive:true});
   try{
    const pdfjs=await import(PDFJS_MODULE);pdfjs.GlobalWorkerOptions.workerSrc=PDFJS_WORKER;
    pdfDocument=await pdfjs.getDocument({url,withCredentials:false}).promise;
