@@ -31,6 +31,7 @@
  let loading=false;
  let editing=false;
  let centralLoaded=false;
+ editBtn.disabled=true;
  const allowedTags=new Set(['ARTICLE','HEADER','SECTION','DIV','H2','H3','H4','UL','OL','LI','TABLE','THEAD','TBODY','TR','TH','TD','P','SPAN','B','STRONG','EM','I','U','FOOTER','BR','HR']);
  function setStatus(message,type){
   status.textContent=message;
