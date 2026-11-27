@@ -1,4 +1,5 @@
 const { chromium } = require('playwright');
+const { loginToYeti } = require('./helpers/yeti-login.cjs');
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -27,6 +28,8 @@ const server = http.createServer((req,res)=>{
   page.on('requestfailed',request=>failedRequests.push({url:request.url(),error:request.failure()?.errorText||'request failed'}));
   await page.goto(baseUrl+'/',{waitUntil:'networkidle'});
   checkpoint('application shell loaded');
+  // The propulsion workspace is protected by the same authentication gate as the other modules.
+  await loginToYeti(page,'user');
   // Exercise the single-log workflow first, then validate comparative report UI after multi-log data exists.
 
 
