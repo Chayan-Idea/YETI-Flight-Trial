@@ -371,12 +371,13 @@ const server = http.createServer((req,res)=>{
    const unified=page.locator('.propulsion-multi-mapping-unified');
    await assertMappingFits(count+'-log');
    if(await unified.count()!==1)throw new Error(count+'-log mode must render exactly one unified parameter-identification table.');
-   if(await unified.locator('thead tr:first-child th').count()!==count+2)throw new Error(count+'-log table must contain Parameter Group, Parameter and one grouped header per log.');
+   if(await unified.locator('thead tr:first-child th').count()!==count+1)throw new Error(count+'-log table must contain one Parameter header and one grouped header per log.');
    if(await unified.locator('thead tr:nth-child(2) th').count()!==count)throw new Error(count+'-log table must contain exactly one CSV mapping column per log.');
-   if(await unified.locator('tbody tr').count()!==10)throw new Error(count+'-log Thrust table must contain all 10 applicable parameter rows.');
-   if(await unified.locator('tbody tr:first-child td, tbody tr:first-child th').count()!==count+2)throw new Error(count+'-log first parameter row must contain one group cell, one parameter cell and one mapping cell per log.');
-   const groupStructure=await unified.locator('tbody .propulsion-multi-mapping-group').evaluateAll(cells=>({names:cells.map(cell=>cell.textContent.trim()),spans:cells.map(cell=>Number(cell.rowSpan)),rowCount:cells[0]?.closest('tbody')?.rows.length||0}));
-   if(new Set(groupStructure.names).size!==groupStructure.names.length||groupStructure.spans.some(span=>span<2)||groupStructure.spans.reduce((sum,span)=>sum+span,0)!==groupStructure.rowCount)throw new Error(count+'-log parameter groups must appear once each and span exactly their associated rows: '+JSON.stringify(groupStructure));
+   if(await unified.locator('tbody .propulsion-multi-mapping-parameter').count()!==10)throw new Error(count+'-log Thrust table must contain all 10 applicable parameter rows.');
+   const firstParameterRow=unified.locator('tbody .propulsion-multi-mapping-parameter').first().locator('xpath=ancestor::tr');
+   if(await firstParameterRow.locator('td, th').count()!==count+1)throw new Error(count+'-log parameter row must contain one parameter cell and one mapping cell per log.');
+   const groupStructure=await unified.locator('tbody .propulsion-mapping-section-heading').evaluateAll(cells=>({names:cells.map(cell=>cell.textContent.trim()),colSpans:cells.map(cell=>Number(cell.colSpan))}));
+   if(new Set(groupStructure.names).size!==groupStructure.names.length||groupStructure.names.length!==4||groupStructure.colSpans.some(span=>span!==count+1))throw new Error(count+'-log parameter groups must appear once each and span the parameter and all log columns: '+JSON.stringify(groupStructure));
    for(let index=0;index<count;index++){
     if(await unified.locator('select[data-log-index="'+index+'"]').count()!==10)throw new Error(count+'-log table is missing independent selectors for Log '+(index+1)+'.');
    }
@@ -385,10 +386,10 @@ const server = http.createServer((req,res)=>{
    await page.locator('#confirmAllMultiLogMappingsBtn').click();
    const multiStep3=page.locator('#propulsionPhase3AnalysisCard');await multiStep3.waitFor({state:'visible'});
    if(await multiStep3.locator('.propulsion-phase3-log-card, button:has-text("Apply Data Filtering")').count()!==0)throw new Error(count+'-log mode must not render individual filtering cards or buttons.');
-   await multiStep3.locator('.propulsion-step-subsection--csv').getByText('CSV Generation with Filtered & Sorted Data').waitFor();
-   const step3Actions=multiStep3.locator('.propulsion-next-step-actions');
-   if(await step3Actions.count()!==1)throw new Error(count+'-log Step 03 must contain its continuation action area.');
-   if(await step3Actions.isVisible())throw new Error(count+'-log continuation buttons must remain hidden until CSV generation succeeds.');
+   if(await multiStep3.locator('.propulsion-step-subsection--csv').count()!==0)throw new Error(count+'-log CSV generation must remain in the separate Step 04 Filtering card.');
+   const proceedToFiltering=multiStep3.locator('.propulsion-derived-proceed');
+   if(await proceedToFiltering.count()!==1||!(await proceedToFiltering.isVisible())||!(await proceedToFiltering.isDisabled()))throw new Error(count+'-log Step 03 must show a disabled derived-calculation continuation until required calculations are completed.');
+   if(await multiStep3.locator('.propulsion-next-step-actions').count()!==0)throw new Error(count+'-log in-app continuation actions must not appear before CSV generation succeeds.');
 
   }
   await page.locator('#propulsionAnalyzerTab').click();
