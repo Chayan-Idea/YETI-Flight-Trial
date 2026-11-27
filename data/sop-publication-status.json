@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "revision": 18,
-  "state": "failed",
-  "message": "GitHub Actions could not validate or publish the uploaded SOP JSON. Review this workflow run for details.",
-  "updatedAt": "2026-11-27T13:03:57.234Z",
-  "runId": "46003861586"
+  "state": "validating",
+  "message": "GitHub received the SOP JSON upload. Validation is in progress.",
+  "updatedAt": "2026-11-27T13:06:49.931Z",
+  "runId": "46004273090"
 }
