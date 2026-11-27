@@ -47,6 +47,7 @@ const server = http.createServer((req, res) => {
     await sopArticle.locator('h2').first().evaluate(element => { element.textContent = 'TEMPORARY SOP TEST'; element.dispatchEvent(new Event('input', { bubbles: true })); });
     await page.locator('#flightTrialSopSaveBtn').waitFor({ state: 'visible' });
     if (await page.locator('#flightTrialSopSaveBtn').isDisabled()) throw new Error('SOP Save Changes did not enable after an edit.');
+    page.once('dialog', dialog => dialog.accept());
     await page.locator('#flightTrialSopCancelBtn').click();
     await page.locator('#flightTrialSopEditModeBtn').waitFor({ state: 'visible' });
     if (await sopArticle.locator('h2').first().textContent() !== 'YETI FLIGHT TRIAL') throw new Error('Cancel did not restore the centrally saved SOP content.');
