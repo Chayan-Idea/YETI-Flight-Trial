@@ -1,5 +1,6 @@
 const { chromium } = require('playwright');
 const { loginToYeti } = require('./helpers/yeti-login.cjs');
+const { loginToYeti } = require('./helpers/yeti-login.cjs');
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -35,6 +36,9 @@ const server = http.createServer((req, res) => {
     page.on('requestfailed', request => failedRequests.push({ url: request.url(), error: request.failure()?.errorText || 'request failed' }));
 
     const response = await page.goto(baseUrl + '/', { waitUntil: 'networkidle' });
+    await loginToYeti(page, 'admin');
+    await page.locator('#yetiLogoutBtn').click();
+    await loginToYeti(page, 'user');
     await loginToYeti(page, 'admin');
     await page.locator('#yetiLogoutBtn').click();
     await loginToYeti(page, 'user');
