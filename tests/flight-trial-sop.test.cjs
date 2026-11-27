@@ -35,7 +35,11 @@ assert.match(auth,/yeti:auth-role-changed/,'Authentication must announce role ch
 assert.match(editor,/document\.addEventListener\('yeti:auth-role-changed'/,'SOP controls must respond to authentication changes');
 assert.match(editor,/await f\.slice\(0,5\)\.arrayBuffer\(\)/,'Browser validates the PDF file signature');
 assert.match(editor,/25\*1024\*1024/,'Browser enforces the 25 MB PDF upload limit');
+assert.match(editor,/packageType:'yeti-flight-trial-sop-pdf'/,'Browser generates a structured JSON publication package');
+assert.match(editor,/pdfBase64:btoa\(binary\)/,'JSON package contains the PDF payload');
+assert.match(editor,/link\.download='flight-trial-sop\.json'/,'Generated JSON package has the expected filename');
 assert.match(editor,/window\.open\('https:\/\/github\.com\/'\+OWNER\+'\/'\+REPO\+'\/upload\/main\/pending-sop'/,'Proceed opens the authenticated GitHub upload location');
+assert.match(editor,/setTimeout\(\(\)=>location\.reload\(\),1800\)/,'Page automatically refreshes after confirmed publication');
 assert.match(editor,/select this same PDF again in the GitHub tab/,'User is clearly told the secure GitHub upload requires selecting the file again');
 assert.match(editor,/setTimeout\(poll,5000\)/,'Publication status is checked every five seconds');
 assert.match(editor,/15\*60\*1000/,'Polling stops with a timeout rather than waiting indefinitely');
@@ -45,7 +49,8 @@ assert.match(editor,/flightTrialSopPdfFrame/,'Published PDF is displayed in the 
 assert.match(editor,/window\.addEventListener\('focus',roleUpdate\)/,'Admin mode visibility is re-evaluated on window focus');
 assert.doesNotMatch(editor,/contentEditable|Save Changes|Personal Access Token|localStorage/,'No direct HTML editor or browser-stored GitHub credential remains');
 
-assert.match(workflow,/pending-sop\/flight-trial-sop\.pdf/,'GitHub workflow is triggered by the exact pending PDF path');
+assert.match(workflow,/pending-sop\/flight-trial-sop\.json/,'GitHub workflow is triggered by the generated JSON package path');
+assert.match(workflow,/pdfBase64/,'Workflow extracts the PDF payload from the JSON package');
 assert.match(workflow,/qpdf --check/,'Workflow performs structural PDF validation');
 assert.match(workflow,/pdfinfo pending-sop\/flight-trial-sop\.pdf/,'Workflow inspects the PDF document and page count');
 assert.match(workflow,/pageCount:Number\(pageMatch\[1\]\)/,'Published manifest records PDF page count');
