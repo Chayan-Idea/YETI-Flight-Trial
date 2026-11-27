@@ -1,5 +1,6 @@
 const { chromium } = require('playwright');
 const { loginToYeti } = require('./helpers/yeti-login.cjs');
+const { loginToYeti } = require('./helpers/yeti-login.cjs');
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -25,6 +26,7 @@ const server = http.createServer((req,res)=>{
   page.on('console',m=>{if(m.type()==='error')consoleErrors.push(m.text())});
   page.on('requestfailed',r=>failedRequests.push({url:r.url(),error:r.failure()?.errorText||'failed'}));
   const response=await page.goto('http://127.0.0.1:'+server.address().port+'/',{waitUntil:'networkidle'});
+  await loginToYeti(page, 'user');
   await loginToYeti(page, 'user');
   if(!response?.ok())throw new Error('YETI staging shell failed to load');
   await page.waitForFunction(()=>{const active=window.YETI_ACTIVE_PDF_TEMPLATE;return active&&document.querySelectorAll('#list .item').length===active.validation.checkpointCount},{timeout:15000});
