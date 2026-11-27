@@ -1,4 +1,5 @@
 const { chromium } = require('playwright');
+const { loginToYeti } = require('./helpers/yeti-login.cjs');
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -19,6 +20,7 @@ const server=http.createServer((req,res)=>{
   const page=await browser.newPage();
   page.on('pageerror',error=>errors.push(error.message));
   await page.goto('http://127.0.0.1:'+server.address().port+'/',{waitUntil:'networkidle',timeout:60000});
+  await loginToYeti(page, 'user');
   await page.waitForFunction(()=>!!window.XLSX&&!!window.YetiWorkbookImport,{timeout:30000});
   const workbookBase64=await page.evaluate(()=>{
    const wb=XLSX.utils.book_new();
@@ -57,7 +59,9 @@ const server=http.createServer((req,res)=>{
   await filteredPreview.getByRole('button',{name:'Show CSV Preview'}).waitFor({state:'visible'});
   await filteredPreview.getByRole('button',{name:'Show CSV Preview'}).click();
   if(!(await filteredPreview.innerText()).includes('FILTERED & SORTED CSV PREVIEW'))throw new Error('Single-log filtered CSV preview title was not rendered.');
-  if(await filteredPreview.locator('.propulsion-exact-csv-table tbody tr.propulsion-csv-virtual-row').count()===0)throw new Error('Single-log filtered CSV preview did not render data rows.');
+  const filteredPreviewRows=filteredPreview.locator('.propulsion-exact-csv-table tbody tr.propulsion-csv-virtual-row');
+  await filteredPreviewRows.first().waitFor({state:'attached',timeout:5000});
+  if(await filteredPreviewRows.count()===0)throw new Error('Single-log filtered CSV preview did not render data rows.');
   await page.locator('#resetPropulsionUploadBtn').click();
 
   await page.locator('#propulsionLogCount').selectOption('2');

@@ -1,0 +1,41 @@
+/* The opaque fixed overlay covers the application while preserving background rendering needed by existing previews. */
+#yetiAuthOverlay {
+ position: fixed; inset: 0; z-index: 100000; display: grid; place-items: center;
+ padding: 22px; overflow-y: auto;
+ background: radial-gradient(circle at 15% 10%, #245b91 0, transparent 38%), linear-gradient(135deg,#081d38,#123b70 58%,#1769aa);
+ color: #263747;
+}
+#yetiAuthOverlay[hidden] { display: none !important; }
+.yeti-auth-card {
+ width: min(100%, 470px); padding: clamp(22px,5vw,36px); border: 1px solid #dbe6f0;
+ border-radius: 20px; background: #fff; box-shadow: 0 24px 80px #06162c66;
+}
+.yeti-auth-brand { display:flex; align-items:center; gap:14px; margin-bottom:24px; }
+.yeti-auth-brand img { width:104px; height:auto; object-fit:contain; }
+.yeti-auth-kicker { color:#2878b7; font-size:10px; font-weight:850; letter-spacing:.16em; text-transform:uppercase; }
+.yeti-auth-card h1 { margin:5px 0 4px; color:#123b70; font-size:clamp(23px,5vw,30px); }
+.yeti-auth-intro { margin:0 0 22px; color:#627487; font-size:13px; line-height:1.55; }
+.yeti-auth-roles { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
+.yeti-auth-role { min-height:88px; padding:14px 10px; border:1px solid #cbdbea; border-radius:12px; background:#f7faff; color:#174f7d; font:inherit; cursor:pointer; text-align:left; }
+.yeti-auth-role strong { display:block; margin-bottom:5px; font-size:14px; }
+.yeti-auth-role span { color:#64798e; font-size:11px; }
+.yeti-auth-role.is-selected { border:2px solid #1769aa; background:#eaf4fc; box-shadow:0 0 0 3px #1769aa16; }
+.yeti-auth-form { display:grid; gap:12px; }
+.yeti-auth-form[hidden] { display:none !important; }
+.yeti-auth-form label { display:grid; gap:6px; color:#34516d; font-size:12px; font-weight:750; }
+.yeti-auth-form input { width:100%; min-height:45px; padding:11px 12px; border:1px solid #cbd6e2; border-radius:9px; background:#fff; color:#1d2f40; font:inherit; font-size:14px; }
+.yeti-auth-form input:focus { outline:3px solid #1769aa24; border-color:#1769aa; }
+.yeti-auth-submit { min-height:46px; margin-top:4px; border:0; border-radius:9px; background:linear-gradient(110deg,#123b70,#1769aa); color:#fff; font:inherit; font-weight:800; cursor:pointer; }
+.yeti-auth-error { margin:0; padding:10px 12px; border:1px solid #f0b7b7; border-radius:8px; background:#fff1f1; color:#9d2525; font-size:12px; line-height:1.45; }
+.yeti-auth-error[hidden] { display:none !important; }
+.yeti-auth-footnote { margin:18px 0 0; padding-top:14px; border-top:1px solid #e8eef4; color:#7a8997; font-size:10px; line-height:1.5; }
+#yetiLogoutBtn { flex:0 0 auto; margin-left:0; }
+#yetiSessionRole { align-self:center; color:#d8ecfb; font-size:10px; font-weight:800; letter-spacing:.08em; white-space:nowrap; }
+@media(max-width:520px) {
+ .yeti-auth-card { border-radius:15px; }
+ .yeti-auth-brand img { width:82px; }
+ .yeti-auth-roles { gap:7px; }
+ .yeti-auth-role { padding:11px 8px; }
+ #yetiSessionRole { order:3; width:100%; }
+ #yetiLogoutBtn { margin-left:auto; }
+}
