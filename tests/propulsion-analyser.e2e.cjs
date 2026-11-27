@@ -144,8 +144,8 @@ const server = http.createServer((req,res)=>{
   const sharedElectrical=electricalOption.locator('input[type="checkbox"]');
   const sharedSpecific=specificOption.locator('input[type="checkbox"]');
   await sharedElectrical.check();await sharedSpecific.check();
-  const calculateElectrical=sharedDerivedCards.nth(0).locator('button').filter({hasText:'Calculate and Add to All logs'});
-  const calculateSpecific=sharedDerivedCards.nth(1).locator('button').filter({hasText:'Calculate and Add to All logs'});
+  const calculateElectrical=electricalOption.locator('button').filter({hasText:'Calculate and Add to All logs'});
+  const calculateSpecific=specificOption.locator('button').filter({hasText:'Calculate and Add to All logs'});
   if(await calculateElectrical.isDisabled()||await calculateSpecific.isDisabled())throw new Error('Checking a shared derived parameter must immediately enable its Calculate and Add to All logs action.');
   await calculateElectrical.click();
   const electricalCard=electricalOption;
