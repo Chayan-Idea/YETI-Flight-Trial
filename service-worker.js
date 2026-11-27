@@ -1,4 +1,4 @@
-const CACHE='yeti-flight-trial-shell-v208';
+const CACHE='yeti-flight-trial-shell-v209';
 const SHELL=[
  './',
  './index.html',
@@ -33,6 +33,7 @@ const SHELL=[
  './js/yeti-auth.js',
  './js/flight-trial-sop-editor.js',
  './data/flight-trial-sop.json',
+ './data/sop-publication-status.json',
  './assets/illustrations/propulsion/propeller-outline.svg',
  './assets/illustrations/aerospace/airframe-outline.svg',
  './assets/illustrations/aerospace/flight-control-schematic.svg',
@@ -60,6 +61,20 @@ self.addEventListener('fetch',event=>{
  }
  if(requestUrl.origin!==self.location.origin)return;
  const pathname=requestUrl.pathname.toLowerCase();
+ // SOP data is always network-first so the Admin editor never mistakes an old
+ // offline shell copy for the current central revision. Fall back to the last
+ // cached copy only when the Pages origin is genuinely unreachable.
+ if(pathname.endsWith('/data/flight-trial-sop.json')||pathname.endsWith('/data/sop-publication-status.json')){
+  event.respondWith(fetch(new Request(req,{cache:'no-store'})).then(response=>{
+   if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(new URL(requestUrl.pathname,self.location.origin).href,copy));}
+   return response;
+  }).catch(async()=>{
+   const cached=await caches.match(new URL(requestUrl.pathname,self.location.origin).href);
+   if(cached)return cached;
+   throw new Error('SOP data is unavailable online and no cached copy exists.');
+  }));
+  return;
+ }
  // PDF templates and their manifests are versioned assets: never serve or retain stale copies in the shell cache.
  if(pathname.endsWith('.pdf')||pathname.endsWith('template-package.json')||pathname.includes('/template-candidates/')){
   event.respondWith(fetch(new Request(req,{cache:'no-store'})));
