@@ -58,7 +58,8 @@ assert.match(editor,/contentPoint\(center\.x,center\.y\)/,'SOP pinch anchor acco
 assert.match(editor,/pdfStage\.style\.width=\(pdfBaseWidth\*pdfZoom\)/,'SOP zoom updates the real horizontal scrollable stage width');
 assert.match(editor,/pdfStage\.style\.height=\(pdfBaseHeight\*pdfZoom\)/,'SOP zoom updates the real vertical scrollable stage height');
 assert.match(editor,/pdfPagesHost\.style\.transform='scale\('\+pdfZoom\+'\)'/,'SOP zoom scales the page layer without re-rendering');
-assert.match(editor,/pdfPagesHost\.style\.zoom/,'SOP pinch zoom scales the rendered page layer without re-rendering PDF canvases');
+assert.match(editor,/contentPoint\(center\.x,center\.y\)/,'SOP pinch anchor accounts for viewer borders and padding');
+assert.match(editor,/pdfPagesHost\.style\.transform='scale\('\+pdfZoom\+'\)'/,'SOP pinch zoom scales the rendered page layer without re-rendering PDF canvases');
 assert.match(editor,/renderPixelRatio=3/,'SOP pages are rendered at 3x resolution for smooth zooming');
 assert.match(editor,/Math\.min\(3,/,'SOP reader has a bounded zoom-in limit');
 assert.match(editor,/scroller\?\.clientWidth/,'SOP page rendering is sized from the scroll viewport, not the constrained page host');
