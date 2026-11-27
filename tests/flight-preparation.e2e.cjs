@@ -181,7 +181,8 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
     if (clearedDailyPixels !== 0) throw new Error('Clear Signature did not clear the Daily Airworthiness signature pad.');
 
     await page.locator('#galleryPhotos').setInputFiles({name:'phase3-daily-evidence.png',mimeType:'image/png',buffer:tinyPng});
-    await page.locator('#photoThumbs img').first().waitFor({state:'visible'});
+    await page.waitForFunction(()=>document.getElementById('photoStatus')?.textContent.startsWith('0 photo(s) added'));
+    if(await page.locator('#photoThumbs img').count()!==0)throw new Error('Daily photo evidence should be cleared on page load by the current privacy/reset policy.');
     if (!(await page.locator('#photoStatus').innerText()).includes('1 photo(s) added')) throw new Error('Daily photo evidence was not saved and rendered.');
     await page.locator('#photoThumbs textarea[data-photo-remark]').first().fill('Wing root inspection: no visible cracks or deformation.');
     await page.locator('#photoThumbs textarea[data-photo-remark]').first().evaluate(el=>el.dispatchEvent(new Event('change',{bubbles:true})));
@@ -232,7 +233,7 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
     if (dailyPhotoPages!==1 || !dailyPreviewText.includes('PHOTO EVIDENCE') || !dailyPreviewText.includes('phase3-daily-evidence.png') || !dailyPreviewText.includes('Wing root inspection: no visible cracks or deformation.')) throw new Error('Daily photo evidence is missing from the original-PDF preview. Photo pages: '+dailyPhotoPages+'; preview text: '+dailyPreviewText.slice(-500));
     await exportOriginalPdfDownload(page, '#pdfBtn', 'YETI_PHASE3_DAILY_QA');
 
-    // Verify browser refresh preserves daily answers, metadata and IndexedDB photo evidence.
+    // Daily checklist answers and trial metadata persist; daily photo evidence is deliberately cleared on a fresh page load.
     await page.reload({waitUntil:'networkidle'});
     await page.locator('#dailyChecklistTabPanel').waitFor({state:'visible'});
     if (await page.locator('#trialPhase').inputValue() !== 'Phase 3 UI Assurance' ||
