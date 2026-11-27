@@ -1,10 +1,4 @@
-/* YETI access-gate styles; isolated from workspace styles. */
-body:not(.yeti-authenticated) > header,
-body:not(.yeti-authenticated) > main,
-body:not(.yeti-authenticated) > footer {
- visibility: hidden !important;
- pointer-events: none !important;
-}
+/* The opaque fixed overlay covers the application while preserving background rendering needed by existing previews. */
 #yetiAuthOverlay {
  position: fixed; inset: 0; z-index: 100000; display: grid; place-items: center;
  padding: 22px; overflow-y: auto;
