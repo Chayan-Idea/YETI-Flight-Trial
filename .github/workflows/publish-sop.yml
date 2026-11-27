@@ -120,7 +120,7 @@ jobs:
           node <<'NODE'
           const fs = require('node:fs');
           let revision = null;
-          try { revision = JSON.parse(fs.readFileSync('pending-sop/flight-trial-sop.json', 'utf8')).revision ?? null; } catch (_) {}
+          try { revision = JSON.parse(fs.readFileSync('pending-sop/flight-trial-sop.json', 'utf8')).revision ?? null; } catch (_) { try { revision = JSON.parse(fs.readFileSync('data/flight-trial-sop.json', 'utf8')).revision ?? null; } catch (_) {} }
           fs.writeFileSync('data/sop-publication-status.json', JSON.stringify({
             schemaVersion: 1, revision, state: 'failed',
             message: 'GitHub Actions could not validate or publish the uploaded SOP JSON. Review this workflow run for details.',
