@@ -12,7 +12,7 @@ assert.ok(Number.isInteger(sop.revision) && sop.revision >= 1,'Central SOP revis
 assert.match(sop.html,/<article class="flight-trial-reading-document(?:\s+[^\"]*)?">/,'Central SOP must preserve the existing document wrapper and may include editor-state classes');
 assert.match(sop.html,/<h3>10\. DOCUMENT CONTROL &amp; RELEASE<\/h3>/,'Initial SOP must retain its final document-control section');
 assert.match(index,/flightTrialSopAdminTools/,'Admin SOP controls must be present');
-assert.match(index,/flight-trial-sop-editor\.js\?v=1/,'SOP editor script must be loaded');
+assert.match(index,/flight-trial-sop-editor\\.js\\?v=2/,'SOP editor script must be loaded');
 assert.match(editor,/document\.body\.dataset\.yetiAuthRole==='admin'/,'Editing and publishing must require the Admin role');
 assert.match(editor,/Authorization':'Bearer '\+token/,'GitHub writes must use the token supplied at save time');
 assert.match(editor,/localStorage\.setItem\(TOKEN_STORAGE_KEY,token\)/,'Admin publishing token must be remembered in browser storage after GitHub access is verified');
