@@ -26,12 +26,12 @@
  function makeReaderButton(label,action,aria){const b=document.createElement('button');b.type='button';b.className='btn alt';b.textContent=label;b.setAttribute('aria-label',aria||label);b.addEventListener('click',action);return b;}
  async function renderPdfPages(){
   if(!pdfDocument||!pdfPagesHost)return;
-  const generation=++pdfRenderGeneration,scroller=pdfPagesHost.parentElement;
+  const generation=++pdfRenderGeneration,scroller=pdfStage?.parentElement;
   pdfPagesHost.replaceChildren();pdfPagesHost.style.transform='scale(1)';
   const style=scroller?getComputedStyle(scroller):null;
   const horizontalPadding=style?parseFloat(style.paddingLeft)+parseFloat(style.paddingRight):16;
   const availableWidth=Math.max(280,Math.min((scroller?.clientWidth||pdfPagesHost.clientWidth)-horizontalPadding,1100));
-  const width=availableWidth;
+  const width=availableWidth;pdfBaseWidth=width;pdfStage.style.width=width+'px';pdfPagesHost.style.width=width+'px';
   // Render once at 3x CSS resolution. Pinch gestures then scale the existing
   // page layer directly, avoiding expensive PDF.js re-renders while fingers move.
   const renderPixelRatio=3;
