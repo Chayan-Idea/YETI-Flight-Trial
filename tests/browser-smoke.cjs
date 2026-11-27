@@ -43,21 +43,21 @@ const server = http.createServer((req, res) => {
     await page.locator('#flightTrialSopReadModeBtn').waitFor({ state: 'visible' });
     await page.waitForFunction(() => !document.querySelector('#flightTrialSopEditModeBtn').disabled, { timeout: 5000 });
     await page.locator('#flightTrialSopEditModeBtn').click();
+    await page.locator('#flightTrialSopEditActions').waitFor({ state: 'visible' });
+    await page.locator('#flightTrialSopPdfInput').waitFor({ state: 'visible' });
+    const proceedButton = page.locator('#flightTrialSopProceedBtn');
+    if (!(await proceedButton.isDisabled())) throw new Error('Proceed must remain disabled until a valid PDF is selected.');
     const sopArticle = page.locator('.flight-trial-reading-document');
-    const centrallySavedTitle = await sopArticle.locator('h2').first().textContent();
-    if (await sopArticle.getAttribute('contenteditable') !== 'true') throw new Error('Admin Edit View Mode did not enable SOP editing.');
-    await sopArticle.locator('h2').first().evaluate(element => { element.textContent = 'TEMPORARY SOP TEST'; element.dispatchEvent(new Event('input', { bubbles: true })); });
-    await page.locator('#flightTrialSopSaveBtn').waitFor({ state: 'visible' });
-    if (await page.locator('#flightTrialSopSaveBtn').isDisabled()) throw new Error('SOP Save Changes did not enable after an edit.');
-    page.once('dialog', dialog => dialog.accept());
-    await page.locator('#flightTrialSopCancelBtn').click();
-    await page.locator('#flightTrialSopEditModeBtn').waitFor({ state: 'visible' });
-    if (await sopArticle.locator('h2').first().textContent() !== centrallySavedTitle) throw new Error('Cancel did not restore the centrally saved SOP content.');
+    if (await sopArticle.getAttribute('contenteditable') === 'true') throw new Error('The SOP must no longer support direct webpage text editing.');
+    if (await page.locator('#flightTrialSopSaveBtn').count()) throw new Error('Legacy SOP Save Changes control must be removed.');
+    await page.locator('#flightTrialSopReadModeBtn').click();
+    await page.locator('#flightTrialSopEditActions').waitFor({ state: 'hidden' });
     await page.locator('#yetiLogoutBtn').click();
     await loginToYeti(page, 'user');
     await page.locator('#flightTrialPreparationSopTab').click();
     await page.locator('#flightTrialSopAdminTools').waitFor({ state: 'hidden' });
-    if (await page.locator('.flight-trial-reading-document').getAttribute('contenteditable') === 'true') throw new Error('User Login must remain read-only for the SOP.');
+    if (await page.locator('#flightTrialSopPdfInput').isVisible()) throw new Error('User Login must not access the SOP PDF upload control.');
+
 
     if (!response || !response.ok()) throw new Error('Application shell did not return a successful HTTP response.');
     await page.locator('#propulsionAnalyzerTab').waitFor({ state: 'visible' });
