@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import crypto from 'node:crypto';
+import { spawnSync } from 'node:child_process';
 
 const failures = [];
 const checks = [];
@@ -12,7 +13,12 @@ const fail = message => failures.push(message);
 
 function checkJavaScript(file, source) {
   try {
-    new vm.Script(source, { filename: file });
+    if (file.endsWith('.mjs')) {
+      const result = spawnSync(process.execPath, ['--check', file], { encoding: 'utf8' });
+      if (result.status !== 0) throw new Error((result.stderr || result.stdout || 'Node syntax check failed').trim());
+    } else {
+      new vm.Script(source, { filename: file });
+    }
     pass('JavaScript syntax: ' + file);
   } catch (error) {
     fail('JavaScript syntax: ' + file + ': ' + error.message);
