@@ -10,7 +10,8 @@
   userId: 'idea_YETI',
   userPassword: '000000',
   inactivityMs: 15 * 60 * 1000,
-  sessionKey: 'yetiTabAuthSessionV1'
+  sessionKey: 'yetiTabAuthSessionV1',
+  hardRefreshKey: 'yetiForceLoginAfterHardRefreshV1'
  });
  const overlay = document.getElementById('yetiAuthOverlay');
  const form = document.getElementById('yetiAuthForm');
@@ -116,14 +117,29 @@
   if (session) unlock();
  });
  logoutButton?.addEventListener('click', () => lock('You have been logged out.'));
+ // A hard-refresh shortcut is not exposed as a distinct navigation type by browsers.
+ // Mark the current tab before the browser reloads, then consume that marker on startup.
+ document.addEventListener('keydown', event => {
+  const isHardRefresh = event.ctrlKey && event.shiftKey && (event.key === 'R' || event.key === 'r');
+  if (isHardRefresh) {
+   try { sessionStorage.setItem(CONFIG.hardRefreshKey, '1'); } catch (_) {}
+  }
+ }, true);
  ['pointerdown', 'keydown', 'click', 'scroll', 'touchstart', 'wheel'].forEach(type => {
   document.addEventListener(type, recordActivity, { passive: true, capture: true });
  });
  document.addEventListener('visibilitychange', checkInactivity);
  window.addEventListener('pageshow', checkInactivity);
 
+ let hardRefreshRequested = false;
+ try {
+  hardRefreshRequested = sessionStorage.getItem(CONFIG.hardRefreshKey) === '1';
+  sessionStorage.removeItem(CONFIG.hardRefreshKey);
+ } catch (_) {}
  const existing = readSession();
- if (existing && Date.now() - existing.lastActivity < CONFIG.inactivityMs) {
+ if (hardRefreshRequested) {
+  lock('Hard refresh detected. Please sign in again.');
+ } else if (existing && Date.now() - existing.lastActivity < CONFIG.inactivityMs) {
   session = existing;
   unlock();
  } else {
