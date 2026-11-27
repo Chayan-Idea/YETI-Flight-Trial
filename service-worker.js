@@ -60,7 +60,10 @@ self.addEventListener('fetch',event=>{
   }));
   return;
  }
- if(requestUrl.origin==='https://cdn.jsdelivr.net'&&requestUrl.pathname.includes('/pdfjs-dist@4.10.38/build/')){\n  event.respondWith(caches.open(CACHE).then(async cache=>{const cached=await cache.match(req);if(cached)return cached;const response=await fetch(req);if(response.ok)cache.put(req,response.clone()).catch(()=>{});return response;}));return;\n }\n if(requestUrl.origin!==self.location.origin)return;
+ if(requestUrl.origin==='https://cdn.jsdelivr.net'&&requestUrl.pathname.includes('/pdfjs-dist@4.10.38/build/')){
+  event.respondWith(caches.open(CACHE).then(async cache=>{const cached=await cache.match(req);if(cached)return cached;const response=await fetch(req);if(response.ok)cache.put(req,response.clone()).catch(()=>{});return response;}));return;
+ }
+ if(requestUrl.origin!==self.location.origin)return;
  const pathname=requestUrl.pathname.toLowerCase();
  // SOP data is always network-first so the Admin editor never mistakes an old
  // offline shell copy for the current central revision. Fall back to the last
