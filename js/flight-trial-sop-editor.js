@@ -111,8 +111,13 @@
     throw new Error('SOP publication status could not be read (HTTP '+response.status+'). Retrying in 5 seconds.');
    }
    const publication=await response.json();
-   if(publication.schemaVersion!==1||publication.revision!==pendingPublicationRevision){
+   const statusUpdatedAt=Date.parse(publication.updatedAt||'');
+   if(publication.schemaVersion!==1||!Number.isFinite(statusUpdatedAt)||statusUpdatedAt<pendingPublicationStartedAt-60000){
     setStatus('Waiting for the uploaded SOP JSON for Revision '+pendingPublicationRevision+' to be detected by GitHub…');
+    return;
+   }
+   if(publication.state!=='failed'&&publication.revision!==pendingPublicationRevision){
+    setStatus('Waiting for GitHub to process the uploaded SOP JSON for Revision '+pendingPublicationRevision+'…');
     return;
    }
    if(publication.state==='validating'){
