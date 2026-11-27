@@ -52,6 +52,8 @@
  }
  function lock(message) {
   session = null;
+  document.body.dataset.yetiAuthRole = '';
+  document.dispatchEvent(new CustomEvent('yeti:auth-role-changed', { detail: { role: '' } }));
   try { sessionStorage.removeItem(CONFIG.sessionKey); } catch (_) {}
   if (timer !== null) window.clearInterval(timer);
   timer = null;
@@ -63,6 +65,7 @@
   setAppLocked(false);
   if (sessionLabel) sessionLabel.textContent = session.role === 'admin' ? 'ADMIN SESSION' : 'USER SESSION';
   document.body.dataset.yetiAuthRole = session.role;
+  document.dispatchEvent(new CustomEvent('yeti:auth-role-changed', { detail: { role: session.role } }));
   if (error) { error.hidden = true; error.textContent = ''; }
   if (timer !== null) window.clearInterval(timer);
   timer = window.setInterval(checkInactivity, 1000);
