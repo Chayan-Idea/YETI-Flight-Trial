@@ -15,7 +15,7 @@ assert.match(sop.html,/<h3>10\. DOCUMENT CONTROL &amp; RELEASE<\/h3>/,'Initial S
 assert.match(index,/flightTrialSopAdminTools/,'Admin SOP controls must be present');
 assert.match(index,/id="flightTrialSopExportPdfBtn">Export as PDF/,'Admin SOP section includes the Export as PDF control');
 assert.match(index,/flight-trial-sop-admin-topbar/,'SOP admin controls use the top action row');
-assert.match(index,/flight-trial-sop-editor\\.js\\?v=14/,'SOP editor script must be loaded');
+assert.match(index,/flight-trial-sop-editor\.js\?v=14/,'SOP editor script must be loaded');
 assert.match(editor,/document\.body\.dataset\.yetiAuthRole==='admin'/,'Editing and publishing must require the Admin role');
 assert.match(editor,/flightTrialSopDownloadBtn/,'Admin can download the prepared SOP publication file');
 assert.match(editor,/exportPdfBtn\.addEventListener\('click'/,'Admin PDF export button is wired');
