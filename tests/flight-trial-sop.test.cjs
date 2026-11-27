@@ -18,7 +18,7 @@ assert.match(index,/flight-trial-sop-admin-topbar/,'SOP admin controls use the t
 assert.match(index,/flight-trial-sop-editor\.js\?v=13/,'SOP editor script must be loaded');
 assert.match(editor,/document\.body\.dataset\.yetiAuthRole==='admin'/,'Editing and publishing must require the Admin role');
 assert.match(editor,/flightTrialSopDownloadBtn/,'Admin can download the prepared SOP publication file');
-assert.match(editor,/flightTrialSopExportPdfBtn\.addEventListener\('click'/,'Admin PDF export button is wired');
+assert.match(editor,/exportPdfBtn\.addEventListener\('click'/,'Admin PDF export button is wired');
 assert.match(editor,/size:A4 portrait/,'SOP PDF export uses A4 portrait page sizing');
 assert.match(editor,/printable\.outerHTML/,'PDF export contains the complete SOP article clone');
 assert.match(editor,/Choose “Save as PDF”/,'PDF export guides Admin to save the print output as PDF');
