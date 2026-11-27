@@ -11,7 +11,7 @@ assert.match(html, /data-yeti-auth-role="admin"/, 'Admin login choice must be pr
 assert.match(html, /data-yeti-auth-role="user"/, 'User login choice must be present');
 assert.match(html, /id="yetiLogoutBtn"/, 'logout control must be present');
 assert.match(html, /yeti-auth\.css\?v=1/, 'auth stylesheet must be versioned and loaded');
-assert.match(html, /yeti-auth\.js\?v=1/, 'auth script must be versioned and loaded');
+assert.match(html, /yeti-auth\\.js\\?v=2/, 'auth script must be versioned and loaded');
 assert.match(js, /adminIds:\s*\['1297',\s*'1636'\]/, 'both Admin IDs must be configured');
 assert.match(js, /adminPassword:\s*'12971636'/, 'shared Admin password must be configured');
 assert.match(js, /userId:\s*'idea_YETI'/, 'User ID must be configured');
