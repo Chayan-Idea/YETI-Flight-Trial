@@ -142,6 +142,11 @@
   const note=document.createElement('p');note.textContent='Signature record appended because this PDF has no reviewed signature-cell mapping.';note.style.cssText='font-size:10px;text-align:center;color:#555;margin:3% 0 0';
   page.append(title,slot,note);container.appendChild(page);
  }
+ function invalidatePreview(container,message='Updating PDF preview…'){
+  previewRevision++;
+  if(container){const status=document.createElement('div');status.className='yeti-pdf-preview-status';status.setAttribute('role','status');status.textContent=message;container.replaceChildren(status)}
+  return previewRevision;
+ }
  async function renderPreview(container,candidate,manifest,signature,photos,answers={},trialInfo={}){
   const revision=++previewRevision;bindTouchZoom(container);const [pdfjs]=await libraries();if(revision!==previewRevision)return;const stage=document.createElement('div');stage.className='yeti-pdf-preview-stage';
   const pdf=await pdfjs.getDocument({data:candidate.pdfBytes.slice(0)}).promise;
@@ -213,5 +218,5 @@
   }
   return await doc.save();
  }
- root.YETI_PDF_OVERLAY_RENDERER=Object.freeze({libraries,renderPreview,exportPdf,safePhotos,setPreviewZoom,getPreviewZoom});
+ root.YETI_PDF_OVERLAY_RENDERER=Object.freeze({libraries,renderPreview,invalidatePreview,exportPdf,safePhotos,setPreviewZoom,getPreviewZoom});
 })(window);
