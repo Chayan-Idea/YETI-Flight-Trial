@@ -80,7 +80,7 @@ assert.match(editor,/window\.location\.reload\(\)/,'YETI reloads automatically a
 const flightPreparation=read('js/flight-preparation.js');
 assert.match(flightPreparation,/const refreshChecklistButton=\$\('refreshChecklistBtn'\);if\(refreshChecklistButton\)refreshChecklistButton\.hidden=\!\(daily\|\|loading\)/,'Refresh the Checklist button is visible only on Daily Airworthiness and Loading-Unloading checklist tabs, and hidden on the SOP tab');
 
-assert.match(editor,/const textLength=\(printable\.innerText\|\|printable\.textContent\|\|'\)/,'PDF export checks that the cloned SOP contains real text before opening print');
+assert.match(editor,/const bodyText=\(printWindow\.document\.body\?\.innerText\|\|printWindow\.document\.body\?\.textContent\|\|''\)\.replace\(/,'PDF export checks that the cloned SOP contains real text before opening print');
 assert.match(editor,/article\.flight-trial-reading-document\{display:block!important;visibility:visible!important/,'PDF export forces the SOP article to render visibly in its standalone document');
 assert.match(editor,/const printCss=\`/,'PDF export uses a self-contained inline stylesheet');
 assert.doesNotMatch(editor,/querySelectorAll\('link\\[rel="stylesheet"\\]'\)/,'PDF export does not depend on external app stylesheets');
