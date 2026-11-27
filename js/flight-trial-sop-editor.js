@@ -287,10 +287,11 @@
  loadLatest();
  // Keep already-open read sessions synchronized with central edits without disturbing an active Admin edit.
  window.setInterval(()=>{
-  if(document.visibilityState!=='visible')return;
-  if(pendingPublicationRevision){pollPublicationStatus();loadLatest();}
-  else loadLatest();
- },pendingPublicationRevision?5000:10000);
+  if(document.visibilityState==='visible'&&pendingPublicationRevision){pollPublicationStatus();loadLatest();}
+ },5000);
+ window.setInterval(()=>{
+  if(document.visibilityState==='visible'&&!pendingPublicationRevision)loadLatest();
+ },10000);
  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){loadLatest();pollPublicationStatus();}});
  window.addEventListener('focus',()=>{loadLatest();pollPublicationStatus();});
  window.addEventListener('pageshow',()=>{loadLatest();pollPublicationStatus();});
