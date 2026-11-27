@@ -112,6 +112,7 @@ jobs:
             echo "::endgroup::"
           }
           run_check "Application structure, assets and JavaScript syntax" node scripts/validate-app.mjs
+          run_check "Login roles, tab sessions and inactivity timeout" node tests/yeti-auth.test.js
           run_check "Propulsion calculation unit tests" node tests/propulsion-analysis-engine.test.js
           run_check "Workbook import tests" node tests/yeti-workbook-import.test.js
           run_check "Percentage comparative analysis unit tests" node tests/propulsion-percent-comparison.test.js
