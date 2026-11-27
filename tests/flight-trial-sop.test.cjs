@@ -28,7 +28,7 @@ assert.match(editor,/doc\.revision>currentRevision/,'An Admin editing session is
 assert.doesNotMatch(editor,/Personal Access Token|Authorization|localStorage/,'Browser editor must not request or store a GitHub publishing token');
 assert.match(editor,/data\/sop-publication-status\.json/,'Editor reads the central live SOP publication status file');
 assert.match(editor,/runs every 5 seconds|every 5 seconds/,'Editor communicates the live five-second status polling interval');
-assert.match(editor,/Commit central SOP revision/,'Editor detects the central SOP publication step');
+assert.match(publishWorkflow,/name: Commit central SOP revision/,'GitHub workflow commits the central SOP revision');
 assert.match(editor,/window\.location\.reload\(\)/,'YETI reloads automatically after the published revision is verified');
 assert.match(editor,/revision:currentRevision\+1/,'Each save must increment the SOP revision');
 assert.match(serviceWorker,/yeti-flight-trial-shell-v207/,'Service worker cache must be versioned for the editor release');
