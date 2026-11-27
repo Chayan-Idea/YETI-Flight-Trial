@@ -6,7 +6,6 @@
  const BRANCH='main';
  const FILE_PATH='data/flight-trial-sop.json';
  const RAW_URL='https://raw.githubusercontent.com/'+OWNER+'/'+REPO+'/'+BRANCH+'/'+FILE_PATH;
- const API_URL='https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+FILE_PATH;
  const panel=document.getElementById('flightTrialPreparationSopPanel');
  if(!panel)return;
  const tools=document.getElementById('flightTrialSopAdminTools');
