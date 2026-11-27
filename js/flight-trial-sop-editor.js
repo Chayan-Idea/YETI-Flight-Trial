@@ -11,7 +11,7 @@
  const $=id=>document.getElementById(id);
  const tools=$('flightTrialSopAdminTools'),sessionLabel=$('yetiSessionRole'),readBtn=$('flightTrialSopReadModeBtn'),editBtn=$('flightTrialSopEditModeBtn'),exportBtn=$('flightTrialSopExportPdfBtn');
  const actions=$('flightTrialSopEditActions'),status=$('flightTrialSopStatus'),uploadPanel=$('flightTrialSopTokenPanel'),fileInput=$('flightTrialSopPdfInput'),proceed=$('flightTrialSopProceedBtn'),cancel=$('flightTrialSopCancelBtn'),revisionLabel=$('flightTrialSopRevision');
- let currentRevision='',publishedPdfUrl='',pollTimer=null,pollBusy=false,pending=false,uploadStartedAt=0,pollStartedAt=0,pendingRevision='',legacyArticle=panel.querySelector('.flight-trial-reading-document');
+ let currentRevision='',publishedPdfUrl='',publishedSourceSha='',pollTimer=null,pollBusy=false,pending=false,uploadStartedAt=0,pollStartedAt=0,pendingRevision='',legacyArticle=panel.querySelector('.flight-trial-reading-document');
  const say=(s,type)=>{status.textContent=s;status.classList.toggle('is-success',type==='success');status.classList.toggle('is-error',type==='error');};
  async function getJson(url){
   let last;
@@ -31,7 +31,7 @@
   try{
    const doc=await getJson(MANIFEST);
    if(doc.schemaVersion===2&&doc.pdfUrl&&doc.revision){
-    if(String(doc.revision)!==currentRevision||!publishedPdfUrl){currentRevision=String(doc.revision);showPdf(new URL(doc.pdfUrl,BASE).href);if(revisionLabel){revisionLabel.hidden=false;revisionLabel.textContent='Revision '+doc.revision+' · '+(doc.updatedAt?new Date(doc.updatedAt).toLocaleString():'Published')+' · '+(doc.updatedBy||'Admin');}}
+    if(String(doc.revision)!==currentRevision||!publishedPdfUrl){currentRevision=String(doc.revision);publishedSourceSha=String(doc.sourceSha256||'');showPdf(new URL(doc.pdfUrl,BASE).href);if(revisionLabel){revisionLabel.hidden=false;revisionLabel.textContent='Revision '+doc.revision+' · '+(doc.updatedAt?new Date(doc.updatedAt).toLocaleString():'Published')+' · '+(doc.updatedBy||'Admin');}}
     editBtn.disabled=false;return true;
    }
    // Until the first PDF is published, preserve the currently deployed SOP HTML.
@@ -53,10 +53,10 @@
    if(s.state==='failed'){
     say('PDF publication failed: '+(s.message||'GitHub Actions rejected the document.')+' Your previous published PDF remains available. You can retry.','error');pending=false;proceed.disabled=false;return;
    }
-   if(s.state==='published'&&String(s.revision)!==currentRevision&&String(s.revision)===pendingRevision){
+   if(s.state==='published'&&String(s.packageSha256||'')===pendingRevision){
     say('GitHub published the new PDF. Verifying the shared reading copy…');
     const ok=await loadPublished();
-    if(ok&&publishedPdfUrl){pending=false;stopPolling();uploadPanel.hidden=true;actions.hidden=true;readBtn.classList.add('is-active');editBtn.classList.remove('is-active');say('New SOP PDF published and verified. The webpage will refresh automatically to load the shared revision.','success');setTimeout(()=>location.reload(),1800);return;}
+    if(ok&&publishedPdfUrl&&publishedSourceSha===pendingRevision){pending=false;stopPolling();uploadPanel.hidden=true;actions.hidden=true;readBtn.classList.add('is-active');editBtn.classList.remove('is-active');say('New SOP PDF published and verified. The webpage will refresh automatically to load the shared revision.','success');setTimeout(()=>location.reload(),1800);return;}
    }
    say('Waiting for the uploaded PDF to be committed to GitHub. Next check in 5 seconds.');
   }catch(e){say('GitHub status check failed: '+e.message+' Retrying in 5 seconds.','error');}
