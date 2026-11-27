@@ -23,7 +23,7 @@ assert.match(js, /pointerdown.*keydown.*click.*scroll.*touchstart.*wheel/s, 'com
 assert.match(js, /CONFIG\.adminIds\.includes\(enteredId\)/, 'Admin IDs must be checked independently of User credentials');
 assert.match(js, /enteredId === CONFIG\.userId/, 'User credentials must be checked separately');
 assert.match(js, /role: selectedRole/, 'authenticated role must be retained for future role-specific features');
-assert.match(css, /body:not\(\.yeti-authenticated\)/, 'application must remain covered until authenticated');
+assert.match(css, /#yetiAuthOverlay\s*\{[\s\S]*position:\s*fixed/, 'fixed login overlay must cover the application until authenticated');
 assert.match(sw, /'\.\/js\/yeti-auth\.js'/, 'auth script must be in offline shell');
 assert.match(sw, /'\.\/css\/yeti-auth\.css'/, 'auth stylesheet must be in offline shell');
 console.log('YETI authentication access-gate checks passed.');
