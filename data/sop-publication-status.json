@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "revision": "pending",
+  "revision": "20261127-132840",
   "packageSha256": "d1b12aa101978f605107c47db358fde415bf816dfcea8efd0fa37152b86b1003",
-  "state": "validating",
-  "message": "GitHub detected the SOP JSON package. Validating package metadata, PDF signature, checksum and document structure.",
-  "updatedAt": "2026-11-27T14:50:57.183Z",
+  "state": "failed",
+  "message": "GitHub Actions could not validate or publish the PDF. The previous published SOP remains active. Review the workflow run for details.",
+  "updatedAt": "2026-11-27T14:51:05.192Z",
   "runId": "46019581918"
 }
