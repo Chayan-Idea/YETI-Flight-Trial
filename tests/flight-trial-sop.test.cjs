@@ -18,11 +18,11 @@ assert.match(editor,/document\.body\.dataset\.yetiAuthRole==='admin'/,'Editing a
 assert.match(editor,/flightTrialSopDownloadBtn/,'Admin can download the prepared SOP publication file');
 assert.match(editor,/pending-sop/,'Editor directs publication through the authenticated GitHub workflow');
 assert.match(index,/flightTrialSopGithubUploadBtn/,'Admin can open the GitHub upload destination');
-assert.match(publishWorkflow,/pending-sop\\/flight-trial-sop\\.json/,'Publishing workflow triggers only for the pending SOP file');
-assert.match(publishWorkflow,/permissions:\\s+contents: write/,'Publishing workflow has repository write permission');
-assert.match(publishWorkflow,/revision !== current\\.revision \\+ 1/,'Publishing workflow rejects stale SOP revisions');
+assert.ok(publishWorkflow.includes("'pending-sop/flight-trial-sop.json'"),'Publishing workflow triggers only for the pending SOP file');
+assert.ok(publishWorkflow.includes('contents: write'),'Publishing workflow has repository write permission');
+assert.ok(publishWorkflow.includes('pending.revision !== current.revision + 1'),'Publishing workflow rejects stale SOP revisions');
 assert.match(publishWorkflow,/deploy-pages@v4/,'Publishing workflow deploys the updated Pages site');
-assert.doesNotMatch(editor,/Personal Access Token|Authorization|localStorage/,'Browser editor must not request or store a GitHub publishing token');
+assert.doesNotMatch(editor,/Personal Access Token|Authorization|localStorage|api.github.com/,'Browser editor must not request or store a GitHub publishing token');
 assert.match(editor,/revision:currentRevision\+1/,'Each save must increment the SOP revision');
 assert.match(serviceWorker,/yeti-flight-trial-shell-v203/,'Service worker cache must be versioned for the editor release');
 assert.match(serviceWorker,/flight-trial-sop-editor\.js/,'Editor script must be precached');
