@@ -1,4 +1,4 @@
-const CACHE='yeti-flight-trial-shell-v201';
+const CACHE='yeti-flight-trial-shell-v202';
 const SHELL=[
  './',
  './index.html',
@@ -31,6 +31,8 @@ const SHELL=[
  './js/propulsion-percent-comparison.js',
  './js/propulsion-analyser.js',
  './js/yeti-auth.js',
+ './js/flight-trial-sop-editor.js',
+ './data/flight-trial-sop.json',
  './assets/illustrations/propulsion/propeller-outline.svg',
  './assets/illustrations/aerospace/airframe-outline.svg',
  './assets/illustrations/aerospace/flight-control-schematic.svg',
