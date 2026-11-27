@@ -72,7 +72,7 @@
   if(!f)return;
   if(f.type!=='application/pdf'&&!f.name.toLowerCase().endsWith('.pdf')){fileInput.value='';say('Only PDF documents are accepted.','error');return;}
   if(f.size<100||f.size>25*1024*1024){fileInput.value='';say('PDF size must be between 100 bytes and 25 MB.','error');return;}
-  say('Selected: '+f.name+' · '+(f.size/1024/1024).toFixed(2)+' MB. Click Proceed and Update in the Webpage to continue.');
+  proceed.disabled=false;say('Selected: '+f.name+' · '+(f.size/1024/1024).toFixed(2)+' MB. Click Proceed and Update in the Webpage to continue.');
  });
  proceed.addEventListener('click',async()=>{
   const f=fileInput.files&&fileInput.files[0];
