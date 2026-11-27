@@ -22,14 +22,16 @@
  const PDFJS_VERSION='4.10.38';
  const PDFJS_MODULE='https://cdn.jsdelivr.net/npm/pdfjs-dist@'+PDFJS_VERSION+'/build/pdf.min.mjs';
  const PDFJS_WORKER='https://cdn.jsdelivr.net/npm/pdfjs-dist@'+PDFJS_VERSION+'/build/pdf.worker.min.mjs';
- let pdfDocument=null,pdfZoom=1,pdfRenderGeneration=0,pdfViewer=null,pdfPagesHost=null,pdfPageLabel=null,pdfZoomLabel=null,currentPdfPage=1;
+ let pdfDocument=null,pdfZoom=1,pdfRenderGeneration=0,pdfViewer=null,pdfPagesHost=null,pdfStage=null,pdfBaseWidth=0,pdfBaseHeight=0,pdfPageLabel=null,pdfZoomLabel=null,currentPdfPage=1;
  function makeReaderButton(label,action,aria){const b=document.createElement('button');b.type='button';b.className='btn alt';b.textContent=label;b.setAttribute('aria-label',aria||label);b.addEventListener('click',action);return b;}
  async function renderPdfPages(){
   if(!pdfDocument||!pdfPagesHost)return;
-  const generation=++pdfRenderGeneration,scroller=pdfPagesHost.parentElement;
-  pdfPagesHost.replaceChildren();pdfPagesHost.style.zoom='1';
-  const availableWidth=(scroller?.clientWidth||pdfPagesHost.clientWidth)-28;
-  const width=Math.max(280,Math.min(availableWidth,1100));
+  const generation=++pdfRenderGeneration,scroller=pdfStage?.parentElement;
+  pdfPagesHost.replaceChildren();pdfPagesHost.style.transform='scale(1)';
+  const style=scroller?getComputedStyle(scroller):null;
+  const horizontalPadding=style?parseFloat(style.paddingLeft)+parseFloat(style.paddingRight):16;
+  const availableWidth=Math.max(280,Math.min((scroller?.clientWidth||pdfPagesHost.clientWidth)-horizontalPadding,1100));
+  const width=availableWidth;pdfBaseWidth=width;pdfStage.style.width=width+'px';pdfPagesHost.style.width=width+'px';
   // Render once at 3x CSS resolution. Pinch gestures then scale the existing
   // page layer directly, avoiding expensive PDF.js re-renders while fingers move.
   const renderPixelRatio=3;
@@ -43,7 +45,7 @@
    const context=canvas.getContext('2d',{alpha:false});context.setTransform(renderPixelRatio,0,0,renderPixelRatio,0,0);
    await page.render({canvasContext:context,viewport}).promise;
   }
-  if(generation===pdfRenderGeneration){pdfZoom=1;pdfPagesHost.style.zoom='1';if(pdfZoomLabel)pdfZoomLabel.textContent='100%';}
+  if(generation===pdfRenderGeneration){pdfBaseWidth=width;pdfBaseHeight=Math.max(1,pdfPagesHost.scrollHeight);pdfPagesHost.style.width=pdfBaseWidth+'px';pdfStage.style.width=pdfBaseWidth+'px';pdfStage.style.height=pdfBaseHeight+'px';pdfZoom=1;applyZoom(1);if(pdfZoomLabel)pdfZoomLabel.textContent='100%';}
  }
  async function showPdf(url){
   publishedPdfUrl=url;
@@ -54,19 +56,29 @@
   const pageInfo=document.createElement('span');pageInfo.className='yeti-sop-pdf-page-info';pageInfo.textContent='Loading PDF…';
   const zoomInfo=document.createElement('span');zoomInfo.className='yeti-sop-pdf-zoom-info';zoomInfo.textContent='100%';
   const previous=makeReaderButton('Previous',()=>navigatePage(-1),'Previous PDF page'),next=makeReaderButton('Next',()=>navigatePage(1),'Next PDF page');
-  function applyZoom(value){pdfZoom=Math.max(.65,Math.min(3,value));pdfPagesHost.style.zoom=String(pdfZoom);zoomInfo.textContent=Math.round(pdfZoom*100)+'%';}
+  function contentPoint(clientX,clientY){
+   const rect=scroller.getBoundingClientRect(),style=getComputedStyle(scroller);
+   return {x:clientX-rect.left-scroller.clientLeft-parseFloat(style.paddingLeft),y:clientY-rect.top-scroller.clientTop-parseFloat(style.paddingTop)};
+  }
+  function applyZoom(value){
+   pdfZoom=Math.max(.65,Math.min(3,value));
+   pdfPagesHost.style.transform='scale('+pdfZoom+')';
+   pdfStage.style.width=(pdfBaseWidth*pdfZoom)+'px';pdfStage.style.height=(pdfBaseHeight*pdfZoom)+'px';
+   zoomInfo.textContent=Math.round(pdfZoom*100)+'%';
+  }
   function zoomAround(value,clientX,clientY){
-   const rect=scroller.getBoundingClientRect(),localX=Number.isFinite(clientX)?clientX-rect.left:scroller.clientWidth/2,localY=Number.isFinite(clientY)?clientY-rect.top:scroller.clientHeight/2;
-   const focalX=(scroller.scrollLeft+localX)/pdfZoom,focalY=(scroller.scrollTop+localY)/pdfZoom;
+   const rect=scroller.getBoundingClientRect(),point=contentPoint(Number.isFinite(clientX)?clientX:rect.left+rect.width/2,Number.isFinite(clientY)?clientY:rect.top+rect.height/2);
+   const focalX=(scroller.scrollLeft+point.x)/pdfZoom,focalY=(scroller.scrollTop+point.y)/pdfZoom;
    applyZoom(value);
-   scroller.scrollLeft=Math.max(0,focalX*pdfZoom-localX);scroller.scrollTop=Math.max(0,focalY*pdfZoom-localY);
+   scroller.scrollLeft=Math.max(0,focalX*pdfZoom-point.x);scroller.scrollTop=Math.max(0,focalY*pdfZoom-point.y);
   }
   const zoomOut=makeReaderButton('−',()=>zoomAround(pdfZoom-.15),'Zoom out'),zoomIn=makeReaderButton('+',()=>zoomAround(pdfZoom+.15),'Zoom in'),fit=makeReaderButton('Fit width',()=>{pdfZoom=1;applyZoom(1);scroller.scrollLeft=0;scroller.scrollTop=0;},'Fit PDF to width');
   const download=makeReaderButton('Open original PDF',()=>window.open(publishedPdfUrl,'_blank','noopener,noreferrer'),'Open original PDF in a new tab');
   function navigatePage(delta){currentPdfPage=Math.max(1,Math.min(pdfDocument?.numPages||1,currentPdfPage+delta));document.getElementById('yetiSopPdfPage'+currentPdfPage)?.scrollIntoView({behavior:'smooth',block:'start'});pageInfo.textContent=currentPdfPage+' / '+(pdfDocument?.numPages||'…')+' pages';}
   toolbar.append(previous,next,pageInfo,zoomOut,zoomInfo,zoomIn,fit,download);
   const scroller=document.createElement('div');scroller.className='yeti-sop-pdf-scroll';scroller.tabIndex=0;scroller.setAttribute('aria-label','Scrollable SOP PDF pages');scroller.style.touchAction='none';
-  pdfPagesHost=document.createElement('div');pdfPagesHost.className='yeti-sop-pdf-pages';scroller.appendChild(pdfPagesHost);
+  pdfStage=document.createElement('div');pdfStage.className='yeti-sop-pdf-stage';
+  pdfPagesHost=document.createElement('div');pdfPagesHost.className='yeti-sop-pdf-pages';pdfStage.appendChild(pdfPagesHost);scroller.appendChild(pdfStage);
   viewer.append(toolbar,scroller);host.appendChild(viewer);pdfViewer=viewer;pdfPageLabel=pageInfo;pdfZoomLabel=zoomInfo;
   // Match the earlier Daily Airworthiness viewer: pointer-based pinch zoom,
   // focus-point preservation, and one-finger pan. No PDF.js work occurs per move.
@@ -78,14 +90,14 @@
    try{scroller.setPointerCapture(e.pointerId)}catch(_error){}
    pointers.set(e.pointerId,point(e));const pts=[...pointers.values()];
    if(pts.length===1){gesture={type:'pan',x:pts[0].x,y:pts[0].y,left:scroller.scrollLeft,top:scroller.scrollTop};scroller.classList.add('yeti-sop-pan-active');}
-   else if(pts.length===2){const center=midpoint(pts[0],pts[1]),rect=scroller.getBoundingClientRect();gesture={type:'pinch',distance:Math.max(1,distance(pts[0],pts[1])),zoom:pdfZoom,focalX:(scroller.scrollLeft+center.x-rect.left)/pdfZoom,focalY:(scroller.scrollTop+center.y-rect.top)/pdfZoom};scroller.classList.remove('yeti-sop-pan-active');}
+   else if(pts.length===2){const center=midpoint(pts[0],pts[1]),rect=scroller.getBoundingClientRect();const focal=contentPoint(center.x,center.y);gesture={type:'pinch',distance:Math.max(1,distance(pts[0],pts[1])),zoom:pdfZoom,focalX:(scroller.scrollLeft+focal.x)/pdfZoom,focalY:(scroller.scrollTop+focal.y)/pdfZoom};scroller.classList.remove('yeti-sop-pan-active');}
    e.preventDefault();
   });
   scroller.addEventListener('pointermove',e=>{
    if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,point(e));const pts=[...pointers.values()];
    if(pts.length>=2&&gesture?.type==='pinch'){
-    const center=midpoint(pts[0],pts[1]),rect=scroller.getBoundingClientRect();applyZoom(gesture.zoom*distance(pts[0],pts[1])/gesture.distance);
-    scroller.scrollLeft=Math.max(0,gesture.focalX*pdfZoom-(center.x-rect.left));scroller.scrollTop=Math.max(0,gesture.focalY*pdfZoom-(center.y-rect.top));e.preventDefault();
+    const center=midpoint(pts[0],pts[1]),focal=contentPoint(center.x,center.y);applyZoom(gesture.zoom*distance(pts[0],pts[1])/gesture.distance);
+    scroller.scrollLeft=Math.max(0,gesture.focalX*pdfZoom-focal.x);scroller.scrollTop=Math.max(0,gesture.focalY*pdfZoom-focal.y);e.preventDefault();
    }else if(pts.length===1&&gesture?.type==='pan'){
     scroller.scrollLeft=gesture.left-(pts[0].x-gesture.x);scroller.scrollTop=gesture.top-(pts[0].y-gesture.y);e.preventDefault();
    }
