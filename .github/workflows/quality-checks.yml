@@ -127,3 +127,5 @@ jobs:
 # SOP JSON upload validation workflow revision.
 
 # Re-run SOP three-stage validation after JSON upload test alignment.
+
+# Refresh focused SOP checks after cache assertion correction.
