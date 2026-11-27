@@ -48,7 +48,8 @@ assert.match(editor,/state==='failed'/,'Failed publication preserves the current
 assert.match(editor,/state==='published'/,'Published status is verified before switching the reader');
 assert.match(editor,/PDFJS_MODULE/,'Shared PDF reading uses the pinned PDF.js module');
 assert.match(editor,/pdfjs\.getDocument\(\{url/,'Published PDF is rendered from the original document in-page');
-assert.match(editor,/yeti-sop-pdf-canvas/,'PDF pages are rendered to in-page canvases, not a browser PDF iframe');\nassert.doesNotMatch(editor,/createElement\\('iframe'\\)/,'SOP reader must not rely on the browser or Adobe PDF iframe viewer');
+assert.match(editor,/yeti-sop-pdf-canvas/,'PDF pages are rendered to in-page canvases, not a browser PDF iframe');
+assert.doesNotMatch(editor,/createElement\\('iframe'\\)/,'SOP reader must not rely on the browser or Adobe PDF iframe viewer');
 assert.match(editor,/window\.addEventListener\('focus',roleUpdate\)/,'Admin mode visibility is re-evaluated on window focus');
 assert.doesNotMatch(editor,/contentEditable|Save Changes|Personal Access Token|localStorage/,'No direct HTML editor or browser-stored GitHub credential remains');
 
