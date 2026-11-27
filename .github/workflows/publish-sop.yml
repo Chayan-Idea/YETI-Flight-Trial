@@ -24,7 +24,7 @@ jobs:
         run: |
           node <<'NODE'
           const fs=require('node:fs');
-          const status={schemaVersion:1,revision:'pending',state:'validating',message:'GitHub detected the SOP JSON package. Validating package metadata, PDF signature, checksum and document structure.',updatedAt:new Date().toISOString(),runId:process.env.GITHUB_RUN_ID};
+          let packageSha256='';try{const p=JSON.parse(fs.readFileSync('pending-sop/flight-trial-sop.json','utf8'));packageSha256=String(p.sha256||'');}catch(_){}const status={schemaVersion:1,revision:'pending',packageSha256,state:'validating',message:'GitHub detected the SOP JSON package. Validating package metadata, PDF signature, checksum and document structure.',updatedAt:new Date().toISOString(),runId:process.env.GITHUB_RUN_ID};
           fs.writeFileSync('data/sop-publication-status.json',JSON.stringify(status,null,2)+'\n');
           NODE
           git config user.name "github-actions[bot]"
@@ -62,9 +62,9 @@ jobs:
           const revision=stamp+'-'+process.env.GITHUB_RUN_ID;
           const rel='documents/sop/revisions/'+revision+'.pdf';
           fs.mkdirSync(path.dirname(rel),{recursive:true});fs.copyFileSync(src,rel);
-          const info=fs.readFileSync('/tmp/sop-pdfinfo.txt','utf8');const pageMatch=info.match(/^Pages:\s+(\d+)/m);if(!pageMatch)throw new Error('Could not determine PDF page count.');const manifest={schemaVersion:2,revision,updatedAt:now.toISOString(),updatedBy:'Admin upload',fileName:'flight-trial-sop.pdf',mimeType:'application/pdf',sizeBytes:b.length,pageCount:Number(pageMatch[1]),sha256:crypto.createHash('sha256').update(b).digest('hex'),pdfUrl:rel};
+          const info=fs.readFileSync('/tmp/sop-pdfinfo.txt','utf8');const pageMatch=info.match(/^Pages:\s+(\d+)/m);if(!pageMatch)throw new Error('Could not determine PDF page count.');const manifest={schemaVersion:2,revision,updatedAt:now.toISOString(),updatedBy:'Admin upload',fileName:'flight-trial-sop.pdf',mimeType:'application/pdf',sizeBytes:b.length,pageCount:Number(pageMatch[1]),sha256:crypto.createHash('sha256').update(b).digest('hex'),sourceSha256:pkg.sha256,pdfUrl:rel};
           fs.writeFileSync('data/flight-trial-sop.json',JSON.stringify(manifest,null,2)+'\n');
-          fs.writeFileSync('data/sop-publication-status.json',JSON.stringify({schemaVersion:1,revision,state:'publishing',message:'PDF validation passed. Publishing the immutable revision and updating the shared manifest.',updatedAt:new Date().toISOString(),runId:process.env.GITHUB_RUN_ID},null,2)+'\n');
+          fs.writeFileSync('data/sop-publication-status.json',JSON.stringify({schemaVersion:1,revision,packageSha256:pkg.sha256,state:'publishing',message:'PDF validation passed. Publishing the immutable revision and updating the shared manifest.',updatedAt:new Date().toISOString(),runId:process.env.GITHUB_RUN_ID},null,2)+'\n');
           fs.rmSync(src);fs.rmSync('pending-sop/flight-trial-sop.json');
           NODE
           git add documents/sop/revisions data/flight-trial-sop.json data/sop-publication-status.json pending-sop/
@@ -75,7 +75,7 @@ jobs:
         run: |
           node <<'NODE'
           const fs=require('node:fs'),m=JSON.parse(fs.readFileSync('data/flight-trial-sop.json','utf8'));
-          fs.writeFileSync('data/sop-publication-status.json',JSON.stringify({schemaVersion:1,revision:m.revision,state:'published',message:'The new SOP PDF is published and available to all YETI users.',updatedAt:new Date().toISOString(),runId:process.env.GITHUB_RUN_ID},null,2)+'\n');
+          fs.writeFileSync('data/sop-publication-status.json',JSON.stringify({schemaVersion:1,revision:m.revision,packageSha256:m.sourceSha256,state:'published',message:'The new SOP PDF is published and available to all YETI users.',updatedAt:new Date().toISOString(),runId:process.env.GITHUB_RUN_ID},null,2)+'\n');
           NODE
           git add data/sop-publication-status.json
           git commit -m "status: SOP PDF revision published"
@@ -86,9 +86,10 @@ jobs:
         run: |
           node <<'NODE'
           const fs=require('node:fs');
-          let revision='pending';
-          try{const m=JSON.parse(fs.readFileSync('data/flight-trial-sop.json','utf8'));revision=String(m.revision||revision);}catch(_){}
-          fs.writeFileSync('data/sop-publication-status.json',JSON.stringify({schemaVersion:1,revision,state:'failed',message:'GitHub Actions could not validate or publish the PDF. The previous published SOP remains active. Review the workflow run for details.',updatedAt:new Date().toISOString(),runId:process.env.GITHUB_RUN_ID},null,2)+'\n');
+          let revision='pending',packageSha256='';
+          try{const m=JSON.parse(fs.readFileSync('data/flight-trial-sop.json','utf8'));revision=String(m.revision||revision);packageSha256=String(m.sourceSha256||'');}catch(_){}
+          try{const p=JSON.parse(fs.readFileSync('pending-sop/flight-trial-sop.json','utf8'));packageSha256=String(p.sha256||packageSha256);}catch(_){}
+          fs.writeFileSync('data/sop-publication-status.json',JSON.stringify({schemaVersion:1,revision,packageSha256,state:'failed',message:'GitHub Actions could not validate or publish the PDF. The previous published SOP remains active. Review the workflow run for details.',updatedAt:new Date().toISOString(),runId:process.env.GITHUB_RUN_ID},null,2)+'\n');
           NODE
           git add data/sop-publication-status.json
           git commit -m "status: SOP PDF publication failed" || true
