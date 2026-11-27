@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "revision": "pending",
+  "revision": "20261127-145703-46020411469",
   "packageSha256": "d1b12aa101978f605107c47db358fde415bf816dfcea8efd0fa37152b86b1003",
-  "state": "validating",
-  "message": "GitHub detected the SOP JSON package. Validating package metadata, PDF signature, checksum and document structure.",
-  "updatedAt": "2026-11-27T14:56:44.002Z",
+  "state": "publishing",
+  "message": "PDF validation passed. Publishing the immutable revision and updating the shared manifest.",
+  "updatedAt": "2026-11-27T14:57:03.971Z",
   "runId": "46020411469"
 }
