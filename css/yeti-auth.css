@@ -39,3 +39,23 @@
  #yetiSessionRole { order:3; width:100%; }
  #yetiLogoutBtn { margin-left:auto; }
 }
+
+
+/* Central Flight Trial SOP editor — Admin only */
+.flight-trial-sop-admin-tools{display:grid;gap:12px;margin:0 0 18px;padding:16px;border:1px solid #d7e3ee;border-radius:14px;background:#f7faff}
+.flight-trial-sop-admin-tools[hidden],.flight-trial-sop-edit-actions[hidden],.flight-trial-sop-token-panel[hidden]{display:none!important}
+.flight-trial-sop-mode-switch,.flight-trial-sop-edit-actions,.flight-trial-sop-token-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.flight-trial-sop-mode-switch .is-active{background:#123b70!important;color:#fff!important;border-color:#123b70!important}
+.flight-trial-sop-edit-hint,.flight-trial-sop-status,.flight-trial-sop-token-panel p,.flight-trial-sop-revision{margin:0;color:#5c7085;font-size:12px;line-height:1.5}
+.flight-trial-sop-status{padding:9px 11px;border-radius:8px;background:#edf3f8}
+.flight-trial-sop-status.is-success{background:#e8f7ee;color:#17643a}
+.flight-trial-sop-status.is-error{background:#fff0f0;color:#9a2929}
+.flight-trial-sop-token-panel{display:grid;gap:9px;padding:14px;border:1px solid #e0b86a;border-radius:10px;background:#fffaf0}
+.flight-trial-sop-token-panel label{font-size:12px;font-weight:800;color:#344b61}
+.flight-trial-sop-token-panel input{width:100%;min-height:44px;padding:10px 12px;border:1px solid #bdcbd8;border-radius:8px;font:inherit}
+.flight-trial-sop-token-panel input:focus{outline:3px solid #1769aa22;border-color:#1769aa}
+.flight-trial-sop-revision{padding-top:8px;border-top:1px solid #dce6ef}
+.flight-trial-reading-document.is-editing{outline:2px dashed #3a8bca;outline-offset:7px}
+.flight-trial-reading-document.is-editing [contenteditable="true"]{outline:1px dashed #8ab7dc;outline-offset:2px;border-radius:3px;cursor:text}
+.flight-trial-reading-document.is-editing [contenteditable="true"]:focus{outline:2px solid #1769aa;background:#f4f9ff}
+@media(max-width:600px){.flight-trial-sop-admin-tools{padding:12px}.flight-trial-sop-mode-switch>*{flex:1}.flight-trial-sop-edit-actions .btn{flex:1}}
