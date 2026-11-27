@@ -21,10 +21,13 @@ assert.match(index,/flightTrialSopGithubUploadBtn/,'Admin can open the GitHub up
 assert.ok(publishWorkflow.includes("'pending-sop/flight-trial-sop.json'"),'Publishing workflow triggers only for the pending SOP file');
 assert.ok(publishWorkflow.includes('contents: write'),'Publishing workflow has repository write permission');
 assert.ok(publishWorkflow.includes('pending.revision !== current.revision + 1'),'Publishing workflow rejects stale SOP revisions');
-assert.match(publishWorkflow,/deploy-pages@v4/,'Publishing workflow deploys the updated Pages site');
+assert.doesNotMatch(publishWorkflow,/deploy-pages@v4|upload-pages-artifact|configure-pages@v5/,'SOP publication must not wait for a full GitHub Pages deployment');
+assert.match(editor,/},10000\);/,'Open SOP views poll for central revisions every 10 seconds');
+assert.match(editor,/doc\.revision<=currentRevision/,'SOP refresh avoids replacing the document when its revision has not changed');
+assert.match(editor,/doc\.revision>currentRevision/,'An Admin editing session is notified when a newer central revision is published');
 assert.doesNotMatch(editor,/Personal Access Token|Authorization|localStorage|api.github.com/,'Browser editor must not request or store a GitHub publishing token');
 assert.match(editor,/revision:currentRevision\+1/,'Each save must increment the SOP revision');
-assert.match(serviceWorker,/yeti-flight-trial-shell-v203/,'Service worker cache must be versioned for the editor release');
+assert.match(serviceWorker,/yeti-flight-trial-shell-v204/,'Service worker cache must be versioned for the editor release');
 assert.match(serviceWorker,/flight-trial-sop-editor\.js/,'Editor script must be precached');
 assert.match(serviceWorker,/flight-trial-sop\.json/,'SOP data must be precached for offline fallback');
 console.log('Flight Trial SOP central storage and Admin editor checks passed.');
