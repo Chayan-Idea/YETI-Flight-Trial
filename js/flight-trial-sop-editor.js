@@ -30,6 +30,9 @@
  let refreshRequested=false;
  let pendingPublicationRevision=null;
  let pendingPublicationStartedAt=0;
+ let publicationRunId=null;
+ let publicationMonitorBusy=false;
+ let publicationReloadScheduled=false;
  editBtn.disabled=true;
  const allowedTags=new Set(['ARTICLE','HEADER','SECTION','DIV','H2','H3','H4','UL','OL','LI','TABLE','THEAD','TBODY','TR','TH','TD','P','SPAN','B','STRONG','EM','I','U','FOOTER','BR','HR']);
  function setStatus(message,type){
@@ -98,13 +101,75 @@
   if(doc.schemaVersion!==1||typeof doc.html!=='string')throw new Error('The central SOP file has an unsupported format.');
   return doc;
  }
+ async function pollPublicationStatus(){
+  if(!pendingPublicationRevision||publicationMonitorBusy||document.visibilityState==='hidden')return;
+  publicationMonitorBusy=true;
+  try{
+   const response=await fetch('https://raw.githubusercontent.com/'+OWNER+'/'+REPO+'/'+BRANCH+'/data/sop-publication-status.json?v='+Date.now(),{cache:'no-store',headers:{'Accept':'application/json'}});
+   if(!response.ok){
+    if(response.status===404){setStatus('Waiting for GitHub to receive the SOP JSON upload and start validation… Status checks repeat every 5 seconds.');return;}
+    throw new Error('SOP publication status could not be read (HTTP '+response.status+'). Retrying in 5 seconds.');
+   }
+   const publication=await response.json();
+   const statusUpdatedAt=Date.parse(publication.updatedAt||'');
+   if(publication.schemaVersion!==1||!Number.isFinite(statusUpdatedAt)||statusUpdatedAt<pendingPublicationStartedAt-60000){
+    setStatus('Waiting for the uploaded SOP JSON for Revision '+pendingPublicationRevision+' to be detected by GitHub…');
+    return;
+   }
+   if(publication.state!=='failed'&&publication.revision!==pendingPublicationRevision){
+    setStatus('Waiting for GitHub to process the uploaded SOP JSON for Revision '+pendingPublicationRevision+'…');
+    return;
+   }
+   if(publication.state==='validating'){
+    setStatus('JSON file upload in GitHub successful. GitHub Actions is validating the uploaded JSON…');
+    return;
+   }
+   if(publication.state==='publishing'){
+    setStatus('JSON validation successful. Publishing Revision '+pendingPublicationRevision+' to the central SOP…');
+    return;
+   }
+   if(publication.state==='failed'){
+    setStatus('SOP publication failed: '+(publication.message||'GitHub Actions could not publish this revision.')+' Edit and Publish options remain available.','error');
+    return;
+   }
+   if(publication.state==='published'){
+    setStatus('GitHub Actions has published Revision '+pendingPublicationRevision+'. Verifying the central SOP file…');
+    const doc=await fetchLatest();
+    if(doc.revision<pendingPublicationRevision){
+     setStatus('Publication process completed. Waiting for central Revision '+pendingPublicationRevision+' to become available…');
+     return;
+    }
+    renderDocument(doc.html);
+    centralLoaded=true;
+    setRevision(doc);
+    pendingPublicationRevision=null;
+    pendingPublicationStartedAt=0;
+    publicationRunId=null;
+    if(!publicationReloadScheduled){
+     publicationReloadScheduled=true;
+     setStatus('SOP Revision '+doc.revision+' is published and verified. Edit and Publish options are now closed. Refreshing YETI automatically…','success');
+     window.setTimeout(()=>window.location.reload(),1800);
+    }
+    return;
+   }
+   setStatus('GitHub received the SOP publication request. Waiting for the next processing stage…');
+  }catch(error){
+   setStatus(error.message+' YETI will retry automatically in 5 seconds.','error');
+  }finally{
+   publicationMonitorBusy=false;
+  }
+ }
  async function loadLatest(){
   if(document.visibilityState==='hidden')return;
   if(refreshInProgress){refreshRequested=true;return;}
   refreshInProgress=true;
   try{
    const doc=await fetchLatest();
-   if(editing&&doc.revision>currentRevision&&(!pendingPublicationRevision||doc.revision>=pendingPublicationRevision)){
+   if(editing&&pendingPublicationRevision&&doc.revision>=pendingPublicationRevision){
+    setStatus('Central SOP Revision '+doc.revision+' is visible. Waiting for GitHub publication status to confirm completion…');
+    return;
+   }
+   if(editing&&doc.revision>currentRevision&&!pendingPublicationRevision){
     // A newer central revision confirms that the Admin's GitHub publication completed.
     // Replace the local editing copy with the published document and close all edit/publish controls.
     renderDocument(doc.html);
@@ -152,7 +217,10 @@
   const link=document.createElement('a');
   link.href=url;link.download='flight-trial-sop.json';document.body.appendChild(link);link.click();link.remove();
   window.setTimeout(()=>URL.revokeObjectURL(url),1000);
-  setStatus('SOP publication file downloaded. Waiting for Revision '+pendingPublicationRevision+' to be published. Upload it to GitHub and commit to main; YETI will return to Read View automatically when that revision is confirmed.','success');
+  publicationRunId=null;
+  publicationReloadScheduled=false;
+  setStatus('SOP JSON prepared. Waiting for upload and commit to GitHub. Live publication status will update every 5 seconds.','success');
+  pollPublicationStatus();
  }
  readBtn.addEventListener('click',()=>{
   if(dirty&&!window.confirm('Discard your unsaved SOP changes and return to Read View Mode?'))return;
@@ -184,7 +252,10 @@
  downloadBtn.addEventListener('click',()=>{
   try{preparePublication();}catch(error){setStatus(error.message,'error');}
  });
- githubUploadBtn.addEventListener('click',()=>window.open('https://github.com/'+OWNER+'/'+REPO+'/upload/main/pending-sop','_blank','noopener'));
+ githubUploadBtn.addEventListener('click',()=>{
+  const uploadWindow=window.open('https://github.com/'+OWNER+'/'+REPO+'/upload/main/pending-sop','_blank','noopener');
+  if(pendingPublicationRevision)setStatus(uploadWindow?'GitHub upload page opened. Upload flight-trial-sop.json and commit it to main. YETI is monitoring the workflow every 5 seconds.':'Allow the GitHub tab to open, then upload flight-trial-sop.json and commit it to main. YETI is monitoring every 5 seconds.');
+ });
  window.addEventListener('beforeunload',event=>{
   if(editing&&dirty){event.preventDefault();event.returnValue='';}
  });
@@ -202,15 +273,12 @@
  loadLatest();
  // Keep already-open read sessions synchronized with central edits without disturbing an active Admin edit.
  window.setInterval(()=>{
-  if(document.visibilityState!=='visible')return;
-  if(pendingPublicationRevision&&Date.now()-pendingPublicationStartedAt>600000){
-   pendingPublicationRevision=null;
-   pendingPublicationStartedAt=0;
-   setStatus('The expected SOP revision has not been confirmed within 10 minutes. Edit mode remains available; check the GitHub publication workflow.','error');
-  }
-  loadLatest();
- },pendingPublicationRevision?3000:10000);
- document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')loadLatest();});
- window.addEventListener('focus',loadLatest);
- window.addEventListener('pageshow',loadLatest);
+  if(document.visibilityState==='visible'&&pendingPublicationRevision){pollPublicationStatus();loadLatest();}
+ },5000);
+ window.setInterval(()=>{
+  if(document.visibilityState==='visible'&&!pendingPublicationRevision)loadLatest();
+ },10000);
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){loadLatest();pollPublicationStatus();}});
+ window.addEventListener('focus',()=>{loadLatest();pollPublicationStatus();});
+ window.addEventListener('pageshow',()=>{loadLatest();pollPublicationStatus();});
 })();

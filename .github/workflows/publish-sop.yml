@@ -25,6 +25,26 @@ jobs:
           ref: main
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Mark SOP upload received and validation started
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('node:fs');
+          let revision = null;
+          try { revision = JSON.parse(fs.readFileSync('pending-sop/flight-trial-sop.json', 'utf8')).revision ?? null; } catch (_) { try { revision = JSON.parse(fs.readFileSync('data/flight-trial-sop.json', 'utf8')).revision ?? null; } catch (_) {} }
+          fs.writeFileSync('data/sop-publication-status.json', JSON.stringify({
+            schemaVersion: 1, revision, state: 'validating',
+            message: 'GitHub received the SOP JSON upload. Validation is in progress.',
+            updatedAt: new Date().toISOString(), runId: process.env.GITHUB_RUN_ID
+          }, null, 2) + '\n');
+          NODE
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/sop-publication-status.json
+          git commit -m "status: SOP upload received and validation started"
+          git push origin HEAD:main
+
       - name: Validate SOP and prepare central revision
         shell: bash
         run: |
@@ -56,12 +76,57 @@ jobs:
           }
           NODE
 
+      - name: Mark SOP validation successful and central publication started
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('node:fs');
+          const pending = JSON.parse(fs.readFileSync('data/flight-trial-sop.json', 'utf8'));
+          fs.writeFileSync('data/sop-publication-status.json', JSON.stringify({
+            schemaVersion: 1, revision: pending.revision, state: 'publishing',
+            message: 'JSON validation succeeded. Publishing the central SOP revision.',
+            updatedAt: new Date().toISOString(), runId: process.env.GITHUB_RUN_ID
+          }, null, 2) + '\n');
+          NODE
+          git add data/sop-publication-status.json
+          git commit -m "status: SOP validation successful; central publication started"
+          git push origin HEAD:main
+
       - name: Commit central SOP revision
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/flight-trial-sop.json pending-sop/
+          node <<'NODE'
+          const fs = require('node:fs');
+          const published = JSON.parse(fs.readFileSync('data/flight-trial-sop.json', 'utf8'));
+          fs.writeFileSync('data/sop-publication-status.json', JSON.stringify({
+            schemaVersion: 1, revision: published.revision, state: 'published',
+            message: 'Central SOP revision published successfully.',
+            updatedAt: new Date().toISOString(), runId: process.env.GITHUB_RUN_ID
+          }, null, 2) + '\n');
+          NODE
+          git add data/flight-trial-sop.json data/sop-publication-status.json pending-sop/
           git commit -m "publish: update Flight Trial SOP"
           git push origin HEAD:main
 
+
+      - name: Mark SOP publication failed
+        if: failure()
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('node:fs');
+          let revision = null;
+          try { revision = JSON.parse(fs.readFileSync('pending-sop/flight-trial-sop.json', 'utf8')).revision ?? null; } catch (_) { try { revision = JSON.parse(fs.readFileSync('data/flight-trial-sop.json', 'utf8')).revision ?? null; } catch (_) {} }
+          fs.writeFileSync('data/sop-publication-status.json', JSON.stringify({
+            schemaVersion: 1, revision, state: 'failed',
+            message: 'GitHub Actions could not validate or publish the uploaded SOP JSON. Review this workflow run for details.',
+            updatedAt: new Date().toISOString(), runId: process.env.GITHUB_RUN_ID
+          }, null, 2) + '\n');
+          NODE
+          git add data/sop-publication-status.json
+          git commit -m "status: SOP publication failed"
+          git push origin HEAD:main

@@ -13,7 +13,7 @@ assert.ok(Number.isInteger(sop.revision) && sop.revision >= 1,'Central SOP revis
 assert.match(sop.html,/<article class="flight-trial-reading-document(?:\s+[^\"]*)?">/,'Central SOP must preserve the existing document wrapper and may include editor-state classes');
 assert.match(sop.html,/<h3>10\. DOCUMENT CONTROL &amp; RELEASE<\/h3>/,'Initial SOP must retain its final document-control section');
 assert.match(index,/flightTrialSopAdminTools/,'Admin SOP controls must be present');
-assert.match(index,/flight-trial-sop-editor\.js\?v=6/,'SOP editor script must be loaded');
+assert.match(index,/flight-trial-sop-editor\.js\?v=7/,'SOP editor script must be loaded');
 assert.match(editor,/document\.body\.dataset\.yetiAuthRole==='admin'/,'Editing and publishing must require the Admin role');
 assert.match(editor,/flightTrialSopDownloadBtn/,'Admin can download the prepared SOP publication file');
 assert.match(editor,/pending-sop/,'Editor directs publication through the authenticated GitHub workflow');
@@ -22,22 +22,37 @@ assert.ok(publishWorkflow.includes("'pending-sop/flight-trial-sop.json'"),'Publi
 assert.ok(publishWorkflow.includes('contents: write'),'Publishing workflow has repository write permission');
 assert.ok(publishWorkflow.includes('pending.revision !== current.revision + 1'),'Publishing workflow rejects stale SOP revisions');
 assert.doesNotMatch(publishWorkflow,/deploy-pages@v4|upload-pages-artifact|configure-pages@v5/,'SOP publication must not wait for a full GitHub Pages deployment');
-assert.match(editor,/pendingPublicationRevision\?3000:10000/,'SOP polling accelerates while an Admin publication is pending and remains at 10 seconds otherwise');
+assert.match(editor,/},5000\);/,'SOP publication status is polled every five seconds while a publication is pending');
 assert.match(editor,/doc\.revision<=currentRevision/,'SOP refresh avoids replacing the document when its revision has not changed');
 assert.match(editor,/doc\.revision>currentRevision/,'An Admin editing session is notified when a newer central revision is published');
-assert.doesNotMatch(editor,/Personal Access Token|Authorization|localStorage|api.github.com/,'Browser editor must not request or store a GitHub publishing token');
+assert.doesNotMatch(editor,/Personal Access Token|Authorization|localStorage/,'Browser editor must not request or store a GitHub publishing token');
+assert.match(editor,/data\/sop-publication-status\.json/,'Editor reads the central live SOP publication status file');
+assert.match(editor,/runs every 5 seconds|every 5 seconds/,'Editor communicates the live five-second status polling interval');
+assert.match(publishWorkflow,/name: Commit central SOP revision/,'GitHub workflow commits the central SOP revision');
+assert.match(editor,/window\.location\.reload\(\)/,'YETI reloads automatically after the published revision is verified');
 assert.match(editor,/revision:currentRevision\+1/,'Each save must increment the SOP revision');
-assert.match(serviceWorker,/yeti-flight-trial-shell-v206/,'Service worker cache must be versioned for the editor release');
+assert.match(serviceWorker,/yeti-flight-trial-shell-v207/,'Service worker cache must be versioned for the editor release');
 assert.match(serviceWorker,/flight-trial-sop-editor\.js/,'Editor script must be precached');
 assert.match(serviceWorker,/flight-trial-sop\.json/,'SOP data must be precached for offline fallback');
 console.log('Flight Trial SOP central storage and Admin editor checks passed.');
 
-assert.match(editor,/if\(editing&&doc\.revision>currentRevision&&/,'A newly published revision automatically exits Admin edit mode');
+assert.match(editor,/if\(editing&&doc\.revision>currentRevision&&!pendingPublicationRevision\)/,'A newly published revision automatically exits Admin edit mode when no tracked publication is pending');
 assert.match(editor,/SOP Revision '\+doc\.revision\+' published successfully/,'Successful publication is confirmed in the SOP status area');
 assert.match(editor,/renderDocument\(doc\.html\)/,'The published central SOP replaces the local editing copy');
 
 assert.match(editor,/pendingPublicationRevision=nextDoc\.revision/,'Editor tracks the exact SOP revision awaiting publication');
 assert.match(editor,/doc\.revision>=pendingPublicationRevision/,'Editor exits only after the expected published revision is confirmed');
-assert.match(editor,/pendingPublicationRevision\?3000:10000/,'Editor checks every 3 seconds while waiting for publication and every 10 seconds otherwise');
-assert.match(editor,/window\.addEventListener\('pageshow',loadLatest\)/,'Returning to the YETI page triggers a central SOP check');
+assert.match(editor,/},5000\);/,'Editor checks publication progress every five seconds');
+assert.match(editor,/window\.addEventListener\('pageshow',\(\)=>\{loadLatest\(\);pollPublicationStatus\(\);\}\)/,'Returning to the YETI page triggers central SOP and publication-status checks');
 assert.match(editor,/if\(refreshInProgress\)\{refreshRequested=true;return;\}/,'A refresh requested while another is in flight is queued rather than dropped');
+
+const publicationStatus=JSON.parse(read('data/sop-publication-status.json'));
+assert.equal(publicationStatus.schemaVersion,1,'Central SOP publication status schema must be supported');
+assert.match(publishWorkflow,/state: 'validating'/,'Workflow publishes a live validation status after receiving the upload');
+assert.match(publishWorkflow,/state: 'publishing'/,'Workflow publishes a live central-publication status after validation');
+assert.match(publishWorkflow,/state: 'published'/,'Workflow publishes a completed status with the new revision');
+assert.match(publishWorkflow,/state: 'failed'/,'Workflow publishes a failure status when validation or publication fails');
+assert.match(editor,/publication\.state==='validating'/,'YETI displays JSON validation progress');
+assert.match(editor,/publication\.state==='publishing'/,'YETI displays central publication progress');
+assert.match(editor,/publication\.state==='published'/,'YETI verifies the published revision before completing');
+assert.match(editor,/window\.location\.reload\(\)/,'YETI reloads automatically after publication is verified');
