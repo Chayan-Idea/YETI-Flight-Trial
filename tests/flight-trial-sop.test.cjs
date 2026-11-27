@@ -48,7 +48,7 @@ assert.match(editor,/15\*60\*1000/,'Polling stops with a timeout rather than wai
 assert.match(editor,/state==='failed'/,'Failed publication preserves the current published document');
 assert.match(editor,/state==='published'/,'Published status is verified before switching the reader');
 assert.match(editor,/PDFJS_MODULE/,'Shared PDF reading uses the pinned PDF.js module');
-assert.match(editor,/pdfjs\.getDocument\(\{url/,'Published PDF is rendered from the original document in-page');
+assert.match(editor,/pdfjs\.getDocument\(\{data:pdfBytes/,'Published PDF bytes are validated and rendered in-page');
 assert.match(editor,/yeti-sop-pdf-canvas/,'PDF pages are rendered to in-page canvases, not a browser PDF iframe');
 assert.match(editor,/pointerdown/,'SOP reader uses pointer-based touch and pen gesture tracking');
 assert.match(editor,/pointermove/,'SOP reader uses pointer-based pinch tracking');
@@ -81,8 +81,9 @@ assert.match(workflow,/state:'published'/,'Workflow exposes published status');
 assert.match(workflow,/state:'failed'/,'Workflow exposes failed status');
 assert.match(workflow,/contents: write/,'Workflow has the repository write permission needed for publication');
 
-assert.match(sw,/yeti-flight-trial-shell-v228/,'Service-worker shell cache is versioned for this release');
+assert.match(sw,/yeti-flight-trial-shell-v229/,'Service-worker shell cache is versioned for this release');
 assert.match(sw,/pdfjs-dist@4\.10\.38/,'Pinned PDF.js runtime is cached for repeat and offline reader loads');
+assert.match(sw,/unpkg\.com/,'Fallback PDF.js CDN is supported by the service worker');
 assert.match(sw,/SOP data is always network-first/,'SOP manifest and status use network-first fetching');
 assert.match(sw,/pathname\.endsWith\('\.pdf'\)/,'PDF files are not served from stale shell cache');
 assert.match(sw,/flight-trial-sop-editor\.js/,'SOP script remains in the application shell');
