@@ -1444,7 +1444,7 @@ const statsPage=el('section','propulsion-report-summary-page');
     multiSession.logs.forEach(log=>{log._phase3Ready=true;});updateMultiReadiness();
     csvExportButton.hidden=true;
     csvStatus.textContent='Successfully generated '+prepared.length+' separate CSV files. Download each log using its Download CSV button.';
-    // Keep the continuation actions inside Step 03 and explicitly expose the action container and both choices.
+    // Keep the continuation actions inside Step 04 and explicitly expose the action container and both choices.
     multiFilterCard.append(multiProceedActions);
     multiProceedActions.hidden=false;multiProceedInApp.hidden=false;multiProceedReport.hidden=false;
     multiProceedActions.scrollIntoView({behavior:'smooth',block:'nearest'});
