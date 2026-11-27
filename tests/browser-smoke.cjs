@@ -44,6 +44,7 @@ const server = http.createServer((req, res) => {
     await page.waitForFunction(() => !document.querySelector('#flightTrialSopEditModeBtn').disabled, { timeout: 5000 });
     await page.locator('#flightTrialSopEditModeBtn').click();
     const sopArticle = page.locator('.flight-trial-reading-document');
+    const centrallySavedTitle = await sopArticle.locator('h2').first().textContent();
     if (await sopArticle.getAttribute('contenteditable') !== 'true') throw new Error('Admin Edit View Mode did not enable SOP editing.');
     await sopArticle.locator('h2').first().evaluate(element => { element.textContent = 'TEMPORARY SOP TEST'; element.dispatchEvent(new Event('input', { bubbles: true })); });
     await page.locator('#flightTrialSopSaveBtn').waitFor({ state: 'visible' });
@@ -51,7 +52,7 @@ const server = http.createServer((req, res) => {
     page.once('dialog', dialog => dialog.accept());
     await page.locator('#flightTrialSopCancelBtn').click();
     await page.locator('#flightTrialSopEditModeBtn').waitFor({ state: 'visible' });
-    if (await sopArticle.locator('h2').first().textContent() !== 'YETI ABC FLIGHT TRIAL') throw new Error('Cancel did not restore the centrally saved SOP content.');
+    if (await sopArticle.locator('h2').first().textContent() !== centrallySavedTitle) throw new Error('Cancel did not restore the centrally saved SOP content.');
     await page.locator('#yetiLogoutBtn').click();
     await loginToYeti(page, 'user');
     await page.locator('#flightTrialPreparationSopTab').click();
