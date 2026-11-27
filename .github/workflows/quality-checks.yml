@@ -5,7 +5,8 @@ on:
     branches: [main]
     paths:
       - 'index.html'
-      - 'js/flight-trial-sop-editor.js'\n      - 'css/flight-trial-sop-reader.css'
+      - 'js/flight-trial-sop-editor.js'
+      - 'css/flight-trial-sop-reader.css'
       - 'js/yeti-auth.js'
       - 'data/flight-trial-sop.json'
       - 'data/sop-publication-status.json'
