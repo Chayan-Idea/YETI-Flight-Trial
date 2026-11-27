@@ -157,7 +157,6 @@
  cancelBtn.addEventListener('click',()=>{
   if(dirty&&!window.confirm('Discard all unsaved SOP changes?'))return;
   renderDocument(savedHtml);
-  tokenInput.value='';
   setStatus('Editing cancelled. The last centrally saved SOP has been restored.');
  });
  downloadBtn.addEventListener('click',()=>{
