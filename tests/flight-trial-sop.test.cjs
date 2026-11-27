@@ -23,7 +23,7 @@ assert.match(html,/id="flightTrialSopPdfInput"/,'Admin must have a PDF reference
 assert.match(html,/id="flightTrialSopProceedBtn"/,'Proceed and Update action must exist');
 assert.match(html,/Proceed and Update in the Webpage/,'Proceed button label must match the approved wording');
 assert.doesNotMatch(html,/flightTrialSopSaveBtn|flightTrialSopCancelBtn|flightTrialSopDownloadBtn|flightTrialSopGithubUploadBtn/,'Old direct-edit, cancel and JSON-download controls must be removed');
-assert.match(html,/flight-trial-sop-editor\.js\?v=18/,'Current SOP script cache version must be loaded');
+assert.match(html,/flight-trial-sop-editor\.js\?v=19/,'Current SOP script cache version must be loaded');
 assert.match(html,/yeti-auth\.js\?v=2/,'Current authentication script cache version must be loaded');
 
 assert.match(editor,/doc\.schemaVersion===2&&doc\.pdfUrl&&doc\.revision/,'Shared reader must load a published PDF manifest');
@@ -35,8 +35,12 @@ assert.match(auth,/yeti:auth-role-changed/,'Authentication must announce role ch
 assert.match(editor,/document\.addEventListener\('yeti:auth-role-changed'/,'SOP controls must respond to authentication changes');
 assert.match(editor,/await f\.slice\(0,5\)\.arrayBuffer\(\)/,'Browser validates the PDF file signature');
 assert.match(editor,/25\*1024\*1024/,'Browser enforces the 25 MB PDF upload limit');
+assert.match(editor,/packageType:'yeti-flight-trial-sop-pdf'/,'Browser generates a structured JSON publication package');
+assert.match(editor,/pdfBase64:btoa\(binary\)/,'JSON package contains the PDF payload');
+assert.match(editor,/link\.download='flight-trial-sop\.json'/,'Generated JSON package has the expected filename');
 assert.match(editor,/window\.open\('https:\/\/github\.com\/'\+OWNER\+'\/'\+REPO\+'\/upload\/main\/pending-sop'/,'Proceed opens the authenticated GitHub upload location');
-assert.match(editor,/select this same PDF again in the GitHub tab/,'User is clearly told the secure GitHub upload requires selecting the file again');
+assert.match(editor,/setTimeout\(\(\)=>location\.reload\(\),1800\)/,'Page automatically refreshes after confirmed publication');
+assert.match(editor,/flight-trial-sop\.json/,'Admin is told to upload the generated JSON package to GitHub');
 assert.match(editor,/setTimeout\(poll,5000\)/,'Publication status is checked every five seconds');
 assert.match(editor,/15\*60\*1000/,'Polling stops with a timeout rather than waiting indefinitely');
 assert.match(editor,/state==='failed'/,'Failed publication preserves the current published document');
@@ -45,7 +49,8 @@ assert.match(editor,/flightTrialSopPdfFrame/,'Published PDF is displayed in the 
 assert.match(editor,/window\.addEventListener\('focus',roleUpdate\)/,'Admin mode visibility is re-evaluated on window focus');
 assert.doesNotMatch(editor,/contentEditable|Save Changes|Personal Access Token|localStorage/,'No direct HTML editor or browser-stored GitHub credential remains');
 
-assert.match(workflow,/pending-sop\/flight-trial-sop\.pdf/,'GitHub workflow is triggered by the exact pending PDF path');
+assert.match(workflow,/pending-sop\/flight-trial-sop\.json/,'GitHub workflow is triggered by the generated JSON package path');
+assert.match(workflow,/pdfBase64/,'Workflow extracts the PDF payload from the JSON package');
 assert.match(workflow,/qpdf --check/,'Workflow performs structural PDF validation');
 assert.match(workflow,/pdfinfo pending-sop\/flight-trial-sop\.pdf/,'Workflow inspects the PDF document and page count');
 assert.match(workflow,/pageCount:Number\(pageMatch\[1\]\)/,'Published manifest records PDF page count');
@@ -57,7 +62,7 @@ assert.match(workflow,/state:'published'/,'Workflow exposes published status');
 assert.match(workflow,/state:'failed'/,'Workflow exposes failed status');
 assert.match(workflow,/contents: write/,'Workflow has the repository write permission needed for publication');
 
-assert.match(sw,/yeti-flight-trial-shell-v222/,'Service-worker shell cache is versioned for this release');
+assert.match(sw,/yeti-flight-trial-shell-v223/,'Service-worker shell cache is versioned for this release');
 assert.match(sw,/SOP data is always network-first/,'SOP manifest and status use network-first fetching');
 assert.match(sw,/pathname\.endsWith\('\.pdf'\)/,'PDF files are not served from stale shell cache');
 assert.match(sw,/flight-trial-sop-editor\.js/,'SOP script remains in the application shell');
