@@ -181,8 +181,7 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
     if (clearedDailyPixels !== 0) throw new Error('Clear Signature did not clear the Daily Airworthiness signature pad.');
 
     await page.locator('#galleryPhotos').setInputFiles({name:'phase3-daily-evidence.png',mimeType:'image/png',buffer:tinyPng});
-    await page.waitForFunction(()=>document.getElementById('photoStatus')?.textContent.startsWith('0 photo(s) added'));
-    if(await page.locator('#photoThumbs img').count()!==0)throw new Error('Daily photo evidence should be cleared on page load by the current privacy/reset policy.');
+    await page.locator('#photoThumbs img').first().waitFor({state:'visible'});
     if (!(await page.locator('#photoStatus').innerText()).includes('1 photo(s) added')) throw new Error('Daily photo evidence was not saved and rendered.');
     await page.locator('#photoThumbs textarea[data-photo-remark]').first().fill('Wing root inspection: no visible cracks or deformation.');
     await page.locator('#photoThumbs textarea[data-photo-remark]').first().evaluate(el=>el.dispatchEvent(new Event('change',{bubbles:true})));
@@ -242,7 +241,8 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
         await page.locator('#flightDate').inputValue() !== '2026-11-19') throw new Error('Daily trial metadata was not preserved after refresh.');
     if (await page.locator('#list select[data-id="'+dailyItemId+'"][data-k="status"]').inputValue() !== 'Pass') throw new Error('Daily checklist result was not preserved after refresh.');
     if (await page.locator('#list input[data-id="'+dailyItemId+'"][data-k="remarks"]').inputValue() !== 'Phase 3 automated verification remark.') throw new Error('Daily checklist remarks were not preserved after refresh.');
-    await page.locator('#photoThumbs img').first().waitFor({state:'visible'});
+    await page.waitForFunction(()=>document.getElementById('photoStatus')?.textContent.startsWith('0 photo(s) added'));
+    if(await page.locator('#photoThumbs img').count()!==0)throw new Error('Daily photo evidence should be cleared on page load by the current privacy/reset policy.');
 
     // Loading-Unloading workflow.
     await page.locator('#loadingTabBtn').click();
