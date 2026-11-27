@@ -15,8 +15,10 @@ assert.match(index,/flightTrialSopAdminTools/,'Admin SOP controls must be presen
 assert.match(index,/flight-trial-sop-editor\.js\?v=1/,'SOP editor script must be loaded');
 assert.match(editor,/document\.body\.dataset\.yetiAuthRole==='admin'/,'Editing and publishing must require the Admin role');
 assert.match(editor,/Authorization':'Bearer '\+token/,'GitHub writes must use the token supplied at save time');
-assert.match(editor,/tokenInput\.value=''/,'Token input must be cleared after reading it');
-assert.doesNotMatch(editor,/localStorage|sessionStorage\.setItem|document\.cookie/,'Editor must not persist the GitHub token');
+assert.match(editor,/localStorage\.setItem\(TOKEN_STORAGE_KEY,token\)/,'Admin publishing token must be remembered in browser storage after GitHub access is verified');
+assert.match(editor,/localStorage\.getItem\(TOKEN_STORAGE_KEY\)/,'Saved token must be restored for Admin publishing sessions');
+assert.match(editor,/localStorage\.removeItem\(TOKEN_STORAGE_KEY\)/,'Admin must be able to forget the saved token');
+assert.match(editor,/document\.body\.dataset\.yetiAuthRole==='admin'/,'Saved token may be loaded only for Admin access');
 assert.match(editor,/sha:meta\.sha/,'GitHub content updates must use the latest file SHA to detect conflicts');
 assert.match(editor,/revision:currentRevision\+1/,'Each save must increment the SOP revision');
 assert.match(serviceWorker,/yeti-flight-trial-shell-v202/,'Service worker cache must be versioned for the editor release');
