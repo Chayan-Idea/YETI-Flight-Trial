@@ -26,7 +26,6 @@ const server = http.createServer((req,res)=>{
   page.on('requestfailed',r=>failedRequests.push({url:r.url(),error:r.failure()?.errorText||'failed'}));
   const response=await page.goto('http://127.0.0.1:'+server.address().port+'/',{waitUntil:'networkidle'});
   await loginToYeti(page, 'user');
-  await loginToYeti(page, 'user');
   if(!response?.ok())throw new Error('YETI staging shell failed to load');
   await page.waitForFunction(()=>{const active=window.YETI_ACTIVE_PDF_TEMPLATE;return active&&document.querySelectorAll('#list .item').length===active.validation.checkpointCount},{timeout:15000});
   await page.locator('#dailyTabBtn').click();
