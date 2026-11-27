@@ -80,7 +80,6 @@ jobs:
         run: |
           echo "## Stage 2 — Quick Quality Check" >> "$GITHUB_STEP_SUMMARY"
           echo "PASS — SOP PDF upload, Admin/User visibility, PDF validation, immutable revision, status polling and shared-reader checks." >> "$GITHUB_STEP_SUMMARY"
-          echo "No legacy Full Engineering Quality Gate or unrelated module regression suite was run." >> "$GITHUB_STEP_SUMMARY"
 
   stage-3-deploy:
     name: 'Stage 3 — Deploy & Live Verification'
