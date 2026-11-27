@@ -13,7 +13,7 @@ assert.ok(Number.isInteger(sop.revision) && sop.revision >= 1,'Central SOP revis
 assert.match(sop.html,/<article class="flight-trial-reading-document(?:\s+[^\"]*)?">/,'Central SOP must preserve the existing document wrapper and may include editor-state classes');
 assert.match(sop.html,/<h3>10\. DOCUMENT CONTROL &amp; RELEASE<\/h3>/,'Initial SOP must retain its final document-control section');
 assert.match(index,/flightTrialSopAdminTools/,'Admin SOP controls must be present');
-assert.match(index,/flight-trial-sop-editor\.js\?v=4/,'SOP editor script must be loaded');
+assert.match(index,/flight-trial-sop-editor\.js\?v=5/,'SOP editor script must be loaded');
 assert.match(editor,/document\.body\.dataset\.yetiAuthRole==='admin'/,'Editing and publishing must require the Admin role');
 assert.match(editor,/flightTrialSopDownloadBtn/,'Admin can download the prepared SOP publication file');
 assert.match(editor,/pending-sop/,'Editor directs publication through the authenticated GitHub workflow');
@@ -27,7 +27,11 @@ assert.match(editor,/doc\.revision<=currentRevision/,'SOP refresh avoids replaci
 assert.match(editor,/doc\.revision>currentRevision/,'An Admin editing session is notified when a newer central revision is published');
 assert.doesNotMatch(editor,/Personal Access Token|Authorization|localStorage|api.github.com/,'Browser editor must not request or store a GitHub publishing token');
 assert.match(editor,/revision:currentRevision\+1/,'Each save must increment the SOP revision');
-assert.match(serviceWorker,/yeti-flight-trial-shell-v204/,'Service worker cache must be versioned for the editor release');
+assert.match(serviceWorker,/yeti-flight-trial-shell-v205/,'Service worker cache must be versioned for the editor release');
 assert.match(serviceWorker,/flight-trial-sop-editor\.js/,'Editor script must be precached');
 assert.match(serviceWorker,/flight-trial-sop\.json/,'SOP data must be precached for offline fallback');
 console.log('Flight Trial SOP central storage and Admin editor checks passed.');
+
+assert.match(editor,/if\(editing&&doc\.revision>currentRevision\)/,'A newly published revision automatically exits Admin edit mode');
+assert.match(editor,/SOP Revision '\+doc\.revision\+' published successfully/,'Successful publication is confirmed in the SOP status area');
+assert.match(editor,/renderDocument\(doc\.html\)/,'The published central SOP replaces the local editing copy');

@@ -100,10 +100,17 @@
   refreshInProgress=true;
   try{
    const doc=await fetchLatest();
-   if(editing){
-    if(doc.revision>currentRevision)setStatus('A newer central SOP revision is available. Finish editing or cancel your changes to load it.');
+   if(editing&&doc.revision>currentRevision){
+    // A newer central revision confirms that the Admin's GitHub publication completed.
+    // Replace the local editing copy with the published document and close all edit/publish controls.
+    renderDocument(doc.html);
+    centralLoaded=true;
+    editBtn.disabled=false;
+    setRevision(doc);
+    setStatus('SOP Revision '+doc.revision+' published successfully. Read View Mode has been restored.','success');
     return;
    }
+   if(editing)return;
    if(centralLoaded&&doc.revision<=currentRevision)return;
    renderDocument(doc.html);
    centralLoaded=true;
