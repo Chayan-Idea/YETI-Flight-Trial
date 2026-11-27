@@ -22,7 +22,7 @@ assert.ok(publishWorkflow.includes("'pending-sop/flight-trial-sop.json'"),'Publi
 assert.ok(publishWorkflow.includes('contents: write'),'Publishing workflow has repository write permission');
 assert.ok(publishWorkflow.includes('pending.revision !== current.revision + 1'),'Publishing workflow rejects stale SOP revisions');
 assert.doesNotMatch(publishWorkflow,/deploy-pages@v4|upload-pages-artifact|configure-pages@v5/,'SOP publication must not wait for a full GitHub Pages deployment');
-assert.match(editor,/},10000\);/,'Open SOP views poll for central revisions every 10 seconds');
+assert.match(editor,/pendingPublicationRevision\?3000:10000/,'SOP polling accelerates while an Admin publication is pending and remains at 10 seconds otherwise');
 assert.match(editor,/doc\.revision<=currentRevision/,'SOP refresh avoids replacing the document when its revision has not changed');
 assert.match(editor,/doc\.revision>currentRevision/,'An Admin editing session is notified when a newer central revision is published');
 assert.doesNotMatch(editor,/Personal Access Token|Authorization|localStorage|api.github.com/,'Browser editor must not request or store a GitHub publishing token');
