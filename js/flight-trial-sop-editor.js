@@ -31,6 +31,7 @@
  let loading=false;
  let editing=false;
  let centralLoaded=false;
+ let refreshInProgress=false;
  editBtn.disabled=true;
  const allowedTags=new Set(['ARTICLE','HEADER','SECTION','DIV','H2','H3','H4','UL','OL','LI','TABLE','THEAD','TBODY','TR','TH','TD','P','SPAN','B','STRONG','EM','I','U','FOOTER','BR','HR']);
  function setStatus(message,type){
@@ -101,6 +102,8 @@
   return doc;
  }
  async function loadLatest(){
+  if(refreshInProgress||editing||document.visibilityState==='hidden')return;
+  refreshInProgress=true;
   try{
    const doc=await fetchLatest();
    renderDocument(doc.html);
@@ -112,6 +115,8 @@
    centralLoaded=false;
    editBtn.disabled=true;
    setStatus(error.message+' The currently published page copy is being shown. Editing is disabled until the central copy can be verified.','error');
+  }finally{
+   refreshInProgress=false;
   }
  }
  function getAdminId(){
@@ -236,4 +241,8 @@
  new MutationObserver(updateRole).observe(document.body,{attributes:true,attributeFilter:['data-yeti-auth-role']});
  updateRole();
  loadLatest();
+ // Keep already-open read sessions synchronized with central edits without disturbing an active Admin edit.
+ window.setInterval(()=>{if(document.visibilityState==='visible')loadLatest();},60000);
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')loadLatest();});
+ window.addEventListener('focus',loadLatest);
 })();
