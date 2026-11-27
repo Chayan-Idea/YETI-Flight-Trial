@@ -71,7 +71,7 @@ assert.match(editor,/PAGE_SOP_URL=new URL\(FILE_PATH,PAGE_BASE\)\.href/,'Central
 assert.match(editor,/PAGE_STATUS_URL=new URL\(STATUS_PATH,PAGE_BASE\)\.href/,'Publication status is fetched from same-origin GitHub Pages first');
 assert.match(editor,/fetchFreshJson\(PAGE_SOP_URL,RAW_URL/,'Central SOP fetch retains a GitHub raw fallback');
 assert.match(editor,/fetchFreshJson\(PAGE_STATUS_URL,RAW_STATUS_URL/,'Publication status fetch retains a GitHub raw fallback');
-assert.match(serviceWorker,/yeti-flight-trial-shell-v214/,'Service worker cache is versioned for the current production shell');
+assert.match(serviceWorker,/yeti-flight-trial-shell-v215/,'Service worker cache is versioned for the current production shell');
 assert.match(serviceWorker,/data\/sop-publication-status\.json/,'Publication status JSON is included in the offline shell cache');
 assert.match(serviceWorker,/SOP data is always network-first/,'SOP JSON and publication status use network-first service-worker handling');
 assert.match(editor,/String\(publication\.revision\)!==String\(pendingPublicationRevision\)/,'Revision identity is compared as a timestamp ID string');
