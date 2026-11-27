@@ -33,7 +33,7 @@
    const page=await pdfDocument.getPage(n),base=page.getViewport({scale:1}),scale=(width/base.width)*pdfZoom,viewport=page.getViewport({scale});
    const card=document.createElement('section');card.className='yeti-sop-pdf-page';card.id='yetiSopPdfPage'+n;
    const canvas=document.createElement('canvas');canvas.className='yeti-sop-pdf-canvas';canvas.setAttribute('aria-label','SOP page '+n);
-   const ratio=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.ceil(viewport.width*ratio);canvas.height=Math.ceil(viewport.height*ratio);canvas.style.width=viewport.width+'px';canvas.style.height=viewport.height+'px';
+   const ratio=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.ceil(viewport.width*ratio);canvas.height=Math.ceil(viewport.height*ratio);canvas.style.width=viewport.width+'px';
    card.appendChild(canvas);pdfPagesHost.appendChild(card);
    const context=canvas.getContext('2d',{alpha:false});context.setTransform(ratio,0,0,ratio,0,0);
    await page.render({canvasContext:context,viewport}).promise;
