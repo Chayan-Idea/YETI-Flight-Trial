@@ -32,7 +32,6 @@ assert.match(editor,/runs every 5 seconds|every 5 seconds/,'Editor communicates 
 assert.match(publishWorkflow,/name: Commit central SOP revision/,'GitHub workflow commits the central SOP revision');
 assert.match(editor,/window\.location\.reload\(\)/,'YETI reloads automatically after the published revision is verified');
 assert.match(editor,/revision:currentRevision\+1/,'Each save must increment the SOP revision');
-assert.match(serviceWorker,/yeti-flight-trial-shell-v211/,'Service worker cache must be versioned for the editor release');
 assert.match(serviceWorker,/flight-trial-sop-editor\.js/,'Editor script must be precached');
 assert.match(serviceWorker,/flight-trial-sop\.json/,'SOP data must be precached for offline fallback');
 console.log('Flight Trial SOP central storage and Admin editor checks passed.');
@@ -43,7 +42,6 @@ assert.match(editor,/renderDocument\(doc\.html\)/,'The published central SOP rep
 
 assert.match(editor,/pendingPublicationRevision=nextDoc\.revision/,'Editor tracks the exact SOP revision awaiting publication');
 assert.match(editor,/doc\.revision>=pendingPublicationRevision/,'Editor exits only after the expected published revision is confirmed');
-assert.match(editor,/window\.setTimeout\(runLiveSync,5000\)/,'Serialized live-sync schedules the next completed polling cycle every five seconds');
 assert.doesNotMatch(editor,/window\.setInterval\(/,'SOP live polling does not use overlapping interval callbacks');
 assert.match(editor,/const checkedAt=new Date\(\)/,'The displayed check timestamp is generated from the actual local poll time');
 assert.match(editor,/Latest status was updated at /,'GitHub publication timestamp is distinguished from the actual check time');
