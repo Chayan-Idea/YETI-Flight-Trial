@@ -130,7 +130,7 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
     await firstDailySection.waitFor({state:'visible'});
     await firstDailySection.locator('summary').click();
     await firstDailySection.locator('.item').first().waitFor({state:'visible'});
-    await page.locator('#uavNameId').fill('YETI-PHASE3-QA');
+    // Daily Airworthiness uses Trial Phase, Stage, Place and Date as its metadata fields.
     await page.locator('#trialPhase').fill('Phase 3 UI Assurance');
     await page.locator('#trialStage').fill('Regression');
     await page.locator('#flightPlace').fill('QA Test Site');
@@ -231,7 +231,10 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
     // Verify browser refresh preserves daily answers, metadata and IndexedDB photo evidence.
     await page.reload({waitUntil:'networkidle'});
     await page.locator('#dailyChecklistTabPanel').waitFor({state:'visible'});
-    if (await page.locator('#uavNameId').inputValue() !== 'YETI-PHASE3-QA') throw new Error('Daily trial metadata was not preserved after refresh.');
+    if (await page.locator('#trialPhase').inputValue() !== 'Phase 3 UI Assurance' ||
+        await page.locator('#trialStage').inputValue() !== 'Regression' ||
+        await page.locator('#flightPlace').inputValue() !== 'QA Test Site' ||
+        await page.locator('#flightDate').inputValue() !== '2026-11-19') throw new Error('Daily trial metadata was not preserved after refresh.');
     if (await page.locator('#list select[data-id="'+dailyItemId+'"][data-k="status"]').inputValue() !== 'Pass') throw new Error('Daily checklist result was not preserved after refresh.');
     if (await page.locator('#list input[data-id="'+dailyItemId+'"][data-k="remarks"]').inputValue() !== 'Phase 3 automated verification remark.') throw new Error('Daily checklist remarks were not preserved after refresh.');
     await page.locator('#photoThumbs img').first().waitFor({state:'visible'});
