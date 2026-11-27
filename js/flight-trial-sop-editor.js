@@ -22,7 +22,7 @@
  const PDFJS_VERSION='4.10.38';
  const PDFJS_MODULE='https://cdn.jsdelivr.net/npm/pdfjs-dist@'+PDFJS_VERSION+'/build/pdf.min.mjs';
  const PDFJS_WORKER='https://cdn.jsdelivr.net/npm/pdfjs-dist@'+PDFJS_VERSION+'/build/pdf.worker.min.mjs';
- let pdfDocument=null,pdfZoom=1,pdfRenderGeneration=0,pdfViewer=null,pdfPagesHost=null,pdfPageLabel=null,pdfZoomLabel=null;
+ let pdfDocument=null,pdfZoom=1,pdfRenderGeneration=0,pdfViewer=null,pdfPagesHost=null,pdfPageLabel=null,pdfZoomLabel=null,currentPdfPage=1;
  function makeReaderButton(label,action,aria){const b=document.createElement('button');b.type='button';b.className='btn alt';b.textContent=label;b.setAttribute('aria-label',aria||label);b.addEventListener('click',action);return b;}
  async function renderPdfPages(){
   if(!pdfDocument||!pdfPagesHost)return;
@@ -47,12 +47,12 @@
   const toolbar=document.createElement('div');toolbar.className='yeti-sop-pdf-toolbar';
   const pageInfo=document.createElement('span');pageInfo.className='yeti-sop-pdf-page-info';pageInfo.textContent='Loading PDF…';
   const zoomInfo=document.createElement('span');zoomInfo.className='yeti-sop-pdf-zoom-info';zoomInfo.textContent='100%';
-  const previous=makeReaderButton('Previous','', 'Previous PDF page'),next=makeReaderButton('Next','', 'Next PDF page');
+  const previous=makeReaderButton('Previous',()=>navigatePage(-1),'Previous PDF page'),next=makeReaderButton('Next',()=>navigatePage(1),'Next PDF page');
   const zoomOut=makeReaderButton('−',()=>changeZoom(-0.15),'Zoom out'),zoomIn=makeReaderButton('+',()=>changeZoom(0.15),'Zoom in'),fit=makeReaderButton('Fit width',()=>{pdfZoom=1;zoomInfo.textContent='100%';renderPdfPages().catch(readerError);},'Fit PDF to width');
   function changeZoom(delta){pdfZoom=Math.max(.65,Math.min(2.2,Math.round((pdfZoom+delta)*100)/100));zoomInfo.textContent=Math.round(pdfZoom*100)+'%';renderPdfPages().catch(readerError);}
   const download=makeReaderButton('Open original PDF',()=>window.open(publishedPdfUrl,'_blank','noopener,noreferrer'),'Open original PDF in a new tab');
-  previous.addEventListener('click',()=>{const current=Math.max(1,Number((location.hash.match(/sop-page-(\d+)/)||[])[1]||1)-1);document.getElementById('yetiSopPdfPage'+current)?.scrollIntoView({behavior:'smooth',block:'start'});});
-  next.addEventListener('click',()=>{const current=Math.max(1,Number((location.hash.match(/sop-page-(\d+)/)||[])[1]||1)+1);document.getElementById('yetiSopPdfPage'+current)?.scrollIntoView({behavior:'smooth',block:'start'});});
+  function navigatePage(delta){currentPdfPage=Math.max(1,Math.min(pdfDocument?.numPages||1,currentPdfPage+delta));document.getElementById('yetiSopPdfPage'+currentPdfPage)?.scrollIntoView({behavior:'smooth',block:'start'});pageInfo.textContent=currentPdfPage+' / '+(pdfDocument?.numPages||'…')+' pages';}
+
   toolbar.append(previous,next,pageInfo,zoomOut,zoomInfo,zoomIn,fit,download);
   const scroller=document.createElement('div');scroller.className='yeti-sop-pdf-scroll';scroller.tabIndex=0;scroller.setAttribute('aria-label','Scrollable SOP PDF pages');
   pdfPagesHost=document.createElement('div');pdfPagesHost.className='yeti-sop-pdf-pages';scroller.appendChild(pdfPagesHost);
