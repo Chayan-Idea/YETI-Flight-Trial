@@ -13,11 +13,11 @@
  document.addEventListener('wheel',function(e){if(isModifier(e))e.preventDefault();},{capture:true,passive:false});
  // Safari exposes pinch gestures separately from Pointer Events.
  ['gesturestart','gesturechange','gestureend'].forEach(type=>document.addEventListener(type,e=>e.preventDefault(),{capture:true,passive:false}));
- // Block multi-touch page pinch. The PDF preview keeps its own pointer-based zoom.
+ // Block page pinch everywhere except dedicated PDF readers, which implement their own in-document zoom.
  document.addEventListener('touchmove',function(e){
   if(e.touches&&e.touches.length>1){
    const target=e.target;
-   if(!target||!target.closest||!target.closest('#previewContent'))e.preventDefault();
+   if(!target||!target.closest||(!target.closest('#previewContent')&&!target.closest('#flightTrialSopPdfViewer')))e.preventDefault();
   }
  },{capture:true,passive:false});
 })();
