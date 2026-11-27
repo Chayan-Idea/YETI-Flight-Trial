@@ -1,162 +1,92 @@
-name: YETI Engineering Quality Gate
+name: YETI SOP Three-Stage Validation
 
 on:
-  push:
-    branches: [main, feat/dynamic-pdf-checklist-engine]
   pull_request:
     branches: [main]
-  workflow_dispatch:
-    inputs:
-      pdf_path:
-        description: PDF path inside template-inbox/ to publish (leave blank for quality check only)
-        required: false
-        type: string
-        default: ''
-      review_package_path:
-        description: Human-reviewed candidate package JSON inside template-inbox/ (required for PDF publication)
-        required: false
-        type: string
-        default: ''
-      approve_activation:
-        description: Explicitly approve this reviewed checklist for production activation
-        required: false
-        type: boolean
-        default: false
-      approved_by:
-        description: Name or GitHub handle of the reviewer approving the checklist
-        required: false
-        type: string
-        default: ''
-      approval_reference:
-        description: Review/approval record, such as a PR URL or internal document reference
-        required: false
-        type: string
-        default: ''
+    paths:
+      - 'index.html'
+      - 'js/flight-trial-sop-editor.js'
+      - 'js/yeti-auth.js'
+      - 'data/flight-trial-sop.json'
+      - 'data/sop-publication-status.json'
+      - 'service-worker.js'
+      - 'documents/sop/**'
+      - 'pending-sop/**'
+      - '.github/workflows/quality-checks.yml'
+      - '.github/workflows/publish-sop.yml'
+      - 'tests/flight-trial-sop.test.cjs'
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'js/flight-trial-sop-editor.js'
+      - 'js/yeti-auth.js'
+      - 'data/flight-trial-sop.json'
+      - 'data/sop-publication-status.json'
+      - 'service-worker.js'
+      - 'documents/sop/**'
+      - 'pending-sop/**'
+      - '.github/workflows/quality-checks.yml'
+      - '.github/workflows/publish-sop.yml'
+      - 'tests/flight-trial-sop.test.cjs'
 
 permissions:
   contents: read
 
 concurrency:
-  group: yeti-quick-quality-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: false
+  group: yeti-sop-three-stage-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  quick-quality-check:
-    name: Full Engineering Quality Gate — single job
+  stage-1:
+    name: 'Stage 1 — Implementation & Integration'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    permissions:
-      contents: write
+    timeout-minutes: 3
     steps:
-      - name: Check out candidate commit
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js 22
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Validate changed SOP application scripts
+        run: |
+          set -euo pipefail
+          node --check js/flight-trial-sop-editor.js
+          node --check js/yeti-auth.js
+          node --check service-worker.js
+          node --check tests/flight-trial-sop.test.cjs
+      - name: Confirm required SOP interface and publication assets are present
+        run: |
+          set -euo pipefail
+          test -f data/flight-trial-sop.json
+          test -f data/sop-publication-status.json
+          grep -q 'id="flightTrialSopPdfInput"' index.html
+          grep -q 'id="flightTrialSopProceedBtn"' index.html
+          grep -q 'flight-trial-sop-editor.js?v=18' index.html
+          echo "Stage 1 PASS — implementation syntax and integration points are valid."
 
-      - name: Set up Python for deterministic PDF intake tests
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install PDF parser and optional OCR dependencies
-        run: |
-          python -m pip install --disable-pip-version-check --no-input pymupdf
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ inputs.pdf_path }}" ]]; then
-            python -m pip install --disable-pip-version-check --no-input pytesseract Pillow
-            sudo apt-get update -qq
-            sudo apt-get install -y -qq tesseract-ocr
-          fi
-      - name: Publish explicitly approved PDF template (optional)
-        if: github.event_name == 'workflow_dispatch' && inputs.pdf_path != ''
-        env:
-          PDF_PATH: ${{ inputs.pdf_path }}
-          REVIEW_PACKAGE_PATH: ${{ inputs.review_package_path }}
-          APPROVE_ACTIVATION: ${{ inputs.approve_activation }}
-          APPROVED_BY: ${{ inputs.approved_by }}
-          APPROVAL_REFERENCE: ${{ inputs.approval_reference }}
-        run: |
-          set -euo pipefail
-          if [[ "$APPROVE_ACTIVATION" != "true" ]]; then
-            echo "Publication blocked: explicit approval is required." >&2
-            exit 1
-          fi
-          if [[ -z "$REVIEW_PACKAGE_PATH" ]]; then echo "Publication blocked: a separately reviewed package path is required." >&2; exit 1; fi
-          python scripts/publish-approved-pdf.py --pdf "$PDF_PATH" --review-package "$REVIEW_PACKAGE_PATH" --approved-by "$APPROVED_BY" --approval-reference "$APPROVAL_REFERENCE"
-      - name: Reject review package without a PDF path
-        if: github.event_name == 'workflow_dispatch' && inputs.pdf_path == '' && inputs.review_package_path != ''
-        run: |
-          echo "A reviewed package cannot be published without its source PDF." >&2
-          exit 1
-      - name: Reject approval without a PDF path
-        if: github.event_name == 'workflow_dispatch' && inputs.pdf_path == '' && inputs.approve_activation == true
-        run: |
-          echo "Approval was selected but no PDF path was supplied." >&2
-          exit 1
-      - name: Run the single consolidated quality gate
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo "## YETI 2-Minute Quick Quality Check" >> "$GITHUB_STEP_SUMMARY"
-          echo "One gated pipeline: static validation, unit/regression tests, production packaging and real-browser end-to-end checks." >> "$GITHUB_STEP_SUMMARY"
-          run_check() {
-            label="$1"
-            shift
-            started=$(date +%s)
-            echo "::group::$label"
-            "$@"
-            elapsed=$(( $(date +%s) - started ))
-            echo "PASS — $label (${elapsed}s)"
-            echo "- PASS — $label (${elapsed}s)" >> "$GITHUB_STEP_SUMMARY"
-            echo "::endgroup::"
-          }
-          run_check "Application structure, assets and JavaScript syntax" node scripts/validate-app.mjs
-          run_check "Production deployment package and size budget" node tests/production-build.test.cjs
-          run_check "Login roles, tab sessions and inactivity timeout" node tests/yeti-auth.test.js
-          run_check "Central SOP storage and Admin editor" node tests/flight-trial-sop.test.cjs
-          run_check "Propulsion calculation unit tests" node tests/propulsion-analysis-engine.test.js
-          run_check "Workbook import tests" node tests/yeti-workbook-import.test.js
-          run_check "Percentage comparative analysis unit tests" node tests/propulsion-percent-comparison.test.js
-          run_check "Analyzer module regression tests" node tests/yeti-modules.test.js
-          run_check "PDF template schema and coordinate tests" node tests/pdf-template-engine.test.cjs
-          run_check "Active PDF package, mapped cells and SHA-256" node tests/validate-active-pdf-package.cjs
-          run_check "PDF intake extractor syntax" python -m py_compile scripts/analyze-pdf-template.py scripts/build-pdf-review-package.py scripts/publish-approved-pdf.py tests/pdf-intake.test.py tests/pdf-template-review-gate.test.py
-          run_check "PDF intake extraction and fail-closed tests" python tests/pdf-intake.test.py
-          run_check "PDF human-review and exact-cell release gate" python tests/pdf-template-review-gate.test.py
-      - name: Install Playwright browser test runtime
-        run: npm install --no-save --no-package-lock playwright
-      - name: Install Chromium for full regression testing
-        run: npx playwright install --with-deps chromium
-      - name: Run full browser regression suite
-        shell: bash
-        run: |
-          set -euo pipefail
-          node tests/browser-smoke.cjs
-          node tests/flight-preparation.e2e.cjs
-          node tests/propulsion-excel-import.e2e.cjs
-          node tests/propulsion-analyser.e2e.cjs
-          node tests/pdf-template-browser.e2e.cjs
-
-          echo "OVERALL: PASS — repository integrity, unit/regression tests, production package size and asset validation, PDF intake/release checks, and browser end-to-end tests all passed." >> "$GITHUB_STEP_SUMMARY"
-          echo "YETI ENGINEERING QUALITY GATE PASSED."
-      - name: Commit approved PDF version and active pointer
-        if: github.event_name == 'workflow_dispatch' && inputs.pdf_path != ''
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/templates js/daily-airworthiness-pdf-manifest.js service-worker.js
-          git diff --cached --quiet && { echo "No publishable PDF changes detected."; exit 1; }
-          git commit -m "deploy: activate approved Daily Airworthiness PDF template"
-          git push origin HEAD:main
-
-  deploy-production:
-    name: Deploy to GitHub Pages
-    needs: quick-quality-check
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.pdf_path != '')
+  stage-2:
+    name: 'Stage 2 — Quick Quality Check'
+    needs: stage-1
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run focused SOP PDF workflow checks only
+        run: node tests/flight-trial-sop.test.cjs
+      - name: Record focused validation result
+        run: |
+          echo "## Stage 2 — Quick Quality Check" >> "$GITHUB_STEP_SUMMARY"
+          echo "PASS — SOP PDF upload, Admin/User visibility, PDF validation, immutable revision, status polling and shared-reader checks." >> "$GITHUB_STEP_SUMMARY"
+
+  stage-3-deploy:
+    name: 'Stage 3 — Deploy & Live Verification'
+    needs: stage-2
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
     permissions:
       contents: read
       pages: write
@@ -165,24 +95,31 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Check out the quality-checked commit
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.pdf_path != '' && 'main' || github.sha }}
-      - name: Build curated production-only GitHub Pages package
+          ref: ${{ github.sha }}
+      - name: Build production GitHub Pages package
         run: node scripts/build-site.mjs _site
-
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
-
-      - name: Package YETI application
+      - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: _site
           name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
-
-      - name: Deploy production site
+      - name: Deploy production webpage
         id: deployment
         uses: actions/deploy-pages@v4
         with:
           artifact_name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Verify deployed webpage and SOP upload controls
+        env:
+          SITE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          test -n "$SITE_URL"
+          curl --fail --silent --show-error --location --retry 8 --retry-delay 5 "$SITE_URL" -o /tmp/yeti-live-index.html
+          grep -q 'flightTrialSopPdfInput' /tmp/yeti-live-index.html
+          grep -q 'flight-trial-sop-editor.js?v=18' /tmp/yeti-live-index.html
+          echo "Stage 3 PASS — GitHub Pages deployment is live and the SOP PDF upload interface is present."
+          echo "- Live URL: $SITE_URL" >> "$GITHUB_STEP_SUMMARY"

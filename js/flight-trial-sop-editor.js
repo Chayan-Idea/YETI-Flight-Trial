@@ -11,7 +11,7 @@
  const $=id=>document.getElementById(id);
  const tools=$('flightTrialSopAdminTools'),sessionLabel=$('yetiSessionRole'),readBtn=$('flightTrialSopReadModeBtn'),editBtn=$('flightTrialSopEditModeBtn'),exportBtn=$('flightTrialSopExportPdfBtn');
  const actions=$('flightTrialSopEditActions'),status=$('flightTrialSopStatus'),uploadPanel=$('flightTrialSopTokenPanel'),fileInput=$('flightTrialSopPdfInput'),proceed=$('flightTrialSopProceedBtn'),cancel=$('flightTrialSopCancelBtn'),revisionLabel=$('flightTrialSopRevision');
- let currentRevision='',publishedPdfUrl='',pollTimer=null,pollBusy=false,pending=false,uploadStartedAt=0,legacyArticle=panel.querySelector('.flight-trial-reading-document');
+ let currentRevision='',publishedPdfUrl='',pollTimer=null,pollBusy=false,pending=false,uploadStartedAt=0,pollStartedAt=0,legacyArticle=panel.querySelector('.flight-trial-reading-document');
  const say=(s,type)=>{status.textContent=s;status.classList.toggle('is-success',type==='success');status.classList.toggle('is-error',type==='error');};
  async function getJson(url){
   let last;
@@ -42,6 +42,7 @@
  function stopPolling(){if(pollTimer){clearTimeout(pollTimer);pollTimer=null;}}
  async function poll(){
   if(!pending||pollBusy||document.visibilityState==='hidden')return;
+  if(Date.now()-pollStartedAt>15*60*1000){pending=false;proceed.disabled=false;say('No completed GitHub publication was detected within 15 minutes. Your previous published SOP remains active. Check the GitHub Actions run, then retry.','error');return;}
   pollBusy=true;
   try{
    const s=await getJson(STATUS);
@@ -67,24 +68,25 @@
   uploadPanel.hidden=false;actions.hidden=false;readBtn.classList.remove('is-active');editBtn.classList.add('is-active');
   say('Select the replacement SOP PDF. The currently published PDF remains available until the new revision passes validation.');
  });
- fileInput.addEventListener('change',()=>{
+ fileInput.addEventListener('change',async()=>{
   const f=fileInput.files&&fileInput.files[0];
   if(!f)return;
-  if(f.type!=='application/pdf'&&!f.name.toLowerCase().endsWith('.pdf')){fileInput.value='';say('Only PDF documents are accepted.','error');return;}
-  if(f.size<100||f.size>25*1024*1024){fileInput.value='';say('PDF size must be between 100 bytes and 25 MB.','error');return;}
+  if(f.type!=='application/pdf'&&!f.name.toLowerCase().endsWith('.pdf')){fileInput.value='';proceed.disabled=true;say('Only PDF documents are accepted.','error');return;}
+  if(f.size<100||f.size>25*1024*1024){fileInput.value='';proceed.disabled=true;say('PDF size must be between 100 bytes and 25 MB.','error');return;}
+  const head=new Uint8Array(await f.slice(0,5).arrayBuffer());
+  if(String.fromCharCode(...head)!=='%PDF-'){fileInput.value='';proceed.disabled=true;say('The selected file does not have a valid PDF signature.','error');return;}
   proceed.disabled=false;say('Selected: '+f.name+' · '+(f.size/1024/1024).toFixed(2)+' MB. Click Proceed and Update in the Webpage to continue.');
  });
  proceed.addEventListener('click',async()=>{
   const f=fileInput.files&&fileInput.files[0];
   if(!f){say('Select a PDF reference document first.','error');return;}
   if(document.body.dataset.yetiAuthRole!=='admin'){say('Admin login is required.','error');return;}
-  proceed.disabled=true;uploadStartedAt=Date.now();pending=true;
-  say('Publication package ready. GitHub authentication is required for the final upload. In the GitHub tab, upload this selected file renamed exactly as flight-trial-sop.pdf into pending-sop/ and commit to main. Do not replace the current published PDF manually.');
-  const w=window.open('https://github.com/'+OWNER+'/'+REPO+'/upload/main/pending-sop','_blank','noopener');
-  if(!w){say('Allow the GitHub tab to open. Upload the selected PDF as flight-trial-sop.pdf into pending-sop/ and commit to main.');}
+  proceed.disabled=true;uploadStartedAt=Date.now();pollStartedAt=Date.now();pending=true;
+  say('GitHub upload opened. For secure GitHub-only publishing, select this same PDF again in the GitHub tab, name it exactly flight-trial-sop.pdf, upload it into pending-sop/ and commit to main. GitHub Actions will validate and publish it; this page checks progress every 5 seconds. Your current published PDF remains active meanwhile.');
+  window.open('https://github.com/'+OWNER+'/'+REPO+'/upload/main/pending-sop','_blank','noopener,noreferrer');
   poll();
  });
- cancelBtn.addEventListener('click',()=>{fileInput.value='';uploadPanel.hidden=true;actions.hidden=true;readBtn.classList.add('is-active');editBtn.classList.remove('is-active');say('Upload cancelled. The last published SOP PDF remains unchanged.');});
+ 
  exportBtn.addEventListener('click',()=>{
   if(!publishedPdfUrl){say('A PDF revision has not yet been published. The legacy reading copy is currently displayed.','error');return;}
   const a=document.createElement('a');a.href=publishedPdfUrl;a.target='_blank';a.rel='noopener';a.click();
@@ -95,6 +97,7 @@
   const admin=bodyRole==='admin'||visibleRole==='ADMIN SESSION';
   if(tools)tools.hidden=!admin;
   if(!admin){uploadPanel.hidden=true;actions.hidden=true;}
+  if(admin&&tools){tools.hidden=false;}
  }
  new MutationObserver(roleUpdate).observe(document.body,{attributes:true,attributeFilter:['data-yeti-auth-role']});
  document.addEventListener('yeti:auth-role-changed',roleUpdate);
