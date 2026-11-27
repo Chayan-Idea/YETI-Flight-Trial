@@ -123,3 +123,5 @@ jobs:
           grep -q 'flight-trial-sop-editor.js?v=19' /tmp/yeti-live-index.html
           echo "Stage 3 PASS — GitHub Pages deployment is live and the SOP PDF upload interface is present."
           echo "- Live URL: $SITE_URL" >> "$GITHUB_STEP_SUMMARY"
+
+# SOP JSON upload validation workflow revision.
