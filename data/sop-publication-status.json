@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "revision": "20261127-145735-46020528270",
   "packageSha256": "d1b12aa101978f605107c47db358fde415bf816dfcea8efd0fa37152b86b1003",
-  "state": "publishing",
-  "message": "PDF validation passed. Publishing the immutable revision and updating the shared manifest.",
-  "updatedAt": "2026-11-27T14:57:35.623Z",
+  "state": "published",
+  "message": "The new SOP PDF is published and available to all YETI users.",
+  "updatedAt": "2026-11-27T14:57:37.373Z",
   "runId": "46020528270"
 }
