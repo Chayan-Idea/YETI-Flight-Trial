@@ -23,7 +23,7 @@ assert.match(html,/id="flightTrialSopPdfInput"/,'Admin must have a PDF reference
 assert.match(html,/id="flightTrialSopProceedBtn"/,'Proceed and Update action must exist');
 assert.match(html,/Proceed and Update in the Webpage/,'Proceed button label must match the approved wording');
 assert.doesNotMatch(html,/flightTrialSopSaveBtn|flightTrialSopCancelBtn|flightTrialSopDownloadBtn|flightTrialSopGithubUploadBtn/,'Old direct-edit, cancel and JSON-download controls must be removed');
-assert.match(html,/flight-trial-sop-editor\.js\?v=18/,'Current SOP script cache version must be loaded');
+assert.match(html,/flight-trial-sop-editor\.js\?v=19/,'Current SOP script cache version must be loaded');
 assert.match(html,/yeti-auth\.js\?v=2/,'Current authentication script cache version must be loaded');
 
 assert.match(editor,/doc\.schemaVersion===2&&doc\.pdfUrl&&doc\.revision/,'Shared reader must load a published PDF manifest');
