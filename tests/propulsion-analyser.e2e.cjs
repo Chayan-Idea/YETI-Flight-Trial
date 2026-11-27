@@ -177,7 +177,7 @@ const server = http.createServer((req,res)=>{
    const fileCard=generatedFiles.nth(index);
    const downloadButton=fileCard.locator('button').filter({hasText:'Download CSV'});
    if(await downloadButton.count()!==1)throw new Error('Each generated log CSV must have its own download action.');
-   if(!(await fileCard.locator('h3').innerText()).includes('run-'+(index===0?'a':'b')+'_filtered_sorted.csv'))throw new Error('Each generated CSV card must retain its corresponding source log filename.');
+   if(!(await fileCard.locator('h3').first().innerText()).includes('run-'+(index===0?'a':'b')+'_filtered_sorted.csv'))throw new Error('Each generated CSV card must retain its corresponding source log filename.');
    if(!(await fileCard.locator('.propulsion-csv-preview-meta').innerText()).includes('filtered data rows'))throw new Error('Each generated CSV card must describe the filtered output rows.');
    const downloadPromise=page.waitForEvent('download');
    await downloadButton.click();
