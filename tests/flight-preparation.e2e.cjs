@@ -212,8 +212,10 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
       send('pointermove',42,cx+75,cy+8);await frame();
       const afterRect=el.getBoundingClientRect(),midX=cx,midY=cy+8,z=Number(stage.style.zoom||1);
       const after={x:(el.scrollLeft+midX-afterRect.left)/z,y:(el.scrollTop+midY-afterRect.top)/z};
+      const stageRect=stage.getBoundingClientRect();
+      const metrics={scrollLeft:el.scrollLeft,scrollTop:el.scrollTop,scrollWidth:el.scrollWidth,scrollHeight:el.scrollHeight,clientWidth:el.clientWidth,clientHeight:el.clientHeight,stageTop:stageRect.top,stageHeight:stageRect.height,containerTop:afterRect.top};
       send('pointerup',41,cx-75,cy+8);send('pointerup',42,cx+75,cy+8);el.setPointerCapture=oldCapture;
-      return {before,after,zoom:z};
+      return {before,after,zoom:z,metrics};
     });
     if(focalCheck.zoom<=1.25||Math.abs(focalCheck.before.x-focalCheck.after.x)>3||Math.abs(focalCheck.before.y-focalCheck.after.y)>3)throw new Error('Pinch zoom did not preserve the focused PDF location. '+JSON.stringify(focalCheck));
     await page.locator('[data-pdf-zoom="reset"]').click();
