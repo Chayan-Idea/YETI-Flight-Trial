@@ -1,4 +1,4 @@
-const CACHE='yeti-flight-trial-shell-v228';
+const CACHE='yeti-flight-trial-shell-v229';
 const SHELL=[
  './',
  './index.html',
@@ -60,7 +60,7 @@ self.addEventListener('fetch',event=>{
   }));
   return;
  }
- if(requestUrl.origin==='https://cdn.jsdelivr.net'&&requestUrl.pathname.includes('/pdfjs-dist@4.10.38/build/')){
+ if((requestUrl.origin==='https://cdn.jsdelivr.net'||requestUrl.origin==='https://unpkg.com')&&requestUrl.pathname.includes('/pdfjs-dist@4.10.38/build/')){
   event.respondWith(caches.open(CACHE).then(async cache=>{const cached=await cache.match(req);if(cached)return cached;const response=await fetch(req);if(response.ok)cache.put(req,response.clone()).catch(()=>{});return response;}));return;
  }
  if(requestUrl.origin!==self.location.origin)return;
