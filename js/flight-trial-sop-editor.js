@@ -40,6 +40,8 @@
  let publicationRunId=null;
  let publicationMonitorBusy=false;
  let publicationReloadScheduled=false;
+ let liveSyncTimer=null;
+ let liveSyncRunning=false;
  editBtn.disabled=true;
  const allowedTags=new Set(['ARTICLE','HEADER','SECTION','DIV','H2','H3','H4','UL','OL','LI','TABLE','THEAD','TBODY','TR','TH','TD','P','SPAN','B','STRONG','EM','I','U','FOOTER','BR','HR']);
  function setStatus(message,type){
@@ -135,26 +137,29 @@
     return;
    }
    const statusUpdatedAt=Date.parse(publication.updatedAt||'');
+   const checkedAt=new Date();
+   const checkedLabel=checkedAt.toLocaleTimeString();
+   const updatedLabel=Number.isFinite(statusUpdatedAt)?new Date(statusUpdatedAt).toLocaleTimeString():'unknown';
    if(publication.schemaVersion!==1||!Number.isFinite(statusUpdatedAt)||!['validating','publishing','published','failed'].includes(publication.state)){
-    throw new Error('GitHub returned an invalid SOP publication-status JSON. Retrying in 5 seconds.');
+    throw new Error('GitHub returned an invalid SOP publication-status JSON. Checked at '+checkedLabel+'. Retrying in 5 seconds.');
    }
    // Revision identity is the authoritative correlation key. Do not reject a valid
    // workflow status merely because the admin prepared the local JSON more than
    // 60 seconds before uploading it.
    if(publication.state!=='failed'&&Number(publication.revision)!==Number(pendingPublicationRevision)){
-    setStatus('GitHub status checked at '+new Date(statusUpdatedAt).toLocaleTimeString()+'. Waiting for Revision '+pendingPublicationRevision+' (latest reported: Revision '+(publication.revision??'—')+', '+publication.state+'). Next check in 5 seconds.');
+    setStatus('Checked GitHub at '+checkedLabel+'. Latest status was updated at '+updatedLabel+'. Waiting for Revision '+pendingPublicationRevision+' (latest reported: Revision '+(publication.revision??'—')+', '+publication.state+'). Next check in 5 seconds.');
     return;
    }
    if(publication.state==='validating'){
-    setStatus('JSON file upload in GitHub successful. GitHub Actions is validating the uploaded JSON…');
+    setStatus('Checked GitHub at '+checkedLabel+'. JSON upload detected; GitHub Actions is validating Revision '+pendingPublicationRevision+'… Next check in 5 seconds.');
     return;
    }
    if(publication.state==='publishing'){
-    setStatus('JSON validation successful. Publishing Revision '+pendingPublicationRevision+' to the central SOP…');
+    setStatus('Checked GitHub at '+checkedLabel+'. JSON validation successful; publishing Revision '+pendingPublicationRevision+' to the central SOP… Next check in 5 seconds.');
     return;
    }
    if(publication.state==='failed'){
-    setStatus('SOP publication failed: '+(publication.message||'GitHub Actions could not publish this revision.')+' Edit and Publish options remain available.','error');
+    setStatus('Checked GitHub at '+checkedLabel+'. SOP publication failed: '+(publication.message||'GitHub Actions could not publish this revision.')+' Edit and Publish options remain available.','error');
     return;
    }
    if(publication.state==='published'){
@@ -299,15 +304,29 @@
  }
  new MutationObserver(updateRole).observe(document.body,{attributes:true,attributeFilter:['data-yeti-auth-role']});
  updateRole();
- loadLatest();
- // Keep already-open read sessions synchronized with central edits without disturbing an active Admin edit.
- window.setInterval(()=>{
-  if(document.visibilityState==='visible'&&pendingPublicationRevision){pollPublicationStatus();loadLatest();}
- },5000);
- window.setInterval(()=>{
-  if(document.visibilityState==='visible'&&!pendingPublicationRevision)loadLatest();
- },5000);
- document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){loadLatest();pollPublicationStatus();}});
- window.addEventListener('focus',()=>{loadLatest();pollPublicationStatus();});
- window.addEventListener('pageshow',()=>{loadLatest();pollPublicationStatus();});
+ // Run one serialized live-sync cycle: refresh the SOP first, then its publication
+ // status, and schedule the next cycle five seconds after the current cycle ends.
+ // This avoids overlapping interval callbacks and skipped polls during slow requests.
+ async function runLiveSync(){
+  if(liveSyncRunning)return;
+  liveSyncRunning=true;
+  try{
+   if(document.visibilityState==='visible'){
+    await loadLatest();
+    if(pendingPublicationRevision)await pollPublicationStatus();
+   }
+  }finally{
+   liveSyncRunning=false;
+   if(liveSyncTimer!==null)window.clearTimeout(liveSyncTimer);
+   liveSyncTimer=window.setTimeout(runLiveSync,5000);
+  }
+ }
+ function triggerLiveSync(){
+  if(liveSyncTimer!==null){window.clearTimeout(liveSyncTimer);liveSyncTimer=null;}
+  if(!liveSyncRunning)runLiveSync();
+ }
+ runLiveSync();
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')triggerLiveSync();});
+ window.addEventListener('focus',triggerLiveSync);
+ window.addEventListener('pageshow',triggerLiveSync);
 })();
