@@ -1,0 +1,76 @@
+name: Publish Flight Trial SOP
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'pending-sop/flight-trial-sop.json'
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: yeti-sop-publication
+  cancel-in-progress: false
+
+jobs:
+  validate-and-publish:
+    name: Validate and publish Admin-prepared SOP
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment:
+      name: github-pages
+    steps:
+      - name: Check out submitted SOP
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Validate SOP and prepare central revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('node:fs');
+          const pendingPath = 'pending-sop/flight-trial-sop.json';
+          const centralPath = 'data/flight-trial-sop.json';
+          if (!fs.existsSync(pendingPath)) throw new Error('Pending SOP file is missing.');
+          const pending = JSON.parse(fs.readFileSync(pendingPath, 'utf8'));
+          const current = JSON.parse(fs.readFileSync(centralPath, 'utf8'));
+          if (pending.schemaVersion !== 1 || typeof pending.html !== 'string') throw new Error('Unsupported SOP schema.');
+          if (!Number.isInteger(pending.revision) || pending.revision !== current.revision + 1) throw new Error('Stale SOP revision. Reload the latest SOP in YETI and prepare the publication again.');
+          if (typeof pending.updatedAt !== 'string' || Number.isNaN(Date.parse(pending.updatedAt))) throw new Error('Invalid SOP update timestamp.');
+          if (typeof pending.updatedBy !== 'string' || !/^Admin (1297|1636)$/.test(pending.updatedBy)) throw new Error('Invalid Admin attribution.');
+          const html = pending.html;
+          if (!/^<article class="flight-trial-reading-document(?:\s+[^"]*)?">/.test(html) || !html.endsWith('</article>')) throw new Error('SOP article wrapper is invalid.');
+          if (/<\s*(script|iframe|object|embed|form|svg|math|link|meta)\b/i.test(html) || /\son[a-z]+\s*=/i.test(html) || /javascript\s*:/i.test(html)) throw new Error('SOP contains prohibited active content.');
+          if (html.length > 500000) throw new Error('SOP content exceeds the 500 KB publication limit.');
+          fs.writeFileSync(centralPath, JSON.stringify(pending, null, 2) + '\n');
+          fs.rmSync(pendingPath);
+          NODE
+
+      - name: Commit central SOP revision
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/flight-trial-sop.json pending-sop/flight-trial-sop.json
+          git commit -m "publish: update Flight Trial SOP"
+          git push origin HEAD:main
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Package updated YETI application
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+          name: yeti-sop-pages-${{ github.run_id }}
+
+      - name: Deploy updated SOP to GitHub Pages
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: yeti-sop-pages-${{ github.run_id }}
