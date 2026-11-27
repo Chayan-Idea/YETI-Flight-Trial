@@ -13,7 +13,7 @@ assert.ok(Number.isInteger(sop.revision) && sop.revision >= 1,'Central SOP revis
 assert.match(sop.html,/<article class="flight-trial-reading-document(?:\s+[^\"]*)?">/,'Central SOP must preserve the existing document wrapper and may include editor-state classes');
 assert.match(sop.html,/<h3>10\. DOCUMENT CONTROL &amp; RELEASE<\/h3>/,'Initial SOP must retain its final document-control section');
 assert.match(index,/flightTrialSopAdminTools/,'Admin SOP controls must be present');
-assert.match(index,/flight-trial-sop-editor\.js\?v=5/,'SOP editor script must be loaded');
+assert.match(index,/flight-trial-sop-editor\.js\?v=6/,'SOP editor script must be loaded');
 assert.match(editor,/document\.body\.dataset\.yetiAuthRole==='admin'/,'Editing and publishing must require the Admin role');
 assert.match(editor,/flightTrialSopDownloadBtn/,'Admin can download the prepared SOP publication file');
 assert.match(editor,/pending-sop/,'Editor directs publication through the authenticated GitHub workflow');
@@ -22,16 +22,22 @@ assert.ok(publishWorkflow.includes("'pending-sop/flight-trial-sop.json'"),'Publi
 assert.ok(publishWorkflow.includes('contents: write'),'Publishing workflow has repository write permission');
 assert.ok(publishWorkflow.includes('pending.revision !== current.revision + 1'),'Publishing workflow rejects stale SOP revisions');
 assert.doesNotMatch(publishWorkflow,/deploy-pages@v4|upload-pages-artifact|configure-pages@v5/,'SOP publication must not wait for a full GitHub Pages deployment');
-assert.match(editor,/},10000\);/,'Open SOP views poll for central revisions every 10 seconds');
+assert.match(editor,/pendingPublicationRevision\?3000:10000/,'SOP polling accelerates while an Admin publication is pending and remains at 10 seconds otherwise');
 assert.match(editor,/doc\.revision<=currentRevision/,'SOP refresh avoids replacing the document when its revision has not changed');
 assert.match(editor,/doc\.revision>currentRevision/,'An Admin editing session is notified when a newer central revision is published');
 assert.doesNotMatch(editor,/Personal Access Token|Authorization|localStorage|api.github.com/,'Browser editor must not request or store a GitHub publishing token');
 assert.match(editor,/revision:currentRevision\+1/,'Each save must increment the SOP revision');
-assert.match(serviceWorker,/yeti-flight-trial-shell-v205/,'Service worker cache must be versioned for the editor release');
+assert.match(serviceWorker,/yeti-flight-trial-shell-v206/,'Service worker cache must be versioned for the editor release');
 assert.match(serviceWorker,/flight-trial-sop-editor\.js/,'Editor script must be precached');
 assert.match(serviceWorker,/flight-trial-sop\.json/,'SOP data must be precached for offline fallback');
 console.log('Flight Trial SOP central storage and Admin editor checks passed.');
 
-assert.match(editor,/if\(editing&&doc\.revision>currentRevision\)/,'A newly published revision automatically exits Admin edit mode');
+assert.match(editor,/if\(editing&&doc\.revision>currentRevision&&/,'A newly published revision automatically exits Admin edit mode');
 assert.match(editor,/SOP Revision '\+doc\.revision\+' published successfully/,'Successful publication is confirmed in the SOP status area');
 assert.match(editor,/renderDocument\(doc\.html\)/,'The published central SOP replaces the local editing copy');
+
+assert.match(editor,/pendingPublicationRevision=nextDoc\.revision/,'Editor tracks the exact SOP revision awaiting publication');
+assert.match(editor,/doc\.revision>=pendingPublicationRevision/,'Editor exits only after the expected published revision is confirmed');
+assert.match(editor,/pendingPublicationRevision\?3000:10000/,'Editor checks every 3 seconds while waiting for publication and every 10 seconds otherwise');
+assert.match(editor,/window\.addEventListener\('pageshow',loadLatest\)/,'Returning to the YETI page triggers a central SOP check');
+assert.match(editor,/if\(refreshInProgress\)\{refreshRequested=true;return;\}/,'A refresh requested while another is in flight is queued rather than dropped');

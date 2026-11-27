@@ -27,6 +27,9 @@
  let editing=false;
  let centralLoaded=false;
  let refreshInProgress=false;
+ let refreshRequested=false;
+ let pendingPublicationRevision=null;
+ let pendingPublicationStartedAt=0;
  editBtn.disabled=true;
  const allowedTags=new Set(['ARTICLE','HEADER','SECTION','DIV','H2','H3','H4','UL','OL','LI','TABLE','THEAD','TBODY','TR','TH','TD','P','SPAN','B','STRONG','EM','I','U','FOOTER','BR','HR']);
  function setStatus(message,type){
@@ -96,15 +99,18 @@
   return doc;
  }
  async function loadLatest(){
-  if(refreshInProgress||document.visibilityState==='hidden')return;
+  if(document.visibilityState==='hidden')return;
+  if(refreshInProgress){refreshRequested=true;return;}
   refreshInProgress=true;
   try{
    const doc=await fetchLatest();
-   if(editing&&doc.revision>currentRevision){
+   if(editing&&doc.revision>currentRevision&&(!pendingPublicationRevision||doc.revision>=pendingPublicationRevision)){
     // A newer central revision confirms that the Admin's GitHub publication completed.
     // Replace the local editing copy with the published document and close all edit/publish controls.
     renderDocument(doc.html);
     centralLoaded=true;
+    pendingPublicationRevision=null;
+    pendingPublicationStartedAt=0;
     editBtn.disabled=false;
     setRevision(doc);
     setStatus('SOP Revision '+doc.revision+' published successfully. Read View Mode has been restored.','success');
@@ -123,6 +129,7 @@
    setStatus(error.message+' The currently published page copy is being shown. Editing is disabled until the central copy can be verified.','error');
   }finally{
    refreshInProgress=false;
+   if(refreshRequested){refreshRequested=false;window.setTimeout(loadLatest,0);}
   }
  }
  function getAdminId(){
@@ -138,12 +145,14 @@
   if(!articleNow)throw new Error('SOP editor is unavailable.');
   const cleanHtml=sanitizeHtml(articleNow.outerHTML);
   const nextDoc={schemaVersion:1,revision:currentRevision+1,updatedAt:new Date().toISOString(),updatedBy:'Admin '+getAdminId(),html:cleanHtml};
+  pendingPublicationRevision=nextDoc.revision;
+  pendingPublicationStartedAt=Date.now();
   const blob=new Blob([JSON.stringify(nextDoc,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const link=document.createElement('a');
   link.href=url;link.download='flight-trial-sop.json';document.body.appendChild(link);link.click();link.remove();
   window.setTimeout(()=>URL.revokeObjectURL(url),1000);
-  setStatus('SOP publication file downloaded. Upload it to the GitHub pending-sop folder and commit to main. GitHub Actions will validate and publish it automatically.','success');
+  setStatus('SOP publication file downloaded. Waiting for Revision '+pendingPublicationRevision+' to be published. Upload it to GitHub and commit to main; YETI will return to Read View automatically when that revision is confirmed.','success');
  }
  readBtn.addEventListener('click',()=>{
   if(dirty&&!window.confirm('Discard your unsaved SOP changes and return to Read View Mode?'))return;
@@ -192,7 +201,16 @@
  updateRole();
  loadLatest();
  // Keep already-open read sessions synchronized with central edits without disturbing an active Admin edit.
- window.setInterval(()=>{if(document.visibilityState==='visible')loadLatest();},10000);
+ window.setInterval(()=>{
+  if(document.visibilityState!=='visible')return;
+  if(pendingPublicationRevision&&Date.now()-pendingPublicationStartedAt>600000){
+   pendingPublicationRevision=null;
+   pendingPublicationStartedAt=0;
+   setStatus('The expected SOP revision has not been confirmed within 10 minutes. Edit mode remains available; check the GitHub publication workflow.','error');
+  }
+  loadLatest();
+ },pendingPublicationRevision?3000:10000);
  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')loadLatest();});
  window.addEventListener('focus',loadLatest);
+ window.addEventListener('pageshow',loadLatest);
 })();
