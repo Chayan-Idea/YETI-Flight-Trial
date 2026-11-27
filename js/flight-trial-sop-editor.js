@@ -95,7 +95,7 @@
   }
  }
  async function fetchLatest(){
-  const response=await fetch(RAW_URL+'?v='+Date.now(),{cache:'no-store',headers:{'Accept':'application/json'}});
+  const response=await fetch(RAW_URL+'?v='+Date.now(),{cache:'no-store',credentials:'omit',headers:{'Accept':'application/json','Cache-Control':'no-cache','Pragma':'no-cache'}});
   if(!response.ok)throw new Error('The latest central SOP could not be loaded (HTTP '+response.status+').');
   const doc=await response.json();
   if(doc.schemaVersion!==1||typeof doc.html!=='string')throw new Error('The central SOP file has an unsupported format.');
@@ -105,19 +105,22 @@
   if(!pendingPublicationRevision||publicationMonitorBusy||document.visibilityState==='hidden')return;
   publicationMonitorBusy=true;
   try{
-   const response=await fetch('https://raw.githubusercontent.com/'+OWNER+'/'+REPO+'/'+BRANCH+'/data/sop-publication-status.json?v='+Date.now(),{cache:'no-store',headers:{'Accept':'application/json'}});
+   const statusUrl='https://raw.githubusercontent.com/'+OWNER+'/'+REPO+'/'+BRANCH+'/data/sop-publication-status.json?v='+Date.now();
+   const response=await fetch(statusUrl,{cache:'no-store',credentials:'omit',headers:{'Accept':'application/json','Cache-Control':'no-cache','Pragma':'no-cache'}});
    if(!response.ok){
     if(response.status===404){setStatus('Waiting for GitHub to receive the SOP JSON upload and start validation… Status checks repeat every 5 seconds.');return;}
     throw new Error('SOP publication status could not be read (HTTP '+response.status+'). Retrying in 5 seconds.');
    }
    const publication=await response.json();
    const statusUpdatedAt=Date.parse(publication.updatedAt||'');
-   if(publication.schemaVersion!==1||!Number.isFinite(statusUpdatedAt)||statusUpdatedAt<pendingPublicationStartedAt-60000){
-    setStatus('Waiting for the uploaded SOP JSON for Revision '+pendingPublicationRevision+' to be detected by GitHub…');
-    return;
+   if(publication.schemaVersion!==1||!Number.isFinite(statusUpdatedAt)||!['validating','publishing','published','failed'].includes(publication.state)){
+    throw new Error('GitHub returned an invalid SOP publication-status JSON. Retrying in 5 seconds.');
    }
-   if(publication.state!=='failed'&&publication.revision!==pendingPublicationRevision){
-    setStatus('Waiting for GitHub to process the uploaded SOP JSON for Revision '+pendingPublicationRevision+'…');
+   // Revision identity is the authoritative correlation key. Do not reject a valid
+   // workflow status merely because the admin prepared the local JSON more than
+   // 60 seconds before uploading it.
+   if(publication.state!=='failed'&&Number(publication.revision)!==Number(pendingPublicationRevision)){
+    setStatus('GitHub status checked at '+new Date(statusUpdatedAt).toLocaleTimeString()+'. Waiting for Revision '+pendingPublicationRevision+' (latest reported: Revision '+(publication.revision??'—')+', '+publication.state+'). Next check in 5 seconds.');
     return;
    }
    if(publication.state==='validating'){
@@ -135,20 +138,24 @@
    if(publication.state==='published'){
     setStatus('GitHub Actions has published Revision '+pendingPublicationRevision+'. Verifying the central SOP file…');
     const doc=await fetchLatest();
-    if(doc.revision<pendingPublicationRevision){
-     setStatus('Publication process completed. Waiting for central Revision '+pendingPublicationRevision+' to become available…');
+    if(Number(doc.revision)<Number(pendingPublicationRevision)){
+     setStatus('GitHub confirms publication. Waiting for central SOP Revision '+pendingPublicationRevision+' to become available; checking again in 5 seconds…');
      return;
     }
+    if(typeof doc.html!=='string'||!Number.isInteger(Number(doc.revision)))throw new Error('The published central SOP JSON is incomplete. Retrying verification in 5 seconds.');
     renderDocument(doc.html);
     centralLoaded=true;
     setRevision(doc);
     pendingPublicationRevision=null;
     pendingPublicationStartedAt=0;
     publicationRunId=null;
+    setEditMode(false);
+    actions.hidden=true;
+    tokenPanel.hidden=true;
+    setStatus('SOP Revision '+doc.revision+' is published and verified. Publishing controls are closed. YETI will refresh automatically…','success');
     if(!publicationReloadScheduled){
      publicationReloadScheduled=true;
-     setStatus('SOP Revision '+doc.revision+' is published and verified. Edit and Publish options are now closed. Refreshing YETI automatically…','success');
-     window.setTimeout(()=>window.location.reload(),1800);
+     window.setTimeout(()=>window.location.reload(),1200);
     }
     return;
    }
@@ -277,7 +284,7 @@
  },5000);
  window.setInterval(()=>{
   if(document.visibilityState==='visible'&&!pendingPublicationRevision)loadLatest();
- },10000);
+ },5000);
  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){loadLatest();pollPublicationStatus();}});
  window.addEventListener('focus',()=>{loadLatest();pollPublicationStatus();});
  window.addEventListener('pageshow',()=>{loadLatest();pollPublicationStatus();});
