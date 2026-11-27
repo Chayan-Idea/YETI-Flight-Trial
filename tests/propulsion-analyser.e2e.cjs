@@ -166,7 +166,7 @@ const server = http.createServer((req,res)=>{
   await filteringCard.waitFor({state:'visible'});
   const csvSection=filteringCard.locator('.propulsion-step-subsection--csv');
   await csvSection.getByText('CSV Generation with Filtered & Sorted Data').waitFor();
-  await csvSection.locator('#confirmMultiDerivedParametersReady').check();
+  if(await csvSection.locator('#confirmMultiDerivedParametersReady').count()!==0)throw new Error('Multi-log derived readiness is confirmed by successful calculation statuses, not a redundant second checkbox.');
   await csvSection.locator('#confirmMultiFilteringSortingReady').check();
   const generateCsv=csvSection.locator('button').filter({hasText:'Generate Filtered & Sorted CSV'});
   await generateCsv.waitFor({state:'visible'});await generateCsv.click();
