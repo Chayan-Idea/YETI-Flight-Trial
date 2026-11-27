@@ -1,7 +1,8 @@
 {
   "schemaVersion": 1,
-  "revision": 0,
-  "state": "idle",
-  "message": "No SOP publication is currently in progress.",
-  "updatedAt": "2026-01-01T00:00:00.000Z"
+  "revision": 13,
+  "state": "validating",
+  "message": "GitHub received the SOP JSON upload. Validation is in progress.",
+  "updatedAt": "2026-11-27T10:51:44.319Z",
+  "runId": "45985621260"
 }
