@@ -9,7 +9,7 @@ const serviceWorker=read('service-worker.js');
 const sop=JSON.parse(read('data/flight-trial-sop.json'));
 assert.equal(sop.schemaVersion,1,'SOP schema version must be supported');
 assert.ok(Number.isInteger(sop.revision) && sop.revision >= 1,'Central SOP revision must be a positive integer and may increase as Admins publish updates');
-assert.match(sop.html,/<article class="flight-trial-reading-document">/,'Central SOP must preserve the existing document wrapper');
+assert.match(sop.html,/<article class="flight-trial-reading-document(?:\s+[^\"]*)?">/,'Central SOP must preserve the existing document wrapper and may include editor-state classes');
 assert.match(sop.html,/<h3>10\. DOCUMENT CONTROL &amp; RELEASE<\/h3>/,'Initial SOP must retain its final document-control section');
 assert.match(index,/flightTrialSopAdminTools/,'Admin SOP controls must be present');
 assert.match(index,/flight-trial-sop-editor\.js\?v=1/,'SOP editor script must be loaded');
