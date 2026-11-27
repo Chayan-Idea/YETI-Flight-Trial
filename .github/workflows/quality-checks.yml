@@ -53,6 +53,7 @@ jobs:
         run: |
           set -euo pipefail
           node --check js/flight-trial-sop-editor.js
+          node --check js/page-zoom-lock.js
           node --check js/yeti-auth.js
           node --check service-worker.js
           node --check tests/flight-trial-sop.test.cjs
@@ -63,7 +64,7 @@ jobs:
           test -f data/sop-publication-status.json
           grep -q 'id="flightTrialSopPdfInput"' index.html
           grep -q 'id="flightTrialSopProceedBtn"' index.html
-          grep -q 'flight-trial-sop-editor.js?v=21' index.html
+          grep -q 'flight-trial-sop-editor.js?v=22' index.html
           echo "Stage 1 PASS — implementation syntax and integration points are valid."
 
   stage-2:
@@ -99,7 +100,7 @@ jobs:
           for attempt in $(seq 1 24); do
             if curl --fail --silent --show-error --location "$SITE_URL" -o /tmp/yeti-live-index.html 2>/dev/null \
               && grep -q 'flight-trial-sop-editor.js?v=21' /tmp/yeti-live-index.html \
-              && grep -q 'flight-trial-sop-reader.css?v=1' /tmp/yeti-live-index.html; then
+              && grep -q 'flight-trial-sop-reader.css?v=2' /tmp/yeti-live-index.html; then
               ready=true
               break
             fi
@@ -113,7 +114,7 @@ jobs:
           grep -q 'PDFJS_MODULE' /tmp/yeti-sop-editor.js
           grep -q 'pdfjs.getDocument' /tmp/yeti-sop-editor.js
           grep -q 'yeti-sop-pdf-canvas' /tmp/yeti-sop-reader.css
-          grep -q 'yeti-flight-trial-shell-v225' /tmp/yeti-service-worker.js
+          grep -q 'yeti-flight-trial-shell-v226' /tmp/yeti-service-worker.js
           grep -q 'pdfjs-dist@4.10.38' /tmp/yeti-service-worker.js
           echo "Stage 3 PASS — the standard GitHub Pages deployment is live and serves the PDF.js SOP reader, stylesheet and pinned runtime cache."
           echo "- Live URL: $SITE_URL" >> "$GITHUB_STEP_SUMMARY"
