@@ -32,7 +32,7 @@ assert.match(serviceWorker,/flight-trial-sop-editor\.js/,'Editor script must be 
 assert.match(serviceWorker,/flight-trial-sop\.json/,'SOP data must be precached for offline fallback');
 console.log('Flight Trial SOP central storage and Admin editor checks passed.');
 
-assert.match(editor,/if\(editing&&doc\.revision>currentRevision\)/,'A newly published revision automatically exits Admin edit mode');
+assert.match(editor,/if\(editing&&doc\.revision>currentRevision&&/,'A newly published revision automatically exits Admin edit mode');
 assert.match(editor,/SOP Revision '\+doc\.revision\+' published successfully/,'Successful publication is confirmed in the SOP status area');
 assert.match(editor,/renderDocument\(doc\.html\)/,'The published central SOP replaces the local editing copy');
 
