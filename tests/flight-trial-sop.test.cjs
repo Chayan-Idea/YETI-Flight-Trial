@@ -54,7 +54,7 @@ assert.match(editor,/touchstart/,'SOP reader supports two-finger touch start det
 assert.match(editor,/touchmove/,'SOP reader supports touch pinch zoom');
 assert.match(editor,/touchDistance\(event\.touches\)/,'SOP pinch gesture updates zoom from finger separation');
 assert.match(editor,/Math\.min\(3,/,'SOP reader has a bounded zoom-in limit');
-assert.match(editor,/scroller\.clientWidth/,'SOP page rendering is sized from the scroll viewport, not the constrained page host');
+assert.match(editor,/scroller\?\.clientWidth/,'SOP page rendering is sized from the scroll viewport, not the constrained page host');
 assert.match(zoomLock,/flightTrialSopPdfViewer/,'Global page zoom lock exempts only the dedicated SOP reader from pinch blocking');
 assert.doesNotMatch(editor,/createElement\\('iframe'\\)/,'SOP reader must not rely on the browser or Adobe PDF iframe viewer');
 assert.match(editor,/window\.addEventListener\('focus',roleUpdate\)/,'Admin mode visibility is re-evaluated on window focus');
