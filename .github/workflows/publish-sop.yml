@@ -57,18 +57,17 @@ jobs:
           const pending = JSON.parse(fs.readFileSync(pendingPath, 'utf8'));
           const current = JSON.parse(fs.readFileSync(centralPath, 'utf8'));
           if (pending.schemaVersion !== 1 || typeof pending.html !== 'string') throw new Error('Unsupported SOP schema.');
-          if (!Number.isInteger(pending.revision)) throw new Error('Invalid SOP revision number.');
-          if (pending.revision === current.revision) {
-            const exactDuplicate =
-              pending.updatedAt === current.updatedAt &&
-              pending.updatedBy === current.updatedBy &&
-              pending.html === current.html;
-            if (!exactDuplicate) throw new Error('Revision conflict: this revision number is already published with different content. Reload the latest SOP in YETI before publishing.');
+          if (typeof pending.revision !== 'string' || !/^\d{8}-\d{6}(?:-\d{2,})?$/.test(pending.revision)) throw new Error('Invalid timestamp-based SOP revision ID.');
+          if (typeof pending.updatedAt !== 'string' || Number.isNaN(Date.parse(pending.updatedAt))) throw new Error('Invalid SOP update timestamp.');
+          const revisionBase = pending.updatedAt.slice(0, 19).replace(/[-:T]/g, '').replace(/^(\d{8})(\d{6})$/, '$1-$2');
+          if (!pending.revision.startsWith(revisionBase)) throw new Error('SOP revision ID does not match its UTC publication timestamp.');
+          if (pending.revision === String(current.revision)) {
+            const exactDuplicate = pending.updatedAt === current.updatedAt && pending.updatedBy === current.updatedBy && pending.html === current.html;
+            if (!exactDuplicate) throw new Error('Revision conflict: this timestamp revision is already published with different content. Reload the latest SOP in YETI before publishing.');
             console.log('Exact duplicate upload detected. This SOP revision is already published; continuing with safe idempotent cleanup.');
-          } else if (pending.revision !== current.revision + 1) {
+          } else if (Date.parse(pending.updatedAt) <= Date.parse(current.updatedAt || '1970-01-01T00:00:00.000Z')) {
             throw new Error('Stale SOP revision. Reload the latest SOP in YETI and prepare the publication again.');
           }
-          if (typeof pending.updatedAt !== 'string' || Number.isNaN(Date.parse(pending.updatedAt))) throw new Error('Invalid SOP update timestamp.');
           if (typeof pending.updatedBy !== 'string' || !/^Admin (1297|1636)$/.test(pending.updatedBy)) throw new Error('Invalid Admin attribution.');
           const html = pending.html;
           if (!/^<article class="flight-trial-reading-document(?:\s+[^"]*)?">/.test(html) || !html.endsWith('</article>')) throw new Error('SOP article wrapper is invalid.');

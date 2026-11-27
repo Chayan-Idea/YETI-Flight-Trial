@@ -28,7 +28,7 @@
  const revisionLabel=document.getElementById('flightTrialSopRevision');
  let article=panel.querySelector('.flight-trial-reading-document');
  let savedHtml=article?article.outerHTML:'';
- let currentRevision=1;
+ let currentRevision='';
  let dirty=false;
  let loading=false;
  let editing=false;
@@ -95,8 +95,15 @@
   if(!editing)setDirty(false);
   if(editing)setStatus('Editing mode is active. Changes are not published until you save them.');
  }
+ function compareRevision(a,b){
+  const left=String(a??''),right=String(b??'');
+  if(/^\d+$/.test(left)&&/^\d+$/.test(right))return Number(left)-Number(right);
+  if(/^\d+$/.test(left))return -1;
+  if(/^\d+$/.test(right))return 1;
+  return left.localeCompare(right);
+ }
  function setRevision(doc){
-  currentRevision=Number.isInteger(doc.revision)&&doc.revision>0?doc.revision:1;
+  currentRevision=doc.revision==null?'':String(doc.revision);
   if(revisionLabel){
    const updated=doc.updatedAt?new Date(doc.updatedAt).toLocaleString():'Initial published version';
    revisionLabel.hidden=false;
@@ -146,7 +153,7 @@
    // Revision identity is the authoritative correlation key. Do not reject a valid
    // workflow status merely because the admin prepared the local JSON more than
    // 60 seconds before uploading it.
-   if(publication.state!=='failed'&&Number(publication.revision)!==Number(pendingPublicationRevision)){
+   if(publication.state!=='failed'&&String(publication.revision)!==String(pendingPublicationRevision)){
     setStatus('Checked GitHub at '+checkedLabel+'. Latest status was updated at '+updatedLabel+'. Waiting for Revision '+pendingPublicationRevision+' (latest reported: Revision '+(publication.revision??'—')+', '+publication.state+'). Next check in 5 seconds.');
     return;
    }
@@ -165,11 +172,11 @@
    if(publication.state==='published'){
     setStatus('GitHub Actions has published Revision '+pendingPublicationRevision+'. Verifying the central SOP file…');
     const doc=await fetchLatest();
-    if(Number(doc.revision)<Number(pendingPublicationRevision)){
+    if(String(doc.revision)!==String(pendingPublicationRevision)){
      setStatus('GitHub confirms publication. Waiting for central SOP Revision '+pendingPublicationRevision+' to become available; checking again in 5 seconds…');
      return;
     }
-    if(typeof doc.html!=='string'||!Number.isInteger(Number(doc.revision)))throw new Error('The published central SOP JSON is incomplete. Retrying verification in 5 seconds.');
+    if(typeof doc.html!=='string'||doc.revision==null)throw new Error('The published central SOP JSON is incomplete. Retrying verification in 5 seconds.');
     renderDocument(doc.html);
     centralLoaded=true;
     setRevision(doc);
@@ -199,11 +206,11 @@
   refreshInProgress=true;
   try{
    const doc=await fetchLatest();
-   if(editing&&pendingPublicationRevision&&doc.revision>=pendingPublicationRevision){
+   if(editing&&pendingPublicationRevision&&compareRevision(doc.revision,pendingPublicationRevision)>=0){
     setStatus('Central SOP Revision '+doc.revision+' is visible. Waiting for GitHub publication status to confirm completion…');
     return;
    }
-   if(editing&&doc.revision>currentRevision&&!pendingPublicationRevision){
+   if(editing&&compareRevision(doc.revision,currentRevision)>0&&!pendingPublicationRevision){
     // A newer central revision confirms that the Admin's GitHub publication completed.
     // Replace the local editing copy with the published document and close all edit/publish controls.
     renderDocument(doc.html);
@@ -216,7 +223,7 @@
     return;
    }
    if(editing)return;
-   if(centralLoaded&&doc.revision<=currentRevision)return;
+   if(centralLoaded&&compareRevision(doc.revision,currentRevision)<=0)return;
    renderDocument(doc.html);
    centralLoaded=true;
    editBtn.disabled=false;
@@ -243,7 +250,15 @@
   const articleNow=getArticle();
   if(!articleNow)throw new Error('SOP editor is unavailable.');
   const cleanHtml=sanitizeHtml(articleNow.outerHTML);
-  const nextDoc={schemaVersion:1,revision:currentRevision+1,updatedAt:new Date().toISOString(),updatedBy:'Admin '+getAdminId(),html:cleanHtml};
+  const updatedAt=new Date().toISOString();
+  const revisionBase=updatedAt.slice(0,19).replace(/[-:T]/g,'').replace(/^(\d{8})(\d{6})$/,'$1-$2');
+  let revision=revisionBase;
+  const currentText=String(currentRevision);
+  if(currentText===revisionBase||currentText.startsWith(revisionBase+'-')){
+   const suffix=Number(currentText.slice(revisionBase.length+1))||0;
+   revision=revisionBase+'-'+String(suffix+1).padStart(2,'0');
+  }
+  const nextDoc={schemaVersion:1,revision,updatedAt,updatedBy:'Admin '+getAdminId(),html:cleanHtml};
   pendingPublicationRevision=nextDoc.revision;
   pendingPublicationStartedAt=Date.now();
   const blob=new Blob([JSON.stringify(nextDoc,null,2)],{type:'application/json'});
@@ -253,7 +268,7 @@
   window.setTimeout(()=>URL.revokeObjectURL(url),1000);
   publicationRunId=null;
   publicationReloadScheduled=false;
-  setStatus('SOP JSON prepared. Waiting for upload and commit to GitHub. Live publication status will update every 5 seconds.','success');
+  setStatus('SOP JSON prepared with timestamp revision '+revision+'. Waiting for upload and commit to GitHub. Live publication status will update every 5 seconds.','success');
   pollPublicationStatus();
  }
  readBtn.addEventListener('click',()=>{
