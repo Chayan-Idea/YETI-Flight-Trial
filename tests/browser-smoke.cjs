@@ -51,7 +51,7 @@ const server = http.createServer((req, res) => {
     page.once('dialog', dialog => dialog.accept());
     await page.locator('#flightTrialSopCancelBtn').click();
     await page.locator('#flightTrialSopEditModeBtn').waitFor({ state: 'visible' });
-    if (await sopArticle.locator('h2').first().textContent() !== 'YETI FLIGHT TRIAL') throw new Error('Cancel did not restore the centrally saved SOP content.');
+    if (await sopArticle.locator('h2').first().textContent() !== 'YETI ABC FLIGHT TRIAL') throw new Error('Cancel did not restore the centrally saved SOP content.');
     await page.locator('#yetiLogoutBtn').click();
     await loginToYeti(page, 'user');
     await page.locator('#flightTrialPreparationSopTab').click();
