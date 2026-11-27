@@ -25,7 +25,7 @@ assert.match(html,/id="flightTrialSopPdfInput"/,'Admin must have a PDF reference
 assert.match(html,/id="flightTrialSopProceedBtn"/,'Proceed and Update action must exist');
 assert.match(html,/Proceed and Update in the Webpage/,'Proceed button label must match the approved wording');
 assert.doesNotMatch(html,/flightTrialSopSaveBtn|flightTrialSopCancelBtn|flightTrialSopDownloadBtn|flightTrialSopGithubUploadBtn/,'Old direct-edit, cancel and JSON-download controls must be removed');
-assert.match(html,/flight-trial-sop-editor\.js\?v=22/,'Current SOP script cache version must be loaded');
+assert.match(html,/flight-trial-sop-editor\.js\?v=23/,'Current SOP script cache version must be loaded');
 assert.match(html,/yeti-auth\.js\?v=2/,'Current authentication script cache version must be loaded');
 
 assert.match(editor,/doc\.schemaVersion===2&&doc\.pdfUrl&&doc\.revision/,'Shared reader must load a published PDF manifest');
@@ -50,9 +50,12 @@ assert.match(editor,/state==='published'/,'Published status is verified before s
 assert.match(editor,/PDFJS_MODULE/,'Shared PDF reading uses the pinned PDF.js module');
 assert.match(editor,/pdfjs\.getDocument\(\{url/,'Published PDF is rendered from the original document in-page');
 assert.match(editor,/yeti-sop-pdf-canvas/,'PDF pages are rendered to in-page canvases, not a browser PDF iframe');
-assert.match(editor,/pointerdown/,'SOP reader supports two-finger touch start detection');
+assert.match(editor,/pointerdown/,'SOP reader uses pointer-based touch and pen gesture tracking');
 assert.match(editor,/pointermove/,'SOP reader uses pointer-based pinch tracking');
-assert.match(editor,/touchDistance\(event\.touches\)/,'SOP pinch gesture updates zoom from finger separation');
+assert.match(editor,/distance\(pts\[0\],pts\[1\]\)/,'SOP pinch gesture updates zoom from finger separation');
+assert.match(editor,/focalX\*pdfZoom/,'SOP pinch zoom preserves the point beneath the finger midpoint');
+assert.match(editor,/pdfPagesHost\.style\.zoom/,'SOP pinch zoom scales the rendered page layer without re-rendering PDF canvases');
+assert.match(editor,/renderPixelRatio=3/,'SOP pages are rendered at 3x resolution for smooth zooming');
 assert.match(editor,/Math\.min\(3,/,'SOP reader has a bounded zoom-in limit');
 assert.match(editor,/scroller\?\.clientWidth/,'SOP page rendering is sized from the scroll viewport, not the constrained page host');
 assert.match(zoomLock,/flightTrialSopPdfViewer/,'Global page zoom lock exempts only the dedicated SOP reader from pinch blocking');
