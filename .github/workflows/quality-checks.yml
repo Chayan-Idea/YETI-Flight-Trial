@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - 'index.html'
-      - 'js/flight-trial-sop-editor.js'
+      - 'js/flight-trial-sop-editor.js'\n      - 'css/flight-trial-sop-reader.css'
       - 'js/yeti-auth.js'
       - 'data/flight-trial-sop.json'
       - 'data/sop-publication-status.json'
@@ -61,7 +61,7 @@ jobs:
           test -f data/sop-publication-status.json
           grep -q 'id="flightTrialSopPdfInput"' index.html
           grep -q 'id="flightTrialSopProceedBtn"' index.html
-          grep -q 'flight-trial-sop-editor.js?v=20' index.html
+          grep -q 'flight-trial-sop-editor.js?v=21' index.html
           echo "Stage 1 PASS — implementation syntax and integration points are valid."
 
   stage-2:
