@@ -133,7 +133,7 @@
    try{
     publication=await fetchFreshJson(PAGE_STATUS_URL,RAW_STATUS_URL,'The SOP publication status');
    }catch(error){
-    setStatus(error.message+' Retrying in 5 seconds.','error');
+    setStatus('Checked GitHub at '+new Date().toLocaleTimeString()+'. '+error.message+' Retrying in 5 seconds.','error');
     return;
    }
    const statusUpdatedAt=Date.parse(publication.updatedAt||'');
@@ -188,7 +188,7 @@
    }
    setStatus('GitHub received the SOP publication request. Waiting for the next processing stage…');
   }catch(error){
-   setStatus(error.message+' YETI will retry automatically in 5 seconds.','error');
+   setStatus('Checked GitHub at '+new Date().toLocaleTimeString()+'. '+error.message+' YETI will retry automatically in 5 seconds.','error');
   }finally{
    publicationMonitorBusy=false;
   }
