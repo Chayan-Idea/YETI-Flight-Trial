@@ -96,10 +96,15 @@
   return doc;
  }
  async function loadLatest(){
-  if(refreshInProgress||editing||document.visibilityState==='hidden')return;
+  if(refreshInProgress||document.visibilityState==='hidden')return;
   refreshInProgress=true;
   try{
    const doc=await fetchLatest();
+   if(editing){
+    if(doc.revision>currentRevision)setStatus('A newer central SOP revision is available. Finish editing or cancel your changes to load it.');
+    return;
+   }
+   if(centralLoaded&&doc.revision<=currentRevision)return;
    renderDocument(doc.html);
    centralLoaded=true;
    editBtn.disabled=false;
@@ -137,7 +142,8 @@
   if(dirty&&!window.confirm('Discard your unsaved SOP changes and return to Read View Mode?'))return;
   if(dirty)renderDocument(savedHtml);
   setEditMode(false);
-  setStatus('Read View Mode. No changes are being edited.');
+  setStatus('Read View Mode. Checking for the latest central SOP…');
+  loadLatest();
  });
  editBtn.addEventListener('click',()=>{
   if(document.body.dataset.yetiAuthRole!=='admin'||!centralLoaded)return;
@@ -156,7 +162,8 @@
  cancelBtn.addEventListener('click',()=>{
   if(dirty&&!window.confirm('Discard all unsaved SOP changes?'))return;
   renderDocument(savedHtml);
-  setStatus('Editing cancelled. The last centrally saved SOP has been restored.');
+  setStatus('Editing cancelled. Checking for the latest centrally saved SOP…');
+  loadLatest();
  });
  downloadBtn.addEventListener('click',()=>{
   try{preparePublication();}catch(error){setStatus(error.message,'error');}
@@ -178,7 +185,7 @@
  updateRole();
  loadLatest();
  // Keep already-open read sessions synchronized with central edits without disturbing an active Admin edit.
- window.setInterval(()=>{if(document.visibilityState==='visible')loadLatest();},60000);
+ window.setInterval(()=>{if(document.visibilityState==='visible')loadLatest();},10000);
  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')loadLatest();});
  window.addEventListener('focus',loadLatest);
 })();
