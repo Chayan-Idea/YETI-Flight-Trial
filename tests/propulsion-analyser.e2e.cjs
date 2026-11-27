@@ -159,7 +159,12 @@ const server = http.createServer((req,res)=>{
   const specificCard=specificOption;
   await specificCard.locator('.propulsion-calculated-added-status').waitFor({state:'visible'});
   await specificCard.locator('.propulsion-calculated-retry').waitFor({state:'visible'});
-  const csvSection=page.locator('#propulsionPhase4FilteringCard .propulsion-step-subsection--csv');
+  const proceedToFiltering=step3Card.locator('.propulsion-derived-proceed');
+  if(await proceedToFiltering.isDisabled())throw new Error('Step 03 should enable continuation after all selected derived calculations succeed.');
+  await proceedToFiltering.click();
+  const filteringCard=page.locator('#propulsionPhase4FilteringCard');
+  await filteringCard.waitFor({state:'visible'});
+  const csvSection=filteringCard.locator('.propulsion-step-subsection--csv');
   await csvSection.getByText('CSV Generation with Filtered & Sorted Data').waitFor();
   await csvSection.locator('#confirmMultiDerivedParametersReady').check();
   await csvSection.locator('#confirmMultiFilteringSortingReady').check();
