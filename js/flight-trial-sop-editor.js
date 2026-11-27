@@ -9,7 +9,7 @@
  const panel=document.getElementById('flightTrialPreparationSopPanel');
  if(!panel)return;
  const $=id=>document.getElementById(id);
- const tools=$('flightTrialSopAdminTools'),readBtn=$('flightTrialSopReadModeBtn'),editBtn=$('flightTrialSopEditModeBtn'),exportBtn=$('flightTrialSopExportPdfBtn');
+ const tools=$('flightTrialSopAdminTools'),sessionLabel=$('yetiSessionRole'),readBtn=$('flightTrialSopReadModeBtn'),editBtn=$('flightTrialSopEditModeBtn'),exportBtn=$('flightTrialSopExportPdfBtn');
  const actions=$('flightTrialSopEditActions'),status=$('flightTrialSopStatus'),uploadPanel=$('flightTrialSopTokenPanel'),fileInput=$('flightTrialSopPdfInput'),proceed=$('flightTrialSopProceedBtn'),cancel=$('flightTrialSopCancelBtn'),revisionLabel=$('flightTrialSopRevision');
  let currentRevision='',publishedPdfUrl='',pollTimer=null,pollBusy=false,pending=false,uploadStartedAt=0,legacyArticle=panel.querySelector('.flight-trial-reading-document');
  const say=(s,type)=>{status.textContent=s;status.classList.toggle('is-success',type==='success');status.classList.toggle('is-error',type==='error');};
@@ -89,7 +89,13 @@
   if(!publishedPdfUrl){say('A PDF revision has not yet been published. The legacy reading copy is currently displayed.','error');return;}
   const a=document.createElement('a');a.href=publishedPdfUrl;a.target='_blank';a.rel='noopener';a.click();
  });
- function roleUpdate(){const admin=document.body.dataset.yetiAuthRole==='admin';tools.hidden=!admin;if(!admin){uploadPanel.hidden=true;actions.hidden=true;}}
+ function roleUpdate(){
+  const bodyRole=(document.body.dataset.yetiAuthRole||'').trim().toLowerCase();
+  const visibleRole=(sessionLabel?.textContent||'').trim().toUpperCase();
+  const admin=bodyRole==='admin'||visibleRole==='ADMIN SESSION';
+  if(tools)tools.hidden=!admin;
+  if(!admin){uploadPanel.hidden=true;actions.hidden=true;}
+ }
  new MutationObserver(roleUpdate).observe(document.body,{attributes:true,attributeFilter:['data-yeti-auth-role']});
  document.addEventListener('yeti:auth-role-changed',roleUpdate);
  // Re-evaluate after DOM readiness and on window focus to avoid login/script timing races.
