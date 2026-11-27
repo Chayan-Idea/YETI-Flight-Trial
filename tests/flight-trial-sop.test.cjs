@@ -22,7 +22,8 @@ assert.ok(publishWorkflow.includes("'pending-sop/flight-trial-sop.json'"),'Publi
 assert.ok(publishWorkflow.includes('contents: write'),'Publishing workflow has repository write permission');
 assert.ok(publishWorkflow.includes('pending.revision !== current.revision + 1'),'Publishing workflow rejects stale SOP revisions');
 assert.doesNotMatch(publishWorkflow,/deploy-pages@v4|upload-pages-artifact|configure-pages@v5/,'SOP publication must not wait for a full GitHub Pages deployment');
-assert.match(editor,/},5000\);/,'SOP publication status is polled every five seconds while a publication is pending');
+assert.match(editor,/window\.setTimeout\(runLiveSync,5000\)/,'Serialized live-sync schedules the next completed polling cycle every five seconds');
+assert.doesNotMatch(editor,/window\.setInterval\(/,'SOP polling avoids overlapping interval callbacks');
 assert.match(editor,/doc\.revision<=currentRevision/,'SOP refresh avoids replacing the document when its revision has not changed');
 assert.match(editor,/doc\.revision>currentRevision/,'An Admin editing session is notified when a newer central revision is published');
 assert.doesNotMatch(editor,/Personal Access Token|Authorization|localStorage/,'Browser editor must not request or store a GitHub publishing token');
@@ -46,7 +47,7 @@ assert.match(editor,/window\.setTimeout\(runLiveSync,5000\)/,'Serialized live-sy
 assert.doesNotMatch(editor,/window\.setInterval\(/,'SOP live polling does not use overlapping interval callbacks');
 assert.match(editor,/const checkedAt=new Date\(\)/,'The displayed check timestamp is generated from the actual local poll time');
 assert.match(editor,/Latest status was updated at /,'GitHub publication timestamp is distinguished from the actual check time');
-assert.match(editor,/window\.addEventListener\('pageshow',\(\)=>\{loadLatest\(\);pollPublicationStatus\(\);\}\)/,'Returning to the YETI page triggers central SOP and publication-status checks');
+assert.match(editor,/window\.addEventListener\('pageshow',triggerLiveSync\)/,'Returning to the YETI page triggers an immediate serialized live-sync cycle');
 assert.match(editor,/if\(refreshInProgress\)\{refreshRequested=true;return;\}/,'A refresh requested while another is in flight is queued rather than dropped');
 
 const publicationStatus=JSON.parse(read('data/sop-publication-status.json'));
@@ -64,7 +65,7 @@ assert.match(editor,/PAGE_SOP_URL=new URL\(FILE_PATH,PAGE_BASE\)\.href/,'Central
 assert.match(editor,/PAGE_STATUS_URL=new URL\(STATUS_PATH,PAGE_BASE\)\.href/,'Publication status is fetched from same-origin GitHub Pages first');
 assert.match(editor,/fetchFreshJson\(PAGE_SOP_URL,RAW_URL/,'Central SOP fetch retains a GitHub raw fallback');
 assert.match(editor,/fetchFreshJson\(PAGE_STATUS_URL,RAW_STATUS_URL/,'Publication status fetch retains a GitHub raw fallback');
-assert.match(serviceWorker,/yeti-flight-trial-shell-v209/,'Service worker cache is versioned for the same-origin SOP fetch fix');
+assert.match(serviceWorker,/yeti-flight-trial-shell-v212/,'Service worker cache is versioned for the current production shell');
 assert.match(serviceWorker,/data\/sop-publication-status\.json/,'Publication status JSON is included in the offline shell cache');
 assert.match(serviceWorker,/SOP data is always network-first/,'SOP JSON and publication status use network-first service-worker handling');
 assert.match(editor,/Number\(publication\.revision\)!==Number\(pendingPublicationRevision\)/,'Revision comparison is numeric and robust');
