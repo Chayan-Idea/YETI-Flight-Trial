@@ -218,7 +218,7 @@ const server = http.createServer((req,res)=>{
   if(await perLogReadouts.count()!==0)throw new Error('Per-log values should be rendered in a table, not separate line-style readout blocks.');
   const readoutTable=page.locator('.propulsion-phase3-readout-table');
   if(await readoutTable.count()!==1||await readoutTable.locator('tbody tr').count()!==2)throw new Error('Common X-axis slider must show every log in a structured table.');
-  if(await readoutTable.locator('thead th').count()!==4)throw new Error('Per-log readout table must show only Log, File Name, X and Y columns.');
+  if(await readoutTable.locator('thead th').count()!==5)throw new Error('Per-log readout table must show Log, File Name, X, Y and graph-visibility controls.');
   const sliderStyle=await commonSlider.evaluate(el=>({width:getComputedStyle(el).width,marginLeft:getComputedStyle(el).marginLeft,appearance:getComputedStyle(el).appearance}));
   if(sliderStyle.appearance!=='auto')throw new Error('Comparative slider must use the shared native slider appearance.');
   await page.getByRole('button',{name:'Plot Comparative Graph'}).click();
@@ -249,11 +249,11 @@ const server = http.createServer((req,res)=>{
   for(let index=0;index<2;index++){
    const row=readoutTable.locator('tbody tr').nth(index);
    const cells=row.locator('td');
-   if(await row.locator('th').count()!==1||await cells.count()!==3)throw new Error('Each comparative readout row must contain a log label, file name, common X and per-log Y values.');
+   if(await row.locator('th').count()!==1||await cells.count()!==4)throw new Error('Each comparative readout row must contain a log label, file name, common X/Y values and a graph-visibility action.');
    const rowValues=await cells.allInnerTexts();
    const expectedFile='run-'+(index===0?'a':'b')+'.csv';
    if(rowValues[0]!==expectedFile)throw new Error('Comparative readout row must retain the correct source filename: '+JSON.stringify(rowValues));
-   const numericReadings=rowValues.slice(1).map(value=>Number(String(value).replace(/[,_\s\u00a0]/g,'')));if(numericReadings.length!==2||numericReadings.some(value=>!Number.isFinite(value)))throw new Error('Each log readout row must show numeric X and Y values beneath their labelled headers (locale-formatted thousands separators are allowed): '+JSON.stringify(rowValues));
+   const numericReadings=rowValues.slice(1,3).map(value=>Number(String(value).replace(/[,_\s\u00a0]/g,'')));if(numericReadings.length!==2||numericReadings.some(value=>!Number.isFinite(value)))throw new Error('Each log readout row must show numeric X and Y values beneath their labelled headers (locale-formatted thousands separators are allowed): '+JSON.stringify(rowValues));
   }
   if(!(await page.locator('.propulsion-phase3-common-x-readout').innerText()).includes('COMMON X AXIS'))throw new Error('Comparative slider readout must identify the shared X-axis position.');
 
