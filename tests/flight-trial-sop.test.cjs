@@ -7,6 +7,7 @@ const html=read('index.html');
 const editor=read('js/flight-trial-sop-editor.js');
 const auth=read('js/yeti-auth.js');
 const sw=read('service-worker.js');
+const zoomLock=read('js/page-zoom-lock.js');
 const workflow=read('.github/workflows/publish-sop.yml');
 const manifest=JSON.parse(read('data/flight-trial-sop.json'));
 const status=JSON.parse(read('data/sop-publication-status.json'));
@@ -24,7 +25,7 @@ assert.match(html,/id="flightTrialSopPdfInput"/,'Admin must have a PDF reference
 assert.match(html,/id="flightTrialSopProceedBtn"/,'Proceed and Update action must exist');
 assert.match(html,/Proceed and Update in the Webpage/,'Proceed button label must match the approved wording');
 assert.doesNotMatch(html,/flightTrialSopSaveBtn|flightTrialSopCancelBtn|flightTrialSopDownloadBtn|flightTrialSopGithubUploadBtn/,'Old direct-edit, cancel and JSON-download controls must be removed');
-assert.match(html,/flight-trial-sop-editor\.js\?v=21/,'Current SOP script cache version must be loaded');
+assert.match(html,/flight-trial-sop-editor\.js\?v=22/,'Current SOP script cache version must be loaded');
 assert.match(html,/yeti-auth\.js\?v=2/,'Current authentication script cache version must be loaded');
 
 assert.match(editor,/doc\.schemaVersion===2&&doc\.pdfUrl&&doc\.revision/,'Shared reader must load a published PDF manifest');
@@ -49,6 +50,12 @@ assert.match(editor,/state==='published'/,'Published status is verified before s
 assert.match(editor,/PDFJS_MODULE/,'Shared PDF reading uses the pinned PDF.js module');
 assert.match(editor,/pdfjs\.getDocument\(\{url/,'Published PDF is rendered from the original document in-page');
 assert.match(editor,/yeti-sop-pdf-canvas/,'PDF pages are rendered to in-page canvases, not a browser PDF iframe');
+assert.match(editor,/touchstart/,'SOP reader supports two-finger touch start detection');
+assert.match(editor,/touchmove/,'SOP reader supports touch pinch zoom');
+assert.match(editor,/touchDistance\(event\.touches\)/,'SOP pinch gesture updates zoom from finger separation');
+assert.match(editor,/Math\.min\(3,/,'SOP reader has a bounded zoom-in limit');
+assert.match(editor,/scroller\.clientWidth/,'SOP page rendering is sized from the scroll viewport, not the constrained page host');
+assert.match(zoomLock,/flightTrialSopPdfViewer/,'Global page zoom lock exempts only the dedicated SOP reader from pinch blocking');
 assert.doesNotMatch(editor,/createElement\\('iframe'\\)/,'SOP reader must not rely on the browser or Adobe PDF iframe viewer');
 assert.match(editor,/window\.addEventListener\('focus',roleUpdate\)/,'Admin mode visibility is re-evaluated on window focus');
 assert.doesNotMatch(editor,/contentEditable|Save Changes|Personal Access Token|localStorage/,'No direct HTML editor or browser-stored GitHub credential remains');
@@ -66,7 +73,7 @@ assert.match(workflow,/state:'published'/,'Workflow exposes published status');
 assert.match(workflow,/state:'failed'/,'Workflow exposes failed status');
 assert.match(workflow,/contents: write/,'Workflow has the repository write permission needed for publication');
 
-assert.match(sw,/yeti-flight-trial-shell-v225/,'Service-worker shell cache is versioned for this release');
+assert.match(sw,/yeti-flight-trial-shell-v226/,'Service-worker shell cache is versioned for this release');
 assert.match(sw,/pdfjs-dist@4\.10\.38/,'Pinned PDF.js runtime is cached for repeat and offline reader loads');
 assert.match(sw,/SOP data is always network-first/,'SOP manifest and status use network-first fetching');
 assert.match(sw,/pathname\.endsWith\('\.pdf'\)/,'PDF files are not served from stale shell cache');
