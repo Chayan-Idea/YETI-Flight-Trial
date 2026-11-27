@@ -63,6 +63,7 @@
   let pinchStartDistance=0,pinchStartZoom=1,pinchFrame=0;
   const touchDistance=touches=>{const dx=touches[0].clientX-touches[1].clientX,dy=touches[0].clientY-touches[1].clientY;return Math.hypot(dx,dy);};
   scroller.addEventListener('touchstart',event=>{if(event.touches.length===2){pinchStartDistance=touchDistance(event.touches);pinchStartZoom=pdfZoom;}},{passive:true});
+  scroller.addEventListener('wheel',event=>{if(!event.ctrlKey)return;event.preventDefault();pdfZoom=Math.max(.65,Math.min(3,pdfZoom*Math.exp(-event.deltaY*.002)));zoomInfo.textContent=Math.round(pdfZoom*100)+'%';if(!pinchFrame)pinchFrame=requestAnimationFrame(()=>{pinchFrame=0;renderPdfPages().catch(readerError);});},{passive:false});
   scroller.addEventListener('touchmove',event=>{if(event.touches.length!==2||!pinchStartDistance)return;event.preventDefault();const next=Math.max(.65,Math.min(3,pinchStartZoom*touchDistance(event.touches)/pinchStartDistance));if(Math.abs(next-pdfZoom)<.012)return;pdfZoom=Math.round(next*100)/100;zoomInfo.textContent=Math.round(pdfZoom*100)+'%';if(!pinchFrame)pinchFrame=requestAnimationFrame(()=>{pinchFrame=0;renderPdfPages().catch(readerError);});},{passive:false});
   const endPinch=event=>{if(event.touches.length<2){pinchStartDistance=0;pinchStartZoom=pdfZoom;}};scroller.addEventListener('touchend',endPinch,{passive:true});scroller.addEventListener('touchcancel',endPinch,{passive:true});
   try{
