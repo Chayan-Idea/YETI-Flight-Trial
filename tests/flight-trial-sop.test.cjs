@@ -47,7 +47,11 @@ assert.match(editor,/setTimeout\(poll,5000\)/,'Publication status is checked eve
 assert.match(editor,/15\*60\*1000/,'Polling stops with a timeout rather than waiting indefinitely');
 assert.match(editor,/state==='failed'/,'Failed publication preserves the current published document');
 assert.match(editor,/state==='published'/,'Published status is verified before switching the reader');
-assert.match(editor,/PDFJS_MODULE/,'Shared PDF reading uses the pinned PDF.js module');
+assert.match(editor,/PDFJS_CDNS/,'Shared reader has primary and fallback PDF.js CDNs');
+assert.match(editor,/loadPdfJs/,'Shared reader retries PDF.js loading through an alternate CDN');
+assert.match(editor,/response\\.ok/,'Published PDF response is checked before rendering');
+assert.match(editor,/Reader diagnostic/,'Reader failure exposes useful diagnostics');
+assert.match(editor,/Retry in-page reader/,'Reader provides a retry action');
 assert.match(editor,/pdfjs\.getDocument\(\{data:pdfBytes/,'Published PDF bytes are validated and rendered in-page');
 assert.match(editor,/yeti-sop-pdf-canvas/,'PDF pages are rendered to in-page canvases, not a browser PDF iframe');
 assert.match(editor,/pointerdown/,'SOP reader uses pointer-based touch and pen gesture tracking');
