@@ -1,4 +1,5 @@
 const { chromium } = require('playwright');
+const { loginToYeti } = require('./helpers/yeti-login.cjs');
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -101,6 +102,8 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
     const response = await page.goto(baseUrl+'/', {waitUntil:'networkidle'});
     if (!response || !response.ok()) throw new Error('YETI application shell did not load.');
     await page.locator('#flightPreparationPanel').waitFor({state:'visible'});
+    // The app intentionally keeps all workspace controls inert until authentication succeeds.
+    await loginToYeti(page,'user');
 
     // Global refresh button must acknowledge the click and report completion after full page load.
     await page.locator('#refreshPageBtn').click();
