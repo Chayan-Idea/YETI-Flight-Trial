@@ -47,6 +47,7 @@
   });
   overlay.hidden = !locked;
   if (logoutButton) logoutButton.hidden = locked;
+  if (sessionLabel) sessionLabel.hidden = locked;
  }
  function lock(message) {
   session = null;
