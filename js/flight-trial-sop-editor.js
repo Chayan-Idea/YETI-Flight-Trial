@@ -1,6 +1,6 @@
 /* Central Flight Trial SOP editor.
- * Public read: raw GitHub content. Admin write: short-lived token entered per save.
- * The GitHub token is never persisted to storage, cookies, DOM attributes or the repository.
+ * Public read: raw GitHub content. Admin write: token retained in browser localStorage by explicit Admin choice.
+ * A saved token is sensitive browser data; use only on a trusted, private device.
  */
 (() => {
  'use strict';
@@ -8,6 +8,7 @@
  const REPO='YETI-Flight-Trial';
  const BRANCH='main';
  const FILE_PATH='data/flight-trial-sop.json';
+ const TOKEN_STORAGE_KEY='yetiFlightTrialSopGitHubPatV1';
  const RAW_URL='https://raw.githubusercontent.com/'+OWNER+'/'+REPO+'/'+BRANCH+'/'+FILE_PATH;
  const API_URL='https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+FILE_PATH;
  const panel=document.getElementById('flightTrialPreparationSopPanel');
@@ -82,7 +83,7 @@
   editBtn.setAttribute('aria-pressed',String(editing));
   actions.hidden=!editing;
   tokenPanel.hidden=true;
-  if(tokenInput)tokenInput.value='';
+  if(!editing&&tokenInput)tokenInput.value='';
   if(!editing)setDirty(false);
   if(editing)setStatus('Editing mode is active. Changes are not published until you save them.');
  }
@@ -119,6 +120,17 @@
    refreshInProgress=false;
   }
  }
+ function getSavedToken(){
+  try{return localStorage.getItem(TOKEN_STORAGE_KEY)||'';}catch(_){return '';}
+ }
+ function showSavedTokenForAdmin(){
+  if(document.body.dataset.yetiAuthRole==='admin'&&tokenInput)tokenInput.value=getSavedToken();
+ }
+ function forgetSavedToken(){
+  try{localStorage.removeItem(TOKEN_STORAGE_KEY);}catch(_){}
+  if(tokenInput)tokenInput.value='';
+  setStatus('Saved publishing token removed from this browser. Paste a token at the next publish.','success');
+ }
  function getAdminId(){
   try{
    const session=JSON.parse(sessionStorage.getItem('yetiTabAuthSessionV1')||'null');
@@ -135,8 +147,7 @@
   if(document.body.dataset.yetiAuthRole!=='admin')throw new Error('Admin session is required to publish SOP changes.');
   if(!centralLoaded)throw new Error('The latest central SOP could not be verified. Reload the page before editing or publishing.');
   const token=tokenInput.value.trim();
-  tokenInput.value='';
-  if(!token)throw new Error('Enter your GitHub fine-grained token to continue.');
+  if(!token)throw new Error('Paste your GitHub fine-grained token to continue.');
   const articleNow=getArticle();
   if(!articleNow)throw new Error('SOP editor is unavailable.');
   const cleanHtml=sanitizeHtml(articleNow.outerHTML);
@@ -159,6 +170,7 @@
    throw new Error('Could not verify the current SOP revision with GitHub (HTTP '+metaResponse.status+').');
   }
   const meta=await metaResponse.json();
+  try{localStorage.setItem(TOKEN_STORAGE_KEY,token);}catch(_){throw new Error('Browser storage is unavailable. Enable site storage to remember the publishing token, or use a private browser profile with storage enabled.');}
   const body={
    message:'Update Flight Trial SOP — revision '+nextDoc.revision,
    content:encodeBase64Unicode(JSON.stringify(nextDoc,null,2)),
@@ -233,6 +245,8 @@
  function updateRole(){
   const isAdmin=document.body.dataset.yetiAuthRole==='admin';
   tools.hidden=!isAdmin;
+  if(isAdmin)showSavedTokenForAdmin();
+  else if(tokenInput)tokenInput.value='';
   if(!isAdmin&&editing){
    if(dirty)renderDocument(savedHtml);
    setEditMode(false);
