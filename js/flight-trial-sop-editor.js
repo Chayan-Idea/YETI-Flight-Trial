@@ -347,6 +347,7 @@
    if(printWindow.closed)return;
    const bodyText=(printWindow.document.body?.innerText||printWindow.document.body?.textContent||'').replace(/\\s+/g,' ').trim();
    if(bodyText.length<100){setStatus('PDF export could not render the SOP content. Please refresh the SOP and try again.','error');printWindow.close();return;}
+   printStarted=true;
    const images=[...printWindow.document.images];
    Promise.all(images.map(img=>img.decode?img.decode().catch(()=>{}):Promise.resolve())).then(()=>{
     const doPrint=()=>{if(!printWindow.closed){printWindow.focus();printWindow.print();}};
