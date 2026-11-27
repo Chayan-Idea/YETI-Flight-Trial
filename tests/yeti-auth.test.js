@@ -1,0 +1,29 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+
+const html = fs.readFileSync('index.html', 'utf8');
+const js = fs.readFileSync('js/yeti-auth.js', 'utf8');
+const css = fs.readFileSync('css/yeti-auth.css', 'utf8');
+const sw = fs.readFileSync('service-worker.js', 'utf8');
+
+assert.match(html, /id="yetiAuthOverlay"/, 'login overlay must be present');
+assert.match(html, /data-yeti-auth-role="admin"/, 'Admin login choice must be present');
+assert.match(html, /data-yeti-auth-role="user"/, 'User login choice must be present');
+assert.match(html, /id="yetiLogoutBtn"/, 'logout control must be present');
+assert.match(html, /yeti-auth\.css\?v=1/, 'auth stylesheet must be versioned and loaded');
+assert.match(html, /yeti-auth\.js\?v=1/, 'auth script must be versioned and loaded');
+assert.match(js, /adminIds:\s*\['1297',\s*'1636'\]/, 'both Admin IDs must be configured');
+assert.match(js, /adminPassword:\s*'12971636'/, 'shared Admin password must be configured');
+assert.match(js, /userId:\s*'idea_YETI'/, 'User ID must be configured');
+assert.match(js, /userPassword:\s*'000000'/, 'User password must be configured');
+assert.match(js, /15\s*\*\s*60\s*\*\s*1000/, '15-minute inactivity interval must be configured');
+assert.match(js, /sessionStorage/, 'session must be scoped to the browser tab');
+assert.match(js, /visibilitychange/, 'inactive tabs must be checked when visibility changes');
+assert.match(js, /pointerdown.*keydown.*click.*scroll.*touchstart.*wheel/s, 'common user activity must reset the inactivity timer');
+assert.match(js, /CONFIG\.adminIds\.includes\(enteredId\)/, 'Admin IDs must be checked independently of User credentials');
+assert.match(js, /enteredId === CONFIG\.userId/, 'User credentials must be checked separately');
+assert.match(js, /role: selectedRole/, 'authenticated role must be retained for future role-specific features');
+assert.match(css, /body:not\(\.yeti-authenticated\)/, 'application must remain covered until authenticated');
+assert.match(sw, /'\.\/js\/yeti-auth\.js'/, 'auth script must be in offline shell');
+assert.match(sw, /'\.\/css\/yeti-auth\.css'/, 'auth stylesheet must be in offline shell');
+console.log('YETI authentication access-gate checks passed.');
