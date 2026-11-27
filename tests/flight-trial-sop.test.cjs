@@ -11,7 +11,8 @@ const workflow=read('.github/workflows/publish-sop.yml');
 const manifest=JSON.parse(read('data/flight-trial-sop.json'));
 const status=JSON.parse(read('data/sop-publication-status.json'));
 
-assert.equal(manifest.schemaVersion,1,'Initial central SOP remains a valid legacy fallback until first PDF publication');
+assert.ok([1,2].includes(manifest.schemaVersion),'Central SOP manifest must support legacy HTML or published PDF schema');
+if(manifest.schemaVersion===2){assert.ok(manifest.pdfUrl&&manifest.revision&&manifest.sourceSha256,'Published PDF manifest must include revision, URL and source checksum');}
 assert.ok(manifest.html.includes('flight-trial-reading-document'),'Legacy SOP reading document must remain available as first-publication fallback');
 assert.equal(status.schemaVersion,1,'Publication status schema remains supported');
 
@@ -62,7 +63,7 @@ assert.match(workflow,/state:'published'/,'Workflow exposes published status');
 assert.match(workflow,/state:'failed'/,'Workflow exposes failed status');
 assert.match(workflow,/contents: write/,'Workflow has the repository write permission needed for publication');
 
-assert.match(sw,/yeti-flight-trial-shell-v223/,'Service-worker shell cache is versioned for this release');
+assert.match(sw,/yeti-flight-trial-shell-v224/,'Service-worker shell cache is versioned for this release');
 assert.match(sw,/SOP data is always network-first/,'SOP manifest and status use network-first fetching');
 assert.match(sw,/pathname\.endsWith\('\.pdf'\)/,'PDF files are not served from stale shell cache');
 assert.match(sw,/flight-trial-sop-editor\.js/,'SOP script remains in the application shell');
