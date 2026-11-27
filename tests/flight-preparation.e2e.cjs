@@ -200,14 +200,16 @@ async function exportPreview(page, buttonSelector, expectedHeading, promptName) 
     if(await page.locator('#previewContent .yeti-pdf-preview-stage').evaluate(el=>el.style.zoom)!=='1.25')throw new Error('Daily PDF preview zoom-in control did not enlarge the preview.');
     if(await page.locator('#pdfPreviewZoomLevel').innerText()!=='125%')throw new Error('Daily PDF preview zoom percentage did not update.');
     // Pinch zoom must keep the PDF location beneath the moving finger midpoint fixed.
-    const focalCheck=await page.evaluate(()=>{
+    const focalCheck=await page.evaluate(async()=>{
       const el=document.querySelector('#previewContent'),stage=el.querySelector('.yeti-pdf-preview-stage');
       const rect=el.getBoundingClientRect(),cx=rect.left+el.clientWidth*.68,cy=rect.top+el.clientHeight*.42;
       const before={x:(el.scrollLeft+cx-rect.left)/Number(stage.style.zoom||1),y:(el.scrollTop+cy-rect.top)/Number(stage.style.zoom||1)};
       const oldCapture=el.setPointerCapture;el.setPointerCapture=()=>{};
+      const frame=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
       const send=(type,id,x,y)=>el.dispatchEvent(new PointerEvent(type,{pointerId:id,pointerType:'touch',clientX:x,clientY:y,bubbles:true,cancelable:true}));
-      send('pointerdown',41,cx-45,cy);send('pointerdown',42,cx+45,cy);
-      send('pointermove',41,cx-75,cy+8);send('pointermove',42,cx+75,cy+8);
+      send('pointerdown',41,cx-45,cy);send('pointerdown',42,cx+45,cy);await frame();
+      send('pointermove',41,cx-75,cy+8);await frame();
+      send('pointermove',42,cx+75,cy+8);await frame();
       const afterRect=el.getBoundingClientRect(),midX=cx,midY=cy+8,z=Number(stage.style.zoom||1);
       const after={x:(el.scrollLeft+midX-afterRect.left)/z,y:(el.scrollTop+midY-afterRect.top)/z};
       send('pointerup',41,cx-75,cy+8);send('pointerup',42,cx+75,cy+8);el.setPointerCapture=oldCapture;
