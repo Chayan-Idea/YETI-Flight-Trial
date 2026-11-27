@@ -105,7 +105,7 @@ jobs:
             schemaVersion: 1, revision: published.revision, state: 'published',
             message: 'Central SOP revision published successfully.',
             updatedAt: new Date().toISOString(), runId: process.env.GITHUB_RUN_ID
-          }, null, 2) + '\\n');
+          }, null, 2) + '\n');
           NODE
           git add data/flight-trial-sop.json data/sop-publication-status.json pending-sop/
           git commit -m "publish: update Flight Trial SOP"
@@ -125,7 +125,7 @@ jobs:
             schemaVersion: 1, revision, state: 'failed',
             message: 'GitHub Actions could not validate or publish the uploaded SOP JSON. Review this workflow run for details.',
             updatedAt: new Date().toISOString(), runId: process.env.GITHUB_RUN_ID
-          }, null, 2) + '\\n');
+          }, null, 2) + '\n');
           NODE
           git add data/sop-publication-status.json
           git commit -m "status: SOP publication failed"
