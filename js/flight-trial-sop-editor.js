@@ -20,8 +20,21 @@
   }throw last||Error('GitHub data unavailable');
  }
  const PDFJS_VERSION='4.10.38';
- const PDFJS_MODULE='https://cdn.jsdelivr.net/npm/pdfjs-dist@'+PDFJS_VERSION+'/build/pdf.min.mjs';
- const PDFJS_WORKER='https://cdn.jsdelivr.net/npm/pdfjs-dist@'+PDFJS_VERSION+'/build/pdf.worker.min.mjs';
+ const PDFJS_CDNS=[
+  {module:'https://cdn.jsdelivr.net/npm/pdfjs-dist@'+PDFJS_VERSION+'/build/pdf.min.mjs',worker:'https://cdn.jsdelivr.net/npm/pdfjs-dist@'+PDFJS_VERSION+'/build/pdf.worker.min.mjs'},
+  {module:'https://unpkg.com/pdfjs-dist@'+PDFJS_VERSION+'/build/pdf.min.mjs',worker:'https://unpkg.com/pdfjs-dist@'+PDFJS_VERSION+'/build/pdf.worker.min.mjs'}
+ ];
+ async function loadPdfJs(){
+  let lastError;
+  for(const cdn of PDFJS_CDNS){
+   try{
+    const pdfjs=await import(cdn.module);
+    pdfjs.GlobalWorkerOptions.workerSrc=cdn.worker;
+    return pdfjs;
+   }catch(error){lastError=error;console.warn('YETI SOP PDF.js CDN unavailable:',cdn.module,error);}
+  }
+  throw lastError||Error('PDF.js could not be loaded from the available CDNs.');
+ }
  let pdfDocument=null,pdfZoom=1,pdfRenderGeneration=0,pdfViewer=null,pdfPagesHost=null,pdfStage=null,pdfBaseWidth=0,pdfBaseHeight=0,pdfPageLabel=null,pdfZoomLabel=null,currentPdfPage=1;
  function makeReaderButton(label,action,aria){const b=document.createElement('button');b.type='button';b.className='btn alt';b.textContent=label;b.setAttribute('aria-label',aria||label);b.addEventListener('click',action);return b;}
  async function renderPdfPages(){
@@ -106,8 +119,13 @@
   scroller.addEventListener('pointerup',finishPointer);scroller.addEventListener('pointercancel',finishPointer);scroller.addEventListener('lostpointercapture',finishPointer);
   scroller.addEventListener('wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();zoomAround(pdfZoom*Math.exp(-e.deltaY*.002),e.clientX,e.clientY);},{passive:false});
   try{
-   const pdfjs=await import(PDFJS_MODULE);pdfjs.GlobalWorkerOptions.workerSrc=PDFJS_WORKER;
-   pdfDocument=await pdfjs.getDocument({url,withCredentials:false}).promise;
+   const pdfjs=await loadPdfJs();
+   // Avoid reusing a cached, partial response for a revisioned PDF URL.
+   const response=await fetch(url,{cache:'no-store',credentials:'omit'});
+   if(!response.ok)throw Error('Published PDF request failed: HTTP '+response.status+' '+response.statusText);
+   const pdfBytes=new Uint8Array(await response.arrayBuffer());
+   if(pdfBytes.length<5||String.fromCharCode(...pdfBytes.subarray(0,5))!=='%PDF-')throw Error('The published PDF response is not a valid PDF file.');
+   pdfDocument=await pdfjs.getDocument({data:pdfBytes, useWorkerFetch:false, isEvalSupported:false}).promise;
    pageInfo.textContent='1 / '+pdfDocument.numPages+' pages';
    await renderPdfPages();
    if('IntersectionObserver'in window){
@@ -119,9 +137,12 @@
  function readerError(error){
   const host=$('flightTrialSopDocumentHost');const message=document.createElement('div');message.className='yeti-sop-pdf-error';
   const title=document.createElement('strong');title.textContent='The in-page PDF reader could not load.';
-  const detail=document.createElement('p');detail.textContent='Check your internet connection and reload this page. The published SOP is safe; you can also open the original PDF directly.';
+  const detail=document.createElement('p');detail.textContent='The published PDF is still available. The browser could not initialize the in-page reader; use the direct PDF link below or retry the reader.';
+  const diagnostic=document.createElement('p');diagnostic.className='yeti-sop-pdf-diagnostic';diagnostic.textContent='Reader diagnostic: '+String(error?.message||error||'Unknown PDF reader error').slice(0,260);
   const link=document.createElement('a');link.href=publishedPdfUrl;link.target='_blank';link.rel='noopener';link.textContent='Open published SOP PDF';
-  message.append(title,detail,link);host.replaceChildren(message);console.error('YETI SOP PDF.js reader:',error);
+  const retry=makeReaderButton('Retry in-page reader',()=>showPdf(publishedPdfUrl),'Retry loading the SOP PDF reader');
+  message.append(title,detail,diagnostic,link,retry);host.replaceChildren(message);
+  console.error('YETI SOP PDF.js reader failed:',error);
  }
  async function loadPublished(){
   try{

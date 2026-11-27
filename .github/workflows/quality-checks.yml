@@ -64,7 +64,7 @@ jobs:
           test -f data/sop-publication-status.json
           grep -q 'id="flightTrialSopPdfInput"' index.html
           grep -q 'id="flightTrialSopProceedBtn"' index.html
-          grep -q 'flight-trial-sop-editor.js?v=24' index.html
+          grep -q 'flight-trial-sop-editor.js?v=25' index.html
           echo "Stage 1 PASS — implementation syntax and integration points are valid."
 
   stage-2:
@@ -99,7 +99,7 @@ jobs:
           ready=false
           for attempt in $(seq 1 24); do
             if curl --fail --silent --show-error --location "$SITE_URL" -o /tmp/yeti-live-index.html 2>/dev/null \
-              && grep -q 'flight-trial-sop-editor.js?v=24' /tmp/yeti-live-index.html \
+              && grep -q 'flight-trial-sop-editor.js?v=25' /tmp/yeti-live-index.html \
               && grep -q 'flight-trial-sop-reader.css?v=4' /tmp/yeti-live-index.html; then
               ready=true
               break
@@ -108,13 +108,15 @@ jobs:
             sleep 5
           done
           test "$ready" = true
-          curl --fail --silent --show-error --location "${SITE_URL}js/flight-trial-sop-editor.js?v=24" -o /tmp/yeti-sop-editor.js
+          curl --fail --silent --show-error --location "${SITE_URL}js/flight-trial-sop-editor.js?v=25" -o /tmp/yeti-sop-editor.js
           curl --fail --silent --show-error --location "${SITE_URL}css/flight-trial-sop-reader.css?v=4" -o /tmp/yeti-sop-reader.css
           curl --fail --silent --show-error --location "${SITE_URL}service-worker.js" -o /tmp/yeti-service-worker.js
-          grep -q 'PDFJS_MODULE' /tmp/yeti-sop-editor.js
+          grep -q 'PDFJS_CDNS' /tmp/yeti-sop-editor.js
+          grep -q 'loadPdfJs' /tmp/yeti-sop-editor.js
+          grep -q 'Reader diagnostic' /tmp/yeti-sop-editor.js
           grep -q 'pdfjs.getDocument' /tmp/yeti-sop-editor.js
           grep -q 'yeti-sop-pdf-canvas' /tmp/yeti-sop-reader.css
-          grep -q 'yeti-flight-trial-shell-v228' /tmp/yeti-service-worker.js
+          grep -q 'yeti-flight-trial-shell-v229' /tmp/yeti-service-worker.js
           grep -q 'pdfjs-dist@4.10.38' /tmp/yeti-service-worker.js
           echo "Stage 3 PASS — the standard GitHub Pages deployment is live and serves the PDF.js SOP reader, stylesheet and pinned runtime cache."
           echo "- Live URL: $SITE_URL" >> "$GITHUB_STEP_SUMMARY"
