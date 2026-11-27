@@ -1,8 +1,9 @@
 {
   "schemaVersion": 1,
-  "revision": "20261127-132840",
-  "state": "published",
-  "message": "Central SOP revision published successfully.",
-  "updatedAt": "2026-11-27T13:30:02.111Z",
-  "runId": "46007597211"
+  "revision": "pending",
+  "packageSha256": "d1b12aa101978f605107c47db358fde415bf816dfcea8efd0fa37152b86b1003",
+  "state": "validating",
+  "message": "GitHub detected the SOP JSON package. Validating package metadata, PDF signature, checksum and document structure.",
+  "updatedAt": "2026-11-27T14:50:57.183Z",
+  "runId": "46019581918"
 }
